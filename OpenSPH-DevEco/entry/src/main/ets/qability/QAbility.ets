@@ -18,6 +18,27 @@ export default class QAbility extends UIAbility {
   // 由 native 侧 OpenSPH 启动时用 POSIX mkdir 复制补齐。）
   private _catalogBuf: Uint8Array = new Uint8Array(0);
 
+  // 把 rawfile 里的演示 session（CLI 用）拷贝到沙箱 filesDir，native CLI
+  // 即可 headless 运行：-p <filesDir>/demo.sph -n simulation
+  private async copyCliSessions(): Promise<void> {
+    try {
+      const ctx = this.context;
+      const rm = ctx.resourceManager;
+      const names = ['demo.sph'];
+      for (const name of names) {
+        const buf = await rm.getRawFileContent(name);
+        const dest = `${ctx.filesDir}/${name}`;
+        const file = fs.openSync(dest, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+        fs.writeSync(file.fd, buf.buffer as ArrayBuffer);
+        fs.closeSync(file);
+        hilog.info(LOG_DOMAIN, LOG_TAG, 'QAbility: copied rawfile %{public}s (%{public}d bytes)', name, buf.byteLength);
+      }
+    } catch (e) {
+      const be = e as BusinessError;
+      hilog.error(LOG_DOMAIN, LOG_TAG, 'QAbility: copy cli sessions failed: code=%{public}d msg=%{public}s', be.code, be.message);
+    }
+  }
+
   async copyI18nCatalogs(): Promise<void> {
     try {
       const ctx = this.context;
@@ -36,11 +57,55 @@ export default class QAbility extends UIAbility {
     }
   }
 
+  // 把启动参数里的 CLI 命令写入沙箱 arg 文件。native OpenSPH 启动时检测到
+  // 该文件（或 OSPH_CLI_ARGS 环境变量）即进入 headless 命令行模式。
+  // 结构化解构 want.parameters（避免命令行空格/引号问题）：
+  //   --ps cli 1 --ps project <session.sph> --ps node <nodeName>
+  // 也兼容 --ps cli "<完整命令>"（含空格需正确引号）。
+  private setupCliArgs(want: Want): void {
+    try {
+      const params = want.parameters as Record<string, Object>;
+      const cliOn = params?.['cli'];
+      if (cliOn === undefined || cliOn === null || String(cliOn) === '0' || String(cliOn) === 'false') {
+        return;
+      }
+      let cmd = '';
+      const project = params?.['project'];
+      const node = params?.['node'];
+      if (project !== undefined && project !== null && String(project).length > 0) {
+        cmd += ` -p ${String(project)}`;
+      }
+      if (node !== undefined && node !== null && String(node).length > 0) {
+        cmd += ` -n ${String(node)}`;
+      }
+      if (cmd.trim().length === 0) {
+        // 兼容直接传整条命令字符串
+        cmd = String(cliOn);
+      }
+      if (cmd.trim().length === 0) {
+        return;
+      }
+      const ctx = this.context;
+      const dest = `${ctx.filesDir}/opensph_cli.txt`;
+      const file = fs.openSync(dest, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
+      fs.writeSync(file.fd, cmd);
+      fs.closeSync(file);
+      hilog.info(LOG_DOMAIN, LOG_TAG, 'QAbility: cli args written: %{public}s', cmd);
+    } catch (e) {
+      const be = e as BusinessError;
+      hilog.error(LOG_DOMAIN, LOG_TAG, 'QAbility: setup cli args failed: code=%{public}d msg=%{public}s', be.code, be.message);
+    }
+  }
+
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
     hilog.info(LOG_DOMAIN, LOG_TAG, 'QAbility::onCreate(): want.parameters: ' + JSON.stringify(want.parameters));
     QAbilityStage.initQtAppContextIfNeeded(this.context.getApplicationContext());
     // 尽早部署 i18n 词库，OpenSPH native 侧会轮询等待其就绪
     this.copyI18nCatalogs();
+    // 部署 CLI 演示 session 文件（headless 模式使用）
+    this.copyCliSessions();
+    // 部署 CLI 命令行参数（headless 模式入口）
+    this.setupCliArgs(want);
     qpa.handleAbilityOnCreate(this, want, launchParam);
   }
 

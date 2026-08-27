@@ -59,9 +59,15 @@ index 349b603..a483d69 100644
  NAMESPACE_SPH_BEGIN
  
 diff --git a/gui/launcherGui/CMakeLists.txt b/gui/launcherGui/CMakeLists.txt
-index 8abb8b1..015b4da 100644
+index 8abb8b1..e997237 100644
 --- a/gui/launcherGui/CMakeLists.txt
 +++ b/gui/launcherGui/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-set(LAUNCHERGUI_SOURCES LauncherGui.h LauncherGui.cpp)
++set(LAUNCHERGUI_SOURCES LauncherGui.h LauncherGui.cpp OhosCli.h OhosCli.cpp)
+ 
+ if(WIN32)
+ 	add_executable(opensph WIN32 ${LAUNCHERGUI_SOURCES})
 @@ -9,3 +9,23 @@ endif()
  target_include_directories(opensph PRIVATE .. ../../core)
  
@@ -87,11 +93,12 @@ index 8abb8b1..015b4da 100644
 +  "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot/usr/lib/aarch64-linux-ohos/libhilog_ndk.z.so"
 +)
 diff --git a/gui/launcherGui/LauncherGui.cpp b/gui/launcherGui/LauncherGui.cpp
-index 5455a17..2cedbbb 100644
+index 5455a17..7c58da8 100644
 --- a/gui/launcherGui/LauncherGui.cpp
 +++ b/gui/launcherGui/LauncherGui.cpp
-@@ -1,16 +1,164 @@
+@@ -1,16 +1,207 @@
  #include "gui/launcherGui/LauncherGui.h"
++#include "gui/launcherGui/OhosCli.h"
  #include "gui/windows/MainWindow.h"
  #include <wx/msgdlg.h>
 +#include <wx/log.h>
@@ -101,6 +108,7 @@ index 5455a17..2cedbbb 100644
 +#include <unistd.h>
 +#include <sys/stat.h>
 +#include <cstdio>
++#include <vector>
 +#include <hilog/log.h>
  
  IMPLEMENT_APP(Sph::App);
@@ -252,10 +260,51 @@ index 5455a17..2cedbbb 100644
 +    // i18n: initialize translations before any window/string is created.
 +    SetupI18n();
 +
++    // -----------------------------------------------------------------------
++    // Headless CLI mode: if a CLI command is provided (via the OSPH_CLI_ARGS
++    // env var or the sandbox arg file written by the ArkTS shell), run the
++    // requested OpenSPH job tree without opening any window and exit with the
++    // CLI exit code. Output goes to hilog (see OhosCli.cpp).
++    // -----------------------------------------------------------------------
++    {
++        const char* cliFile = "/data/storage/el2/base/haps/entry/files/opensph_cli.txt";
++        String cliArgs;
++        if (const char* env = getenv("OSPH_CLI_ARGS")) {
++            cliArgs = String::fromUtf8(env);
++        } else {
++            for (int i = 0; i < 40; ++i) { // wait for the ArkTS shell to write the arg file (~2s max)
++                if (access(cliFile, R_OK) == 0) {
++                    FILE* f = fopen(cliFile, "rb");
++                    if (f) {
++                        fseek(f, 0, SEEK_END);
++                        const long len = ftell(f);
++                        fseek(f, 0, SEEK_SET);
++                        std::vector<char> buf(len + 1, 0);
++                        if (len > 0 && fread(buf.data(), 1, len, f) > 0) {
++                            cliArgs = String::fromUtf8(buf.data());
++                        }
++                        fclose(f);
++                        break;
++                    }
++                }
++                usleep(50 * 1000);
++            }
++        }
++        if (!cliArgs.empty()) {
++            // one-shot semantics: consume and delete the arg file so a later
++            // GUI start (without CLI args) does not re-trigger headless mode.
++            unlink(cliFile);
++            OSPH_TRACE("cli: executing headless command: %s", cliArgs.toUtf8().cstr());
++            const int exitCode = runCliCommand(cliArgs);
++            OSPH_TRACE("cli: finished with exit code %d", exitCode);
++            std::exit(exitCode);
++        }
++    }
++
      this->Connect(MAIN_LOOP_TYPE, MainLoopEventHandler(App::processEvents));
  
      if (wxTheApp->argc > 1) {
-@@ -21,6 +169,16 @@ bool App::OnInit() {
+@@ -21,6 +212,16 @@ bool App::OnInit() {
      }
      window->SetAutoLayout(true);
      window->Show();
