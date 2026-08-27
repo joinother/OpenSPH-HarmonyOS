@@ -87,10 +87,10 @@ index 8abb8b1..015b4da 100644
 +  "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot/usr/lib/aarch64-linux-ohos/libhilog_ndk.z.so"
 +)
 diff --git a/gui/launcherGui/LauncherGui.cpp b/gui/launcherGui/LauncherGui.cpp
-index 5455a17..d04defe 100644
+index 5455a17..2cedbbb 100644
 --- a/gui/launcherGui/LauncherGui.cpp
 +++ b/gui/launcherGui/LauncherGui.cpp
-@@ -1,16 +1,154 @@
+@@ -1,16 +1,164 @@
  #include "gui/launcherGui/LauncherGui.h"
  #include "gui/windows/MainWindow.h"
  #include <wx/msgdlg.h>
@@ -218,6 +218,16 @@ index 5455a17..d04defe 100644
 +        wxGetTranslation("&Project").utf8_string().c_str());
 +    OSPH_TRACE("i18n: probe 'Material' -> '%s'",
 +        wxGetTranslation("Material").utf8_string().c_str());
++    OSPH_TRACE("i18n: probe 'New session' -> '%s'",
++        wxGetTranslation("New session").utf8_string().c_str());
++    OSPH_TRACE("i18n: probe 'Batch run' -> '%s'",
++        wxGetTranslation("Batch run").utf8_string().c_str());
++    OSPH_TRACE("i18n: probe 'Visualization settings' -> '%s'",
++        wxGetTranslation("Visualization settings").utf8_string().c_str());
++    OSPH_TRACE("i18n: probe 'Render setup' -> '%s'",
++        wxGetTranslation("Render setup").utf8_string().c_str());
++    OSPH_TRACE("i18n: probe 'Cancel' -> '%s'",
++        wxGetTranslation("Cancel").utf8_string().c_str());
 +
 +    // Never let the locale change numeric/date formatting: the simulation core
 +    // relies on C-style "%g"/"%f" output (e.g. "2700", "2.67e+10").
@@ -245,7 +255,7 @@ index 5455a17..d04defe 100644
      this->Connect(MAIN_LOOP_TYPE, MainLoopEventHandler(App::processEvents));
  
      if (wxTheApp->argc > 1) {
-@@ -21,6 +159,16 @@ bool App::OnInit() {
+@@ -21,6 +169,16 @@ bool App::OnInit() {
      }
      window->SetAutoLayout(true);
      window->Show();
@@ -305,6 +315,213 @@ index d463485..383e661 100644
 +#endif
 +
  NAMESPACE_SPH_END
+diff --git a/gui/windows/BatchDialog.cpp b/gui/windows/BatchDialog.cpp
+index 2e7366e..8b2186b 100644
+--- a/gui/windows/BatchDialog.cpp
++++ b/gui/windows/BatchDialog.cpp
+@@ -2,6 +2,7 @@
+ #include "gui/windows/Widgets.h"
+ #include "run/Config.h"
+ #include <wx/button.h>
++#include <wx/intl.h>
+ #include <wx/menu.h>
+ #include <wx/msgdlg.h>
+ #include <wx/sizer.h>
+@@ -188,12 +189,12 @@ private:
+ 
+ public:
+     ParamSelectDialog(wxWindow* parent, ArrayView<const SharedPtr<JobNode>> nodes)
+-        : wxDialog(parent, wxID_ANY, "Select parameter")
++        : wxDialog(parent, wxID_ANY, _("Select parameter"))
+         , nodes(nodes) {
+         wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+ 
+         wxBoxSizer* nodeSizer = new wxBoxSizer(wxHORIZONTAL);
+-        nodeSizer->Add(new wxStaticText(this, wxID_ANY, "Node:", wxDefaultPosition, wxSize(120, -1)));
++        nodeSizer->Add(new wxStaticText(this, wxID_ANY, _("Node:"), wxDefaultPosition, wxSize(120, -1)));
+         nodeBox = new ComboBox(this, "");
+         wxArrayString items;
+         for (const SharedPtr<JobNode>& node : nodes) {
+@@ -205,7 +206,7 @@ public:
+         sizer->Add(nodeSizer);
+ 
+         wxBoxSizer* paramSizer = new wxBoxSizer(wxHORIZONTAL);
+-        paramSizer->Add(new wxStaticText(this, wxID_ANY, "Parameter:", wxDefaultPosition, wxSize(120, -1)));
++        paramSizer->Add(new wxStaticText(this, wxID_ANY, _("Parameter:"), wxDefaultPosition, wxSize(120, -1)));
+         paramBox = new ComboBox(this, "");
+         paramSizer->Add(paramBox);
+         sizer->Add(paramSizer);
+@@ -221,10 +222,10 @@ public:
+         });
+ 
+         wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+-        wxButton* okButton = new wxButton(this, wxID_ANY, "OK");
++        wxButton* okButton = new wxButton(this, wxID_ANY, _("OK"));
+         okButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& UNUSED(evt)) { this->EndModal(wxID_OK); });
+         buttonSizer->Add(okButton);
+-        wxButton* cancelButton = new wxButton(this, wxID_ANY, "Cancel");
++        wxButton* cancelButton = new wxButton(this, wxID_ANY, _("Cancel"));
+         cancelButton->Bind(
+             wxEVT_BUTTON, [this](wxCommandEvent& UNUSED(evt)) { this->EndModal(wxID_CANCEL); });
+         buttonSizer->Add(cancelButton);
+@@ -247,18 +248,18 @@ public:
+ };
+ 
+ BatchDialog::BatchDialog(wxWindow* parent, const BatchManager& mgr, Array<SharedPtr<JobNode>>&& nodes)
+-    : wxDialog(parent, wxID_ANY, "Batch run", wxDefaultPosition, wxSize(800, 530))
++    : wxDialog(parent, wxID_ANY, _("Batch run"), wxDefaultPosition, wxSize(800, 530))
+     , manager(mgr.clone())
+     , nodes(std::move(nodes)) {
+ 
+     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+ 
+     wxBoxSizer* controlsSizer = new wxBoxSizer(wxHORIZONTAL);
+-    controlsSizer->Add(new wxStaticText(this, wxID_ANY, "Run count:"));
++    controlsSizer->Add(new wxStaticText(this, wxID_ANY, _("Run count:")));
+     wxSpinCtrl* runSpinner = new wxSpinCtrl(this, wxID_ANY);
+     runSpinner->SetValue(manager.getRunCount());
+     controlsSizer->Add(runSpinner);
+-    controlsSizer->Add(new wxStaticText(this, wxID_ANY, "Parameter count:"));
++    controlsSizer->Add(new wxStaticText(this, wxID_ANY, _("Parameter count:")));
+     wxSpinCtrl* paramSpinner = new wxSpinCtrl(this, wxID_ANY);
+     paramSpinner->SetValue(manager.getParamCount());
+     controlsSizer->Add(paramSpinner);
+@@ -275,10 +276,10 @@ BatchDialog::BatchDialog(wxWindow* parent, const BatchManager& mgr, Array<Shared
+     sizer->Add(grid);
+ 
+     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+-    wxButton* okButton = new wxButton(this, wxID_ANY, "OK");
++    wxButton* okButton = new wxButton(this, wxID_ANY, _("OK"));
+     okButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& UNUSED(evt)) { this->EndModal(wxID_OK); });
+     buttonSizer->Add(okButton);
+-    wxButton* closeButton = new wxButton(this, wxID_ANY, "Cancel");
++    wxButton* closeButton = new wxButton(this, wxID_ANY, _("Cancel"));
+     closeButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& UNUSED(evt)) { this->EndModal(wxID_CANCEL); });
+     buttonSizer->Add(closeButton);
+     sizer->Add(buttonSizer);
+@@ -286,7 +287,7 @@ BatchDialog::BatchDialog(wxWindow* parent, const BatchManager& mgr, Array<Shared
+     grid->Bind(wxEVT_GRID_LABEL_LEFT_DCLICK, [this](wxGridEvent& evt) {
+         const bool isRow = evt.GetCol() == -1;
+         if (isRow) {
+-            wxTextEntryDialog* dialog = new wxTextEntryDialog(this, "Enter name of the run");
++            wxTextEntryDialog* dialog = new wxTextEntryDialog(this, _("Enter name of the run"));
+             dialog->SetValue(grid->GetRowLabelValue(evt.GetRow()));
+             if (dialog->ShowModal() == wxID_OK) {
+                 const wxString value = dialog->GetValue();
+@@ -308,8 +309,8 @@ BatchDialog::BatchDialog(wxWindow* parent, const BatchManager& mgr, Array<Shared
+         }
+ 
+         wxMenu menu;
+-        menu.Append(0, "Duplicate");
+-        menu.Append(1, "Delete");
++        menu.Append(0, _("Duplicate"));
++        menu.Append(1, _("Delete"));
+ 
+         const Size rowIdx = evt.GetRow();
+         menu.Bind(wxEVT_COMMAND_MENU_SELECTED, [this, rowIdx](wxCommandEvent& evt) {
+diff --git a/gui/windows/GuiSettingsDialog.cpp b/gui/windows/GuiSettingsDialog.cpp
+index ca60f78..4d629ed 100644
+--- a/gui/windows/GuiSettingsDialog.cpp
++++ b/gui/windows/GuiSettingsDialog.cpp
+@@ -8,6 +8,7 @@
+ #include <wx/button.h>
+ #include <wx/checkbox.h>
+ #include <wx/combobox.h>
++#include <wx/intl.h>
+ #include <wx/sizer.h>
+ #include <wx/statbox.h>
+ #include <wx/stattext.h>
+@@ -31,16 +32,16 @@ const static FlatMap<PlotEnum, wxString> sPlotTypes(ELEMENTS_UNIQUE,
+     });
+ 
+ GuiSettingsDialog::GuiSettingsDialog(wxWindow* parent)
+-    : wxDialog(parent, wxID_ANY, "Visualization settings", wxDefaultPosition, wxSize(500, 340)) {
++    : wxDialog(parent, wxID_ANY, _("Visualization settings"), wxDefaultPosition, wxSize(500, 340)) {
+     const Project& project = Project::getInstance();
+     const GuiSettings& gui = project.getGuiSettings();
+ 
+     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+ 
+-    wxStaticBoxSizer* renderBox = new wxStaticBoxSizer(wxVERTICAL, this, "Rendering");
++    wxStaticBoxSizer* renderBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Rendering"));
+ 
+     wxBoxSizer* colorizerSizer = new wxBoxSizer(wxHORIZONTAL);
+-    wxStaticText* colorizerText = new wxStaticText(renderBox->GetStaticBox(), wxID_ANY, "Default quantity");
++    wxStaticText* colorizerText = new wxStaticText(renderBox->GetStaticBox(), wxID_ANY, _("Default quantity"));
+     colorizerSizer->Add(colorizerText, 0, wxALIGN_CENTER_VERTICAL);
+     colorizerSizer->AddStretchSpacer(1);
+     colorizerBox = new ComboBox(renderBox->GetStaticBox(), "");
+@@ -57,7 +58,7 @@ GuiSettingsDialog::GuiSettingsDialog(wxWindow* parent)
+     renderBox->Add(colorizerSizer);
+ 
+     wxBoxSizer* subsamplingSizer = new wxBoxSizer(wxHORIZONTAL);
+-    wxStaticText* subsamplingText = new wxStaticText(renderBox->GetStaticBox(), wxID_ANY, "Subsampling iterations");
++    wxStaticText* subsamplingText = new wxStaticText(renderBox->GetStaticBox(), wxID_ANY, _("Subsampling iterations"));
+     subsamplingSizer->Add(subsamplingText, 0, wxALIGN_CENTER_VERTICAL);
+     subsamplingSpinner = new wxSpinCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(100, -1));
+     subsamplingSizer->AddStretchSpacer(100);
+@@ -67,13 +68,13 @@ GuiSettingsDialog::GuiSettingsDialog(wxWindow* parent)
+     sizer->Add(renderBox, 1, wxEXPAND);
+ 
+ 
+-    wxStaticBoxSizer* plotBox = new wxStaticBoxSizer(wxVERTICAL, this, "Plots");
++    wxStaticBoxSizer* plotBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Plots"));
+     wxGridSizer* plotGrid = new wxGridSizer(2, 1, 1);
+     const Flags<PlotEnum> plotFlags = gui.getFlags<PlotEnum>(GuiSettingsId::PLOT_INTEGRALS);
+     wxCheckBox* sfdCheck1 = nullptr;
+     wxCheckBox* sfdCheck2 = nullptr;
+     for (const auto& p : sPlotTypes) {
+-        wxCheckBox* check = new wxCheckBox(plotBox->GetStaticBox(), wxID_ANY, p.value());
++        wxCheckBox* check = new wxCheckBox(plotBox->GetStaticBox(), wxID_ANY, wxGetTranslation(p.value()));
+         check->SetValue(plotFlags.has(p.key()));
+         if (p.key() == PlotEnum::CURRENT_SFD) {
+             sfdCheck1 = check;
+@@ -87,7 +88,7 @@ GuiSettingsDialog::GuiSettingsDialog(wxWindow* parent)
+     sizer->Add(plotBox, 1, wxEXPAND);
+ 
+     wxBoxSizer* periodSizer = new wxBoxSizer(wxHORIZONTAL);
+-    wxStaticText* periodText = new wxStaticText(plotBox->GetStaticBox(), wxID_ANY, "Initial period [s]");
++    wxStaticText* periodText = new wxStaticText(plotBox->GetStaticBox(), wxID_ANY, _("Initial period [s]"));
+     periodSizer->Add(periodText, 0, wxALIGN_CENTER_VERTICAL);
+     const Float period = gui.get<Float>(GuiSettingsId::PLOT_INITIAL_PERIOD);
+     periodCtrl = new FloatTextCtrl(plotBox->GetStaticBox(), period, Interval(0._f, LARGE));
+@@ -96,7 +97,7 @@ GuiSettingsDialog::GuiSettingsDialog(wxWindow* parent)
+     plotBox->Add(periodSizer, 1, wxEXPAND);
+ 
+     wxBoxSizer* overplotSizer = new wxBoxSizer(wxHORIZONTAL);
+-    wxStaticText* overplotText = new wxStaticText(plotBox->GetStaticBox(), wxID_ANY, "Reference SFD");
++    wxStaticText* overplotText = new wxStaticText(plotBox->GetStaticBox(), wxID_ANY, _("Reference SFD"));
+     overplotSizer->Add(overplotText, 0, wxALIGN_CENTER_VERTICAL);
+     const String overplotSfd = gui.get<String>(GuiSettingsId::PLOT_OVERPLOT_SFD);
+     overplotPath = new wxTextCtrl(plotBox->GetStaticBox(), wxID_ANY, overplotSfd.toUnicode());
+@@ -104,15 +105,15 @@ GuiSettingsDialog::GuiSettingsDialog(wxWindow* parent)
+     overplotPath->SetMinSize(wxSize(250, -1));
+     overplotSizer->AddStretchSpacer(1);
+     overplotSizer->Add(overplotPath, 0, wxALIGN_CENTER_VERTICAL);
+-    wxButton* overplotBrowse = new wxButton(plotBox->GetStaticBox(), wxID_ANY, "Select...");
++    wxButton* overplotBrowse = new wxButton(plotBox->GetStaticBox(), wxID_ANY, _("Select..."));
+     overplotBrowse->Enable(plotFlags.hasAny(PlotEnum::CURRENT_SFD, PlotEnum::PREDICTED_SFD));
+     overplotSizer->Add(overplotBrowse, 0, wxALIGN_CENTER_VERTICAL);
+     plotBox->Add(overplotSizer, 1, wxEXPAND);
+ 
+     sizer->AddSpacer(8);
+     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+-    wxButton* okButton = new wxButton(this, wxID_ANY, "OK");
+-    wxButton* cancelButton = new wxButton(this, wxID_ANY, "Cancel");
++    wxButton* okButton = new wxButton(this, wxID_ANY, _("OK"));
++    wxButton* cancelButton = new wxButton(this, wxID_ANY, _("Cancel"));
+     buttonSizer->AddStretchSpacer(1);
+     buttonSizer->Add(okButton);
+     buttonSizer->Add(cancelButton);
+@@ -130,7 +131,7 @@ GuiSettingsDialog::GuiSettingsDialog(wxWindow* parent)
+     sfdCheck2->Bind(wxEVT_CHECKBOX, enableOverplot);
+ 
+     overplotBrowse->Bind(wxEVT_BUTTON, [this](wxCommandEvent& UNUSED(evt)) {
+-        Optional<Path> path = doOpenFileDialog("Select reference SFD", {});
++        Optional<Path> path = doOpenFileDialog(String(_("Select reference SFD").wc_str()), {});
+         if (path) {
+             overplotPath->SetValue(path->string().toUnicode());
+         }
 diff --git a/gui/windows/MainWindow.cpp b/gui/windows/MainWindow.cpp
 index 2b3b2eb..3676af9 100644
 --- a/gui/windows/MainWindow.cpp
@@ -610,7 +827,7 @@ index 2b3b2eb..3676af9 100644
          if (projectPath.empty()) {
              this->saveAs();
 diff --git a/gui/windows/NodePage.cpp b/gui/windows/NodePage.cpp
-index a796c1b..336b973 100644
+index a796c1b..6d82495 100644
 --- a/gui/windows/NodePage.cpp
 +++ b/gui/windows/NodePage.cpp
 @@ -28,11 +28,22 @@
@@ -757,7 +974,35 @@ index a796c1b..336b973 100644
      grid->Bind(wxEVT_PG_CHANGED, [this, callbacks](wxPropertyGridEvent& evt) {
          wxPGProperty* prop = evt.GetProperty();
          if (!propertyEntryMap.contains(prop)) {
-@@ -2140,6 +2167,82 @@ void NodeWindow::updateProperties() {
+@@ -1855,21 +1882,22 @@ NodeWindow::NodeWindow(wxWindow* parent, SharedPtr<INodeManagerCallbacks> callba
+         const String& cat = desc->category();
+         if (Optional<wxTreeItemId&> id = categoryItemIdMap.tryGet(cat)) {
+             jobView->AppendItem(
+-                id.value(), desc->className().toUnicode(), -1, -1, new JobTreeData(desc.get()));
++                id.value(), wxGetTranslation(desc->className().toUnicode()), -1, -1, new JobTreeData(desc.get()));
+         } else {
+-            wxTreeItemId catId = jobView->AppendItem(rootId, cat.toUnicode());
+-            jobView->AppendItem(catId, desc->className().toUnicode(), -1, -1, new JobTreeData(desc.get()));
++            wxTreeItemId catId = jobView->AppendItem(rootId, wxGetTranslation(cat.toUnicode()));
++            jobView->AppendItem(
++                catId, wxGetTranslation(desc->className().toUnicode()), -1, -1, new JobTreeData(desc.get()));
+             categoryItemIdMap.insert(cat, catId);
+         }
+     }
+ 
+-    wxTreeItemId presetsId = jobView->AppendItem(rootId, "presets");
++    wxTreeItemId presetsId = jobView->AppendItem(rootId, wxGetTranslation("presets"));
+     std::map<wxTreeItemId, Presets::ExtId> presetsIdMap;
+     auto addId = [&](const auto id) {
+         String name = EnumMap::toString(id);
+         name.replaceAll("_", " ");
+ 
+-        wxTreeItemId itemId = jobView->AppendItem(presetsId, name.toUnicode());
++        wxTreeItemId itemId = jobView->AppendItem(presetsId, wxGetTranslation(name.toUnicode()));
+         presetsIdMap[itemId] = id;
+     };
+ 
+@@ -2140,6 +2168,82 @@ void NodeWindow::updateProperties() {
  
      grid->RestoreEditableState(states, wxPropertyGrid::ScrollPosState);
      aui->Update(); // selecting a node may hide the palette editor
@@ -840,3 +1085,258 @@ index a796c1b..336b973 100644
  }
  
  void NodeWindow::updateEnabled(wxPropertyGrid* grid) {
+diff --git a/gui/windows/RenderSetup.cpp b/gui/windows/RenderSetup.cpp
+index d35758b..9c66a84 100644
+--- a/gui/windows/RenderSetup.cpp
++++ b/gui/windows/RenderSetup.cpp
+@@ -3,6 +3,7 @@
+ #include "io/FileSystem.h"
+ #include <wx/button.h>
+ #include <wx/filepicker.h>
++#include <wx/intl.h>
+ #include <wx/msgdlg.h>
+ #include <wx/radiobut.h>
+ #include <wx/sizer.h>
+@@ -12,56 +13,56 @@
+ NAMESPACE_SPH_BEGIN
+ 
+ RenderSetup::RenderSetup(wxWindow* parent)
+-    : wxDialog(parent, wxID_ANY, "Render setup") {
++    : wxDialog(parent, wxID_ANY, _("Render setup")) {
+     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+ 
+-    sizer->Add(new wxStaticText(this, wxID_ANY, "First data file"));
++    sizer->Add(new wxStaticText(this, wxID_ANY, _("First data file")));
+     wxFilePickerCtrl* dataFiles = new wxFilePickerCtrl(this,
+         wxID_ANY,
+         {},
+-        "Select first data file",
++        _("Select first data file"),
+         wxFileSelectorDefaultWildcardStr,
+         wxDefaultPosition,
+         wxDefaultSize,
+         wxFLP_OPEN | wxFLP_USE_TEXTCTRL | wxFLP_FILE_MUST_EXIST);
+     dataFiles->SetToolTip(
+-        "Select the first file your simulation created. Simulation files can be set up in the 'Output' "
+-        "category of the simulation node. Use a 'data file' or a 'state file' for rendering.");
++        _("Select the first file your simulation created. Simulation files can be set up in the 'Output' "
++          "category of the simulation node. Use a 'data file' or a 'state file' for rendering."));
+     sizer->Add(dataFiles, 0, wxEXPAND);
+ 
+-    sizer->Add(new wxStaticText(this, wxID_ANY, "Output directory"));
++    sizer->Add(new wxStaticText(this, wxID_ANY, _("Output directory")));
+     wxDirPickerCtrl* outDir = new wxDirPickerCtrl(this,
+         wxID_ANY,
+         {},
+-        "Select output directory",
++        _("Select output directory"),
+         wxDefaultPosition,
+         wxDefaultSize,
+         wxDIRP_USE_TEXTCTRL | wxDIRP_DIR_MUST_EXIST);
+     sizer->Add(outDir, 0, wxEXPAND);
+ 
+     wxBoxSizer* renderTypeSizer = new wxBoxSizer(wxHORIZONTAL);
+-    renderTypeSizer->Add(new wxStaticText(this, wxID_ANY, "Renderer"));
++    renderTypeSizer->Add(new wxStaticText(this, wxID_ANY, _("Renderer")));
+     renderTypeSizer->AddStretchSpacer();
+-    ComboBox* renderType = new ComboBox(this, "Renderer", 250);
+-    renderType->Append("Surface", (void*)RendererEnum::RAYMARCHER);
+-    renderType->Append("Volumetric", (void*)RendererEnum::VOLUME);
++    ComboBox* renderType = new ComboBox(this, _("Renderer"), 250);
++    renderType->Append(_("Surface"), (void*)RendererEnum::RAYMARCHER);
++    renderType->Append(_("Volumetric"), (void*)RendererEnum::VOLUME);
+     renderType->Select(0);
+     renderTypeSizer->Add(renderType);
+     sizer->Add(renderTypeSizer, 0, wxEXPAND);
+ 
+     wxBoxSizer* cameraTypeSizer = new wxBoxSizer(wxHORIZONTAL);
+-    cameraTypeSizer->Add(new wxStaticText(this, wxID_ANY, "Camera"));
++    cameraTypeSizer->Add(new wxStaticText(this, wxID_ANY, _("Camera")));
+     cameraTypeSizer->AddStretchSpacer();
+-    ComboBox* cameraType = new ComboBox(this, "Camera", 250);
+-    cameraType->Append("Perspective", (void*)CameraEnum::PERSPECTIVE);
+-    cameraType->Append("Orthographic", (void*)CameraEnum::ORTHO);
+-    cameraType->Append("Fisheye", (void*)CameraEnum::FISHEYE);
++    ComboBox* cameraType = new ComboBox(this, _("Camera"), 250);
++    cameraType->Append(_("Perspective"), (void*)CameraEnum::PERSPECTIVE);
++    cameraType->Append(_("Orthographic"), (void*)CameraEnum::ORTHO);
++    cameraType->Append(_("Fisheye"), (void*)CameraEnum::FISHEYE);
+     cameraType->Select(0);
+     cameraTypeSizer->Add(cameraType);
+     sizer->Add(cameraTypeSizer, 0, wxEXPAND);
+ 
+-    wxRadioButton* fileOnly = new wxRadioButton(this, wxID_ANY, "Selected file only");
+-    wxRadioButton* sequence = new wxRadioButton(this, wxID_ANY, "File sequence");
++    wxRadioButton* fileOnly = new wxRadioButton(this, wxID_ANY, _("Selected file only"));
++    wxRadioButton* sequence = new wxRadioButton(this, wxID_ANY, _("File sequence"));
+     fileOnly->SetValue(true);
+     wxBoxSizer* sequenceSizer = new wxBoxSizer(wxHORIZONTAL);
+     sequenceSizer->Add(fileOnly);
+@@ -71,7 +72,7 @@ RenderSetup::RenderSetup(wxWindow* parent)
+     sizer->AddSpacer(20);
+ 
+     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+-    wxButton* createButton = new wxButton(this, wxID_ANY, "Create");
++    wxButton* createButton = new wxButton(this, wxID_ANY, _("Create"));
+ 
+     auto doSetup = [=]() {
+         wxString dataPath = dataFiles->GetPath();
+@@ -84,11 +85,11 @@ RenderSetup::RenderSetup(wxWindow* parent)
+         outputDir = Path(String(outPath.wc_str()));
+         doSequence = sequence->GetValue();
+         if (!FileSystem::pathExists(firstFilePath)) {
+-            wxMessageBox("Selected input file does not exist", "File not found");
++            wxMessageBox(_("Selected input file does not exist"), _("File not found"));
+             return false;
+         }
+         if (!FileSystem::pathExists(outputDir)) {
+-            wxMessageBox("Selected output directory does not exist", "Directory not found");
++            wxMessageBox(_("Selected output directory does not exist"), _("Directory not found"));
+             return false;
+         }
+         return true;
+@@ -99,14 +100,14 @@ RenderSetup::RenderSetup(wxWindow* parent)
+             this->EndModal(wxID_OK);
+         }
+     });
+-    wxButton* renderButton = new wxButton(this, wxID_ANY, "Create && Render");
++    wxButton* renderButton = new wxButton(this, wxID_ANY, _("Create && Render"));
+     renderButton->Bind(wxEVT_BUTTON, [this, doSetup](wxCommandEvent& UNUSED(evt)) {
+         if (doSetup()) {
+             doRender = true;
+             this->EndModal(wxID_OK);
+         }
+     });
+-    wxButton* cancelButton = new wxButton(this, wxID_ANY, "Cancel");
++    wxButton* cancelButton = new wxButton(this, wxID_ANY, _("Cancel"));
+     cancelButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& UNUSED(evt)) { this->EndModal(wxID_CANCEL); });
+     buttonSizer->Add(createButton);
+     buttonSizer->Add(renderButton);
+diff --git a/gui/windows/RunSelectDialog.cpp b/gui/windows/RunSelectDialog.cpp
+index dfe18da..e386ab6 100644
+--- a/gui/windows/RunSelectDialog.cpp
++++ b/gui/windows/RunSelectDialog.cpp
+@@ -1,6 +1,7 @@
+ #include "gui/windows/RunSelectDialog.h"
+ #include <wx/button.h>
+ #include <wx/checkbox.h>
++#include <wx/intl.h>
+ #include <wx/listctrl.h>
+ #include <wx/msgdlg.h>
+ #include <wx/sizer.h>
+@@ -9,17 +10,18 @@
+ NAMESPACE_SPH_BEGIN
+ 
+ RunSelectDialog::RunSelectDialog(wxWindow* parent, Array<SharedPtr<JobNode>>&& nodes, const String& label)
+-    : wxDialog(parent, wxID_ANY, "Select run", wxDefaultPosition, wxSize(800, 500))
++    : wxDialog(parent, wxID_ANY, _("Select run"), wxDefaultPosition, wxSize(800, 500))
+     , nodes(std::move(nodes)) {
+ 
+     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+-    sizer->Add(new wxStaticText(this, wxID_ANY, wxString("Select ") + label.toUnicode() + ":"));
++    sizer->Add(new wxStaticText(
++        this, wxID_ANY, wxGetTranslation("Select ") + wxGetTranslation(label.toUnicode()) + ":"));
+     const int listHeight = this->GetClientSize().y - 70;
+     wxListCtrl* list = new wxListCtrl(
+         this, wxID_ANY, wxDefaultPosition, wxSize(800, listHeight), wxLC_REPORT | wxLC_SINGLE_SEL);
+     const int columnWidth = list->GetSize().x / 2 - 5;
+-    list->AppendColumn("Name");
+-    list->AppendColumn("Type");
++    list->AppendColumn(_("Name"));
++    list->AppendColumn(_("Type"));
+     list->SetColumnWidth(0, columnWidth);
+     list->SetColumnWidth(1, columnWidth);
+     int index = 0;
+@@ -30,26 +32,26 @@ RunSelectDialog::RunSelectDialog(wxWindow* parent, Array<SharedPtr<JobNode>>&& n
+         item.SetColumn(0);
+         list->InsertItem(item);
+ 
+-        list->SetItem(index, 1, node->className().toUnicode());
++        list->SetItem(index, 1, wxGetTranslation(node->className().toUnicode()));
+ 
+         ++index;
+     }
+     list->Bind(wxEVT_LIST_ITEM_ACTIVATED, [this](wxListEvent& evt) { select(evt.GetIndex()); });
+     sizer->Add(list);
+-    rememberBox = new wxCheckBox(this, wxID_ANY, "Remember choice");
++    rememberBox = new wxCheckBox(this, wxID_ANY, _("Remember choice"));
+     sizer->Add(rememberBox);
+ 
+     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+-    wxButton* runButton = new wxButton(this, wxID_ANY, capitalize(label).toUnicode());
++    wxButton* runButton = new wxButton(this, wxID_ANY, wxGetTranslation(capitalize(label).toUnicode()));
+     runButton->Bind(wxEVT_BUTTON, [this, list](wxCommandEvent& UNUSED(evt)) {
+         int item = list->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+         if (item == -1) {
+-            wxMessageBox("No run selected", "No run", wxOK | wxCENTRE);
++            wxMessageBox(_("No run selected"), _("No run"), wxOK | wxCENTRE);
+             return;
+         }
+         select(item);
+     });
+-    wxButton* cancelButton = new wxButton(this, wxID_ANY, "Cancel");
++    wxButton* cancelButton = new wxButton(this, wxID_ANY, _("Cancel"));
+     cancelButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& UNUSED(evt)) { this->EndModal(wxID_CANCEL); });
+     buttonSizer->Add(runButton);
+     buttonSizer->Add(cancelButton);
+diff --git a/gui/windows/SessionDialog.cpp b/gui/windows/SessionDialog.cpp
+index 8742f1b..92a0057 100644
+--- a/gui/windows/SessionDialog.cpp
++++ b/gui/windows/SessionDialog.cpp
+@@ -1,6 +1,7 @@
+ #include "gui/windows/SessionDialog.h"
+ #include "run/jobs/Presets.h"
+ #include <wx/button.h>
++#include <wx/intl.h>
+ #include <wx/listbox.h>
+ #include <wx/msgdlg.h>
+ #include <wx/radiobut.h>
+@@ -10,23 +11,23 @@
+ NAMESPACE_SPH_BEGIN
+ 
+ SessionDialog::SessionDialog(wxWindow* parent, UniqueNameManager& nameMgr)
+-    : wxDialog(parent, wxID_ANY, "New session", wxDefaultPosition, wxSize(500, 400)) {
++    : wxDialog(parent, wxID_ANY, _("New session"), wxDefaultPosition, wxSize(500, 400)) {
+ 
+     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+-    sizer->Add(new wxStaticText(this, wxID_ANY, "New session:"));
++    sizer->Add(new wxStaticText(this, wxID_ANY, _("New session:")));
+ 
+     wxRadioButton* emptyButton =
+-        new wxRadioButton(this, wxID_ANY, "Empty session", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
++        new wxRadioButton(this, wxID_ANY, _("Empty session"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+     sizer->Add(emptyButton);
+ 
+-    wxRadioButton* presetButton = new wxRadioButton(this, wxID_ANY, "Select a preset:");
++    wxRadioButton* presetButton = new wxRadioButton(this, wxID_ANY, _("Select a preset:"));
+     sizer->Add(presetButton);
+ 
+     wxArrayString options;
+     for (Presets::Id id : EnumMap::getAll<Presets::Id>()) {
+         String name = EnumMap::toString(id);
+         name.replaceAll("_", " ");
+-        options.Add(name.toUnicode());
++        options.Add(wxGetTranslation(name.toUnicode()));
+     }
+     int height = this->GetClientSize().y - 100;
+     wxListBox* list =
+@@ -39,8 +40,8 @@ SessionDialog::SessionDialog(wxWindow* parent, UniqueNameManager& nameMgr)
+ 
+     sizer->AddSpacer(5);
+     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+-    wxButton* createButton = new wxButton(this, wxID_ANY, "Create");
+-    wxButton* cancelButton = new wxButton(this, wxID_ANY, "Cancel");
++    wxButton* createButton = new wxButton(this, wxID_ANY, _("Create"));
++    wxButton* cancelButton = new wxButton(this, wxID_ANY, _("Cancel"));
+     buttonSizer->Add(createButton);
+     buttonSizer->Add(cancelButton);
+     sizer->Add(buttonSizer, 0, wxALIGN_RIGHT);
+@@ -49,7 +50,7 @@ SessionDialog::SessionDialog(wxWindow* parent, UniqueNameManager& nameMgr)
+         if (presetButton->GetValue()) {
+             int idx = list->GetSelection();
+             if (idx == wxNOT_FOUND) {
+-                wxMessageBox("Select a preset to create", "No preset", wxOK | wxCENTRE);
++                wxMessageBox(_("Select a preset to create"), _("No preset"), wxOK | wxCENTRE);
+                 return;
+             } else {
+                 Presets::Id id = Presets::Id(idx);

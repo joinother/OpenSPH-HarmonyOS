@@ -13,7 +13,7 @@ OpenSPH 源码
   └─ NodePage.cpp      wxPropertyGrid 属性标签 / 枚举选项统一走 wxGetTranslation
           │
           ▼
-tools/i18n/gen_po.py   正则提取全库 _("...") 词条 → OpenSPH.zh_CN.po（410 词条 / 405 翻译）
+tools/i18n/gen_po.py   正则提取全库 _("...") 词条 → OpenSPH.zh_CN.po（573 词条 / 568 翻译）
           │
           ▼
 tools/i18n/msgfmt.py   纯 Python .mo 编译器（GNU 二进制格式）→ OpenSPH.mo
@@ -62,5 +62,10 @@ cp OpenSPH.mo OpenSPH-DevEco/entry/src/main/resources/rawfile/OpenSPH.mo
 
 - 菜单栏 / 对话框 / 消息框：`MainWindow.cpp` 等，`_()` 包裹。
 - 属性面板：`NodePage.cpp` 的 PropertyGrid wrapper 对属性标签与枚举选项翻译。
+- 右侧资源树：`NodePage.cpp` 渲染层对 category / className / 预设根节点 / 预设名
+  `wxGetTranslation` 翻译。
+- 对话框：`SessionDialog.cpp`（新建会话/预设选择）、`RunSelectDialog.cpp`（选择运行）、
+  `BatchDialog.cpp`（批处理运行/参数选择）、`GuiSettingsDialog.cpp`（可视化设置/图表类型）、
+  `RenderSetup.cpp`（渲染设置/渲染器/相机）全部 `_()` 包裹。
 - **不翻译**：数值、内部场景节点分类标识（右侧树 rendering/geometry/materials 等）、
   专有名词（Tillotson、ANEOS、Von Mises、Rock 等物理术语）、构建信息标题栏。

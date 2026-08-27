@@ -1635,7 +1635,7 @@ msgstr "偏心率 []"
 
 #: OpenSPH ui
 msgid "geometry"
-msgstr ""
+msgstr "几何"
 
 #: OpenSPH ui
 msgid "initial proper anomaly [deg]"
@@ -1652,3 +1652,489 @@ msgstr "半长轴 [km]"
 #: OpenSPH ui
 msgid "von Mises limit [Pa]"
 msgstr "冯·米塞斯极限 [Pa]"
+
+msgid "I/O"
+msgstr "输入输出"
+
+msgid "Keplerian velocity"
+msgstr "开普勒速度"
+
+msgid "PBD run"
+msgstr "PBD 运行"
+
+msgid "body"
+msgstr "天体"
+
+msgid "changer"
+msgstr "材料更换"
+
+msgid "emplacer"
+msgstr "组件放置"
+
+msgid "equilibrium"
+msgstr "平衡"
+
+msgid "extractor"
+msgstr "提取"
+
+msgid "handoff"
+msgstr "交接"
+
+msgid "impactor"
+msgstr "撞击体"
+
+msgid "initial conditions"
+msgstr "初始条件"
+
+msgid "inverter"
+msgstr "反转"
+
+msgid "materials"
+msgstr "材料"
+
+msgid "merger"
+msgstr "合并"
+
+msgid "mesh"
+msgstr "网格"
+
+msgid "modifier"
+msgstr "修改"
+
+msgid "noise"
+msgstr "噪声"
+
+msgid "optimizer"
+msgstr "优化"
+
+msgid "particle"
+msgstr "粒子"
+
+msgid "particle operators"
+msgstr "粒子算子"
+
+msgid "particles"
+msgstr "粒子"
+
+msgid "sequence"
+msgstr "序列"
+
+msgid "setup"
+msgstr "设置"
+
+msgid "simulations"
+msgstr "模拟"
+
+msgid "spheres"
+msgstr "球体"
+
+msgid "spheroid"
+msgstr "椭球"
+
+msgid "stabilization"
+msgstr "稳定化"
+
+msgid "star ICs"
+msgstr "恒星初始条件"
+
+msgid "transform"
+msgstr "变换"
+
+msgid "load file"
+msgstr "加载文件"
+
+msgid "save file"
+msgstr "保存文件"
+
+msgid "save mesh"
+msgstr "保存网格"
+
+msgid "set Keplerian velocity"
+msgstr "设置开普勒速度"
+
+msgid "Position based run"
+msgstr "基于位置运行"
+
+msgid "create differentiated body"
+msgstr "创建分异天体"
+
+msgid "create monolithic body"
+msgstr "创建均质天体"
+
+msgid "change material"
+msgstr "更换材料"
+
+msgid "emplace components"
+msgstr "放置组件"
+
+msgid "set equilibrium density"
+msgstr "设置平衡密度"
+
+msgid "set equilibrium energy"
+msgstr "设置平衡能量"
+
+msgid "extract component"
+msgstr "提取组件"
+
+msgid "extract particles in domain"
+msgstr "提取域内粒子"
+
+msgid "Gaussian sphere"
+msgstr "高斯球"
+
+msgid "block"
+msgstr "方块"
+
+msgid "boolean"
+msgstr "布尔运算"
+
+msgid "cylinder"
+msgstr "圆柱"
+
+msgid "ellipsoid"
+msgstr "椭球体"
+
+msgid "half space"
+msgstr "半空间"
+
+msgid "sphere"
+msgstr "球体"
+
+msgid "toroid"
+msgstr "环面体"
+
+msgid "smoothed-to-solid handoff"
+msgstr "平滑到固体交接"
+
+msgid "create impactor"
+msgstr "创建撞击体"
+
+msgid "N-body ICs"
+msgstr "N体初始条件"
+
+msgid "galaxy ICs"
+msgstr "星系初始条件"
+
+msgid "polytrope ICs"
+msgstr "多方球初始条件"
+
+msgid "invert geometry"
+msgstr "反转几何"
+
+msgid "basalt"
+msgstr "玄武岩"
+
+msgid "hydrogen gas"
+msgstr "氢气"
+
+msgid "ice"
+msgstr "冰"
+
+msgid "iron"
+msgstr "铁"
+
+msgid "material"
+msgstr "材料"
+
+msgid "olivine"
+msgstr "橄榄石"
+
+msgid "merge components"
+msgstr "合并组件"
+
+msgid "merge overlapping particles"
+msgstr "合并重叠粒子"
+
+msgid "triangle mesh"
+msgstr "三角网格"
+
+msgid "modify quantity"
+msgstr "修改量"
+
+msgid "Perlin noise"
+msgstr "Perlin 噪声"
+
+msgid "optimize timestepping"
+msgstr "优化时间步进"
+
+msgid "create single particle"
+msgstr "创建单粒子"
+
+msgid "center"
+msgstr "居中"
+
+msgid "compare"
+msgstr "比较"
+
+msgid "custom script"
+msgstr "自定义脚本"
+
+msgid "join"
+msgstr "连接"
+
+msgid "multi join"
+msgstr "多重连接"
+
+msgid "orbit"
+msgstr "轨道"
+
+msgid "scatter"
+msgstr "散射"
+
+msgid "subsampler"
+msgstr "子采样"
+
+msgid "particle geometry"
+msgstr "粒子几何"
+
+msgid "load sequence"
+msgstr "加载序列"
+
+msgid "collision setup"
+msgstr "碰撞设置"
+
+msgid "N-body run"
+msgstr "N体运行"
+
+msgid "SPH run"
+msgstr "SPH 运行"
+
+msgid "spheres geometry"
+msgstr "球体几何"
+
+msgid "Maclaurin spheroid"
+msgstr "麦克劳林椭球"
+
+msgid "SPH stabilization"
+msgstr "SPH 稳定化"
+
+msgid "isothermal sphere ICs"
+msgstr "等温球初始条件"
+
+msgid "transform geometry"
+msgstr "变换几何"
+
+msgid "collision"
+msgstr "碰撞"
+
+msgid "fragmentation reaccumulation"
+msgstr "碎裂再累积"
+
+msgid "cratering"
+msgstr "撞击成坑"
+
+msgid "planetesimal merging"
+msgstr "星子合并"
+
+msgid "galaxy collision"
+msgstr "星系碰撞"
+
+msgid "accretion disk"
+msgstr "吸积盘"
+
+msgid "planet formation"
+msgstr "行星形成"
+
+msgid "solar system"
+msgstr "太阳系"
+
+msgid "presets"
+msgstr "预设"
+
+msgid "rendering"
+msgstr "渲染"
+
+msgid "render animation"
+msgstr "渲染动画"
+
+msgid "fisheye camera"
+msgstr "鱼眼相机"
+
+msgid "orthographic camera"
+msgstr "正交相机"
+
+msgid "perspective camera"
+msgstr "透视相机"
+
+msgid "spherical camera"
+msgstr "球面相机"
+
+msgid "save VDB grid"
+msgstr "保存 VDB 网格"
+
+msgid "remove particles"
+msgstr "删除粒子"
+
+msgid "New session"
+msgstr "新建会话"
+
+msgid "New session:"
+msgstr "新建会话："
+
+msgid "Empty session"
+msgstr "空会话"
+
+msgid "Select a preset:"
+msgstr "选择一个预设："
+
+msgid "Create"
+msgstr "创建"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Select a preset to create"
+msgstr "请先选择预设"
+
+msgid "No preset"
+msgstr "未选择预设"
+
+msgid "Select run"
+msgstr "选择运行"
+
+msgid "Select "
+msgstr "选择 "
+
+msgid "Type"
+msgstr "类型"
+
+msgid "Remember choice"
+msgstr "记住选择"
+
+msgid "No run selected"
+msgstr "未选择运行"
+
+msgid "No run"
+msgstr "无运行"
+
+msgid "Select parameter"
+msgstr "选择参数"
+
+msgid "Node:"
+msgstr "节点："
+
+msgid "Parameter:"
+msgstr "参数："
+
+msgid "OK"
+msgstr "确定"
+
+msgid "Batch run"
+msgstr "批处理运行"
+
+msgid "Run count:"
+msgstr "运行次数："
+
+msgid "Parameter count:"
+msgstr "参数数量："
+
+msgid "Enter name of the run"
+msgstr "输入运行名称"
+
+msgid "Duplicate"
+msgstr "复制"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Visualization settings"
+msgstr "可视化设置"
+
+msgid "Default quantity"
+msgstr "默认量"
+
+msgid "Subsampling iterations"
+msgstr "子采样迭代"
+
+msgid "Plots"
+msgstr "图表"
+
+msgid "Initial period [s]"
+msgstr "初始周期 [s]"
+
+msgid "Reference SFD"
+msgstr "参考 SFD"
+
+msgid "Select..."
+msgstr "选择..."
+
+msgid "Select reference SFD"
+msgstr "选择参考 SFD"
+
+msgid "Total momentum"
+msgstr "总动量"
+
+msgid "Total angular momentum"
+msgstr "总角动量"
+
+msgid "Total internal energy"
+msgstr "总内能"
+
+msgid "Total kinetic energy"
+msgstr "总动能"
+
+msgid "Total energy"
+msgstr "总能量"
+
+msgid "Relative change of total energy"
+msgstr "总能量相对变化"
+
+msgid "Speed histogram"
+msgstr "速度直方图"
+
+msgid "Angular histogram of velocities"
+msgstr "速度角度直方图"
+
+msgid "Selected particle"
+msgstr "选中粒子"
+
+msgid "Render setup"
+msgstr "渲染设置"
+
+msgid "First data file"
+msgstr "首个数据文件"
+
+msgid "Select first data file"
+msgstr "选择首个数据文件"
+
+msgid "Select the first file your simulation created. Simulation files can be set up in the 'Output' category of the simulation node. Use a 'data file' or a 'state file' for rendering."
+msgstr "选择模拟创建的首个文件。模拟文件可在模拟节点的“输出”类别中设置。渲染请使用“数据文件”或“状态文件”。"
+
+msgid "Output directory"
+msgstr "输出目录"
+
+msgid "Select output directory"
+msgstr "选择输出目录"
+
+msgid "Volumetric"
+msgstr "体积"
+
+msgid "Camera"
+msgstr "相机"
+
+msgid "Perspective"
+msgstr "透视"
+
+msgid "Orthographic"
+msgstr "正交"
+
+msgid "Fisheye"
+msgstr "鱼眼"
+
+msgid "Selected file only"
+msgstr "仅所选文件"
+
+msgid "Create && Render"
+msgstr "创建并渲染"
+
+msgid "Selected input file does not exist"
+msgstr "所选输入文件不存在"
+
+msgid "File not found"
+msgstr "未找到文件"
+
+msgid "Selected output directory does not exist"
+msgstr "所选输出目录不存在"
+
+msgid "Directory not found"
+msgstr "未找到目录"
