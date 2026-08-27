@@ -1,0 +1,722 @@
+diff --git a/include/wx/qt/app.h b/include/wx/qt/app.h
+index 52f518f..4239021 100644
+--- a/include/wx/qt/app.h
++++ b/include/wx/qt/app.h
+@@ -22,6 +22,7 @@ public:
+ 
+ private:
+     std::unique_ptr<QApplication> m_qtApplication;
++    bool m_qtApplicationOwned = false;
+ 
+     wxDECLARE_DYNAMIC_CLASS_NO_COPY( wxApp );
+ };
+diff --git a/include/wx/qt/window.h b/include/wx/qt/window.h
+index b4d2c21..c450270 100644
+--- a/include/wx/qt/window.h
++++ b/include/wx/qt/window.h
+@@ -112,6 +112,13 @@ public:
+     virtual int GetScrollThumb( int orient ) const override;
+     virtual int GetScrollRange( int orient ) const override;
+ 
++    virtual void DoSetVirtualSize(int x, int y) override;
++
++    // Re-sync the underlying QScrollArea scrollbars with the wx virtual size.
++    // Called when the viewport is resized (layout completed) because
++    // AdjustScrollbars only runs while the client size is still 0.
++    void ReapplyScrollbars();
++
+     virtual wxSize GetWindowBorderSize() const override;
+ 
+         // scroll window to the specified position
+diff --git a/src/aui/framemanager.cpp b/src/aui/framemanager.cpp
+index cbd8d0e..2b1d8ac 100644
+--- a/src/aui/framemanager.cpp
++++ b/src/aui/framemanager.cpp
+@@ -3051,6 +3051,26 @@ void wxAuiManager::GetDockSizeConstraint(double* width_pct, double* height_pct)
+ 
+ void wxAuiManager::Update()
+ {
++    {
++        static int (*s_print)(int,int,unsigned,const char*,const char*,...) = nullptr;
++        if ( !s_print )
++        {
++            void* h = dlopen("libhilog_ndk.z.so", RTLD_NOW | RTLD_NOLOAD);
++            if ( h )
++                s_print = (int(*)(int,int,unsigned,const char*,const char*,...))dlsym(h, "OH_LOG_Print");
++        }
++        if ( s_print )
++        {
++            static int s_cnt = 0;
++            if ( s_cnt++ < 15 )
++            {
++                char buf[160];
++                snprintf(buf, sizeof(buf), "AuiUpdate this=%p panes=%d frame=%p",
++                         (void*)this, (int)m_panes.GetCount(), (void*)m_frame);
++                s_print(0, 3, 0x0100, "WXQT", "%{public}s", buf);
++            }
++        }
++    }
+     wxTopLevelWindow * const
+         tlw = wxDynamicCast(wxGetTopLevelParent(m_frame), wxTopLevelWindow);
+     if ( tlw && tlw->IsIconized() )
+diff --git a/src/generic/scrlwing.cpp b/src/generic/scrlwing.cpp
+index 80f3d5c..2f7b7e9 100644
+--- a/src/generic/scrlwing.cpp
++++ b/src/generic/scrlwing.cpp
+@@ -20,6 +20,10 @@
+ // For compilers that support precompilation, includes "wx.h".
+ #include "wx/wxprec.h"
+ 
++#include <dlfcn.h>
++#include <cstdio>
++#include <atomic>
++
+ 
+ #include "wx/scrolwin.h"
+ 
+@@ -496,6 +500,24 @@ void wxScrollHelperBase::SetTargetWindow(wxWindow *target)
+ 
+ void wxScrollHelperBase::HandleOnScroll(wxScrollWinEvent& event)
+ {
++    {
++        // Debug: mirror to hilog via dlsym (same trick as wxWindowQt::wxQtHilog)
++        static int (*s_print)(int,int,unsigned,const char*,const char*,...) = nullptr;
++        if ( !s_print )
++        {
++            void* h = dlopen("libhilog_ndk.z.so", RTLD_NOW | RTLD_NOLOAD);
++            if ( h )
++                s_print = (int(*)(int,int,unsigned,const char*,const char*,...))dlsym(h, "OH_LOG_Print");
++        }
++        if ( s_print )
++        {
++            char buf[256];
++            snprintf(buf, sizeof(buf), "HandleOnScroll type=%d orient=%d pos=%d yPixPerLine=%d yScrollPos=%d yScrollEnabled=%d",
++                     (int)event.GetEventType(), (int)event.GetOrientation(), event.GetPosition(),
++                     m_yScrollPixelsPerLine, m_yScrollPosition, (int)m_yScrollingEnabled);
++            s_print(0, 3, 0x0100, "WXQT", "%{public}s", buf);
++        }
++    }
+     int orient = event.GetOrientation();
+     int oldPos = 0;
+ 
+@@ -1436,6 +1458,25 @@ void wxScrollHelper::AdjustScrollbars()
+     int oldXScroll = m_xScrollPosition;
+     int oldYScroll = m_yScrollPosition;
+ 
++    {
++        // Debug: mirror to hilog via dlsym
++        static int (*s_print)(int,int,unsigned,const char*,const char*,...) = nullptr;
++        if ( !s_print )
++        {
++            void* h = dlopen("libhilog_ndk.z.so", RTLD_NOW | RTLD_NOLOAD);
++            if ( h )
++                s_print = (int(*)(int,int,unsigned,const char*,const char*,...))dlsym(h, "OH_LOG_Print");
++        }
++        if ( s_print )
++        {
++            char buf[256];
++            snprintf(buf, sizeof(buf), "AdjustScrollbars entry oldY=%d vclient=%dx%d virt=%dx%d",
++                     m_yScrollPosition, GetTargetSize().x, GetTargetSize().y,
++                     m_targetWindow->GetVirtualSize().x, m_targetWindow->GetVirtualSize().y);
++            s_print(0, 3, 0x0100, "WXQT", "%{public}s", buf);
++        }
++    }
++
+     // we may need to readjust the scrollbars several times as enabling one of
+     // them reduces the area available for the window contents and so can make
+     // the other scrollbar necessary now although it wasn't necessary before
+@@ -1577,6 +1618,23 @@ void wxScrollHelper::DoScroll( int x_pos, int y_pos )
+ 
+     if (m_yScrollPosition != new_y)
+     {
++        {
++            // Debug: mirror to hilog via dlsym (same trick as wxWindowQt::wxQtHilog)
++            static int (*s_print)(int,int,unsigned,const char*,const char*,...) = nullptr;
++            if ( !s_print )
++            {
++                void* h = dlopen("libhilog_ndk.z.so", RTLD_NOW | RTLD_NOLOAD);
++                if ( h )
++                    s_print = (int(*)(int,int,unsigned,const char*,const char*,...))dlsym(h, "OH_LOG_Print");
++            }
++            if ( s_print )
++            {
++                char buf[160];
++                snprintf(buf, sizeof(buf), "DoScrollY old=%d new=%d lines=%d ppl=%d",
++                         m_yScrollPosition, new_y, m_yScrollLines, m_yScrollPixelsPerLine);
++                s_print(0, 3, 0x0100, "WXQT", "%{public}s", buf);
++            }
++        }
+         int old_y = m_yScrollPosition;
+         m_yScrollPosition = new_y;
+         m_win->SetScrollPos( wxVERTICAL, new_y );
+diff --git a/src/propgrid/propgrid.cpp b/src/propgrid/propgrid.cpp
+index 2e8202c..0579084 100644
+--- a/src/propgrid/propgrid.cpp
++++ b/src/propgrid/propgrid.cpp
+@@ -1894,7 +1894,13 @@ void wxPropertyGrid::OnPaint( wxPaintEvent& WXUNUSED(event) )
+     wxDC* dcPtr = nullptr;
+     if ( !HasExtraStyle(wxPG_EX_NATIVE_DOUBLE_BUFFERING) )
+     {
+-        if ( m_doubleBuffer )
++        if ( m_doubleBuffer && getenv("OSPH_PG_DIRECT") )
++        {
++            // TEMP-TEST: on OHOS the double-buffer pixmap is in physical pixels
++            // while the blit rect is in logical pixels, so the value column gets
++            // clipped. When OSPH_PG_DIRECT is set, draw straight to the window.
++        }
++        else if ( m_doubleBuffer )
+         {
+             dcPtr = new wxBufferedPaintDC(this, *m_doubleBuffer);
+         }
+@@ -4523,6 +4529,17 @@ void wxPropertyGrid::RecalculateVirtualSize( int forceXPos )
+ 
+     int h0 = m_pState->m_virtualHeight;
+     m_pState->EnsureVirtualHeight();
++    {
++        static int s_cnt = 0;
++        if ( s_cnt++ < 25 )
++        {
++            char buf[160];
++            snprintf(buf, sizeof(buf), "RecalcVS h0=%d h=%d w=%d", h0,
++                     m_pState->m_virtualHeight, m_pState->GetVirtualWidth());
++            // minimal: no hilog available here; ignore
++            (void)buf;
++        }
++    }
+ 
+     wxASSERT_LEVEL_2_MSG(
+         m_pState->GetVirtualHeight() == m_pState->GetActualVirtualHeight(),
+diff --git a/src/qt/app.cpp b/src/qt/app.cpp
+index 9521282..bab6804 100644
+--- a/src/qt/app.cpp
++++ b/src/qt/app.cpp
+@@ -15,6 +15,7 @@
+ #include "wx/qt/private/converter.h"
+ #include <QtCore/QStringList>
+ #include <QtWidgets/QApplication>
++#include <QtGui/QPalette>
+ #include <QSurfaceFormat>
+ 
+ #include <algorithm>
+@@ -29,6 +30,8 @@ wxApp::wxApp()
+ 
+ wxApp::~wxApp()
+ {
++    if ( !m_qtApplicationOwned )
++        m_qtApplication.release(); // Do not delete the externally-provided QApplication
+ }
+ 
+ bool wxApp::Initialize( int& argc_, wxChar** argv_ )
+@@ -62,11 +65,44 @@ bool wxApp::Initialize( int& argc_, wxChar** argv_ )
+     // of the QApplication object. In addition, argc must be greater than zero and argv must
+     // contain at least one valid character string.
+ 
+-    m_qtApplication.reset(new QApplication(argc_, argvA));
++    // If a QApplication already exists (e.g. provided by the Qt-OH platform on HarmonyOS),
++    // reuse it instead of creating a second one, which Qt forbids.
++    if ( QApplication::instance() )
++    {
++        m_qtApplicationOwned = false;
++        m_qtApplication.reset(static_cast<QApplication*>(QApplication::instance()));
++    }
++    else
++    {
++        m_qtApplicationOwned = true;
++        m_qtApplication.reset(new QApplication(argc_, argvA));
++    }
+ 
+     if ( m_qtApplication->platformName() == "xcb" )
+         m_qtApplication->processEvents(); // Avoids SIGPIPE on X11 when debugging
+ 
++    // Force a light application palette. The HarmonyOS platform supplies a
++    // dark default QPalette, which makes Qt-native chrome (wxMenuBar,
++    // wxToolBar, status bar, popups, ...) paint black against OpenSPH's
++    // light content. Pinning a light palette keeps the Qt-drawn chrome
++    // consistent with the wx-drawn content.
++    {
++        QPalette pal;
++        pal.setColor(QPalette::Window, QColor(0xef,0xef,0xef));
++        pal.setColor(QPalette::WindowText, QColor(0x00,0x00,0x00));
++        pal.setColor(QPalette::Base, QColor(0xff,0xff,0xff));
++        pal.setColor(QPalette::AlternateBase, QColor(0xf7,0xf7,0xf7));
++        pal.setColor(QPalette::Text, QColor(0x00,0x00,0x00));
++        pal.setColor(QPalette::Button, QColor(0xef,0xef,0xef));
++        pal.setColor(QPalette::ButtonText, QColor(0x00,0x00,0x00));
++        pal.setColor(QPalette::Highlight, QColor(0x2a,0x82,0xff));
++        pal.setColor(QPalette::HighlightedText, QColor(0xff,0xff,0xff));
++        pal.setColor(QPalette::ToolTipBase, QColor(0xff,0xff,0xdc));
++        pal.setColor(QPalette::ToolTipText, QColor(0x00,0x00,0x00));
++        pal.setColor(QPalette::PlaceholderText, QColor(0x90,0x90,0x90));
++        m_qtApplication->setPalette(pal);
++    }
++
+     if ( argcA != argc_ )
+     {
+ #ifdef __WINDOWS__
+diff --git a/src/qt/dc.cpp b/src/qt/dc.cpp
+index 9ffcb2d..38ccff4 100644
+--- a/src/qt/dc.cpp
++++ b/src/qt/dc.cpp
+@@ -30,6 +30,23 @@
+ 
+ #include <QtGui/QScreen>
+ #include <QtWidgets/QApplication>
++#include <dlfcn.h>
++
++// Debug logging straight into hilog (the OHOS system log) so we can trace
++// wxQt internals from the device log. Uses dlsym to avoid linking hilog_ndk.
++static void wxQtDCHilog(const char* msg)
++{
++    static void (*fn)(int, int, unsigned int, const char*, const char*, ...) = nullptr;
++    if (!fn) {
++        void* h = dlopen("libhilog_ndk.z.so", RTLD_NOW | RTLD_NOLOAD);
++        if (h) {
++            fn = (void (*)(int, int, unsigned int, const char*, const char*, ...))dlsym(h, "OH_LOG_Print");
++        }
++    }
++    if (fn) {
++        fn(0, 3, 0x0100, "WXQT", "%{public}s", msg);
++    }
++}
+ 
+ static void SetPenColour( QPainter *qtPainter, QColor col )
+ {
+@@ -509,10 +526,11 @@ void wxQtDCImpl::UpdateClipBox()
+         int dcwidth, dcheight;
+         DoGetSize(&dcwidth, &dcheight);
+ 
+-        const wxPoint pos = DeviceToLogical(0, 0);
+-        const wxSize size = DeviceToLogicalRel(dcwidth, dcheight);
+-
+-        m_qtPainter->setClipRect(pos.x, pos.y, size.x, size.y,
++        // TEMP-TEST (OHOS): on HiDPI the painter has a scale transform, so
++        // DeviceToLogicalRel(dcwidth,dcheight) shrinks the logical clip and the
++        // right half of the grid (value column) gets clipped away. dcwidth/
++        // dcheight from DoGetSize are already logical; set the clip directly.
++        m_qtPainter->setClipRect(0, 0, dcwidth, dcheight,
+                                  m_clipping ? Qt::IntersectClip : Qt::ReplaceClip);
+     }
+ 
+@@ -568,7 +586,6 @@ void wxQtDCImpl::DoSetClippingRegion(wxCoord x, wxCoord y,
+         // Set QPainter clipping (intersection if not the first one)
+         m_qtPainter->setClipRect( x, y, width, height,
+                                   m_clipping ? Qt::IntersectClip : Qt::ReplaceClip );
+-
+         m_clipping = true;
+     }
+ 
+diff --git a/src/qt/window.cpp b/src/qt/window.cpp
+index ebc661e..6c55b69 100644
+--- a/src/qt/window.cpp
++++ b/src/qt/window.cpp
+@@ -15,11 +15,16 @@
+ #include <QtWidgets/QScrollBar>
+ #include <QtWidgets/QGridLayout>
+ #include <QtWidgets/QApplication>
++#include <QtCore/QTimer>
++#include <QtCore/QEventLoop>
+ #include <QtWidgets/QWidget>
+ #include <QtWidgets/QScrollArea>
+ #include <QtWidgets/QMainWindow>
+ #include <QtWidgets/QMenu>
+ #include <QShortcut>
++#include <dlfcn.h>
++#include <cstdio>
++#include <atomic>
+ 
+ #ifndef WX_PRECOMP
+     #include "wx/app.h"
+@@ -51,6 +56,25 @@ inline QWidget* wxQtGetDrawingWidget(QAbstractScrollArea* qtContainer,
+ 
+     return qtWidget;
+ }
++
++// Debug logging straight into hilog (the OHOS system log) so we can trace
++// wxQt internals from the device log. Uses dlsym to avoid linking hilog_ndk
++// into wx itself: opensph already dlopens hilog_ndk, so OH_LOG_Print is
++// resolvable in the process symbol table.
++inline void wxQtHilog(const char* msg)
++{
++    // OH_LOG_Print(LogType type, LogLevel level, unsigned int domain, const char* tag, const char* fmt, ...)
++    typedef int (*OHLogPrintFn)(int type, int level, unsigned int domain, const char* tag, const char* fmt, ...);
++    static OHLogPrintFn s_print = nullptr;
++    if ( !s_print )
++    {
++        void* h = dlopen("libhilog_ndk.z.so", RTLD_NOW | RTLD_NOLOAD);
++        if ( h )
++            s_print = (OHLogPrintFn)dlsym(h, "OH_LOG_Print");
++    }
++    if ( s_print )
++        s_print(0 /*LOG_APP*/, 3 /*LOG_INFO*/, 0x0100, "WXQT", "%{public}s", msg);
++}
+ }
+ 
+ extern wxSize wxQtGetBestSize(QWidget* qtWidget)
+@@ -97,6 +121,8 @@ public:
+     wxQtScrollArea(wxWindowQt *parent, wxWindowQt *handler);
+ 
+     bool event(QEvent *e) override;
++    void resizeEvent(QResizeEvent *e) override;
++    void scrollContentsBy(int dx, int dy) override;
+ 
+     void OnActionTriggered(int action);
+     void OnSliderReleased();
+@@ -121,6 +147,41 @@ wxQtScrollArea::wxQtScrollArea( wxWindowQt *parent, wxWindowQt *handler )
+     }
+ }
+ 
++void wxQtScrollArea::resizeEvent(QResizeEvent *e)
++{
++    wxQtEventSignalHandler<QScrollArea, wxWindowQt>::resizeEvent(e);
++
++    {
++        static int s_cnt = 0;
++        if ( s_cnt++ < 60 )
++        {
++            char buf[160];
++            snprintf(buf, sizeof(buf), "ScrollAreaResize this=%p area=%dx%d vp=%dx%d sbV=%d",
++                     (void*)this, e->size().width(), e->size().height(),
++                     viewport()->width(), viewport()->height(),
++                     (int)verticalScrollBar()->isVisible());
++            wxQtHilog(buf);
++        }
++    }    if ( wxWindowQt *handler = GetHandler() )
++    {
++        // The viewport is now at its final (laid out) size. Re-sync the
++        // scrollbars with the wx virtual size because wxScrollHelper only
++        // calls SetScrollbar() while the client size is still 0 on this
++        // backend, which leaves the scrollbars hidden.
++        handler->ReapplyScrollbars();
++    }
++}
++
++// On the desktop, QScrollArea responds to a scrollbar value change by
++// scrolling the viewport contents itself (scrollContentsBy). The wx Qt
++// backend scrolls the contents itself through wxWindowQt::ScrollWindow()
++// (driven by wxScrollHelper::DoScroll), so the two would fight each other
++// and cancel the wx scroll out. Keep the QScrollArea from auto-scrolling
++// the viewport; the wx side owns scrolling.
++void wxQtScrollArea::scrollContentsBy(int WXUNUSED(dx), int WXUNUSED(dy))
++{
++}
++
+ bool wxQtScrollArea::event(QEvent *e)
+ {
+     wxWindowQt* handler = GetHandler();
+@@ -156,6 +217,43 @@ bool wxQtScrollArea::event(QEvent *e)
+                 return true;
+             }
+ 
++            case QEvent::Wheel:
++            {
++                // Route the wheel event to the wx scroll helper so that
++                // wxScrolled-based controls (wxPropertyGrid etc.) actually
++                // scroll. The default QScrollArea handling does nothing here
++                // because we never set a scrollable content widget.
++                QWheelEvent *we = static_cast<QWheelEvent*>( e );
++                const QPoint angleDelta = we->angleDelta();
++                {
++                    char buf[160];
++                    snprintf(buf, sizeof(buf), "Wheel pos=%d,%d delta=%d,%d",
++                             we->position().x(), we->position().y(),
++                             angleDelta.x(), angleDelta.y());
++                    wxQtHilog(buf);
++                }
++                if ( !angleDelta.isNull() )
++                {
++                    const int delta = angleDelta.y() != 0 ? angleDelta.y()
++                                                          : angleDelta.x();
++                    const wxEventType eventType = delta > 0
++                        ? wxEVT_SCROLLWIN_LINEUP
++                        : wxEVT_SCROLLWIN_LINEDOWN;
++                    const wxOrientation orient = angleDelta.y() != 0
++                        ? wxVERTICAL
++                        : wxHORIZONTAL;
++
++                    wxScrollWinEvent scrollEvent( eventType, 0, orient );
++                    const bool handled =
++                        handler->GetEventHandler()->ProcessEvent( scrollEvent );
++                    char buf2[128];
++                    snprintf(buf2, sizeof(buf2), "Wheel forwarded type=%d handled=%d", (int)eventType, (int)handled);
++                    wxQtHilog(buf2);
++                    return true;
++                }
++                break;
++            }
++
+             default:
+                 break;
+         }
+@@ -793,11 +891,131 @@ QScrollBar *wxWindowQt::QtGetScrollBar( int orientation ) const
+     return m_qtContainer->verticalScrollBar();
+ }
+ 
++void wxWindowQt::ReapplyScrollbars()
++{
++    QScrollArea *area = qobject_cast<QScrollArea*>( m_qtContainer );
++    if ( !area )
++        return;
++
++    const wxSize vs = GetVirtualSize();
++    const wxSize cs = GetClientSize();
++    if ( cs.x <= 0 || cs.y <= 0 )
++        return;
++
++    {
++        char buf[256];
++        snprintf(buf, sizeof(buf), "Reapply vs=%dx%d cs=%dx%d policy=%d/%d vis=%d/%d",
++                 vs.x, vs.y, cs.x, cs.y,
++                 (int)area->verticalScrollBarPolicy(), (int)area->horizontalScrollBarPolicy(),
++                 area->verticalScrollBar()->isVisible(), area->horizontalScrollBar()->isVisible());
++        wxQtHilog(buf);
++    }
++
++    // Vertical
++    if ( vs.y > cs.y )
++    {
++        QScrollBar *sb = area->verticalScrollBar();
++        if ( sb )
++        {
++            sb->setRange( 0, vs.y - cs.y );
++            sb->setPageStep( cs.y );
++            sb->show();
++        }
++        area->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
++    }
++    else
++    {
++        area->setVerticalScrollBarPolicy( Qt::ScrollBarAsNeeded );
++    }
++
++    // Horizontal
++    if ( vs.x > cs.x )
++    {
++        QScrollBar *sb = area->horizontalScrollBar();
++        if ( sb )
++        {
++            sb->setRange( 0, vs.x - cs.x );
++            sb->setPageStep( cs.x );
++            sb->show();
++        }
++        area->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
++    }
++    else
++    {
++        area->setHorizontalScrollBarPolicy( Qt::ScrollBarAsNeeded );
++    }
++}
++
++void wxWindowQt::DoSetVirtualSize( int x, int y )
++{
++    wxWindowBase::DoSetVirtualSize( x, y );
++
++    {
++        static int s_cnt = 0;
++        if ( s_cnt++ < 40 )
++        {
++            char buf[160];
++            snprintf(buf, sizeof(buf), "SetVirtualSize this=%p x=%d y=%d",
++                     (void*)this, x, y);
++            wxQtHilog(buf);
++        }
++    }
++
++    // Forward the wx virtual size to the underlying QScrollArea so that
++    // scrollbars appear for wxScrolled-based controls (e.g. wxPropertyGrid).
++    // The base wx implementation only stores m_virtualSize and never tells Qt
++    // about it, which left wxScrolled windows without working scrollbars on
++    // the Qt backend.
++    if ( QScrollArea *area = qobject_cast<QScrollArea*>( m_qtContainer ) )
++    {
++        const int clientW = GetClientSize().GetWidth();
++        const int clientH = GetClientSize().GetHeight();
++
++        if ( QScrollBar *vsb = area->verticalScrollBar() )
++        {
++            if ( y > clientH )
++            {
++                vsb->setRange( 0, y - clientH );
++                vsb->setPageStep( clientH );
++                vsb->show();
++                area->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
++            }
++            else
++            {
++                area->setVerticalScrollBarPolicy( Qt::ScrollBarAsNeeded );
++            }
++        }
++
++        if ( QScrollBar *hsb = area->horizontalScrollBar() )
++        {
++            if ( x > clientW )
++            {
++                hsb->setRange( 0, x - clientW );
++                hsb->setPageStep( clientW );
++                hsb->show();
++                area->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
++            }
++            else
++            {
++                area->setHorizontalScrollBarPolicy( Qt::ScrollBarAsNeeded );
++            }
++        }
++    }
++}
++
+ 
+ void wxWindowQt::SetScrollbar( int orientation, int pos, int thumbvisible, int range, bool WXUNUSED(refresh) )
+ {
+     wxCHECK_RET(GetHandle(), "Window has not been created");
+ 
++    {
++        char buf[256];
++        snprintf(buf, sizeof(buf), "SetScrollbar orient=%d pos=%d thumb=%d range=%d client=%dx%d",
++                 orientation, pos, thumbvisible, range,
++                 GetClientSize().x, GetClientSize().y);
++        wxQtHilog(buf);
++    }
++
+     // may return nullptr if the window is not scrollable in that orientation
+     // or if it's not scrollable at all.
+     QScrollBar *scrollBar = QtGetScrollBar( orientation );
+@@ -814,6 +1032,24 @@ void wxWindowQt::SetScrollbar( int orientation, int pos, int thumbvisible, int r
+         }
+         scrollBar->show();
+ 
++        // Make sure the QScrollArea does not re-hide the scrollbar when it has
++        // a meaningful range. The default AsNeeded policy hides it because the
++        // scroll area has no content widget and thinks nothing overflows.
++        if ( range > 0 )
++        {
++            if ( orientation == wxHORIZONTAL )
++                m_qtContainer->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
++            else
++                m_qtContainer->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
++        }
++        else
++        {
++            if ( orientation == wxHORIZONTAL )
++                m_qtContainer->setHorizontalScrollBarPolicy( Qt::ScrollBarAsNeeded );
++            else
++                m_qtContainer->setVerticalScrollBarPolicy( Qt::ScrollBarAsNeeded );
++        }
++
+         if ( HasFlag(wxALWAYS_SHOW_SB) && (range == 0) )
+         {
+             // Disable instead of hide
+@@ -862,6 +1098,18 @@ void wxWindowQt::ScrollWindow( int dx, int dy, const wxRect *rect )
+     // check if this is a scroll area (scroll only inner viewport)
+     QWidget* const widget = wxQtGetDrawingWidget(m_qtContainer, GetHandle());
+ 
++    {
++        static int s_cnt = 0;
++        if ( s_cnt++ < 40 )
++        {
++            char buf[160];
++            snprintf(buf, sizeof(buf), "ScrollWindow %p this=%p dx=%d dy=%d w=%dx%d",
++                     (void*)this, (void*)GetHandle(),
++                     dx, dy, widget->width(), widget->height());
++            wxQtHilog(buf);
++        }
++    }
++
+     if ( GetLayoutDirection() == wxLayout_RightToLeft )
+         dx = -dx;
+ 
+@@ -1225,6 +1473,16 @@ void wxWindowQt::DoGetSize(int *width, int *height) const
+ 
+ void wxWindowQt::DoSetSize(int x, int y, int width, int height, int sizeFlags )
+ {
++    {
++        static int s_cnt = 0;
++        if ( s_cnt++ < 40 )
++        {
++            char buf[160];
++            snprintf(buf, sizeof(buf), "DoSetSize this=%p x=%d y=%d w=%d h=%d",
++                     (void*)this, x, y, width, height);
++            wxQtHilog(buf);
++        }
++    }
+     int currentX, currentY;
+     GetPosition( &currentX, &currentY );
+     if ( x == wxDefaultCoord && !( sizeFlags & wxSIZE_ALLOW_MINUS_ONE ))
+@@ -1267,6 +1525,19 @@ void wxWindowQt::DoGetClientSize(int *width, int *height) const
+     QWidget *qtWidget = QtGetClientWidget();
+     wxCHECK_RET(qtWidget, "window must be created");
+ 
++    {
++        static std::atomic<int> s_cnt{0};
++        if ( s_cnt.fetch_add(1) < 200 )
++        {
++            char buf[160];
++            snprintf(buf, sizeof(buf), "DoGetClientSize geo=%dx%d pending=%dx%d",
++                     qtWidget->geometry().width(), qtWidget->geometry().height(),
++                     m_pendingClientSize == wxDefaultSize ? -1 : m_pendingClientSize.x,
++                     m_pendingClientSize == wxDefaultSize ? -1 : m_pendingClientSize.y);
++            wxQtHilog(buf);
++        }
++    }
++
+     const QSize size = (m_pendingClientSize != wxDefaultSize)
+         ? wxQtConvertSize(m_pendingClientSize)
+         : qtWidget->geometry().size();
+@@ -1375,7 +1646,17 @@ bool wxWindowQt::DoPopupMenu(wxMenu *menu, int x, int y)
+         pt = GetHandle()->mapToGlobal(QPoint(x, y));
+     }
+ 
+-    menu->GetHandle()->exec(pt);
++    // Delay the actual exec until the current mouse event sequence has been
++    // drained. On HarmonyOS the right-button release that follows the press
++    // lands inside the QMenu's own event loop and Qt interprets it as a click
++    // outside the menu, closing the freshly opened popup immediately.
++    QMenu* qtMenu = menu->GetHandle();
++    QEventLoop loop;
++    QTimer::singleShot(0, [&loop, qtMenu, pt] {
++        qtMenu->exec(pt);
++        loop.quit();
++    });
++    loop.exec();
+ 
+     return true;
+ }
+@@ -1544,6 +1825,25 @@ bool wxWindowQt::QtHandlePaintEvent ( QWidget *handler, QPaintEvent *event )
+ 
+     // Prepare the Qt painter:
+     QWidget* const widget = wxQtGetDrawingWidget(m_qtContainer, GetHandle());
++    {
++        static int s_pcnt = 0;
++        if ( s_pcnt++ < 40 ) {
++            char pb[320];
++            QScrollArea* sa = (m_qtContainer && m_qtContainer->inherits("QScrollArea"))
++                ? static_cast<QScrollArea*>(m_qtContainer) : nullptr;
++            QWidget* vp = sa ? sa->viewport() : nullptr;
++            QWidget* wd = sa ? sa->widget() : nullptr;
++            snprintf(pb, sizeof(pb), "QTPAINT2 '%s' widget=%dx%d @%d,%d vp=%s vpWidget=%s hsb=%d",
++                     GetName().c_str().AsChar(),
++                     widget ? widget->width() : -1, widget ? widget->height() : -1,
++                     widget && widget->parentWidget() ? widget->pos().x() : -999,
++                     widget && widget->parentWidget() ? widget->pos().y() : -999,
++                     vp ? "yes" : "no",
++                     wd ? "yes" : "no",
++                     sa && sa->horizontalScrollBar() ? (sa->horizontalScrollBar()->isVisible() ? 1 : 0) : -1);
++            wxQtHilog(pb);
++        }
++    }
+ 
+     // Start the paint in the viewport if _widget_ is a scroll area, because
+     // QAbstractScrollArea can only draw in it. Start the paint in the widget
+@@ -1561,6 +1861,14 @@ bool wxWindowQt::QtHandlePaintEvent ( QWidget *handler, QPaintEvent *event )
+         bool handled;
+ 
+         auto qtRegion = event->region();
++        {
++            QRect br = qtRegion.boundingRect();
++            char b2[256];
++            snprintf(b2, sizeof(b2), "QTPAINT '%s' region=%d,%d %dx%d win=%dx%d",
++                     GetName().c_str().AsChar(), br.x(), br.y(), br.width(), br.height(),
++                     GetSize().x, GetSize().y);
++            wxQtHilog(b2);
++        }
+ 
+         if ( GetLayoutDirection() == wxLayout_RightToLeft )
+         {

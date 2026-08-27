@@ -1,0 +1,1654 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: OpenSPH 0.4.1-ohos\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-27 20:30+0800\n"
+"PO-Revision-Date: 2026-08-27 20:30+0800\n"
+"Last-Translator: OpenSPH-HarmonyOS\n"
+"Language-Team: zh_CN\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"\n"
+
+#: OpenSPH ui
+msgid "&About"
+msgstr "关于(&A)"
+
+#: OpenSPH ui
+msgid "&Analysis"
+msgstr "分析(&A)"
+
+#: OpenSPH ui
+msgid "&Batch setup...\tCtrl+B"
+msgstr "批量设置(&B)...\tCtrl+B"
+
+#: OpenSPH ui
+msgid "&Help"
+msgstr "帮助(&H)"
+
+#: OpenSPH ui
+msgid "&New session\tCtrl+N"
+msgstr "新建会话(&N)\tCtrl+N"
+
+#: OpenSPH ui
+msgid "&Node list"
+msgstr "节点列表(&L)"
+
+#: OpenSPH ui
+msgid "&Node properties"
+msgstr "节点属性(&N)"
+
+#: OpenSPH ui
+msgid "&Open session\tCtrl+Shift+O"
+msgstr "打开会话(&O)\tCtrl+Shift+O"
+
+#: OpenSPH ui
+msgid "&Project"
+msgstr "项目(&P)"
+
+#: OpenSPH ui
+msgid "&Quit"
+msgstr "退出(&Q)"
+
+#: OpenSPH ui
+msgid "&Recent"
+msgstr "最近(&R)"
+
+#: OpenSPH ui
+msgid "&Result"
+msgstr "结果(&R)"
+
+#: OpenSPH ui
+msgid "&Save session\tCtrl+S"
+msgstr "保存会话(&S)\tCtrl+S"
+
+#: OpenSPH ui
+msgid "&Save session as"
+msgstr "会话另存为(&A)"
+
+#: OpenSPH ui
+msgid "&Shared properties..."
+msgstr "共享属性(&S)..."
+
+#: OpenSPH ui
+msgid "&Simulation"
+msgstr "模拟(&S)"
+
+#: OpenSPH ui
+msgid "&Visualization settings..."
+msgstr "可视化设置(&V)..."
+
+#: OpenSPH ui
+msgid "&Window"
+msgstr "窗口(&W)"
+
+#: OpenSPH ui
+msgid "ANEOS"
+msgstr "ANEOS"
+
+#: OpenSPH ui
+msgid "ANEOS material file"
+msgstr "ANEOS 材料文件"
+
+#: OpenSPH ui
+msgid "Add spin [rev/day]"
+msgstr "添加自转 [rev/day]"
+
+#: OpenSPH ui
+msgid "Add velocity [km/s]"
+msgstr "添加速度 [km/s]"
+
+#: OpenSPH ui
+msgid "Adiabatic index []"
+msgstr "绝热指数 []"
+
+#: OpenSPH ui
+msgid "Aggregates (experimental)"
+msgstr "聚合体（实验性）"
+
+#: OpenSPH ui
+msgid "Albedo"
+msgstr "反照率"
+
+#: OpenSPH ui
+msgid "Algorithm"
+msgstr "算法"
+
+#: OpenSPH ui
+msgid "Allowed smoothing length range [m]"
+msgstr "允许的平滑长度范围 [m]"
+
+#: OpenSPH ui
+msgid "Alpha value"
+msgstr "α 值"
+
+#: OpenSPH ui
+msgid "Ambient intensity"
+msgstr "环境光强度"
+
+#: OpenSPH ui
+msgid "Animation"
+msgstr "动画"
+
+#: OpenSPH ui
+msgid "Animation type"
+msgstr "动画类型"
+
+#: OpenSPH ui
+msgid "Anisotropic kernels"
+msgstr "各向异性核"
+
+#: OpenSPH ui
+msgid "Antialiasing"
+msgstr "抗锯齿"
+
+#: OpenSPH ui
+msgid "Apply Balsara switch"
+msgstr "应用 Balsara 开关"
+
+#: OpenSPH ui
+msgid "Apply artificial conductivity"
+msgstr "应用人工热传导"
+
+#: OpenSPH ui
+msgid "Apply artificial stress"
+msgstr "应用人工应力"
+
+#: OpenSPH ui
+msgid "Apply correction tensor"
+msgstr "应用修正张量"
+
+#: OpenSPH ui
+msgid "Artificial stress exponent"
+msgstr "人工应力指数"
+
+#: OpenSPH ui
+msgid "Artificial stress factor"
+msgstr "人工应力因子"
+
+#: OpenSPH ui
+msgid "Artificial viscosity"
+msgstr "人工黏性"
+
+#: OpenSPH ui
+msgid "Artificial viscosity alpha"
+msgstr "人工黏性 α"
+
+#: OpenSPH ui
+msgid "Artificial viscosity beta"
+msgstr "人工黏性 β"
+
+#: OpenSPH ui
+msgid "Artificial viscosity type"
+msgstr "人工黏性类型"
+
+#: OpenSPH ui
+msgid "Author e-mail"
+msgstr "作者邮箱"
+
+#: OpenSPH ui
+msgid "Author name"
+msgstr "作者名称"
+
+#: OpenSPH ui
+msgid "BRDF"
+msgstr "BRDF"
+
+#: OpenSPH ui
+msgid "Background"
+msgstr "背景"
+
+#: OpenSPH ui
+msgid "Bloom intensity"
+msgstr "泛光强度"
+
+#: OpenSPH ui
+msgid "Bloom radius [%]"
+msgstr "泛光半径 [%]"
+
+#: OpenSPH ui
+msgid "Body properties"
+msgstr "天体属性"
+
+#: OpenSPH ui
+msgid "Boolean"
+msgstr "布尔值"
+
+#: OpenSPH ui
+msgid "Boundary condition"
+msgstr "边界条件"
+
+#: OpenSPH ui
+msgid "Boundary threshold"
+msgstr "边界阈值"
+
+#: OpenSPH ui
+msgid "Bulge"
+msgstr "核球"
+
+#: OpenSPH ui
+msgid "Bulge cutoff"
+msgstr "核球截止"
+
+#: OpenSPH ui
+msgid "Bulge mass"
+msgstr "核球质量"
+
+#: OpenSPH ui
+msgid "Bulge particle count"
+msgstr "核球粒子数"
+
+#: OpenSPH ui
+msgid "Bulge scale length"
+msgstr "核球尺度长度"
+
+#: OpenSPH ui
+msgid "Bulk modulus [Pa]"
+msgstr "体积模量 [Pa]"
+
+#: OpenSPH ui
+msgid "Center"
+msgstr "中心"
+
+#: OpenSPH ui
+msgid "Center [km]"
+msgstr "中心 [km]"
+
+#: OpenSPH ui
+msgid "Center particles"
+msgstr "居中粒子"
+
+#: OpenSPH ui
+msgid "Center value [si]"
+msgstr "中心值 [si]"
+
+#: OpenSPH ui
+msgid "Central density [kg/m^3]"
+msgstr "中心密度 [kg/m³]"
+
+#: OpenSPH ui
+msgid "Central energy [J/kg]"
+msgstr "中心能量 [J/kg]"
+
+#: OpenSPH ui
+msgid "Chai script"
+msgstr "Chai 脚本"
+
+#: OpenSPH ui
+msgid "Change material"
+msgstr "更改材料"
+
+#: OpenSPH ui
+msgid "Clip far [km]"
+msgstr "远裁剪 [km]"
+
+#: OpenSPH ui
+msgid "Clip near [km]"
+msgstr "近裁剪 [km]"
+
+#: OpenSPH ui
+msgid "Close all"
+msgstr "全部关闭"
+
+#: OpenSPH ui
+msgid "Cohesion [Pa]"
+msgstr "内聚力 [Pa]"
+
+#: OpenSPH ui
+msgid "Collision geometry"
+msgstr "碰撞几何"
+
+#: OpenSPH ui
+msgid "Collision handler"
+msgstr "碰撞处理"
+
+#: OpenSPH ui
+msgid "Collisions"
+msgstr "碰撞"
+
+#: OpenSPH ui
+msgid "Color mapping"
+msgstr "颜色映射"
+
+#: OpenSPH ui
+msgid "Comment"
+msgstr "备注"
+
+#: OpenSPH ui
+msgid "Compare mode"
+msgstr "对比模式"
+
+#: OpenSPH ui
+msgid "Comparison"
+msgstr "对比"
+
+#: OpenSPH ui
+msgid "Complete vaporization energy"
+msgstr "完全汽化能"
+
+#: OpenSPH ui
+msgid "Component"
+msgstr "分量"
+
+#: OpenSPH ui
+msgid "Component definition"
+msgstr "分量定义"
+
+#: OpenSPH ui
+msgid "Component index"
+msgstr "分量索引"
+
+#: OpenSPH ui
+msgid "Connectivity factor"
+msgstr "连通性因子"
+
+#: OpenSPH ui
+msgid "Constant acceleration"
+msgstr "恒定加速度"
+
+#: OpenSPH ui
+msgid "Continuity mode"
+msgstr "连续模式"
+
+#: OpenSPH ui
+msgid "Courant number"
+msgstr "Courant 数"
+
+#: OpenSPH ui
+msgid "Current SFD"
+msgstr "当前碎片尺寸分布"
+
+#: OpenSPH ui
+msgid "Curve"
+msgstr "曲线"
+
+#: OpenSPH ui
+msgid "Custom material"
+msgstr "自定义材料"
+
+#: OpenSPH ui
+msgid "Custom shape"
+msgstr "自定义形状"
+
+#: OpenSPH ui
+msgid "Custom times [s]"
+msgstr "自定义时间 [s]"
+
+#: OpenSPH ui
+msgid "Cutoff distance [km]"
+msgstr "截止距离 [km]"
+
+#: OpenSPH ui
+msgid "Damage []"
+msgstr "损伤 []"
+
+#: OpenSPH ui
+msgid "Damage coeff. []"
+msgstr "损伤系数 []"
+
+#: OpenSPH ui
+msgid "Damage limit"
+msgstr "损伤极限"
+
+#: OpenSPH ui
+msgid "Damping coefficient"
+msgstr "阻尼系数"
+
+#: OpenSPH ui
+msgid "Density [kg/m^3]"
+msgstr "密度 [kg/m³]"
+
+#: OpenSPH ui
+msgid "Density coeff. [kg/m^3]"
+msgstr "密度系数 [kg/m³]"
+
+#: OpenSPH ui
+msgid "Density profile"
+msgstr "密度剖面"
+
+#: OpenSPH ui
+msgid "Derivative factor"
+msgstr "导数因子"
+
+#: OpenSPH ui
+msgid "Diehl's distribution"
+msgstr "Diehl 分布"
+
+#: OpenSPH ui
+msgid "Dimensions [km]"
+msgstr "尺寸 [km]"
+
+#: OpenSPH ui
+msgid "Directory"
+msgstr "目录"
+
+#: OpenSPH ui
+msgid "Disk"
+msgstr "盘"
+
+#: OpenSPH ui
+msgid "Disk mass"
+msgstr "盘质量"
+
+#: OpenSPH ui
+msgid "Disk particle count"
+msgstr "盘粒子数"
+
+#: OpenSPH ui
+msgid "Disk radial cutoff"
+msgstr "盘径向截止"
+
+#: OpenSPH ui
+msgid "Disk radial scale"
+msgstr "盘径向尺度"
+
+#: OpenSPH ui
+msgid "Disk vertical cutoff"
+msgstr "盘垂直截止"
+
+#: OpenSPH ui
+msgid "Disk vertical scale"
+msgstr "盘垂直尺度"
+
+#: OpenSPH ui
+msgid "Distribution"
+msgstr "分布"
+
+#: OpenSPH ui
+msgid "Divergence factor"
+msgstr "散度因子"
+
+#: OpenSPH ui
+msgid "Dry friction []"
+msgstr "干摩擦 []"
+
+#: OpenSPH ui
+msgid "Duration [s]"
+msgstr "时长 [s]"
+
+#: OpenSPH ui
+msgid "Dynamics"
+msgstr "动力学"
+
+#: OpenSPH ui
+msgid "Elastic modulus [Pa]"
+msgstr "弹性模量 [Pa]"
+
+#: OpenSPH ui
+msgid "Ellipse"
+msgstr "椭圆"
+
+#: OpenSPH ui
+msgid "Enable"
+msgstr "启用"
+
+#: OpenSPH ui
+msgid "Enable XPSH"
+msgstr "启用 XSPH"
+
+#: OpenSPH ui
+msgid "Enable aggregates"
+msgstr "启用聚合体"
+
+#: OpenSPH ui
+msgid "Enable delta-SPH"
+msgstr "启用 δ-SPH"
+
+#: OpenSPH ui
+msgid "Enable script"
+msgstr "启用脚本"
+
+#: OpenSPH ui
+msgid "Enable shadows"
+msgstr "启用阴影"
+
+#: OpenSPH ui
+msgid "Enable soft-body"
+msgstr "启用软体"
+
+#: OpenSPH ui
+msgid "Enable textures"
+msgstr "启用纹理"
+
+#: OpenSPH ui
+msgid "Energy coeff. [J/kg]"
+msgstr "能量系数 [J/kg]"
+
+#: OpenSPH ui
+msgid "Energy limit"
+msgstr "能量极限"
+
+#: OpenSPH ui
+msgid "Energy profile"
+msgstr "能量剖面"
+
+#: OpenSPH ui
+msgid "Equation of state"
+msgstr "状态方程"
+
+#: OpenSPH ui
+msgid "Error"
+msgstr "错误"
+
+#: OpenSPH ui
+msgid "Exact distance"
+msgstr "精确距离"
+
+#: OpenSPH ui
+msgid "Field of view [deg]"
+msgstr "视场角 [deg]"
+
+#: OpenSPH ui
+msgid "File"
+msgstr "文件"
+
+#: OpenSPH ui
+msgid "File mask"
+msgstr "文件掩码"
+
+#: OpenSPH ui
+msgid "File sequence"
+msgstr "文件序列"
+
+#: OpenSPH ui
+msgid "First file"
+msgstr "起始文件"
+
+#: OpenSPH ui
+msgid "Fludization viscosity"
+msgstr "流化黏度"
+
+#: OpenSPH ui
+msgid "Format"
+msgstr "格式"
+
+#: OpenSPH ui
+msgid "Fraction"
+msgstr "比例"
+
+#: OpenSPH ui
+msgid "Fragmentation"
+msgstr "碎裂模型"
+
+#: OpenSPH ui
+msgid "Friction force strength"
+msgstr "摩擦力强度"
+
+#: OpenSPH ui
+msgid "Generic"
+msgstr "通用"
+
+#: OpenSPH ui
+msgid "Gravity"
+msgstr "重力"
+
+#: OpenSPH ui
+msgid "Gravity solver"
+msgstr "重力求解器"
+
+#: OpenSPH ui
+msgid "Grid dimensions"
+msgstr "网格尺寸"
+
+#: OpenSPH ui
+msgid "Grid end [km]"
+msgstr "网格终点 [km]"
+
+#: OpenSPH ui
+msgid "Grid parameters"
+msgstr "网格参数"
+
+#: OpenSPH ui
+msgid "Grid start [km]"
+msgstr "网格起点 [km]"
+
+#: OpenSPH ui
+msgid "Halo"
+msgstr "晕"
+
+#: OpenSPH ui
+msgid "Halo cutoff"
+msgstr "晕截止"
+
+#: OpenSPH ui
+msgid "Halo gamma"
+msgstr "晕 γ"
+
+#: OpenSPH ui
+msgid "Halo mass"
+msgstr "晕质量"
+
+#: OpenSPH ui
+msgid "Halo particle count"
+msgstr "晕粒子数"
+
+#: OpenSPH ui
+msgid "Halo scale length"
+msgstr "晕尺度长度"
+
+#: OpenSPH ui
+msgid "Handoff options"
+msgstr "交接选项"
+
+#: OpenSPH ui
+msgid "Height [km]"
+msgstr "高度 [km]"
+
+#: OpenSPH ui
+msgid "Height scale"
+msgstr "高度尺度"
+
+#: OpenSPH ui
+msgid "Hubbard & MacFarlane"
+msgstr "Hubbard & MacFarlane"
+
+#: OpenSPH ui
+msgid "Image height"
+msgstr "图像高度"
+
+#: OpenSPH ui
+msgid "Image width"
+msgstr "图像宽度"
+
+#: OpenSPH ui
+msgid "Impact angle [deg]"
+msgstr "撞击角度 [deg]"
+
+#: OpenSPH ui
+msgid "Impact velocity [km/s]"
+msgstr "撞击速度 [km/s]"
+
+#: OpenSPH ui
+msgid "Impactor offset [h]"
+msgstr "撞击体偏移 [h]"
+
+#: OpenSPH ui
+msgid "Incipient vaporization energy"
+msgstr "起始汽化能"
+
+#: OpenSPH ui
+msgid "Include attractors"
+msgstr "包含吸引体"
+
+#: OpenSPH ui
+msgid "Include surface gravity"
+msgstr "包含表面重力"
+
+#: OpenSPH ui
+msgid "Initial aggregates"
+msgstr "初始聚合体"
+
+#: OpenSPH ui
+msgid "Initial timestep [s]"
+msgstr "初始时间步 [s]"
+
+#: OpenSPH ui
+msgid "Input"
+msgstr "输入"
+
+#: OpenSPH ui
+msgid "Integration"
+msgstr "积分"
+
+#: OpenSPH ui
+msgid "Integrator"
+msgstr "积分器"
+
+#: OpenSPH ui
+msgid "Interaction"
+msgstr "相互作用"
+
+#: OpenSPH ui
+msgid "Interation count"
+msgstr "迭代次数"
+
+#: OpenSPH ui
+msgid "Internal friction []"
+msgstr "内摩擦 []"
+
+#: OpenSPH ui
+msgid "Interpolated frames"
+msgstr "插值帧"
+
+#: OpenSPH ui
+msgid "Iso-surface value"
+msgstr "等值面值"
+
+#: OpenSPH ui
+msgid "Iteration count"
+msgstr "迭代次数"
+
+#: OpenSPH ui
+msgid "Iterations"
+msgstr "迭代次数"
+
+#: OpenSPH ui
+msgid "K-d tree leaf size"
+msgstr "K-d 树叶子大小"
+
+#: OpenSPH ui
+msgid "Layer count"
+msgstr "层数"
+
+#: OpenSPH ui
+msgid "Layers"
+msgstr "层"
+
+#: OpenSPH ui
+msgid "Lensing magnitude"
+msgstr "透镜强度"
+
+#: OpenSPH ui
+msgid "Log file"
+msgstr "日志文件"
+
+#: OpenSPH ui
+msgid "Log verbosity"
+msgstr "日志详细程度"
+
+#: OpenSPH ui
+msgid "Logarithmic factor"
+msgstr "对数因子"
+
+#: OpenSPH ui
+msgid "Logger"
+msgstr "日志器"
+
+#: OpenSPH ui
+msgid "Logging"
+msgstr "日志"
+
+#: OpenSPH ui
+msgid "Magnitude [m/s]"
+msgstr "幅度 [m/s]"
+
+#: OpenSPH ui
+msgid "Major radius [km]"
+msgstr "长半轴 [km]"
+
+#: OpenSPH ui
+msgid "Make camera node"
+msgstr "创建相机节点"
+
+#: OpenSPH ui
+msgid "Make flags unique"
+msgstr "标记唯一化"
+
+#: OpenSPH ui
+msgid "Mass [M_earth]"
+msgstr "质量 [M⊕]"
+
+#: OpenSPH ui
+msgid "Material"
+msgstr "材料"
+
+#: OpenSPH ui
+msgid "Material ID"
+msgstr "材料 ID"
+
+#: OpenSPH ui
+msgid "Material type"
+msgstr "材料类型"
+
+#: OpenSPH ui
+msgid "Max bounces"
+msgstr "最大反弹次数"
+
+#: OpenSPH ui
+msgid "Max deviation [km]"
+msgstr "最大偏差 [km]"
+
+#: OpenSPH ui
+msgid "Max parallel depth"
+msgstr "最大并行深度"
+
+#: OpenSPH ui
+msgid "Max step change"
+msgstr "最大步长变化"
+
+#: OpenSPH ui
+msgid "Maximal timestep [s]"
+msgstr "最大时间步 [s]"
+
+#: OpenSPH ui
+msgid "Maximum framerate"
+msgstr "最大帧率"
+
+#: OpenSPH ui
+msgid "Medium absorption [km^-1]"
+msgstr "介质吸收 [km⁻¹]"
+
+#: OpenSPH ui
+msgid "Medium emission [km^-1]"
+msgstr "介质发射 [km⁻¹]"
+
+#: OpenSPH ui
+msgid "Medium scattering [km^-1]"
+msgstr "介质散射 [km⁻¹]"
+
+#: OpenSPH ui
+msgid "Melting energy [J/kg]"
+msgstr "熔化能 [J/kg]"
+
+#: OpenSPH ui
+msgid "Merge rotation limit"
+msgstr "合并旋转极限"
+
+#: OpenSPH ui
+msgid "Merge velocity limit"
+msgstr "合并速度极限"
+
+#: OpenSPH ui
+msgid "Merging"
+msgstr "合并"
+
+#: OpenSPH ui
+msgid "Merging options"
+msgstr "合并选项"
+
+#: OpenSPH ui
+msgid "Mesh parameters"
+msgstr "网格参数"
+
+#: OpenSPH ui
+msgid "Mesh source"
+msgstr "网格源"
+
+#: OpenSPH ui
+msgid "Min component size"
+msgstr "最小组件尺寸"
+
+#: OpenSPH ui
+msgid "Min particle count"
+msgstr "最小粒子数"
+
+#: OpenSPH ui
+msgid "Minimal density [kg/m^3]"
+msgstr "最小密度 [kg/m³]"
+
+#: OpenSPH ui
+msgid "Minimal separation"
+msgstr "最小间距"
+
+#: OpenSPH ui
+msgid "Minor radius [km]"
+msgstr "短半轴 [km]"
+
+#: OpenSPH ui
+msgid "Misc"
+msgstr "杂项"
+
+#: OpenSPH ui
+msgid "Mode"
+msgstr "模式"
+
+#: OpenSPH ui
+msgid "Modification"
+msgstr "修正"
+
+#: OpenSPH ui
+msgid "Move camera"
+msgstr "移动相机"
+
+#: OpenSPH ui
+msgid "Move to COM"
+msgstr "移至质心"
+
+#: OpenSPH ui
+msgid "Move to CoM"
+msgstr "移至质心"
+
+#: OpenSPH ui
+msgid "Move to CoM frame"
+msgstr "移至质心参考系"
+
+#: OpenSPH ui
+msgid "Multiplier"
+msgstr "倍数"
+
+#: OpenSPH ui
+msgid "Multipole order"
+msgstr "多极展开阶数"
+
+#: OpenSPH ui
+msgid "Name"
+msgstr "名称"
+
+#: OpenSPH ui
+msgid "Neighbor count enforcing strength"
+msgstr "邻居数强制强度"
+
+#: OpenSPH ui
+msgid "Neighbor finder"
+msgstr "邻居查找器"
+
+#: OpenSPH ui
+msgid "Neighbor range"
+msgstr "邻居范围"
+
+#: OpenSPH ui
+msgid "No ChaiScript"
+msgstr "无 ChaiScript"
+
+#: OpenSPH ui
+msgid "No pressure data"
+msgstr "无压力数据"
+
+#: OpenSPH ui
+msgid "Noise parameters"
+msgstr "噪声参数"
+
+#: OpenSPH ui
+msgid "Normal restitution"
+msgstr "法向恢复系数"
+
+#: OpenSPH ui
+msgid "Number"
+msgstr "数值"
+
+#: OpenSPH ui
+msgid "Number of inputs"
+msgstr "输入数量"
+
+#: OpenSPH ui
+msgid "Number of parameters"
+msgstr "参数数量"
+
+#: OpenSPH ui
+msgid "Number of slots"
+msgstr "槽位数量"
+
+#: OpenSPH ui
+msgid "Number of threads"
+msgstr "线程数"
+
+#: OpenSPH ui
+msgid "Offset"
+msgstr "偏移"
+
+#: OpenSPH ui
+msgid "Offset [km]"
+msgstr "偏移 [km]"
+
+#: OpenSPH ui
+msgid "Open file"
+msgstr "打开文件"
+
+#: OpenSPH ui
+msgid "Open session"
+msgstr "打开会话"
+
+#: OpenSPH ui
+msgid "Opening angle"
+msgstr "张角"
+
+#: OpenSPH ui
+msgid "Operation"
+msgstr "操作"
+
+#: OpenSPH ui
+msgid "Orbit speed [rev/day]"
+msgstr "轨道速度 [rev/day]"
+
+#: OpenSPH ui
+msgid "Ortho FoV [km]"
+msgstr "正交视场 [km]"
+
+#: OpenSPH ui
+msgid "Oscillation decay time [s]"
+msgstr "振荡衰减时间 [s]"
+
+#: OpenSPH ui
+msgid "Oscillation regeneration []"
+msgstr "振荡再生 []"
+
+#: OpenSPH ui
+msgid "Output"
+msgstr "输出"
+
+#: OpenSPH ui
+msgid "Output interval [s]"
+msgstr "输出间隔 [s]"
+
+#: OpenSPH ui
+msgid "Output spacing"
+msgstr "输出间隔"
+
+#: OpenSPH ui
+msgid "Overlap handler"
+msgstr "重叠处理"
+
+#: OpenSPH ui
+msgid "Palette"
+msgstr "调色板"
+
+#: OpenSPH ui
+msgid "Parallelization"
+msgstr "并行化"
+
+#: OpenSPH ui
+msgid "Parameter "
+msgstr ""
+
+#: OpenSPH ui
+msgid "Parameters"
+msgstr "参数"
+
+#: OpenSPH ui
+msgid "Particle"
+msgstr "粒子"
+
+#: OpenSPH ui
+msgid "Particle count"
+msgstr "粒子数"
+
+#: OpenSPH ui
+msgid "Particle granularity"
+msgstr "粒子粒度"
+
+#: OpenSPH ui
+msgid "Particle radius"
+msgstr "粒子半径"
+
+#: OpenSPH ui
+msgid "Particles"
+msgstr "粒子"
+
+#: OpenSPH ui
+msgid "Path"
+msgstr "路径"
+
+#: OpenSPH ui
+msgid "Pitch angle [deg]"
+msgstr "俯仰角 [deg]"
+
+#: OpenSPH ui
+msgid "Polytrope index"
+msgstr "多方指数"
+
+#: OpenSPH ui
+msgid "Position [km]"
+msgstr "位置 [km]"
+
+#: OpenSPH ui
+msgid "Positions"
+msgstr "位置"
+
+#: OpenSPH ui
+msgid "Power-law exponent"
+msgstr "幂律指数"
+
+#: OpenSPH ui
+msgid "Precompute"
+msgstr "预计算"
+
+#: OpenSPH ui
+msgid "Predicted SFD"
+msgstr "预测碎片尺寸分布"
+
+#: OpenSPH ui
+msgid "Preserve mass"
+msgstr "保持质量"
+
+#: OpenSPH ui
+msgid "Preserve radii"
+msgstr "保持半径"
+
+#: OpenSPH ui
+msgid "Pressure profile"
+msgstr "压力剖面"
+
+#: OpenSPH ui
+msgid "Quantity"
+msgstr "物理量"
+
+#: OpenSPH ui
+msgid "Radial exponent"
+msgstr "径向指数"
+
+#: OpenSPH ui
+msgid "Radial gradient [si/km]"
+msgstr "径向梯度 [si/km]"
+
+#: OpenSPH ui
+msgid "Radius"
+msgstr "半径"
+
+#: OpenSPH ui
+msgid "Radius [km]"
+msgstr "半径 [km]"
+
+#: OpenSPH ui
+msgid "Radius multiplier"
+msgstr "半径乘数"
+
+#: OpenSPH ui
+msgid "Random numbers"
+msgstr "随机数"
+
+#: OpenSPH ui
+msgid "Random seed"
+msgstr "随机种子"
+
+#: OpenSPH ui
+msgid "Random-number generator"
+msgstr "随机数生成器"
+
+#: OpenSPH ui
+msgid "Recomputation period [s]"
+msgstr "重算周期 [s]"
+
+#: OpenSPH ui
+msgid "Reduce noise"
+msgstr "降低噪声"
+
+#: OpenSPH ui
+msgid "Refine mesh"
+msgstr "细化网格"
+
+#: OpenSPH ui
+msgid "Relaxation parameter"
+msgstr "松弛参数"
+
+#: OpenSPH ui
+msgid "Removal"
+msgstr "移除"
+
+#: OpenSPH ui
+msgid "Remove damaged"
+msgstr "移除损伤粒子"
+
+#: OpenSPH ui
+msgid "Remove expanded"
+msgstr "移除膨胀粒子"
+
+#: OpenSPH ui
+msgid "Ren&dering"
+msgstr "渲染(&R)"
+
+#: OpenSPH ui
+msgid "Render"
+msgstr "渲染"
+
+#: OpenSPH ui
+msgid "Render as spheres"
+msgstr "以球体渲染"
+
+#: OpenSPH ui
+msgid "Renderer"
+msgstr "渲染器"
+
+#: OpenSPH ui
+msgid "Rendering"
+msgstr "渲染"
+
+#: OpenSPH ui
+msgid "Repel force strength"
+msgstr "排斥力强度"
+
+#: OpenSPH ui
+msgid "Resolution"
+msgstr "分辨率"
+
+#: OpenSPH ui
+msgid "Resolution power"
+msgstr "分辨率倍数"
+
+#: OpenSPH ui
+msgid "Rheology"
+msgstr "流变模型"
+
+#: OpenSPH ui
+msgid "Roll angle [deg]"
+msgstr "翻滚角 [deg]"
+
+#: OpenSPH ui
+msgid "Run metadata"
+msgstr "运行元数据"
+
+#: OpenSPH ui
+msgid "Run only once"
+msgstr "仅运行一次"
+
+#: OpenSPH ui
+msgid "SPH discretization"
+msgstr "SPH 离散化"
+
+#: OpenSPH ui
+msgid "SPH kernel"
+msgstr "SPH 核函数"
+
+#: OpenSPH ui
+msgid "SPH modifications"
+msgstr "SPH 修正"
+
+#: OpenSPH ui
+msgid "SPH parameters"
+msgstr "SPH 参数"
+
+#: OpenSPH ui
+msgid "SPH solver"
+msgstr "SPH 求解器"
+
+#: OpenSPH ui
+msgid "Sample distributions"
+msgstr "采样分布"
+
+#: OpenSPH ui
+msgid "Save particle time steps"
+msgstr "保存粒子时间步"
+
+#: OpenSPH ui
+msgid "Save session"
+msgstr "保存会话"
+
+#: OpenSPH ui
+msgid "Save state file"
+msgstr "保存状态文件"
+
+#: OpenSPH ui
+msgid "Save unsaved changes"
+msgstr "保存未保存的更改"
+
+#: OpenSPH ui
+msgid "Save?"
+msgstr "保存？"
+
+#: OpenSPH ui
+msgid "Scale to unit size"
+msgstr "缩放到单位尺寸"
+
+#: OpenSPH ui
+msgid "Scaling"
+msgstr "缩放"
+
+#: OpenSPH ui
+msgid "Scaling factor"
+msgstr "缩放因子"
+
+#: OpenSPH ui
+msgid "Scatter"
+msgstr "散射"
+
+#: OpenSPH ui
+msgid "Script"
+msgstr "脚本"
+
+#: OpenSPH ui
+msgid "Script file"
+msgstr "脚本文件"
+
+#: OpenSPH ui
+msgid "Script period [s]"
+msgstr "脚本周期 [s]"
+
+#: OpenSPH ui
+msgid "Scripts"
+msgstr "脚本"
+
+#: OpenSPH ui
+msgid "Semi-axes [km]"
+msgstr "半轴 [km]"
+
+#: OpenSPH ui
+msgid "Semi-major axis [km]"
+msgstr "半长轴 [km]"
+
+#: OpenSPH ui
+msgid "Set zero momentum"
+msgstr "清零总动量"
+
+#: OpenSPH ui
+msgid "Shape"
+msgstr "形状"
+
+#: OpenSPH ui
+msgid "Shape type"
+msgstr "形状类型"
+
+#: OpenSPH ui
+msgid "Shear modulus [Pa]"
+msgstr "剪切模量 [Pa]"
+
+#: OpenSPH ui
+msgid "Show key"
+msgstr "显示图例"
+
+#: OpenSPH ui
+msgid "Signal speed"
+msgstr "信号速度"
+
+#: OpenSPH ui
+msgid "Slot "
+msgstr ""
+
+#: OpenSPH ui
+msgid "Slots"
+msgstr "槽位"
+
+#: OpenSPH ui
+msgid "Smoothing factor"
+msgstr "平滑因子"
+
+#: OpenSPH ui
+msgid "Smoothing multiplier"
+msgstr "平滑乘数"
+
+#: OpenSPH ui
+msgid "Soft-body physics (experimental)"
+msgstr "软体物理（实验性）"
+
+#: OpenSPH ui
+msgid "Softening kernel"
+msgstr "软化核"
+
+#: OpenSPH ui
+msgid "Solution"
+msgstr "解算"
+
+#: OpenSPH ui
+msgid "Solver"
+msgstr "求解器"
+
+#: OpenSPH ui
+msgid "Solver type"
+msgstr "求解器类型"
+
+#: OpenSPH ui
+msgid "Spatial resolution [m]"
+msgstr "空间分辨率 [m]"
+
+#: OpenSPH ui
+msgid "Specific energy [J/kg]"
+msgstr "比能 [J/kg]"
+
+#: OpenSPH ui
+msgid "Sphere"
+msgstr "球体"
+
+#: OpenSPH ui
+msgid "Spin rate [rev/day]"
+msgstr "自转速率 [rev/day]"
+
+#: OpenSPH ui
+msgid "St&op"
+msgstr "停止(&O)"
+
+#: OpenSPH ui
+msgid "Stabilization"
+msgstr "稳定化"
+
+#: OpenSPH ui
+msgid "Star parameters"
+msgstr "恒星参数"
+
+#: OpenSPH ui
+msgid "Start batch"
+msgstr "开始批量"
+
+#: OpenSPH ui
+msgid "Start script"
+msgstr "开始脚本"
+
+#: OpenSPH ui
+msgid "Strength"
+msgstr "强度"
+
+#: OpenSPH ui
+msgid "Stress coeff. [Pa]"
+msgstr "应力系数 [Pa]"
+
+#: OpenSPH ui
+msgid "Sublimation energy"
+msgstr "升华能"
+
+#: OpenSPH ui
+msgid "Subsampling"
+msgstr "子采样"
+
+#: OpenSPH ui
+msgid "Subset"
+msgstr "子集"
+
+#: OpenSPH ui
+msgid "Sum only undamaged particles"
+msgstr "仅累加未损伤粒子"
+
+#: OpenSPH ui
+msgid "Sun position"
+msgstr "太阳位置"
+
+#: OpenSPH ui
+msgid "Sunlight intensity"
+msgstr "阳光强度"
+
+#: OpenSPH ui
+msgid "Surface"
+msgstr "表面"
+
+#: OpenSPH ui
+msgid "Surface emission"
+msgstr "表面发射"
+
+#: OpenSPH ui
+msgid "Surface level"
+msgstr "表面层级"
+
+#: OpenSPH ui
+msgid "Surfaceness threshold"
+msgstr "表面度阈值"
+
+#: OpenSPH ui
+msgid "Tangential restitution"
+msgstr "切向恢复系数"
+
+#: OpenSPH ui
+msgid "Target [km]"
+msgstr "目标 [km]"
+
+#: OpenSPH ui
+msgid "Temperature profile"
+msgstr "温度剖面"
+
+#: OpenSPH ui
+msgid "Texture path"
+msgstr "纹理路径"
+
+#: OpenSPH ui
+msgid "Texture paths"
+msgstr "纹理路径"
+
+#: OpenSPH ui
+msgid "The code needs to be compiled with ChaiScript support."
+msgstr "需要编译时启用 ChaiScript 支持才能运行脚本。"
+
+#: OpenSPH ui
+msgid "Tillotson's B"
+msgstr "Tillotson 参数 B"
+
+#: OpenSPH ui
+msgid "Tillotson's a"
+msgstr "Tillotson 参数 a"
+
+#: OpenSPH ui
+msgid "Tillotson's alpha"
+msgstr "Tillotson 参数 α"
+
+#: OpenSPH ui
+msgid "Tillotson's b"
+msgstr "Tillotson 参数 b"
+
+#: OpenSPH ui
+msgid "Tillotson's beta"
+msgstr "Tillotson 参数 β"
+
+#: OpenSPH ui
+msgid "Tillotson's parameters"
+msgstr "Tillotson 参数"
+
+#: OpenSPH ui
+msgid "Time step control"
+msgstr "时间步控制"
+
+#: OpenSPH ui
+msgid "Tolerance"
+msgstr "容差"
+
+#: OpenSPH ui
+msgid "Toomre Q parameter"
+msgstr "Toomre Q 参数"
+
+#: OpenSPH ui
+msgid "Total mass [M_earth]"
+msgstr "总质量 [M⊕]"
+
+#: OpenSPH ui
+msgid "Track median"
+msgstr "追踪中值"
+
+#: OpenSPH ui
+msgid "Track particle"
+msgstr "追踪粒子"
+
+#: OpenSPH ui
+msgid "Tracking"
+msgstr "追踪"
+
+#: OpenSPH ui
+msgid "Tracking offset"
+msgstr "追踪偏移"
+
+#: OpenSPH ui
+msgid "Transform"
+msgstr "变换"
+
+#: OpenSPH ui
+msgid "Translate [km]"
+msgstr "平移 [km]"
+
+#: OpenSPH ui
+msgid "Transparent background"
+msgstr "透明背景"
+
+#: OpenSPH ui
+msgid "UV mapping"
+msgstr "UV 映射"
+
+#: OpenSPH ui
+msgid "Unit system"
+msgstr "单位制"
+
+#: OpenSPH ui
+msgid "Unnamed session"
+msgstr "未命名会话"
+
+#: OpenSPH ui
+msgid "Unrecognized file format"
+msgstr "无法识别的文件格式"
+
+#: OpenSPH ui
+msgid "Up-direction"
+msgstr "上方向"
+
+#: OpenSPH ui
+msgid "Use acoustic fludization"
+msgstr "使用声学流化"
+
+#: OpenSPH ui
+msgid "Use radii hash map"
+msgstr "使用半径哈希表"
+
+#: OpenSPH ui
+msgid "Use start time of input"
+msgstr "使用输入的开始时间"
+
+#: OpenSPH ui
+msgid "VDB File"
+msgstr "VDB 文件"
+
+#: OpenSPH ui
+msgid "Value '"
+msgstr ""
+
+#: OpenSPH ui
+msgid "Variance"
+msgstr "方差"
+
+#: OpenSPH ui
+msgid "Velocities"
+msgstr "速度"
+
+#: OpenSPH ui
+msgid "Velocity [km/s]"
+msgstr "速度 [km/s]"
+
+#: OpenSPH ui
+msgid "Velocity dispersion [km/s]"
+msgstr "速度弥散 [km/s]"
+
+#: OpenSPH ui
+msgid "Velocity histogram"
+msgstr "速度直方图"
+
+#: OpenSPH ui
+msgid "Velocity multiplier"
+msgstr "速度乘数"
+
+#: OpenSPH ui
+msgid "Visible"
+msgstr "可见"
+
+#: OpenSPH ui
+msgid "Visualization"
+msgstr "可视化"
+
+#: OpenSPH ui
+msgid "Weibull coefficient"
+msgstr "韦布尔系数"
+
+#: OpenSPH ui
+msgid "Weibull exponent"
+msgstr "韦布尔指数"
+
+#: OpenSPH ui
+msgid "XSPH epsilon"
+msgstr "XSPH ε"
+
+#: OpenSPH ui
+msgid "Yaw angle [deg]"
+msgstr "偏航角 [deg]"
+
+#: OpenSPH ui
+msgid "delta-SPH alpha"
+msgstr "δ-SPH α"
+
+#: OpenSPH ui
+msgid "delta-SPH delta"
+msgstr "δ-SPH δ"
+
+#: OpenSPH ui
+msgid "eccentricity []"
+msgstr "偏心率 []"
+
+#: OpenSPH ui
+msgid "geometry"
+msgstr ""
+
+#: OpenSPH ui
+msgid "initial proper anomaly [deg]"
+msgstr "初始真近点角 [deg]"
+
+#: OpenSPH ui
+msgid "isb\\n"
+msgstr ""
+
+#: OpenSPH ui
+msgid "semi-major axis [km]"
+msgstr "半长轴 [km]"
+
+#: OpenSPH ui
+msgid "von Mises limit [Pa]"
+msgstr "冯·米塞斯极限 [Pa]"

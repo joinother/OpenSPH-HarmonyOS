@@ -1,0 +1,842 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e57ca46..ddb0163 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -48,8 +48,23 @@ if (WIN32)
+     add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_CRT_SECURE_NO_WARNINGS)
+ endif()
+ 
+-find_package(wxWidgets REQUIRED COMPONENTS core base adv propgrid aui)
+-include(${wxWidgets_USE_FILE})
++if(OHOS)
++    # Manual wxWidgets configuration for OHOS cross-compilation (platform-suffixed lib names)
++    execute_process(COMMAND ${wxWidgets_CONFIG_EXECUTABLE} --cxxflags OUTPUT_VARIABLE WX_CXXFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
++    execute_process(COMMAND ${wxWidgets_CONFIG_EXECUTABLE} --libs core base adv propgrid aui OUTPUT_VARIABLE WX_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
++    separate_arguments(WX_CXXFLAGS_LIST UNIX_COMMAND "${WX_CXXFLAGS}")
++    separate_arguments(WX_LIBS_LIST UNIX_COMMAND "${WX_LIBS}")
++    set(wxWidgets_FOUND TRUE)
++    set(wxWidgets_INCLUDE_DIRS "")
++    set(wxWidgets_LIBRARIES "${WX_LIBS_LIST}")
++    set(wxWidgets_CXX_FLAGS "${WX_CXXFLAGS_LIST}")
++    add_compile_options(${WX_CXXFLAGS_LIST})
++    message(STATUS "OHOS wxWidgets cxxflags: ${WX_CXXFLAGS}")
++    message(STATUS "OHOS wxWidgets libs: ${WX_LIBS}")
++else()
++    find_package(wxWidgets REQUIRED COMPONENTS core base adv propgrid aui)
++    include(${wxWidgets_USE_FILE})
++endif()
+ 
+ if (WITH_EIGEN)
+     find_package(Eigen REQUIRED)
+@@ -109,6 +124,9 @@ endif()
+ if (WIN32)
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3")
+     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /fp:fast")
++elseif (OHOS)
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
++    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffast-math")
+ else()
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -msse4.1")
+     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -mtune=native -ffast-math")
+diff --git a/core/objects/geometry/Vector.h b/core/objects/geometry/Vector.h
+index 349b603..a483d69 100644
+--- a/core/objects/geometry/Vector.h
++++ b/core/objects/geometry/Vector.h
+@@ -9,9 +9,14 @@
+ #include "objects/containers/Tuple.h"
+ #include "objects/geometry/Generic.h"
+ #include "objects/wrappers/Interval.h"
++#if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)
+ #include <immintrin.h>
+-#include <iomanip>
+ #include <smmintrin.h>
++#else
++#define SSE2NEON_ALLOC_DEFINED
++#include "common/sse2neon.h"
++#endif
++#include <iomanip>
+ 
+ NAMESPACE_SPH_BEGIN
+ 
+diff --git a/gui/launcherGui/CMakeLists.txt b/gui/launcherGui/CMakeLists.txt
+index 8abb8b1..015b4da 100644
+--- a/gui/launcherGui/CMakeLists.txt
++++ b/gui/launcherGui/CMakeLists.txt
+@@ -9,3 +9,23 @@ endif()
+ target_include_directories(opensph PRIVATE .. ../../core)
+ 
+ target_link_libraries(opensph PRIVATE gui ${wxWidgets_LIBRARIES})
++
++# Export main() symbol to dynamic symbol table so it can be dlopen()ed + dlsym()ed
++# on HarmonyOS via the Qt-OH platform (route B bridge).
++set_target_properties(opensph PROPERTIES ENABLE_EXPORTS ON)
++
++# The rebuilt wx qtu_core references QTest symbols (wx/qt uiaction backend);
++# force libQt6Test into the load graph so those UND symbols resolve at dlopen().
++target_link_options(opensph PRIVATE
++  -Wl,--no-as-needed
++  /Users/jiexuanyang/Qt/6.12.0/harmonyos_arm64_v8a/lib/libQt6Test.so
++  -Wl,--as-needed
++)
++
++# link the OpenHarmony hilog NDK so OSPH_TRACE diagnostics reach hilog
++# (absolute path; the bare -lhilog_ndk is not found by the cross linker)
++
++# sysroot lib dir where libhilog_ndk.z.so lives (linking by absolute path)
++target_link_options(opensph PRIVATE
++  "/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/native/sysroot/usr/lib/aarch64-linux-ohos/libhilog_ndk.z.so"
++)
+diff --git a/gui/launcherGui/LauncherGui.cpp b/gui/launcherGui/LauncherGui.cpp
+index 5455a17..d04defe 100644
+--- a/gui/launcherGui/LauncherGui.cpp
++++ b/gui/launcherGui/LauncherGui.cpp
+@@ -1,16 +1,154 @@
+ #include "gui/launcherGui/LauncherGui.h"
+ #include "gui/windows/MainWindow.h"
+ #include <wx/msgdlg.h>
++#include <wx/log.h>
++#include <wx/intl.h>
++#include <wx/translation.h>
++#include <clocale>
++#include <unistd.h>
++#include <sys/stat.h>
++#include <cstdio>
++#include <hilog/log.h>
+ 
+ IMPLEMENT_APP(Sph::App);
+ 
+ NAMESPACE_SPH_BEGIN
+ 
++#define OSPH_TRACE(...)                                                                  \
++    do {                                                                                 \
++        char _buf[512];                                                                  \
++        snprintf(_buf, sizeof(_buf), __VA_ARGS__);                                       \
++        OH_LOG_Print(LOG_APP, LOG_INFO, 0x0100, "OpenSPH", "%{public}s", _buf);          \
++    } while (0)
++
++// ---------------------------------------------------------------------------
++// i18n: load OpenSPH.mo (gettext-style) catalog. Language is selected from the
++// OSPH_LANG env var (e.g. "zh_CN", "en"); default is Simplified Chinese. The
++// catalog directory is taken from OSPH_LANG_DIR if set, otherwise the
++// HarmonyOS sandbox files dir is used. On the HarmonyOS port the catalog is
++// copied asynchronously from the HAP rawfile by the ArkTS shell, so we poll
++// briefly for its arrival. Falls back to English and never crashes when the
++// catalog is missing.
++// ---------------------------------------------------------------------------
++static wxLocale* g_locale = nullptr;
++
++static void SetupI18n() {
++    g_locale = new wxLocale;
++
++    wxLanguage lang = wxLANGUAGE_CHINESE_SIMPLIFIED;
++    if (const char* lg = getenv("OSPH_LANG")) {
++        wxString langName(lg, wxConvUTF8);
++        const wxLanguageInfo* info = wxLocale::FindLanguageInfo(langName);
++        if (info) {
++            lang = (wxLanguage)info->Language;
++        }
++    }
++    const bool initOk = g_locale->Init(lang);
++    if (!initOk) {
++        g_locale->Init(wxLANGUAGE_ENGLISH);
++    }
++    OSPH_TRACE("i18n: Init(lang=%d)=%d canonical='%s'",
++        (int)lang, initOk ? 1 : 0,
++        g_locale->GetCanonicalName().utf8_string().c_str());
++
++    // Catalog directory: OSPH_LANG_DIR env var, else HarmonyOS sandbox files dir.
++    wxString moDir;
++    if (const char* d = getenv("OSPH_LANG_DIR")) {
++        moDir = wxString(d, wxConvUTF8);
++    } else {
++        moDir = "/data/storage/el2/base/haps/entry/files";
++    }
++
++    // The ArkTS shell copies OpenSPH.mo from rawfile asynchronously; poll up
++    // to ~3 s for it to arrive before trying to load the catalog.
++    const wxString moPath = moDir + "/OpenSPH.mo";
++    for (int i = 0; i < 12 && access(moPath.utf8_string().c_str(), R_OK) != 0; ++i) {
++        usleep(250 * 1000);
++    }
++
++    // wxFileTranslationsLoader only searches <prefix>/<lang>/LC_MESSAGES and
++    // <prefix>/<lang>, NOT <prefix> directly. Replicate the .mo into those
++    // subdirs (POSIX mkdir works inside the app sandbox).
++    {
++        struct stat st;
++        const std::string src = moPath.utf8_string();
++        if (stat(src.c_str(), &st) == 0) {
++            const char* subs[][2] = {
++                { "zh_CN", "LC_MESSAGES" },
++                { "zh_CN", "" },
++                { "zh_Hans", "LC_MESSAGES" },
++                { "zh_Hans", "" },
++            };
++            for (const auto& s : subs) {
++                std::string dir;
++                if (s[1][0]) {
++                    std::string l1 = moDir.utf8_string() + "/" + s[0];
++                    mkdir(l1.c_str(), 0755);
++                    std::string l2 = l1 + "/" + s[1];
++                    mkdir(l2.c_str(), 0755);
++                    dir = l2;
++                } else {
++                    dir = moDir.utf8_string() + "/" + s[0];
++                    mkdir(dir.c_str(), 0755);
++                }
++                std::string dst = dir + "/OpenSPH.mo";
++                FILE* in = fopen(src.c_str(), "rb");
++                FILE* out = fopen(dst.c_str(), "wb");
++                if (in && out) {
++                    char buf[8192];
++                    size_t n;
++                    while ((n = fread(buf, 1, sizeof(buf), in)) > 0) {
++                        fwrite(buf, 1, n, out);
++                    }
++                }
++                if (in) {
++                    fclose(in);
++                }
++                if (out) {
++                    fclose(out);
++                }
++            }
++        }
++    }
++
++    wxFileTranslationsLoader::AddCatalogLookupPathPrefix(moDir);
++    // OpenSPH.mo / zh_CN/LC_MESSAGES/OpenSPH.mo ...
++    const bool catalogOk = g_locale->AddCatalog("OpenSPH");
++
++    // TEMP i18n diagnostics -> hilog
++    OSPH_TRACE("i18n: moDir=%s moPathExists=%d AddCatalog=%d lang=%d",
++        moDir.utf8_string().c_str(),
++        access(moPath.utf8_string().c_str(), R_OK) == 0 ? 1 : 0,
++        catalogOk ? 1 : 0,
++        (int)lang);
++    OSPH_TRACE("i18n: probe '&Project' -> '%s'",
++        wxGetTranslation("&Project").utf8_string().c_str());
++    OSPH_TRACE("i18n: probe 'Material' -> '%s'",
++        wxGetTranslation("Material").utf8_string().c_str());
++
++    // Never let the locale change numeric/date formatting: the simulation core
++    // relies on C-style "%g"/"%f" output (e.g. "2700", "2.67e+10").
++    std::setlocale(LC_NUMERIC, "C");
++    std::setlocale(LC_TIME, "C");
++}
++
+ bool App::OnInit() {
+ #ifndef SPH_DEBUG
+     wxDisableAsserts();
+ #endif
+ 
++    // TEMP-TEST: enable auto material node
++    setenv("OSPH_AUTOTEST", "1", 1);
++    setenv("OSPH_TESTSCROLL", "1", 1);
++    setenv("OSPH_PG_DIRECT", "1", 1);
++
++    // On the HarmonyOS port there is no console; route wxLog output to stderr
++    // so that OSPH_TRACE diagnostics appear in hilog.
++    wxLog::SetActiveTarget(new wxLogStderr());
++
++    // i18n: initialize translations before any window/string is created.
++    SetupI18n();
++
+     this->Connect(MAIN_LOOP_TYPE, MainLoopEventHandler(App::processEvents));
+ 
+     if (wxTheApp->argc > 1) {
+@@ -21,6 +159,16 @@ bool App::OnInit() {
+     }
+     window->SetAutoLayout(true);
+     window->Show();
++
++    // TEMP-TEST: the frame requests Maximize() in its ctor before the Qt
++    // window exists; re-apply it after the first show so the HarmonyOS
++    // window manager actually maximizes it (gives the property panel its
++    // full height so the material parameters are not clipped).
++    MainWindow* win = window;
++    window->CallAfter([win] {
++        win->Maximize(true);
++    });
++
+     return true;
+ }
+ 
+diff --git a/gui/objects/SvgContext.h b/gui/objects/SvgContext.h
+index d463485..383e661 100644
+--- a/gui/objects/SvgContext.h
++++ b/gui/objects/SvgContext.h
+@@ -8,10 +8,15 @@
+ #include "gui/objects/Point.h"
+ #include "io/Path.h"
+ #include "post/Plot.h"
++
++#if wxUSE_SVG
+ #include <wx/dcsvg.h>
++#endif
+ 
+ NAMESPACE_SPH_BEGIN
+ 
++#if wxUSE_SVG
++
+ class SvgPath : public IDrawPath {
+ private:
+     wxSVGFileDC& dc;
+@@ -86,4 +91,22 @@ public:
+     }
+ };
+ 
++#else
++
++// Stub implementation for platforms without wxSVGFileDC (e.g. OHOS wxQT port)
++class SvgContext : public IDrawingContext {
++public:
++    SvgContext(const Path& path, const Pixel size, const double dpi = 72) {
++        (void)path; (void)size; (void)dpi;
++    }
++    virtual void drawPoint(const PlotPoint& point) override { (void)point; }
++    virtual void drawErrorPoint(const ErrorPlotPoint& point) override { (void)point; }
++    virtual void drawLine(const PlotPoint& from, const PlotPoint& to) override { (void)from; (void)to; }
++    virtual AutoPtr<IDrawPath> drawPath() override { return nullptr; }
++    virtual void setStyle(const Size index) override { (void)index; }
++    virtual void setTransformMatrix(const AffineMatrix2& newMatrix) override { (void)newMatrix; }
++};
++
++#endif
++
+ NAMESPACE_SPH_END
+diff --git a/gui/windows/MainWindow.cpp b/gui/windows/MainWindow.cpp
+index 2b3b2eb..3676af9 100644
+--- a/gui/windows/MainWindow.cpp
++++ b/gui/windows/MainWindow.cpp
+@@ -17,15 +17,52 @@
+ #include "post/Plot.h"
+ #include "run/jobs/GeometryJobs.h"
+ #include "run/jobs/IoJobs.h"
++#include "run/jobs/MaterialJobs.h"
+ #include "run/jobs/ParticleJobs.h"
+ 
+ #include <wx/aboutdlg.h>
+ #include <wx/aui/auibook.h>
++#include <wx/eventfilter.h>
++#include <wx/intl.h>
+ #include <wx/menu.h>
+ #include <wx/msgdlg.h>
+ 
++#include <hilog/log.h>
++
+ NAMESPACE_SPH_BEGIN
+ 
++// ---------- OpenSPH-on-HarmonyOS diagnostic tracing ----------
++// Traces go to hilog (tag "OpenSPH") so they can be read with:
++//   hilog -x | grep "OpenSPH"
++#define OSPH_TRACE(...)                                                                  \
++    do {                                                                                 \
++        char _buf[512];                                                                  \
++        snprintf(_buf, sizeof(_buf), __VA_ARGS__);                                       \
++        OH_LOG_Print(LOG_APP, LOG_INFO, 0x0100, "OpenSPH", "%{public}s", _buf);          \
++    } while (0)
++
++class OpenSphTraceFilter : public wxEventFilter {
++public:
++    OpenSphTraceFilter() = default;
++
++    int FilterEvent(wxEvent& evt) override {
++        const wxEventType t = evt.GetEventType();
++        if (t == wxEVT_LEFT_DOWN || t == wxEVT_RIGHT_DOWN) {
++            const wxMouseEvent& me = static_cast<const wxMouseEvent&>(evt);
++            wxWindow* win = dynamic_cast<wxWindow*>(me.GetEventObject());
++            OSPH_TRACE("mouse %s at (%d,%d) on '%s'",
++                t == wxEVT_LEFT_DOWN ? "LEFT_DOWN" : "RIGHT_DOWN", me.GetX(), me.GetY(),
++                win ? win->GetName().c_str().AsChar() : "?");
++        } else if (t == wxEVT_MENU) {
++            const wxCommandEvent& ce = static_cast<const wxCommandEvent&>(evt);
++            OSPH_TRACE("menu selected id=%d", ce.GetId());
++        } else if (t == wxEVT_CLOSE_WINDOW) {
++            OSPH_TRACE("close window requested");
++        }
++        return wxEventFilter::Event_Skip;
++    }
++};
++
+ constexpr int NOTEBOOK_ID = 4257;
+ 
+ wxAuiNotebook* findNotebook() {
+@@ -131,6 +168,9 @@ MainWindow::MainWindow(const Path& openPath)
+           wxSize(1024, 768)) {
+     wxInitAllImageHandlers();
+ 
++    wxEvtHandler::AddFilter(new OpenSphTraceFilter());
++    OSPH_TRACE("ctor begin, openPath='%s'", openPath.string().toUtf8().cstr());
++
+     this->Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(MainWindow::onClose));
+ 
+     this->Maximize();
+@@ -152,7 +192,8 @@ MainWindow::MainWindow(const Path& openPath)
+     });
+ 
+     nodePage = new NodeWindow(notebook, makeShared<NodeManagerCallbacks>(this));
+-    notebook->AddPage(nodePage, "Unnamed session");
++    notebook->AddPage(nodePage, _("Unnamed session"));
++    OSPH_TRACE("ctor: notebook created, pages=%d", (int)notebook->GetPageCount());
+ 
+     wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+     sizer->Add(notebook, 1, wxALL | wxEXPAND);
+@@ -162,31 +203,31 @@ MainWindow::MainWindow(const Path& openPath)
+     wxMenuBar* bar = new wxMenuBar();
+ 
+     wxMenu* projectMenu = this->createProjectMenu();
+-    bar->Append(projectMenu, "&Project");
++    bar->Append(projectMenu, _("&Project"));
+ 
+     runMenu = this->createRunMenu();
+-    bar->Append(runMenu, "&Simulation");
++    bar->Append(runMenu, _("&Simulation"));
+ 
+     wxMenu* renderMenu = this->createRenderMenu();
+-    bar->Append(renderMenu, "Ren&dering");
++    bar->Append(renderMenu, _("Ren&dering"));
+ 
+     wxMenu* analysisMenu = this->createAnalysisMenu();
+-    bar->Append(analysisMenu, "&Analysis");
++    bar->Append(analysisMenu, _("&Analysis"));
+ 
+     wxMenu* resultMenu = this->createResultMenu();
+-    bar->Append(resultMenu, "&Result");
++    bar->Append(resultMenu, _("&Result"));
+ 
+     wxMenu* viewMenu = new wxMenu();
+-    viewMenu->Append(NodeWindow::ID_PROPERTIES, "&Node properties");
+-    viewMenu->Append(NodeWindow::ID_LIST, "&Node list");
++    viewMenu->Append(NodeWindow::ID_PROPERTIES, _("&Node properties"));
++    viewMenu->Append(NodeWindow::ID_LIST, _("&Node list"));
+     viewMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& evt) { //
+         nodePage->showPanel(NodeWindow::PanelId(evt.GetId()));
+     });
+-    bar->Append(viewMenu, "&Window");
++    bar->Append(viewMenu, _("&Window"));
+ 
+     wxMenu* helpMenu = new wxMenu();
+-    bar->Append(helpMenu, "&Help");
+-    helpMenu->Append(6000, "&About");
++    bar->Append(helpMenu, _("&Help"));
++    helpMenu->Append(6000, _("&About"));
+     helpMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, [](wxCommandEvent& evt) { //
+         switch (evt.GetId()) {
+         case 6000: {
+@@ -208,6 +249,7 @@ MainWindow::MainWindow(const Path& openPath)
+ 
+     this->SetMenuBar(bar);
+     this->enableMenus(0);
++    OSPH_TRACE("ctor: menubar set");
+ 
+     notebook->Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSE, [this](wxAuiNotebookEvent& evt) {
+         const int pageId = evt.GetSelection();
+@@ -232,16 +274,28 @@ MainWindow::MainWindow(const Path& openPath)
+         } else if (ext == "sph") {
+             this->load(openPath);
+         } else {
+-            wxMessageBox("Unrecognized file format", "Error", wxOK);
++            wxMessageBox(_("Unrecognized file format"), _("Error"), wxOK);
+         }
+     }
+ 
+     Project& project = Project::getInstance();
+     project.getGuiSettings().accessor = [this](GuiSettingsId UNUSED(id)) { markSaved(false); };
++
++    // TEMP-TEST: auto-create a material node to inspect the property panel
++    if (getenv("OSPH_AUTOTEST")) {
++        auto nameMgr = nodePage->makeUniqueNameManager();
++        BodySettings overrides;
++        overrides.set(BodySettingsId::EOS, EosEnum::TILLOTSON);
++        auto matNode = nodePage->createNode(makeAuto<MaterialJob>(nameMgr.getName("material"), overrides));
++        nodePage->selectNode(*matNode);
++        OSPH_TRACE("autotest: material node created and selected");
++    }
++
++    OSPH_TRACE("ctor end");
+ }
+ 
+ void MainWindow::saveAs() {
+-    Optional<Path> selectedPath = doSaveFileDialog("Save session", { { "OpenSPH session", "sph" } });
++    Optional<Path> selectedPath = doSaveFileDialog(String::fromUtf8(_("Save session").utf8_string().c_str()), { { "OpenSPH session", "sph" } });
+     if (selectedPath) {
+         this->setProjectPath(selectedPath.value());
+         this->save();
+@@ -317,7 +371,7 @@ void MainWindow::load(const Path& openPath) {
+ 
+     Path pathToLoad;
+     if (openPath.empty()) {
+-        Optional<Path> selectedPath = doOpenFileDialog("Open session", { { "OpenSPH session", "sph" } });
++        Optional<Path> selectedPath = doOpenFileDialog(String::fromUtf8(_("Open session").utf8_string().c_str()), { { "OpenSPH session", "sph" } });
+         if (selectedPath && FileSystem::pathExists(selectedPath.value())) {
+             pathToLoad = selectedPath.value();
+         } else {
+@@ -370,7 +424,7 @@ void MainWindow::setProjectPath(const Path& newPath) {
+         String sessionText = "Session '" + projectPath.fileName().removeExtension().string() + "'";
+         notebook->SetPageText(pageIndex, sessionText.toUnicode());
+     } else {
+-        notebook->SetPageText(pageIndex, "Unnamed session");
++        notebook->SetPageText(pageIndex, _("Unnamed session"));
+     }
+ }
+ 
+@@ -402,17 +456,17 @@ enum ProjectMenuId {
+ 
+ wxMenu* MainWindow::createProjectMenu() {
+     wxMenu* projectMenu = new wxMenu();
+-    projectMenu->Append(PR_NEW_SESSION, "&New session\tCtrl+N");
+-    projectMenu->Append(PR_SAVE_SESSION, "&Save session\tCtrl+S");
+-    projectMenu->Append(PR_SAVE_SESSION_AS, "&Save session as");
+-    projectMenu->Append(PR_OPEN_SESSION, "&Open session\tCtrl+Shift+O");
++    projectMenu->Append(PR_NEW_SESSION, _("&New session\tCtrl+N"));
++    projectMenu->Append(PR_SAVE_SESSION, _("&Save session\tCtrl+S"));
++    projectMenu->Append(PR_SAVE_SESSION_AS, _("&Save session as"));
++    projectMenu->Append(PR_OPEN_SESSION, _("&Open session\tCtrl+Shift+O"));
+ 
+     wxMenu* recentMenu = new wxMenu();
+-    projectMenu->AppendSubMenu(recentMenu, "&Recent");
+-    projectMenu->Append(PR_VISUALIZATION, "&Visualization settings...");
+-    projectMenu->Append(PR_SHARED_PROPERTIES, "&Shared properties...");
+-    projectMenu->Append(PR_BATCH_SETUP, "&Batch setup...\tCtrl+B");
+-    projectMenu->Append(PR_QUIT, "&Quit");
++    projectMenu->AppendSubMenu(recentMenu, _("&Recent"));
++    projectMenu->Append(PR_VISUALIZATION, _("&Visualization settings..."));
++    projectMenu->Append(PR_SHARED_PROPERTIES, _("&Shared properties..."));
++    projectMenu->Append(PR_BATCH_SETUP, _("&Batch setup...\tCtrl+B"));
++    projectMenu->Append(PR_QUIT, _("&Quit"));
+ 
+     SharedPtr<Array<Path>> recentSessions = makeShared<Array<Path>>();
+     *recentSessions = getRecentSessions();
+@@ -498,7 +552,7 @@ wxMenu* MainWindow::createResultMenu() {
+     fileMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& evt) { //
+         switch (evt.GetId()) {
+         case RE_OPEN: {
+-            Optional<Path> path = doOpenFileDialog("Open file",
++            Optional<Path> path = doOpenFileDialog(String::fromUtf8(_("Open file").utf8_string().c_str()),
+                 { { "SPH state file", "ssf" },
+                     { "SPH data file", "sdf" },
+                     { "miluphcuda output files", "h5" },
+@@ -542,14 +596,14 @@ enum RunMenuId {
+ wxMenu* MainWindow::createRunMenu() {
+     wxMenu* runMenu = new wxMenu();
+     runMenu->Append(RU_START, "S&tart run\tCtrl+R");
+-    runMenu->Append(RU_START_BATCH, "Start batch");
+-    runMenu->Append(RU_START_SCRIPT, "Start script");
++    runMenu->Append(RU_START_BATCH, _("Start batch"));
++    runMenu->Append(RU_START_SCRIPT, _("Start script"));
+     runMenu->Append(RU_RESTART, "&Restart");
+     runMenu->Append(RU_PAUSE, "&Pause");
+-    runMenu->Append(RU_STOP, "St&op");
++    runMenu->Append(RU_STOP, _("St&op"));
+     runMenu->Append(RU_SAVE_STATE, "&Save current state");
+-    runMenu->Append(RU_CREATE_CAMERA, "Make camera node");
+-    runMenu->Append(RU_CLOSE_ALL, "Close all");
++    runMenu->Append(RU_CREATE_CAMERA, _("Make camera node"));
++    runMenu->Append(RU_CLOSE_ALL, _("Close all"));
+ 
+     runMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, [this, runMenu](wxCommandEvent& evt) { //
+         // options not related to a particular controller
+@@ -558,12 +612,12 @@ wxMenu* MainWindow::createRunMenu() {
+             return;
+         } else if (evt.GetId() == RU_START_SCRIPT) {
+ #ifdef SPH_USE_CHAISCRIPT
+-            Optional<Path> scriptPath = doOpenFileDialog("Chai script", { { "Chai script", "chai" } });
++            Optional<Path> scriptPath = doOpenFileDialog(String::fromUtf8(_("Chai script").utf8_string().c_str()), { { "Chai script", "chai" } });
+             if (scriptPath) {
+                 nodePage->startScript(scriptPath.value());
+             }
+ #else
+-            wxMessageBox("The code needs to be compiled with ChaiScript support.", "No ChaiScript", wxOK);
++            wxMessageBox(_("The code needs to be compiled with ChaiScript support."), _("No ChaiScript"), wxOK);
+ #endif
+             return;
+         }
+@@ -600,7 +654,7 @@ wxMenu* MainWindow::createRunMenu() {
+             controller->stop();
+             break;
+         case RU_SAVE_STATE: {
+-            Optional<Path> path = doSaveFileDialog("Save state file", getOutputFormats());
++            Optional<Path> path = doSaveFileDialog(String::fromUtf8(_("Save state file").utf8_string().c_str()), getOutputFormats());
+             if (!path) {
+                 return;
+             }
+@@ -646,7 +700,7 @@ enum RenderMenuId {
+ wxMenu* MainWindow::createRenderMenu() {
+     wxMenu* renderMenu = new wxMenu();
+     renderMenu->Append(RN_SETUP, "Setup rendering...");
+-    renderMenu->Append(RN_RENDER, "Render");
++    renderMenu->Append(RN_RENDER, _("Render"));
+ 
+     renderMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, [this, renderMenu](wxCommandEvent& evt) { //
+         switch (evt.GetId()) {
+@@ -677,13 +731,13 @@ enum AnalysisMenuId {
+ 
+ wxMenu* MainWindow::createAnalysisMenu() {
+     wxMenu* analysisMenu = new wxMenu();
+-    analysisMenu->Append(AN_CURRENT_SFD, "Current SFD");
+-    analysisMenu->Append(AN_PREDICTED_SFD, "Predicted SFD");
+-    analysisMenu->Append(AN_VELOCITY_HIST, "Velocity histogram");
+-    analysisMenu->Append(AN_DENSITY, "Density profile");
+-    analysisMenu->Append(AN_ENERGY, "Energy profile");
+-    analysisMenu->Append(AN_PRESSURE, "Pressure profile");
+-    analysisMenu->Append(AN_FRAGMENTS, "Body properties");
++    analysisMenu->Append(AN_CURRENT_SFD, _("Current SFD"));
++    analysisMenu->Append(AN_PREDICTED_SFD, _("Predicted SFD"));
++    analysisMenu->Append(AN_VELOCITY_HIST, _("Velocity histogram"));
++    analysisMenu->Append(AN_DENSITY, _("Density profile"));
++    analysisMenu->Append(AN_ENERGY, _("Energy profile"));
++    analysisMenu->Append(AN_PRESSURE, _("Pressure profile"));
++    analysisMenu->Append(AN_FRAGMENTS, _("Body properties"));
+     analysisMenu->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& evt) { //
+         BusyCursor wait(this);
+         RunPage* page = dynamic_cast<RunPage*>(notebook->GetCurrentPage());
+@@ -730,7 +784,7 @@ wxMenu* MainWindow::createAnalysisMenu() {
+             break;
+         case AN_PRESSURE:
+             if (!controller->getStorage().has(QuantityId::PRESSURE)) {
+-                wxMessageBox("No pressure data", "Error", wxOK);
++                wxMessageBox(_("No pressure data"), _("Error"), wxOK);
+                 return;
+             }
+             plot = makeLocking<RadialDistributionPlot>(QuantityId::PRESSURE);
+@@ -853,7 +907,7 @@ int MainWindow::checkUnsavedSession() {
+     if (savedFlag) {
+         return true;
+     }
+-    const int retval = wxMessageBox("Save unsaved changes", "Save?", wxYES_NO | wxCANCEL | wxCENTRE);
++    const int retval = wxMessageBox(_("Save unsaved changes"), _("Save?"), wxYES_NO | wxCANCEL | wxCENTRE);
+     if (retval == wxYES) {
+         if (projectPath.empty()) {
+             this->saveAs();
+diff --git a/gui/windows/NodePage.cpp b/gui/windows/NodePage.cpp
+index a796c1b..336b973 100644
+--- a/gui/windows/NodePage.cpp
++++ b/gui/windows/NodePage.cpp
+@@ -28,11 +28,22 @@
+ #include <wx/dcbuffer.h>
+ #include <wx/dirdlg.h>
+ #include <wx/graphics.h>
++#include <wx/intl.h>
+ #include <wx/menu.h>
+ #include <wx/msgdlg.h>
+ #include <wx/settings.h>
+ #include <wx/sizer.h>
+ #include <wx/stattext.h>
++
++#include <hilog/log.h>
++
++// ---------- OpenSPH-on-HarmonyOS diagnostic tracing (NodePage) ----------
++#define OSPH_TRACE(...)                                                                  \
++    do {                                                                                 \
++        char _buf[512];                                                                  \
++        snprintf(_buf, sizeof(_buf), __VA_ARGS__);                                       \
++        OH_LOG_Print(LOG_APP, LOG_INFO, 0x0100, "OpenSPH", "%{public}s", _buf);          \
++    } while (0)
+ #include <wx/treectrl.h>
+ 
+ #include <wx/propgrid/propgrid.h>
+@@ -1249,12 +1260,15 @@ void NodeEditor::onLeftUpSelecting(const Pixel& mousePosition) {
+ }
+ 
+ void NodeEditor::onRightUp(wxMouseEvent& evt) {
++    OSPH_TRACE("onRightUp at (%d,%d)", evt.GetPosition().x, evt.GetPosition().y);
+     const Pixel position = (Pixel(evt.GetPosition()) - state.offset) / state.zoom;
+     VisNode* vis = nodeMgr->getSelectedNode(position);
+     if (vis == nullptr) {
+         // no node selected
++        OSPH_TRACE("onRightUp: no node at this position");
+         return;
+     }
++    OSPH_TRACE("onRightUp: node '%s' found, opening popup", vis->node->instanceName().toUtf8().cstr());
+     this->doPopupMenu(vis);
+ }
+ 
+@@ -1277,6 +1291,7 @@ void NodeEditor::onKeyUp(wxKeyEvent& evt) {
+ 
+ void NodeEditor::doPopupMenu(VisNode* vis) {
+     wxMenu menu;
++    OSPH_TRACE("doPopupMenu: building menu for '%s'", vis->node->instanceName().toUtf8().cstr());
+ 
+     const ExtJobType provided = vis->node->provides();
+     if (provided == JobType::PARTICLES) {
+@@ -1342,7 +1357,9 @@ void NodeEditor::doPopupMenu(VisNode* vis) {
+ 
+         this->Refresh();
+     });
++    OSPH_TRACE("doPopupMenu: calling PopupMenu");
+     this->PopupMenu(&menu);
++    OSPH_TRACE("doPopupMenu: PopupMenu returned");
+ }
+ 
+ void NodeEditor::deleteNode(const VisNode* vis) {
+@@ -1414,7 +1431,7 @@ class FileProperty : public wxFileProperty {
+ 
+ public:
+     FileProperty(const String& label, const String& value)
+-        : wxFileProperty(label.toUnicode(), wxPG_LABEL, value.toUnicode()) {
++        : wxFileProperty(wxGetTranslation(label.toUnicode()), wxPG_LABEL, value.toUnicode()) {
+         this->SetAttribute(wxPG_FILE_SHOW_FULL_PATH, true);
+     }
+ 
+@@ -1556,40 +1573,45 @@ class PropertyGrid {
+ private:
+     wxPropertyGrid* grid;
+ 
++    // i18n: translate a display label via wxGetTranslation (no-op fallback).
++    static wxString Tr(const String& str) {
++        return wxGetTranslation(str.toUnicode());
++    }
++
+ public:
+     explicit PropertyGrid(wxPropertyGrid* grid)
+         : grid(grid) {}
+ 
+     wxPGProperty* addCategory(const String& name) const {
+-        return grid->Append(new wxPropertyCategory(name.toUnicode()));
++        return grid->Append(new wxPropertyCategory(Tr(name)));
+     }
+ 
+     wxPGProperty* addBool(const String& name, const bool value) const {
+-        return grid->Append(new wxBoolProperty(name.toUnicode(), wxPG_LABEL, value));
++        return grid->Append(new wxBoolProperty(Tr(name), wxPG_LABEL, value));
+     }
+ 
+     wxPGProperty* addInt(const String& name, const int value) const {
+-        return grid->Append(new wxIntProperty(name.toUnicode(), wxPG_LABEL, value));
++        return grid->Append(new wxIntProperty(Tr(name), wxPG_LABEL, value));
+     }
+ 
+     wxPGProperty* addFloat(const String& name, const Float value) const {
+-        return grid->Append(new wxFloatProperty(name.toUnicode(), wxPG_LABEL, value));
++        return grid->Append(new wxFloatProperty(Tr(name), wxPG_LABEL, value));
+     }
+ 
+     wxPGProperty* addVector(const String& name, const Vector& value) const {
+-        wxPGProperty* prop = grid->Append(new VectorProperty(grid, name.toUnicode(), value));
++        wxPGProperty* prop = grid->Append(new VectorProperty(grid, Tr(name), value));
+         grid->Collapse(prop);
+         return prop;
+     }
+ 
+     wxPGProperty* addInterval(const String& name, const Interval& value) const {
+-        wxPGProperty* prop = grid->Append(new IntervalProperty(grid, name.toUnicode(), value));
++        wxPGProperty* prop = grid->Append(new IntervalProperty(grid, Tr(name), value));
+         grid->Collapse(prop);
+         return prop;
+     }
+ 
+     wxPGProperty* addString(const String& name, const String& value) const {
+-        return grid->Append(new wxStringProperty(name.toUnicode(), wxPG_LABEL, value.toUnicode()));
++        return grid->Append(new wxStringProperty(Tr(name), wxPG_LABEL, value.toUnicode()));
+     }
+ 
+     wxPGProperty* addPath(const String& name,
+@@ -1647,10 +1669,10 @@ private:
+             }
+             String rawName = EnumMap::toString(option.value, option.index);
+             rawName.replaceAll("_", " ");
+-            values.Add(capitalize(rawName).toUnicode());
++            values.Add(wxGetTranslation(capitalize(rawName).toUnicode()));
+             flags.Add(option.value);
+         }
+-        return grid->Append(new TProperty(name.toUnicode(), wxPG_LABEL, values, flags, wrapper.value));
++        return grid->Append(new TProperty(Tr(name), wxPG_LABEL, values, flags, wrapper.value));
+     }
+ };
+ 
+@@ -1754,6 +1776,11 @@ NodeWindow::NodeWindow(wxWindow* parent, SharedPtr<INodeManagerCallbacks> callba
+     grid->SetExtraStyle(wxPG_EX_HELP_AS_TOOLTIPS);
+     grid->SetMinSize(wxSize(300, -1));
+ 
++    // TEMP-TEST: force scrollbar configuration (Qt backend DoSetVirtualSize is a no-op)
++    if (getenv("OSPH_AUTOTEST")) {
++        grid->SetScrollbars(0, 10, 0, 200, 0, 0, false);
++    }
++
+     grid->Bind(wxEVT_PG_CHANGED, [this, callbacks](wxPropertyGridEvent& evt) {
+         wxPGProperty* prop = evt.GetProperty();
+         if (!propertyEntryMap.contains(prop)) {
+@@ -2140,6 +2167,82 @@ void NodeWindow::updateProperties() {
+ 
+     grid->RestoreEditableState(states, wxPropertyGrid::ScrollPosState);
+     aui->Update(); // selecting a node may hide the palette editor
++
++    if (getenv("OSPH_AUTOTEST")) {
++        wxPropertyGrid* g = grid;
++        this->CallAfter([g] {
++            wxColour wt = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
++            wxColour wnd = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
++            OSPH_TRACE("COLORS: WINDOWTEXT=%d,%d,%d WINDOW=%d,%d,%d gridFg=%d,%d,%d",
++                       wt.Red(), wt.Green(), wt.Blue(),
++                       wnd.Red(), wnd.Green(), wnd.Blue(),
++                       g->GetForegroundColour().Red(),
++                       g->GetForegroundColour().Green(),
++                       g->GetForegroundColour().Blue());
++            OSPH_TRACE("--- prop values ---");
++            for (wxPropertyGridIterator it = g->GetIterator(); !it.AtEnd(); it.Next()) {
++                wxPGProperty* p = it.GetProperty();
++                if (p && p->GetParent() != g->GetRoot()) {
++                    OSPH_TRACE("prop '%s' = '%s' vis=%d",
++                               p->GetLabel().utf8_string().c_str(),
++                               p->GetValueAsString().utf8_string().c_str(),
++                               (int)p->IsVisible());
++                }
++            }
++            OSPH_TRACE("--- end prop values ---");
++        });
++    }
++
++    if (getenv("OSPH_AUTOTEST")) {
++        OSPH_TRACE("updateProperties: grid virtual=%dx%d client=%dx%d",
++                   grid->GetVirtualSize().x, grid->GetVirtualSize().y,
++                   grid->GetClientSize().x, grid->GetClientSize().y);
++        wxPropertyGrid* gridPtr = grid;
++        NodeWindow* pageSelf = this;
++        this->CallAfter([gridPtr, pageSelf] {
++            OSPH_TRACE("updateProperties LATER: virtual=%dx%d client=%dx%d size=%dx%d pos=%d,%d page=%dx%d",
++                       gridPtr->GetVirtualSize().x, gridPtr->GetVirtualSize().y,
++                       gridPtr->GetClientSize().x, gridPtr->GetClientSize().y,
++                       gridPtr->GetSize().x, gridPtr->GetSize().y,
++                       gridPtr->GetPosition().x, gridPtr->GetPosition().y,
++                       pageSelf->GetSize().x, pageSelf->GetSize().y);
++            if (getenv("OSPH_AUTOTEST")) {
++                const wxPropertyGridPageState* st = gridPtr->GetState();
++                unsigned int cc = st->GetColumnCount();
++                OSPH_TRACE("COLW: n=%u w0=%d w1=%d virtW=%d lineH=%d",
++                           cc,
++                           cc > 0 ? st->GetColumnWidth(0) : -1,
++                           cc > 1 ? st->GetColumnWidth(1) : -1,
++                           st->GetVirtualWidth(), gridPtr->GetRowHeight());
++            }
++            if (getenv("OSPH_TESTSCROLL")) {
++                // Delay until the window has finished maximizing (the first
++                // layout round may still have the frame at its initial size).
++                wxPropertyGrid* gridD = gridPtr;
++                gridD->CallAfter([gridD] {
++                    int vx = 0, vy = 0;
++                    gridD->GetViewStart(&vx, &vy);
++                    OSPH_TRACE("TESTSCROLL: before yScrollPos=%d yThumb=%d yRange=%d viewStart=%d,%d",
++                               gridD->GetScrollPos(wxVERTICAL),
++                               gridD->GetScrollThumb(wxVERTICAL),
++                               gridD->GetScrollRange(wxVERTICAL), vx, vy);
++                    gridD->Scroll(0, 400);
++                    gridD->GetViewStart(&vx, &vy);
++                    OSPH_TRACE("TESTSCROLL: after Scroll(0,400) yScrollPos=%d viewStart=%d,%d",
++                               gridD->GetScrollPos(wxVERTICAL), vx, vy);
++                    wxPropertyGrid* wsink = gridD;
++                    wsink->CallAfter([wsink] {
++                        int ax, ay;
++                        wsink->GetViewStart(&ax, &ay);
++                        OSPH_TRACE("TESTSCROLL: LATER+500ms yScrollPos=%d viewStart=%d,%d size=%dx%d cs=%dx%d",
++                                   wsink->GetScrollPos(wxVERTICAL), ax, ay,
++                                   wsink->GetSize().x, wsink->GetSize().y,
++                                   wsink->GetClientSize().x, wsink->GetClientSize().y);
++                    });
++                });
++            }
++        });
++    }
+ }
+ 
+ void NodeWindow::updateEnabled(wxPropertyGrid* grid) {
