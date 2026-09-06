@@ -1,5 +1,6 @@
 #include "planet_material.h"
 #include "planet_texture.h"
+#include "projection.h"
 namespace lab {
 namespace {
 const char *vertex=R"(#version 300 es
@@ -103,6 +104,20 @@ void main(){
 }
 
 )";
+const char *traceVertex=R"(#version 300 es
+precision highp float;
+layout(location=0) in vec4 point;
+uniform vec3 origin;uniform float radius,aspect;
+out vec3 position;out float band;
+void main(){position=point.xyz;band=point.w;gl_Position=vec4(origin.xy+point.xy*vec2(radius/aspect,radius),origin.z,1);gl_PointSize=6.0;}
+)";
+const char *traceFragment=R"(#version 300 es
+precision highp float;
+in vec3 position;in float band;uniform float opacity;out vec4 outputColor;
+void main(){float r=dot(position.xy,position.xy);if(r<1.0&&position.z<sqrt(1.0-r))discard;
+ float d=length(gl_PointCoord*2.0-1.0);if(d>1.0)discard;
+ outputColor=vec4(mix(vec3(.25,.88,1),vec3(1,.73,.30),band),(1.0-smoothstep(.45,1.0,d))*opacity);}
+)";
 GLuint compile(GLenum type,const char *source,std::string &error){GLuint shader=glCreateShader(type);glShaderSource(shader,1,&source,nullptr);glCompileShader(shader);GLint ok=0;glGetShaderiv(shader,GL_COMPILE_STATUS,&ok);if(!ok){char log[2048]{};glGetShaderInfoLog(shader,sizeof(log),nullptr,log);error=log;glDeleteShader(shader);return 0;}return shader;}
 void upload(GLuint id,const PlanetTexture &t,bool cloud){glBindTexture(GL_TEXTURE_2D,id);glTexImage2D(GL_TEXTURE_2D,0,cloud?GL_R8:GL_RGBA8,t.width,t.height,0,cloud?GL_RED:GL_RGBA,GL_UNSIGNED_BYTE,cloud?t.clouds.data():t.surface.data());glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);glGenerateMipmap(GL_TEXTURE_2D);}
 }
@@ -113,6 +128,11 @@ bool PlanetMaterial::init(std::string &error){
  GLint ok=0;glGetProgramiv(program,GL_LINK_STATUS,&ok);if(!ok){char log[2048]{};glGetProgramInfoLog(program,sizeof(log),nullptr,log);error=log;release();return false;}
  glGenVertexArrays(1,&vao);glBindVertexArray(vao);glGenBuffers(1,&vbo);glBindBuffer(GL_ARRAY_BUFFER,vbo);
  const float quad[]={-1,-1,1,-1,-1,1,-1,1,1,-1,1,1};glBufferData(GL_ARRAY_BUFFER,sizeof(quad),quad,GL_STATIC_DRAW);glEnableVertexAttribArray(0);glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,0,nullptr);
+ GLuint tv=compile(GL_VERTEX_SHADER,traceVertex,error),tf=compile(GL_FRAGMENT_SHADER,traceFragment,error);
+ if(!tv||!tf){if(tv)glDeleteShader(tv);if(tf)glDeleteShader(tf);release();return false;}
+ traceProgram=glCreateProgram();glAttachShader(traceProgram,tv);glAttachShader(traceProgram,tf);glLinkProgram(traceProgram);glDeleteShader(tv);glDeleteShader(tf);
+ glGetProgramiv(traceProgram,GL_LINK_STATUS,&ok);if(!ok){error="Ring tracer shader link failed";release();return false;}
+ glGenVertexArrays(1,&traceVao);glBindVertexArray(traceVao);glGenBuffers(1,&traceVbo);glBindBuffer(GL_ARRAY_BUFFER,traceVbo);glEnableVertexAttribArray(0);glVertexAttribPointer(0,4,GL_FLOAT,GL_FALSE,0,nullptr);
  const auto &maps=planetTextures();glGenTextures(5,surfaces);glGenTextures(5,cloudMaps);
  for(int i=0;i<5;++i){upload(surfaces[i],maps[i],false);upload(cloudMaps[i],maps[i],true);}
  GLenum e=glGetError();if(e!=GL_NO_ERROR){error="Planet texture upload GL error "+std::to_string(e);release();return false;}return true;
@@ -129,5 +149,14 @@ void PlanetMaterial::draw(const SurfaceView &v){
  glActiveTexture(GL_TEXTURE1);glBindTexture(GL_TEXTURE_2D,cloudMaps[v.style]);glUniform1i(glGetUniformLocation(program,"cloudMap"),1);
  glDrawArrays(GL_TRIANGLES,0,6);glActiveTexture(GL_TEXTURE0);
 }
-void PlanetMaterial::release(){if(vbo)glDeleteBuffers(1,&vbo);if(vao)glDeleteVertexArrays(1,&vao);if(program)glDeleteProgram(program);glDeleteTextures(5,surfaces);glDeleteTextures(5,cloudMaps);vbo=vao=program=0;for(auto &v:surfaces)v=0;for(auto &v:cloudMaps)v=0;}
+void PlanetMaterial::drawTrace(const SurfaceView &v,const std::vector<RingPoint> &points){
+ std::vector<float> data;data.reserve(points.size()*4);Camera c;c.yaw=v.yaw;c.pitch=v.pitch;
+ const double length=std::hypot(.891,.454);
+ for(const auto &p:points){auto q=rotateView(c,float(p.x/RING_RADIUS_KM*.891/length),float(-p.x/RING_RADIUS_KM*.454/length),float(p.y/RING_RADIUS_KM));
+  data.insert(data.end(),{q[0],q[1],q[2],float((p.radiusKm/RING_RADIUS_KM-RING_INNER)/(RING_OUTER-RING_INNER))});}
+ glUseProgram(traceProgram);glBindVertexArray(traceVao);glBindBuffer(GL_ARRAY_BUFFER,traceVbo);glBufferData(GL_ARRAY_BUFFER,data.size()*sizeof(float),data.data(),GL_STREAM_DRAW);
+ glUniform3f(glGetUniformLocation(traceProgram,"origin"),v.x,v.y,v.z);glUniform1f(glGetUniformLocation(traceProgram,"radius"),v.radius);glUniform1f(glGetUniformLocation(traceProgram,"aspect"),v.aspect);glUniform1f(glGetUniformLocation(traceProgram,"opacity"),v.opacity);
+ glDrawArrays(GL_POINTS,0,GLsizei(points.size()));
+}
+void PlanetMaterial::release(){if(traceVbo)glDeleteBuffers(1,&traceVbo);if(traceVao)glDeleteVertexArrays(1,&traceVao);if(traceProgram)glDeleteProgram(traceProgram);traceVbo=traceVao=traceProgram=0;if(vbo)glDeleteBuffers(1,&vbo);if(vao)glDeleteVertexArrays(1,&vao);if(program)glDeleteProgram(program);glDeleteTextures(5,surfaces);glDeleteTextures(5,cloudMaps);vbo=vao=program=0;for(auto &v:surfaces)v=0;for(auto &v:cloudMaps)v=0;}
 }

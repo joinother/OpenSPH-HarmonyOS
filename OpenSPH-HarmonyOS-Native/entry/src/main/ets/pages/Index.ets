@@ -1,4 +1,4 @@
-import simulation, { SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus } from 'libsimulation.so';
+import simulation, { SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
 import { PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
 import { themeExperiments, themeConfigMatches, ThemeExperiment } from '../common/ExperimentCatalog';
@@ -29,7 +29,7 @@ interface AppearanceState { clouds:boolean; atmosphere:boolean; trails:boolean; 
 interface SkyState {mode:number;brightness:number;reference:string;}
 interface PlacementState { active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
 interface ThemeState { id:string; title:string; goal:string; limit:string; modified:boolean; compareId:string; }
-interface AppSnapshot { theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
+interface AppSnapshot { ringTrace:RingTraceStatus; theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
 interface CommandDescription { name: string; payload: string; }
 interface CommandCatalog { ok: boolean; commands: CommandDescription[]; }
 interface ExperimentInfo { title: string; caption: string; symbol: string; }
@@ -159,6 +159,7 @@ struct Index {
   @State closeup: boolean = false;
   @State autoSpin: boolean = false;
   @State rings: boolean = true;
+  @State trace:RingTraceStatus={enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-circular-kepler-v1'};
   @State skyLoadError:string='';
   @State rendering: RenderStatus = {panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
   @State colorMode: number = 0;
@@ -185,6 +186,7 @@ struct Index {
     {title:'自定义系统',caption:'亲手搭建一片星系',symbol:'06'}
   ];
   private stateLabel(): string {
+    if(this.trace.enabled)return this.trace.running?'局部环运行中':'局部环已暂停';
     if (this.info.state === 'preparing') return '正在构建场景';
     if (this.info.state === 'running') return '正在计算';
     if (this.info.state === 'paused') return '已暂停';
@@ -202,7 +204,7 @@ struct Index {
     CliBridge.bind((command: string, payload: CommandPayload) => this.execute(command,payload));
     this.poll = setInterval(() => {
       const previousState: string = this.info.state;
-      this.info = simulation.status();this.rendering=simulation.renderStatus();
+      this.info = simulation.status();this.rendering=simulation.renderStatus();this.trace=simulation.ringTraceStatus(false);
       if (this.info.state === 'completed' && previousState !== 'completed' && !this.ioBusy) { this.notice = '计算完成 · 可在时间轴回看结果'; }
       if (this.playing && this.appForeground && this.info.frames > 0) {
         const next: number = this.info.selected < 0 ? 0 : this.info.selected + 1;
@@ -284,7 +286,24 @@ struct Index {
     }
     simulation.setComposition(Math.max(0,Math.min(1,x)),Math.max(0,Math.min(1,y)),Math.max(.05,scale));
   }
+  private canTrace():boolean {return this.preset===5&&this.focus>0&&this.orbitBodies[this.focus]?.surface===4&&!this.placing;}
+  private stopTrace():void {if(this.trace.enabled){simulation.configureRingTrace(false,false,-1,this.trace.massSolar);this.trace=simulation.ringTraceStatus(false);}}
+  private toggleTrace():void {
+    if(this.trace.enabled){this.stopTrace();return;}
+    if(!this.canTrace())throw new Error('请先选择带环气态行星');
+    this.playing=false;simulation.pause(true);this.autoSpin=false;
+    simulation.configureRingTrace(true,false,this.focus,this.orbitBodies[this.focus].massSolar);this.trace=simulation.ringTraceStatus(false);this.camera();
+    this.notice='局部示踪环 · 中心引力解析圆轨道 · 独立小时钟';
+  }
+  private playTrace():void {
+    if(!this.trace.enabled)throw new Error('示踪环未开启');
+    const now:RingTraceStatus=simulation.ringTraceStatus(false);
+    if(now.timeHours>=24)simulation.seekRingTrace(0);
+    simulation.configureRingTrace(true,!now.running,now.target,now.massSolar);this.trace=simulation.ringTraceStatus(false);
+  }
+  private traceTime(hours:number):void {this.checked(hours,0,24);if(!this.trace.enabled)throw new Error('示踪环未开启');simulation.seekRingTrace(hours*3600);this.trace=simulation.ringTraceStatus(false);}
   private camera(): void {
+    if(this.trace.enabled&&(!this.canTrace()||this.trace.target!==this.focus))this.stopTrace();
     this.composeViewport();
     simulation.setSky(this.skyMode,this.skyBrightness);
     simulation.setCamera(this.yaw,this.pitch,this.zoom,this.focus,this.colorMode);
@@ -314,6 +333,7 @@ struct Index {
     this.camera();
   }
   private prepare(run: boolean): boolean {
+    this.stopTrace();
     this.stopCameraMotion();this.overviewCamera=undefined;this.placing=false;this.placementView=undefined;
     try {
       this.playing = false;
@@ -343,7 +363,8 @@ struct Index {
     this.yaw=t.yaw;this.pitch=t.pitch;this.zoom=t.zoom;this.focus=t.focus;
     this.rings=true;this.clouds=true;this.atmosphere=true;this.trails=true;this.closeup=t.closeup;this.autoSpin=t.closeup;this.colorMode=0;
     this.dirty=false;this.toolsVisible=true;this.info=simulation.status();this.camera();this.setPanel(-1);
-    this.notice=t.question+' · 点击开始实验';
+    if(t.id==='kepler-ring')this.toggleTrace();
+    this.notice=t.question+(t.id==='kepler-ring'?' · 点击运行环':' · 点击开始实验');
   }
   private choose(i: number): void {
     if (this.ioBusy) return;
@@ -361,6 +382,7 @@ struct Index {
     this.prepare(false);
   }
   private run(): void {
+    this.stopTrace();
     this.playing = false;
     if (this.info.state === 'running') { simulation.pause(true); this.notice = '已暂停，可回看时间轴或调整视角'; }
     else if (this.dirty || this.info.state === 'completed' || this.info.state === 'cancelled' || this.info.state === 'failed' || this.info.state === 'replay') { this.prepare(true); }
@@ -375,7 +397,7 @@ struct Index {
     validateConfig(c);return c;
   }
   private applyConfig(c: SimulationConfig): void {
-    validateConfig(c);this.activeThemeId='';this.clearOrbitHistory();
+    validateConfig(c);this.stopTrace();this.activeThemeId='';this.clearOrbitHistory();
     if(c.preset!==this.preset){this.closeup=false;this.autoSpin=false;}
     this.preset=c.preset;this.count=c.count;this.speed=c.speed;this.angle=c.angle;this.duration=c.duration;
     this.targetRadiusKm=c.targetRadiusKm;this.impactorRadiusKm=c.impactorRadiusKm;
@@ -410,7 +432,7 @@ struct Index {
     validateOrbitBodies(workspace.bodies);
     const config=this.config();config.orbitBodies=copyOrbitBodies(workspace.bodies);validateConfig(config);
     // Submit validated initial conditions before altering drafts or history.
-    simulation.startScene(config,true);simulation.pause(true);
+    simulation.startScene(config,true);simulation.pause(true);this.stopTrace();
     this.stopCameraMotion();this.overviewCamera=undefined;this.playing=false;this.placing=false;this.placementView=undefined;
     this.restoreBodyDrafts(workspace);this.focus=-1;this.closeup=false;this.autoSpin=false;
     let mass:number=0,cx:number=0,cy:number=0,cz:number=0;
@@ -441,7 +463,7 @@ struct Index {
   private placementPreview():PlacementPreview {return planPlanet(this.orbitBodies,this.placementName,this.placementFields,this.placementSurface,this.placementDirection,this.placementScale);}
   private beginPlacement():void {
     if(this.placing)return;
-    this.stopCameraMotion();this.placementView={yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode};
+    this.stopTrace();this.stopCameraMotion();this.placementView={yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode};
     this.placementWasClose=this.closeup;this.placementWasSpin=this.autoSpin;this.placementWasPanel=this.panelOpen;this.placementWasTab=this.tab;
     this.placementName='新行星 '+this.orbitBodies.length;this.placementFields=['1',String(2+this.orbitBodies.length*.35),'45','0','1'];this.placementSurface=1;this.placementDirection=1;
     this.placementScale=planPlanet(this.orbitBodies,this.placementName,this.placementFields,this.placementSurface,this.placementDirection).plotScale;
@@ -548,7 +570,7 @@ struct Index {
   }
   private snapshot(): string {
     this.info=simulation.status();
-    const snapshot: AppSnapshot = {theme:this.themeState(),placement:{active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
+    const snapshot: AppSnapshot = {ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
       appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},rendering:simulation.renderStatus(),
       simulation:this.info,
       scene:{preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,dirty:this.dirty},
@@ -586,6 +608,7 @@ struct Index {
     add('sky.mode.0','纯净',true,this.skyMode===0);add('sky.mode.1','星空',true,this.skyMode===1);add('sky.mode.2','银河',true,this.skyMode===2);
     add('focus.all','全景');add('camera.out','拉远');add('camera.in','拉近');add('camera.reset','复位视角');
     add('color.0','原色',true,this.colorMode===0);add('color.1','速度',true,this.colorMode===1);add('color.2','密度',this.preset<3,this.colorMode===2);
+    add('trace.toggle','开普勒示踪粒子',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
     add('appearance.rings','环带',this.preset>=3,this.rings);add('appearance.clouds','云层',this.preset>=3,this.clouds);add('appearance.atmosphere','大气',this.preset>=3,this.atmosphere);add('appearance.trails','轨迹',this.preset>=3,this.trails);add('appearance.spin','外观自转',this.preset>=3,this.autoSpin);
     add('body.primary','主天体',this.preset<3,this.editedBody===0);add('body.impactor','撞击体',this.preset<2,this.editedBody===1);
     add('placement.cancel','取消放置',this.placing);add('placement.confirm','确认加入 · 重新计算',this.placing&&this.placementPreview().valid);
@@ -602,7 +625,7 @@ struct Index {
   }
   private uiFields():UiFieldInfo[] {
     const active:boolean=!this.ioBusy,rock:boolean=this.preset<3;
-    const fields:UiFieldInfo[]=[{field:'sky.brightness',value:this.skyBrightness*100,enabled:active},{field:'scene.title',value:this.title,enabled:active},
+    const fields:UiFieldInfo[]=[{field:'trace.hours',value:this.trace.timeHours,enabled:active&&this.trace.enabled},{field:'sky.brightness',value:this.skyBrightness*100,enabled:active},{field:'scene.title',value:this.title,enabled:active},
       {field:'scene.count',value:this.count,enabled:active&&rock},{field:'scene.speed',value:this.speed,enabled:active&&this.preset!==5},
       {field:'scene.angle',value:this.angle,enabled:active&&this.preset<2},{field:'scene.duration',value:this.duration,enabled:active},
       {field:'body.name',value:this.editedBody===0?this.targetName:this.impactorName,enabled:active&&rock},
@@ -636,8 +659,9 @@ struct Index {
       return;
     }
     if(typeof value!=='number')throw new Error('Expected number');
+    if(field==='trace.hours'){this.traceTime(value);return;}
     if(field==='sky.brightness'){this.checked(value,0,100);this.changeSky(this.skyMode,value/100);return;}
-    if(field==='time.frame'){this.checked(value,-1,this.info.frames-1,true);this.playing=false;simulation.seek(value);this.info=simulation.status();return;}
+    if(field==='time.frame'){this.checked(value,-1,this.info.frames-1,true);this.stopTrace();this.playing=false;simulation.seek(value);this.info=simulation.status();return;}
     if(field==='scene.count'){this.checked(value,200,2400,true);this.count=value;}
     else if(field==='scene.speed'){this.checked(value,this.preset>=3?.75:.5,this.preset>=3?1.25:10);this.speed=value;}
     else if(field==='scene.angle'){this.checked(value,0,70);this.angle=value;}
@@ -667,8 +691,8 @@ struct Index {
     else if(action.startsWith('preset.'))this.choose(Number(action.slice(7)));
     else if(action==='simulation.toggle'){this.run();this.setPanel(-1);}
     else if(action==='simulation.apply'){if(!this.prepare(false))throw new Error(this.notice);this.setPanel(-1);}
-    else if(action==='replay.toggle'){if(this.playing)this.playing=false;else {simulation.pause(true);if(this.info.selected<0||this.info.selected>=this.info.frames-1)simulation.seek(0);this.playing=true;}}
-    else if(action==='replay.latest'){this.playing=false;simulation.seek(-1);}
+    else if(action==='replay.toggle'){this.stopTrace();if(this.playing)this.playing=false;else {simulation.pause(true);if(this.info.selected<0||this.info.selected>=this.info.frames-1)simulation.seek(0);this.playing=true;}}
+    else if(action==='replay.latest'){this.stopTrace();this.playing=false;simulation.seek(-1);}
     else if(action==='replay.save'||action==='replay.load'){await this.replayIO(action==='replay.load');if(!this.lastIOOk)throw new Error(this.notice);}
     else if(action==='project.save')this.saveProject(this.title);
     else if(action==='project.open'){this.refreshProjects();this.setPanel(2);}
@@ -684,6 +708,9 @@ struct Index {
     else if(action==='camera.in')this.easeCamera(this.yaw,this.pitch,Math.max(.5,this.zoom/1.2));
     else if(action==='camera.reset'){this.closeSurface();this.easeCamera(.15,.25,2.7);}
     else if(action.startsWith('color.')){this.colorMode=Number(action.slice(6));this.camera();}
+    else if(action==='trace.toggle')this.toggleTrace();
+    else if(action==='trace.play')this.playTrace();
+    else if(action==='trace.reset')this.traceTime(0);
     else if(action==='appearance.rings'){this.rings=!this.rings;this.camera();}
     else if(action==='appearance.clouds'){this.clouds=!this.clouds;this.camera();}
     else if(action==='appearance.atmosphere'){this.atmosphere=!this.atmosphere;this.camera();}
@@ -731,6 +758,7 @@ struct Index {
     if(command==='listCommands') {
       const catalog: CommandCatalog = {ok:true,commands:[
       {name:'getState',payload:'{}'},
+      {name:'getRingTrace',payload:'{particles?:boolean}; local circular test particles in km/km/s, independent 0–24 hour clock'},
       {name:'setSky',payload:'{mode?:0 clean|1 stars|2 galaxy,brightness?:0..1}; photographic galaxy / procedural stars; fixed-direction background'},
       {name:'setWindowOrientation',payload:'{orientation:auto|portrait|landscape|reverse-landscape}; main window only; auto respects system rotation lock'},
       {name:'getSkyInfo',payload:'{} - provenance and sky rendering status'},
@@ -754,6 +782,7 @@ struct Index {
       {name:'saveReplay',payload:'{}'}, {name:'loadReplay',payload:'{}'}]};
       return JSON.stringify(catalog);
     }
+    if(command==='getRingTrace'){if(p.particles!==undefined&&typeof p.particles!=='boolean')throw new Error('particles must be boolean');return JSON.stringify({ok:true,ringTrace:simulation.ringTraceStatus(p.particles??true)});}
     if(command==='listExperiments')return JSON.stringify({ok:true,catalogVersion:1,experiments:themeExperiments(),active:this.themeState()});
     if(command==='getState') return this.snapshot();
     if(command==='setWindowOrientation'){if(typeof p.orientation!=='string')throw new Error('missing orientation');await WindowControl.orient(p.orientation);return this.snapshot();}
@@ -798,17 +827,18 @@ struct Index {
     } else if(command==='loadProject') {
       if(typeof p.id!=='string') throw new Error('missing project id');this.openProject(p.id);
     } else if(command==='start') {
+      this.stopTrace();
       if(this.info.state==='preparing') throw new Error('scene is preparing; poll getState');
       if(this.info.state!=='running') {
         if(this.dirty || ['completed','cancelled','failed','replay','empty'].includes(this.info.state)) {
           if(!this.prepare(true)) throw new Error(this.notice);
         } else this.run();
       }
-    } else if(command==='pause') { this.playing=false;simulation.pause(true);this.notice='已暂停，可回看时间轴或调整视角';
+    } else if(command==='pause') { if(this.trace.enabled){const t:RingTraceStatus=simulation.ringTraceStatus(false);simulation.configureRingTrace(true,false,t.target,t.massSolar);this.trace=simulation.ringTraceStatus(false);}this.playing=false;simulation.pause(true);this.notice='已暂停，可回看时间轴或调整视角';
     } else if(command==='reset') { if(!this.prepare(false)) throw new Error(this.notice);
     } else if(command==='seek') {
       const frame: number=this.checked(p.frame,-1,this.info.frames-1,true);
-      this.playing=false;simulation.seek(frame);
+      this.stopTrace();this.playing=false;simulation.seek(frame);
     } else if(command==='setCamera') {
       const yaw: number=this.checked(p.yaw,-100,100);const pitch: number=this.checked(p.pitch,-1.5,1.5);
       const zoom: number=this.checked(p.zoom,0.5,15);const focus: number=this.checked(p.focus,-1,this.maxFocus(),true);
@@ -860,8 +890,8 @@ struct Index {
       if(this.toolsVisible&&!(this.closeup&&this.panelOpen)) {
         Column({space:5}) {
           Text(this.closeup?this.surfaceName()+' · 近看':this.title).fontColor('#F1EDFC').fontSize(14).fontWeight(FontWeight.Medium).maxLines(1)
-          Text(this.stateLabel()+' · '+this.info.count+(this.preset>=3?' 个天体':' 粒子')).fontSize(11).fontColor('#A5A0B7')
-          if(this.preset>=3&&!this.layout().compact) {Text(this.closeup?(this.autoSpin?'程序表面 · 外观自转演示':'程序表面 · 随轨道时间变化'):'牛顿引力 · AU / 年 · 天体尺寸已放大').fontSize(10).fontColor('#9E97B4')}
+          Text(this.stateLabel()+' · '+(this.trace.enabled?'192 个示踪点':this.info.count+(this.preset>=3?' 个天体':' 粒子'))).fontSize(11).fontColor('#A5A0B7')
+          if(this.preset>=3&&!this.layout().compact) {Text(this.trace.enabled?'中心引力 · 解析圆轨道 · 不含碰撞':this.closeup?(this.autoSpin?'程序表面 · 外观自转演示':'程序表面 · 随轨道时间变化'):'牛顿引力 · AU / 年 · 天体尺寸已放大').fontSize(10).fontColor('#9E97B4')}
           if(this.preset>=3&&!this.closeup&&!this.layout().compact) {Text(this.focus>=0?'已选中 · '+this.surfaceName():'轻点天体以选中 · 拖动旋转').fontSize(11).fontColor('#C9B8F3')}
           if(this.skyMode===2&&!this.layout().compact) {Text(this.rendering.panoramaReady?'银河摄影 · 非定位星图':(this.skyLoadError?'银河示意 · 摄影全景加载失败':'银河背景 · 载入摄影全景')).fontSize(10).fontColor('#9E97B4')}
           if(this.preset<3) {Text('岩质 SPH · 未启用自引力').fontSize(10).fontColor('#9E97B4')}
@@ -907,7 +937,19 @@ struct Index {
   @Builder
   transport() {
     Column({space:this.layout().compact?4:10}) {
-      if(this.layout().compact) {
+      if(this.trace.enabled) {
+        Column({space:4}) {
+          Row({space:6}) {
+            Text(this.trace.timeHours.toFixed(2)+' h').fontSize(12).fontColor('#C8EAF0').width(58)
+            Slider({value:this.trace.timeHours,min:0,max:24,step:.01}).id('ring-time-slider').layoutWeight(1).height(30).selectedColor('#9CDEED').trackColor('#404154').blockColor('#F1E9FF')
+              .onChange((v:number,mode:SliderChangeMode)=>{if(mode===SliderChangeMode.Moving||mode===SliderChangeMode.Click||mode===SliderChangeMode.End)this.input('trace.hours',v);})
+            FloatingButton({label:this.trace.running?'暂停':'运行环',primary:true,compact:true,onPress:()=>{this.press('trace.play');}})
+            FloatingButton({label:'归零',compact:true,onPress:()=>{this.press('trace.reset');}})
+          }.width('100%')
+          Text('内圈 '+this.trace.innerPeriodHours.toFixed(2)+' h · 外圈 '+this.trace.outerPeriodHours.toFixed(2)+' h / 周').id('ring-periods').fontSize(10).fontColor('#A7D5DD')
+          if(!this.layout().compact){Text('局部环时钟 · 1 秒演示 1 小时 · 主系统暂停').fontSize(10).fontColor('#AAA6BC')}
+        }.id('ring-transport').width('100%')
+      } else if(this.layout().compact) {
         Row({space:6}) {
           Text(this.info.time.toFixed(2)+(this.preset>=3?' 年':' s')).fontSize(11).fontColor('#E9E2F5').width(50)
           Slider({value:this.info.selected<0?Math.max(0,this.info.frames-1):this.info.selected,min:0,max:Math.max(1,this.info.frames-1),step:1})
@@ -942,8 +984,10 @@ struct Index {
         FloatingButton({label:'最新',icon:$r('app.media.ic_latest'),compact:this.viewportWidth<380,onPress:() => {this.press('replay.latest');}})
       }.justifyContent(FlexAlign.Center).width('100%')
       }
+      if(!this.trace.enabled||!this.layout().compact) {
       Text(this.rendering.error.length>0?'渲染异常：'+this.rendering.error:this.info.error.length>0?this.info.error:(this.preset>=3&&!this.rendering.texturesReady?'正在准备行星表面…':this.ioBusy?'正在读写回放…':this.notice)).width('100%').textAlign(TextAlign.Center)
         .fontSize(10).fontColor(this.info.error.length>0||this.rendering.error.length>0?'#F8AD95':'#9996AE').maxLines(1).textOverflow({overflow:TextOverflow.Ellipsis})
+      }
     }.id('workspace-transport').enabled(!this.placing).position({x:this.layout().dock.x,y:this.layout().dock.y})
       .width(this.dockWidth()).height(this.layout().dock.height)
       .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({y:20})).animation({curve:curves.springMotion(0.32,0.90)}))
@@ -1156,6 +1200,7 @@ struct Index {
     if(id==='rock-fast')return $r('app.media.theme_rock_fast');
     if(id==='rock-oblique')return $r('app.media.theme_rock_oblique');
     if(id==='rock-spin')return $r('app.media.theme_rock_spin');
+    if(id==='kepler-ring')return $r('app.media.theme_kepler_ring');
     if(id==='ring-world')return $r('app.media.theme_ring_world');
     if(id==='ocean-world')return $r('app.media.theme_ocean_world');
     return $r('app.media.theme_three_worlds');
@@ -1258,6 +1303,10 @@ struct Index {
             ChoiceChip({label:'大气',active:this.atmosphere,onPress:() => {this.press('appearance.atmosphere');}})
             ChoiceChip({label:'轨迹',active:this.trails,onPress:() => {this.press('appearance.trails');}})
           }.width('100%')
+          if(this.canTrace()||this.trace.enabled){
+            ChoiceChip({label:'开普勒示踪粒子',active:this.trace.enabled,onPress:()=>{this.press('trace.toggle');}})
+            Text('192 个无质量示踪点 · 半径假定 60000 km · 仅中心引力，不计算碰撞。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
+          }
           ChoiceChip({label:'显示气态行星环带',active:this.rings,onPress:()=>{this.press('appearance.rings');}})
           ChoiceChip({label:this.autoSpin?'停止外观自转':'演示外观自转',active:this.autoSpin,onPress:() => {this.press('appearance.spin');}})
           Text('海陆、云层与环带为程序生成的外观；环带不参与引力、碰撞或流体计算。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)

@@ -59,8 +59,8 @@ function page() {
   const body=original.slice(original.indexOf('struct Index {')+'struct Index {'.length,original.indexOf('  @Builder\n  header()'));
   const transformed=(interfaces+'\nclass Index {'+body+'}\nexports.Index=Index;').replace(/@StorageLink\('[^']+'\)\s*/g,'').replace(/@Watch\('[^']+'\)\s*/g,'').replace(/@State\s*/g,'');
   let state={state:'paused',error:'',count:212,frames:5,selected:-1,time:1,duration:10,stepMs:5,steps:4,maxSpeed:5,meanDensity:2700};
-  const calls=[],initialPauses=[];
-  const simulation={setComposition:()=>{},setSky:(mode,brightness)=>{state.sky={mode,brightness};},pickBody:()=>state.pick??-1,projectedScene:()=>({ready:true,bodies:[]}),setAppearance:()=>{},renderStatus:()=>({panoramaReady:state.panoramaReady??false,panoramaBlend:state.panoramaReady?1:0,ready:true,texturesReady:true,active:true,frames:1,submitMs:1,previewSeconds:0,error:''}),status:()=>({...state}),startScene:(c,initiallyPaused)=>{if(state.rejectStart)throw Error('native rejected scene');initialPauses.push(initiallyPaused);calls.push(['start',c.preset,c.count,c.speed,c.angle,c.duration]);state.state='preparing';},pause:v=>{calls.push(['pause',v]);if(state.state!=='preparing')state.state=v?'paused':'running';},setCamera:(...args)=>calls.push(['camera',...args]),seek:i=>state.selected=i,saveReplay:async()=>false,loadReplay:async()=>{if(state.loadReplayOK){state.state='replay';return true;}return false;}};
+  const calls=[],initialPauses=[];let trace={enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:6,outerPeriodHours:14,model:'restricted-circular-kepler-v1'};
+  const simulation={ringTraceStatus:()=>({...trace}),configureRingTrace:(enabled,running,target,massSolar)=>{if(enabled&&!trace.enabled)trace.timeHours=0;trace={...trace,enabled,running,target,massSolar};},seekRingTrace:seconds=>{trace.timeHours=seconds/3600;trace.running=false;},setComposition:()=>{},setSky:(mode,brightness)=>{state.sky={mode,brightness};},pickBody:()=>state.pick??-1,projectedScene:()=>({ready:true,bodies:[]}),setAppearance:()=>{},renderStatus:()=>({panoramaReady:state.panoramaReady??false,panoramaBlend:state.panoramaReady?1:0,ready:true,texturesReady:true,active:true,frames:1,submitMs:1,previewSeconds:0,error:''}),status:()=>({...state}),startScene:(c,initiallyPaused)=>{if(state.rejectStart)throw Error('native rejected scene');initialPauses.push(initiallyPaused);calls.push(['start',c.preset,c.count,c.speed,c.angle,c.duration]);state.state='preparing';},pause:v=>{calls.push(['pause',v]);if(state.state!=='preparing')state.state=v?'paused':'running';},setCamera:(...args)=>calls.push(['camera',...args]),seek:i=>state.selected=i,saveReplay:async()=>false,loadReplay:async()=>{if(state.loadReplayOK){state.state='replay';return true;}return false;}};
   const modelContext={exports:{}};
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/SceneModel.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/WorkspaceLayout.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
@@ -402,7 +402,7 @@ test('immersive window policy hides status, navigation and gesture indicator ind
 
 test('theme catalog isolates conditions and collision speed comparison changes only speed',async()=>{
   const {page:app}=page();
-  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,7);
+  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,8);
   const [slow,fast]=catalog.experiments;assert.equal(slow.config.speed,2);assert.equal(fast.config.speed,8);
   assert.deepEqual({...slow.config,speed:8},fast.config);
   assert.ok(catalog.experiments.every(t=>t.goal&&t.limit&&t.question));
@@ -470,4 +470,26 @@ test('ring style survives placement, edit history and serialized scene reload',a
   const saved=JSON.parse(JSON.stringify(app.definition()));await app.execute('setScene',saved.config);state.state='paused';
   assert.equal(app.orbitBodies[4].surface,4);
   const before=app.snapshot();saved.config.orbitBodies[4].surface=5;await assert.rejects(app.execute('setScene',saved.config));assert.equal(app.snapshot(),before);
+});
+
+test('local ring clock shares controls, preserves orbital initial conditions and rejects invalid seeks atomically',async()=>{
+ const {page:app,state,calls}=page();await app.execute('uiAction',{action:'theme.kepler-ring'});state.state='paused';
+ const before=JSON.parse(app.snapshot()),starts=calls.filter(c=>c[0]==='start').length;
+ assert.equal(before.ringTrace.enabled,true);assert.equal(before.ringTrace.timeHours,0);
+ await app.execute('uiAction',{action:'trace.play'});assert.equal(app.trace.running,true);
+ await app.execute('setUiValue',{field:'trace.hours',value:6});assert.equal(app.trace.timeHours,6);assert.equal(app.trace.running,false);
+ const stable=app.snapshot();await assert.rejects(app.execute('setUiValue',{field:'trace.hours',value:25}));await assert.rejects(app.execute('getRingTrace',{particles:'yes'}));assert.equal(app.snapshot(),stable);
+ await app.execute('uiAction',{action:'trace.reset'});assert.equal(app.trace.timeHours,0);
+ assert.deepEqual(JSON.parse(app.snapshot()).definition,before.definition);assert.equal(calls.filter(c=>c[0]==='start').length,starts);
+ await app.execute('uiAction',{action:'surface.toggle'});assert.equal(app.trace.enabled,false);
+ await assert.rejects(app.execute('uiAction',{action:'trace.play'}));
+});
+test('local ring mode exits on host restart or body changes and pause stops both clocks',async()=>{
+ const {page:app,state}=page();await app.execute('uiAction',{action:'theme.kepler-ring'});state.state='paused';
+ await app.execute('uiAction',{action:'trace.play'});await app.execute('pause',{});assert.equal(app.trace.running,false);assert.equal(state.state,'paused');
+ await app.execute('start',{});assert.equal(app.trace.enabled,false);
+ await app.execute('uiAction',{action:'theme.kepler-ring'});state.state='paused';await app.execute('uiAction',{action:'surface.next'});assert.equal(app.trace.enabled,false);
+ await app.execute('uiAction',{action:'theme.kepler-ring'});state.state='paused';await app.execute('uiAction',{action:'theme.ocean-world'});assert.equal(app.trace.enabled,false);
+ await app.execute('uiAction',{action:'theme.kepler-ring'});state.state='paused';await app.execute('uiAction',{action:'orbit.add'});assert.equal(app.trace.enabled,false);
+ await app.execute('uiAction',{action:'placement.cancel'});await app.execute('uiAction',{action:'theme.kepler-ring'});state.state='paused';await app.execute('uiAction',{action:'replay.latest'});assert.equal(app.trace.enabled,false);
 });

@@ -8,7 +8,7 @@ export interface CommandPayload {
   x?:number; y?:number;
   action?:string; field?:string; value?:string|number;
   orbitBodies?:OrbitBodyConfig[];
-  clouds?:boolean; atmosphere?:boolean; trails?:boolean; closeup?:boolean; autoSpin?:boolean; rings?:boolean;
+  particles?:boolean; clouds?:boolean; atmosphere?:boolean; trails?:boolean; closeup?:boolean; autoSpin?:boolean; rings?:boolean;
   targetRadiusKm?: number; impactorRadiusKm?: number; targetDensity?: number; impactorDensity?: number; targetSpin?: number; seed?: number; title?: string; id?: string;
   preset?: number; count?: number; speed?: number; angle?: number; duration?: number;
   yaw?: number; pitch?: number; zoom?: number; focus?: number; color?: number;

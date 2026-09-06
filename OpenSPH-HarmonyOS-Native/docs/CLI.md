@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.18.0；更新日期：2026-09-06（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.19.0；更新日期：2026-09-06（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -30,7 +30,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 ## 主题实验库
 
-实验库的“碰撞／探索／我的实验”分类使用 `library.collision`、`library.explore`、`library.saved`；只切换内容，不重建当前场景。`listExperiments` 返回目录版本、七个主题的完整初始条件、默认镜头、问题和模型说明。
+实验库的“碰撞／探索／我的实验”分类使用 `library.collision`、`library.explore`、`library.saved`；只切换内容，不重建当前场景。`listExperiments` 返回目录版本、八个主题的完整初始条件、默认镜头、问题和模型说明。
 
 | 动作 | 内容 |
 | --- | --- |
@@ -40,6 +40,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 | `theme.ocean-world` | 海洋行星近看，带恒星的双体轨道 |
 | `theme.three-worlds` | 三种表面行星与恒星组成的系统 |
 | `theme.ring-world` | “环影之间”：虚构带环气态行星、1 AU 轨道与 1 年探索；不是实际土星系统 |
+| `theme.kepler-ring` | “环为什么会错位”：暂停主系统，进入独立的 24 小时示踪环 |
 | `theme.restore` | 恢复当前主题的完整初始条件和默认镜头 |
 | `theme.compare` | 慢撞／快撞切换，恢复另一组完整初始条件 |
 
@@ -103,6 +104,31 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 - `getPlacementPreview` 返回 valid、error、完整候选初值、相对速度、圆轨道／逃逸速度、最近距离和解析引导路径；无效输入不能确认。
 
 圆轨道速度包含恒星与候选质量，候选速度叠加恒星原速度。紫线是二体解析引导，灰点是其他天体初始位置的平面投影。工具不在当前时刻注入天体。自定义系统限制为 2–8 天体、坐标 ±10 AU、速度模长不超过 100 km/s、初始间距至少 0.05 AU。
+
+## 局部示踪环
+
+`theme.kepler-ring` 进入第八个主题；也可选中自定义系统里 `surface:4` 的行星，通过观察面板或 `trace.toggle` 开启。底部切换为独立的 0–24 小时时间轴，主系统保持暂停。退出局部模式不会自动继续主系统。
+
+| 动作／命令 | 行为 |
+| --- | --- |
+| `trace.toggle` | 开关局部模式，开启时从小时零点开始，并停用外观自转 |
+| `trace.play` | 运行／暂停局部小时钟；24 小时结束后再次运行从零开始 |
+| `trace.reset` | 小时时间归零并暂停 |
+| `setUiValue {field:"trace.hours",value:0..24}` | 定位到任意小时并暂停，与滑块共用逻辑 |
+| `getRingTrace {particles:true}` | 返回局部状态、192 个示踪点的环平面位置（km）、速度（km/s）、半径与周期（h）；默认包含点列表 |
+| `getRingTrace {particles:false}` | 只返回时钟、质量、假定半径和内外圈周期 |
+
+`getState.ringTrace` 是轻量状态；`getUiState` 包含对应动作和 `trace.hours` 字段。主系统仍由 `simulation` 字段描述，不能把 `simulation.time` 的年数当成局部小时。`start` 会退出局部模式后启动主系统；`pause` 暂停两个时钟；原有 `seek` 使用保留帧索引。主系统重建、回放操作、切换天体、返回全景和进入放置会退出局部模式。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"theme.kepler-ring"}' --wait-state paused
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setUiValue --payload-json '{"field":"trace.hours","value":3}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getRingTrace --payload-json '{"particles":true}'
+```
+
+运行速率固定为每秒演示约 1 小时；渲染暂停、后台或长卡顿不补算墙钟时间。示踪点无质量，仅使用所选行星的中心引力，位置用解析圆轨道求得；假定半径 60000 km，轨道半径 76800–133200 km。青色到金色表示由内圈到外圈，不是温度。环时钟和开关属于会话状态；现有命名实验及 v4 回放不保存局部时刻，`theme.restore` 可重新开启该主题。
+
+验证入口：`bash scripts/test-ring-trace.sh` 为独立物理与计时基线；`node scripts/test-ring-trace-emulator.mjs 127.0.0.1:5555` 会切换场景、折叠和方向，调用方需事先保存并在结束后恢复会话。详见 [0.19.0 验证记录](releases/RELEASE-0.19.0.md)。
 
 ## 场景、求解与回放
 

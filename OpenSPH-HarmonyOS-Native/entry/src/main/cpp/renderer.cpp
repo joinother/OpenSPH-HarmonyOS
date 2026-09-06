@@ -23,6 +23,7 @@ class Renderer {
     Camera camera;
     std::array<float,3> composition{.5f,.5f,1};
     Appearance appearance;
+    RingClock ringClock;uint64_t ringRevision=0;
     SkySettings skySettings;
     std::shared_ptr<const SkyPanorama> skyPanorama;
     RenderStatus stats;
@@ -185,6 +186,11 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 if(!materialReady)error(message);else {std::lock_guard<std::mutex> lock(mutex);stats.texturesReady=true;}
                 dt=0;lastClock=std::chrono::steady_clock::now();
             }
+            RingClock trace;
+            {std::lock_guard<std::mutex> lock(mutex);
+             if(ringClock.enabled&&(ringRevision!=revision||(frame&&(!frame->orbital||ringClock.target<1||size_t(ringClock.target)>=frame->surfaces.size()||frame->surfaces[ringClock.target]!=4)))){ringClock.enabled=false;ringClock.running=false;}
+             if(frame)ringClock.advance(dt);trace=ringClock;
+            }
             bool detail=frame&&frame->orbital&&a.closeup&&c.focus>=0&&size_t(c.focus)<frame->particles.size();
             journey.step(revision,c.focus,detail,float(dt));
             float blend=journey.totalDetail();
@@ -252,7 +258,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                         SurfaceView view{projectedBody.x*2-1,1-projectedBody.y*2,-projectedBody.depth/100,
                             projectedBody.radius*2,aspect,c.yaw,c.pitch,phase,float(std::fmod(frame->time*.78+previewTime*.014+.07,1.0)),
                             {light[0],light[1],light[2]},frame->surfaces[i],c.color,p.speed,a.clouds,a.atmosphere,a.rings,projectedBody.opacity};
-                        if(view.opacity>.001f)material.draw(view);
+                        if(view.opacity>.001f){material.draw(view);if(trace.enabled&&trace.target==int(i))material.drawTrace(view,sampleRing(trace.massSolar,trace.seconds));}
                     }
                     glEnable(GL_DEPTH_TEST);
                 } else {
@@ -299,6 +305,9 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         if (thread.joinable())
             thread.join();
     }
+    void configureTrace(bool on,bool play,int target,double mass){std::lock_guard<std::mutex> lock(mutex);ringClock.configure(on,play,target,mass);ringRevision=Engine::instance().sceneRevision();}
+    void seekTrace(double t){std::lock_guard<std::mutex> lock(mutex);ringClock.seek(t);}
+    RingClock traceStatus(){std::lock_guard<std::mutex> lock(mutex);return ringClock;}
     void setComposition(float x,float y,float scale){std::lock_guard<std::mutex> lock(mutex);composition={x,y,scale};}
     void setPanorama(std::shared_ptr<const SkyPanorama> p){std::lock_guard<std::mutex> lock(mutex);skyPanorama=std::move(p);}
     void setSky(SkySettings s){std::lock_guard<std::mutex> lock(mutex);skySettings=s;}
@@ -333,6 +342,9 @@ void destroyed(OH_NativeXComponent *, void *) {
 }
 OH_NativeXComponent_Callback callbacks = {created, changed, destroyed, nullptr};
 } // namespace
+void configureRingTrace(bool on,bool play,int target,double mass){renderer().configureTrace(on,play,target,mass);}
+void seekRingTrace(double t){renderer().seekTrace(t);}
+RingClock ringTraceStatus(){return renderer().traceStatus();}
 void setAppearance(bool clouds,bool atmosphere,bool trails,bool closeup,bool autoSpin,bool rings){renderer().setAppearance({clouds,atmosphere,trails,closeup,autoSpin,rings});}
 void setComposition(float x,float y,float scale){renderer().setComposition(x,y,scale);}
 void setSkyPanorama(std::shared_ptr<const SkyPanorama> p){renderer().setPanorama(std::move(p));}

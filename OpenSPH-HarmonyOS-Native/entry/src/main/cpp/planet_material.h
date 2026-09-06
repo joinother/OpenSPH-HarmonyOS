@@ -1,6 +1,7 @@
 #pragma once
 #include <GLES3/gl3.h>
 #include <string>
+#include "ring_trace.h"
 namespace lab {
 struct SurfaceView {
  float x,y,z,radius,aspect; // screen center NDC, depth and radius in vertical NDC units
@@ -9,10 +10,12 @@ struct SurfaceView {
  bool clouds,atmosphere,rings;float opacity;
 };
 class PlanetMaterial {
+ GLuint traceProgram=0,traceVao=0,traceVbo=0;
  GLuint program=0,vao=0,vbo=0,surfaces[5]{},cloudMaps[5]{};
 public:
  bool init(std::string &error);
  void draw(const SurfaceView &view);
+ void drawTrace(const SurfaceView &view,const std::vector<RingPoint> &points);
  void release(); // call on owning render thread before its EGL context is destroyed
 };
 }

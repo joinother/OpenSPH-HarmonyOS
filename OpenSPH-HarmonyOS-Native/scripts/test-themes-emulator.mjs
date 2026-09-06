@@ -20,7 +20,7 @@ function uiNodes(){const remote='/data/local/tmp/sph-theme-ui.json',local=join(t
  function walk(v){if(!v||typeof v!=='object')return;if(v.attributes?.bounds)nodes.push({...v.attributes,rect:(v.attributes.bounds.match(/-?\d+/g)||[]).map(Number)});Object.entries(v).filter(([k])=>k!=='attributes').forEach(([,x])=>walk(x));}walk(JSON.parse(readFileSync(local,'utf8')));return nodes;
 }
 try {
- call('listCommands');call('getUiState');const catalog=call('listExperiments');assert.equal(catalog.experiments.length,7);
+ call('listCommands');call('getUiState');const catalog=call('listExperiments');assert.equal(catalog.experiments.length,8);
  const [slow,fast]=catalog.experiments;assert.deepEqual({...slow.config,speed:8},fast.config);
  h('shell','hidumper','-s','DisplayManagerService','-a','-y');call('setWindowOrientation',{orientation:'portrait'});
  for(const t of catalog.experiments){
@@ -55,5 +55,5 @@ try {
  }
  action('library.explore');await delay(650);screenshot('library-explore');assert.equal(call('getUiState').librarySection,'explore');
  action('library.saved');assert.equal(call('getUiState').librarySection,'saved');assert.deepEqual(call('getState').definition,reference.definition);
- writeFileSync(project+'docs/evidence/themes-'+version+'-device-tests.json',JSON.stringify({ok:true,device,checks:['seven fixed templates complete native integration','20 repeated native initial-paused starts remain at time zero','speed-only comparison and exact restore','gallery navigation preserves scene and camera','full immersive viewport and theme gallery in wide/phone/landscape'],results},null,2)+'\n');console.log('PASS gallery and comparisons');
+ writeFileSync(project+'docs/evidence/themes-'+version+'-device-tests.json',JSON.stringify({ok:true,device,checks:['eight fixed templates complete native integration','20 repeated native initial-paused starts remain at time zero','speed-only comparison and exact restore','gallery navigation preserves scene and camera','full immersive viewport and theme gallery in wide/phone/landscape'],results},null,2)+'\n');console.log('PASS gallery and comparisons');
 } finally {try{call('pause');call('setWindowOrientation',{orientation:'auto'});}catch{}rmSync(temp,{recursive:true,force:true});}

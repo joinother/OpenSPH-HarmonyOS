@@ -34,3 +34,9 @@ export interface ProjectedBody { id:number; x:number; y:number; radius:number; d
 export interface ProjectedScene { ready:boolean; widthPx:number; heightPx:number; time:number; bodies:ProjectedBody[]; }
 export const projectedScene:()=>ProjectedScene;
 export const pickBody:(x:number,y:number,padding:number)=>number;
+
+export interface RingTraceParticle {xKm:number;yKm:number;vxKmS:number;vyKmS:number;radiusKm:number;periodHours:number;}
+export interface RingTraceStatus {particles?:RingTraceParticle[];enabled:boolean;running:boolean;target:number;timeHours:number;massSolar:number;radiusKm:number;count:number;innerPeriodHours:number;outerPeriodHours:number;model:string;}
+export const configureRingTrace:(enabled:boolean,running:boolean,target:number,massSolar:number)=>void;
+export const seekRingTrace:(seconds:number)=>void;
+export const ringTraceStatus:(particles:boolean)=>RingTraceStatus;

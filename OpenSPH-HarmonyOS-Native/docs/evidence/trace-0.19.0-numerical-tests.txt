@@ -1,0 +1,1 @@
+PASS 192 deterministic circular tracers; Earth reference; force relative error=2.28681e-10 energy=5.83541e-16; differential periods; independent leapfrog errors km=48.5941,12.1496; bounded/atomic clock and terminal pause

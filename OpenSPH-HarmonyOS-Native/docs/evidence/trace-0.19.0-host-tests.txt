@@ -1,0 +1,48 @@
+✔ real ArkTS bridge queues cold launch, preserves Unicode JSON and responds in correlated chunks (88.661541ms)
+✔ serial processing and deduplication prevent repeated mutations (17.08175ms)
+✔ malformed payload, handler errors and queue overflow produce explicit errors (16.066875ms)
+✔ out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored (0.247083ms)
+✔ scene and camera reject partial invalid transactions without changing prior state (215.8235ms)
+✔ start is idempotent, seek bounded, replay failure reported as failure (154.194ms)
+✔ closing and reopening during a tab animation discards its stale completion (132.281916ms)
+✔ orbit models validate units, survive definitions, and reject invalid speed atomically (153.276667ms)
+✔ appearance changes are visual only and invalid transactions leave the scene intact (112.984ms)
+✔ loading legacy SPH replay exits orbital closeup without inventing original parameters (131.61575ms)
+✔ custom body edits are transactional; add/delete maintain star and clear stale focus (136.522917ms)
+✔ custom CLI rejects malformed body lists atomically and preserves all initial fields (125.440625ms)
+✔ semantic UI commands expose drafts, share button handlers and reject disabled actions (112.497708ms)
+✔ invalid draft application reports CLI failure without replacing the physical system (112.405208ms)
+✔ all rendered button callbacks and editor changes route through semantic actions (0.595166ms)
+✔ viewport selection shares focus/editor action; misses and invalid coordinates preserve draft (110.048167ms)
+✔ initial vector preview handles 3D axes, zero vectors, invalid drafts and units without applying (123.889542ms)
+✔ sky controls are atomic, shared with UI and independent of physics (117.660958ms)
+✔ continuous selection/edit/overview preserves solver, replay cursor and per-body drafts (123.045042ms)
+✔ placement preview is a cancellable transaction, with shared point positioning and explicit commit (184.778291ms)
+✔ placement physics respects relative reference frames, inclined velocities and conic energy (144.62225ms)
+✔ fold and rotation update composition without losing drafts or mutating the solver (130.415333ms)
+✔ main-window orientation uses the system lock in auto mode and rejects invalid policies (6.426292ms)
+✔ body transactions preserve unrelated drafts; undo and redo restore deleted bodies and draft indices (118.230958ms)
+✔ placement confirm is one undoable transaction, cancel is none, and draft discard leaves replay intact (122.574083ms)
+✔ history branches only on successful commits, stays bounded, and does not undo global duration (116.02575ms)
+✔ history actions obey placement and I/O guards, and scene replacement clears the prior session history (125.252541ms)
+✔ synchronous native rejection leaves body transactions, drafts and history untouched (111.060292ms)
+✔ programmatic input echoes and reselecting the current surface do not create false drafts (105.33825ms)
+✔ full-bleed composition keeps controls within insets without shrinking the native viewport (91.538208ms)
+✔ immersive window policy hides status, navigation and gesture indicator independently (4.460083ms)
+✔ theme catalog isolates conditions and collision speed comparison changes only speed (111.699625ms)
+✔ theme restore and compare discard edited initial conditions and reset physical preview exactly once (111.777542ms)
+✔ theme loading rejects atomically and orbital templates retain editable surfaces (87.581ms)
+✔ library categories use semantic handlers without changing the current scene or camera (97.009125ms)
+✔ initial pause is passed atomically to native for themes, previews and body edits (109.241ms)
+✔ ring appearance shares UI and CLI, validates atomically and preserves the solver and camera (98.903625ms)
+✔ ring style survives placement, edit history and serialized scene reload (108.870292ms)
+✔ local ring clock shares controls, preserves orbital initial conditions and rejects invalid seeks atomically (123.378584ms)
+✔ local ring mode exits on host restart or body changes and pause stops both clocks (118.063959ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4415.00525

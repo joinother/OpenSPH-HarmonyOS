@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "ring_trace.h"
 #include <cstdint>
 #include <memory>
 #include "sky_panorama.h"
@@ -14,6 +15,9 @@ struct Appearance { bool clouds=true, atmosphere=true, trails=true, closeup=fals
 struct RenderStatus { uint64_t sceneRevision=0; int surfaceStarts=0; bool cameraMoving=false; float centerX=0,centerY=0,centerZ=0; float compositionX=.5f,compositionY=.5f,compositionScale=1; bool panoramaReady=false; float panoramaBlend=0; bool skyReady=false; float skyStars=0,skyGalaxy=0; bool ready=false, texturesReady=false, active=true; int frames=0; double submitMs=0, previewSeconds=0; std::string error; };
 struct ProjectedScene { bool ready=false; int width=0,height=0; double time=0; std::vector<ProjectedBody> bodies; };
 ProjectedScene projectedScene();
+void configureRingTrace(bool enabled,bool running,int target,double mass);
+void seekRingTrace(double seconds);
+RingClock ringTraceStatus();
 void setAppearance(bool clouds,bool atmosphere,bool trails,bool closeup,bool autoSpin,bool rings);
 void setRenderActive(bool active);
 RenderStatus renderStatus();
