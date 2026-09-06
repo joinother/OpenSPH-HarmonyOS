@@ -1,0 +1,98 @@
+{
+  "ok": true,
+  "protocol": 1,
+  "definition": {
+    "schemaVersion": 1,
+    "model": "sph-rock-v1",
+    "title": "我的碰撞实验",
+    "config": {
+      "preset": 0,
+      "count": 600,
+      "speed": 5,
+      "angle": 0,
+      "duration": 60,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "targetSpin": 0,
+      "seed": 1234
+    },
+    "bodies": [
+      {
+        "id": "primary",
+        "name": "主天体",
+        "kind": "rock",
+        "radiusKm": 100,
+        "density": 2700
+      },
+      {
+        "id": "impactor",
+        "name": "撞击体",
+        "kind": "rock",
+        "radiusKm": 60,
+        "density": 2700
+      }
+    ]
+  },
+  "simulation": {
+    "state": "paused",
+    "error": "",
+    "count": 641,
+    "frames": 1,
+    "selected": -1,
+    "time": 0,
+    "duration": 60,
+    "stepMs": 44.0005,
+    "steps": 1,
+    "maxSpeed": 5,
+    "meanDensity": 2700,
+    "totalMass": 13752636000354638000,
+    "config": {
+      "preset": 0,
+      "count": 600,
+      "speed": 5,
+      "angle": 0,
+      "duration": 60,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "targetSpin": 0,
+      "seed": 1234
+    }
+  },
+  "scene": {
+    "preset": 0,
+    "count": 600,
+    "speed": 5,
+    "angle": 0,
+    "duration": 60,
+    "dirty": false
+  },
+  "camera": {
+    "yaw": 0.15,
+    "pitch": 0.25,
+    "zoom": 2.7,
+    "focus": -1,
+    "color": 0
+  },
+  "ui": {
+    "panel": 2,
+    "playing": false,
+    "ioBusy": false,
+    "foreground": true,
+    "notice": "场景就绪后，点击开始实验"
+  },
+  "window": {
+    "widthVp": 707.2,
+    "heightVp": 773.12,
+    "immersive": true,
+    "safePx": {
+      "top": 121,
+      "bottom": 87,
+      "left": 0,
+      "right": 0
+    }
+  }
+}

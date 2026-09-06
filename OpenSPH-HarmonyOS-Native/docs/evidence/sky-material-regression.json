@@ -1,0 +1,196 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "actual cloud pixel changes",
+    "actual atmosphere pixel changes",
+    "visual controls preserve physics",
+    "invalid appearance atomicity",
+    "surface motion independent of paused solver",
+    "background suspends visual clock",
+    "four rendered surface styles",
+    "return to orbital integration",
+    "SPH rendering remains valid"
+  ],
+  "cloudDifference": {
+    "mean": 21.161413628108683,
+    "changed": 478594
+  },
+  "airDifference": {
+    "mean": 2.2257696545061956,
+    "changed": 173388
+  },
+  "motionDifference": {
+    "mean": 32.7218369595339,
+    "changed": 854254
+  },
+  "rendered": [
+    0,
+    2,
+    3
+  ],
+  "initialRendering": {
+    "skyReady": true,
+    "skyStars": 0.22750000655651093,
+    "skyGalaxy": 0.22750000655651093,
+    "ready": true,
+    "texturesReady": true,
+    "active": true,
+    "frames": 3868,
+    "submitMs": 0.21675,
+    "previewSeconds": 3.375338752,
+    "error": ""
+  },
+  "final": {
+    "sky": {
+      "mode": 2,
+      "brightness": 0.65,
+      "reference": "illustrative"
+    },
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "sph-rock-v1",
+      "title": "碰撞实验",
+      "config": {
+        "preset": 0,
+        "count": 200,
+        "speed": 5,
+        "angle": 0,
+        "duration": 1,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234
+      },
+      "bodies": [
+        {
+          "id": "primary",
+          "name": "主天体",
+          "kind": "rock",
+          "radiusKm": 100,
+          "density": 2700
+        },
+        {
+          "id": "impactor",
+          "name": "撞击体",
+          "kind": "rock",
+          "radiusKm": 60,
+          "density": 2700
+        }
+      ]
+    },
+    "editor": {
+      "vectorPlane": "XZ",
+      "orbitIndex": 1,
+      "orbitName": "蔚蓝",
+      "orbitFields": [
+        "1",
+        "1",
+        "0",
+        "0",
+        "0",
+        "29.784736563281832",
+        "0"
+      ],
+      "orbitSurface": 1,
+      "orbitDraft": false,
+      "editedBody": 0,
+      "targetName": "主天体",
+      "impactorName": "撞击体",
+      "title": "碰撞实验",
+      "selectingPreset": false
+    },
+    "appearance": {
+      "clouds": true,
+      "atmosphere": true,
+      "trails": true,
+      "closeup": false,
+      "autoSpin": false
+    },
+    "rendering": {
+      "skyReady": true,
+      "skyStars": 0.6499999761581421,
+      "skyGalaxy": 0.6499999761581421,
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 4295,
+      "submitMs": 0.120334,
+      "previewSeconds": 7.4866865449999995,
+      "error": ""
+    },
+    "simulation": {
+      "state": "paused",
+      "error": "",
+      "count": 212,
+      "frames": 1,
+      "selected": -1,
+      "time": 0,
+      "duration": 1,
+      "stepMs": 8.450666,
+      "steps": 1,
+      "maxSpeed": 5,
+      "meanDensity": 2700,
+      "totalMass": 13752636000354738000,
+      "energyError": 0,
+      "angularError": 0,
+      "model": "sph-rock-v1",
+      "timeUnit": "s",
+      "bodies": [],
+      "config": {
+        "preset": 0,
+        "count": 200,
+        "speed": 5,
+        "angle": 0,
+        "duration": 1,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234
+      }
+    },
+    "scene": {
+      "preset": 0,
+      "count": 200,
+      "speed": 5,
+      "angle": 0,
+      "duration": 1,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0.15,
+      "pitch": 0.25,
+      "zoom": 2.7,
+      "focus": -1,
+      "color": 0
+    },
+    "ui": {
+      "panelOpen": false,
+      "toolsVisible": true,
+      "panel": 1,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "场景就绪后，点击开始实验"
+    },
+    "window": {
+      "viewportWidthVp": 707.2,
+      "viewportHeightVp": 706.56,
+      "widthVp": 707.2,
+      "heightVp": 773.12,
+      "immersive": true,
+      "safePx": {
+        "top": 121,
+        "bottom": 87,
+        "left": 0,
+        "right": 0
+      }
+    }
+  }
+}

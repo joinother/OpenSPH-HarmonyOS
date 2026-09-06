@@ -1,0 +1,701 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "six fixed templates complete native integration",
+    "20 repeated native initial-paused starts remain at time zero",
+    "speed-only comparison and exact restore",
+    "gallery navigation preserves scene and camera",
+    "full immersive viewport and theme gallery in wide/phone/landscape"
+  ],
+  "results": [
+    {
+      "id": "rock-slow",
+      "config": {
+        "preset": 0,
+        "count": 600,
+        "speed": 2,
+        "angle": 0,
+        "duration": 90,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234
+      },
+      "simulation": {
+        "state": "completed",
+        "error": "",
+        "count": 641,
+        "frames": 240,
+        "selected": -1,
+        "time": 90.02000000000056,
+        "duration": 90,
+        "stepMs": 25.375208,
+        "steps": 602,
+        "maxSpeed": 2.4958622463586995,
+        "meanDensity": 2376.0543228796796,
+        "totalMass": 13752636000354638000,
+        "energyError": 0,
+        "angularError": 0,
+        "model": "sph-rock-v1",
+        "timeUnit": "s",
+        "bodies": [],
+        "config": {
+          "preset": 0,
+          "count": 600,
+          "speed": 2,
+          "angle": 0,
+          "duration": 90,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        }
+      }
+    },
+    {
+      "id": "rock-fast",
+      "config": {
+        "preset": 0,
+        "count": 600,
+        "speed": 8,
+        "angle": 0,
+        "duration": 90,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234
+      },
+      "simulation": {
+        "state": "completed",
+        "error": "",
+        "count": 641,
+        "frames": 240,
+        "selected": -1,
+        "time": 90.02000000000056,
+        "duration": 90,
+        "stepMs": 14.504458,
+        "steps": 602,
+        "maxSpeed": 10.07347473565685,
+        "meanDensity": 1157.4482755422075,
+        "totalMass": 13752636000354638000,
+        "energyError": 0,
+        "angularError": 0,
+        "model": "sph-rock-v1",
+        "timeUnit": "s",
+        "bodies": [],
+        "config": {
+          "preset": 0,
+          "count": 600,
+          "speed": 8,
+          "angle": 0,
+          "duration": 90,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        }
+      }
+    },
+    {
+      "id": "rock-oblique",
+      "config": {
+        "preset": 1,
+        "count": 600,
+        "speed": 5,
+        "angle": 60,
+        "duration": 90,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234
+      },
+      "simulation": {
+        "state": "completed",
+        "error": "",
+        "count": 641,
+        "frames": 240,
+        "selected": -1,
+        "time": 90.02000000000056,
+        "duration": 90,
+        "stepMs": 13.43925,
+        "steps": 602,
+        "maxSpeed": 6.914248792860173,
+        "meanDensity": 1677.792488749487,
+        "totalMass": 13752636000354638000,
+        "energyError": 0,
+        "angularError": 0,
+        "model": "sph-rock-v1",
+        "timeUnit": "s",
+        "bodies": [],
+        "config": {
+          "preset": 1,
+          "count": 600,
+          "speed": 5,
+          "angle": 60,
+          "duration": 90,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        }
+      }
+    },
+    {
+      "id": "rock-spin",
+      "config": {
+        "preset": 2,
+        "count": 600,
+        "speed": 2,
+        "angle": 0,
+        "duration": 60,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234
+      },
+      "simulation": {
+        "state": "completed",
+        "error": "",
+        "count": 641,
+        "frames": 240,
+        "selected": -1,
+        "time": 60.01999999999961,
+        "duration": 60,
+        "stepMs": 16.497125,
+        "steps": 402,
+        "maxSpeed": 0.5952845870180536,
+        "meanDensity": 2466.114490293026,
+        "totalMass": 11309733552923350000,
+        "energyError": 0,
+        "angularError": 0,
+        "model": "sph-rock-v1",
+        "timeUnit": "s",
+        "bodies": [],
+        "config": {
+          "preset": 2,
+          "count": 600,
+          "speed": 2,
+          "angle": 0,
+          "duration": 60,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        }
+      }
+    },
+    {
+      "id": "ocean-world",
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "蔚蓝",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 29.784736563281832,
+            "vzKmS": 0,
+            "surface": 1
+          }
+        ]
+      },
+      "simulation": {
+        "state": "completed",
+        "error": "",
+        "count": 2,
+        "frames": 240,
+        "selected": -1,
+        "time": 3,
+        "duration": 3,
+        "stepMs": 0.157541,
+        "steps": 769,
+        "maxSpeed": 29.78464698791504,
+        "meanDensity": 0,
+        "totalMass": 1.9884158434849337e+30,
+        "energyError": 2.103142222275794e-14,
+        "angularError": 1.0413366166240685e-14,
+        "model": "nbody-custom-v1",
+        "timeUnit": "year",
+        "bodies": [
+          {
+            "name": "恒星",
+            "surface": 0,
+            "id": 0,
+            "xAU": -0.0000030034805149625754,
+            "yAU": 9.849057125421723e-10,
+            "zAU": 0,
+            "speedKmS": 0.00008945787703851238,
+            "massSolar": 1
+          },
+          {
+            "name": "蔚蓝",
+            "surface": 1,
+            "id": 1,
+            "xAU": 0.9999969601631165,
+            "yAU": -0.0003279204829595983,
+            "zAU": 0,
+            "speedKmS": 29.78464698791504,
+            "massSolar": 0.000003003489609909593
+          }
+        ],
+        "config": {
+          "preset": 5,
+          "count": 600,
+          "speed": 1,
+          "angle": 0,
+          "duration": 3,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234,
+          "orbitBodies": [
+            {
+              "name": "恒星",
+              "massSolar": 1,
+              "xAU": 0,
+              "yAU": 0,
+              "zAU": 0,
+              "vxKmS": 0,
+              "vyKmS": 0,
+              "vzKmS": 0,
+              "surface": 0
+            },
+            {
+              "name": "蔚蓝",
+              "massSolar": 0.0000030034896154649684,
+              "xAU": 1,
+              "yAU": 0,
+              "zAU": 0,
+              "vxKmS": 0,
+              "vyKmS": 29.784736563281832,
+              "vzKmS": 0,
+              "surface": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "three-worlds",
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "蔚蓝",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 29.784736563281832,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "暮云",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.36348919531189744,
+            "yAU": 0.6215107439871891,
+            "zAU": 0,
+            "vxKmS": -30.30007191352709,
+            "vyKmS": -17.720930594190353,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "赤砂",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.7451964484378631,
+            "yAU": -1.324795174068654,
+            "zAU": 0,
+            "vxKmS": 21.056060449358704,
+            "vyKmS": -11.84402070001949,
+            "vzKmS": 0,
+            "surface": 3
+          }
+        ]
+      },
+      "simulation": {
+        "state": "completed",
+        "error": "",
+        "count": 4,
+        "frames": 240,
+        "selected": -1,
+        "time": 3,
+        "duration": 3,
+        "stepMs": 0.385917,
+        "steps": 769,
+        "maxSpeed": 35.10108947753906,
+        "meanDensity": 0,
+        "totalMass": 1.9884277878217333e+30,
+        "energyError": 6.602702710206351e-14,
+        "angularError": 1.4216803330381946e-14,
+        "model": "nbody-custom-v1",
+        "timeUnit": "year",
+        "bodies": [
+          {
+            "name": "恒星",
+            "surface": 0,
+            "id": 0,
+            "xAU": -0.0000025251783881685697,
+            "yAU": -0.0000066918914853886236,
+            "zAU": 0,
+            "speedKmS": 0.000196367283933796,
+            "massSolar": 1
+          },
+          {
+            "name": "蔚蓝",
+            "surface": 1,
+            "id": 1,
+            "xAU": 0.9999662637710571,
+            "yAU": -0.00040732661727815866,
+            "zAU": 0,
+            "speedKmS": 29.78568458557129,
+            "massSolar": 0.000003003489609909593
+          },
+          {
+            "name": "暮云",
+            "surface": 2,
+            "id": 2,
+            "xAU": 0.024581361562013626,
+            "yAU": 0.719580888748169,
+            "zAU": 0,
+            "speedKmS": 35.10108947753906,
+            "massSolar": 0.000003003489609909593
+          },
+          {
+            "name": "赤砂",
+            "surface": 3,
+            "id": 3,
+            "xAU": -0.18379946053028107,
+            "yAU": 1.508865237236023,
+            "zAU": 0,
+            "speedKmS": 24.158306121826172,
+            "massSolar": 0.000003003489609909593
+          }
+        ],
+        "config": {
+          "preset": 5,
+          "count": 600,
+          "speed": 1,
+          "angle": 0,
+          "duration": 3,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234,
+          "orbitBodies": [
+            {
+              "name": "恒星",
+              "massSolar": 1,
+              "xAU": 0,
+              "yAU": 0,
+              "zAU": 0,
+              "vxKmS": 0,
+              "vyKmS": 0,
+              "vzKmS": 0,
+              "surface": 0
+            },
+            {
+              "name": "蔚蓝",
+              "massSolar": 0.0000030034896154649684,
+              "xAU": 1,
+              "yAU": 0,
+              "zAU": 0,
+              "vxKmS": 0,
+              "vyKmS": 29.784736563281832,
+              "vzKmS": 0,
+              "surface": 1
+            },
+            {
+              "name": "暮云",
+              "massSolar": 0.0000030034896154649684,
+              "xAU": -0.36348919531189744,
+              "yAU": 0.6215107439871891,
+              "zAU": 0,
+              "vxKmS": -30.30007191352709,
+              "vyKmS": -17.720930594190353,
+              "vzKmS": 0,
+              "surface": 2
+            },
+            {
+              "name": "赤砂",
+              "massSolar": 0.0000030034896154649684,
+              "xAU": -0.7451964484378631,
+              "yAU": -1.324795174068654,
+              "zAU": 0,
+              "vxKmS": 21.056060449358704,
+              "vyKmS": -11.84402070001949,
+              "vzKmS": 0,
+              "surface": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "gallery": "wide",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 22.4,
+            "width": 707.2,
+            "height": 750.72
+          },
+          "compact": false,
+          "sidePanel": true,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 383.20000000000005,
+            "y": 98.4,
+            "width": 308,
+            "height": 516.72
+          },
+          "dock": {
+            "x": 143.60000000000002,
+            "y": 635.12,
+            "width": 420,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 98.4,
+            "width": 359.20000000000005,
+            "height": 524.72
+          }
+        },
+        "geometry": {
+          "widthPx": 2210,
+          "heightPx": 2416,
+          "topPx": 70,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 7
+        },
+        "viewportWidthVp": 707.2,
+        "viewportHeightVp": 773.12,
+        "widthVp": 707.2,
+        "heightVp": 773.12,
+        "immersive": true,
+        "safePx": {
+          "top": 70,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "drawer": [
+        1198,
+        308,
+        2161,
+        1923
+      ],
+      "firstButton": [
+        1288,
+        931,
+        2071,
+        1231
+      ]
+    },
+    {
+      "gallery": "phone",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 20.48,
+            "width": 345.6,
+            "height": 761.6
+          },
+          "compact": false,
+          "sidePanel": false,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 12,
+            "y": 243.28,
+            "width": 321.6,
+            "height": 380.8
+          },
+          "dock": {
+            "x": 16,
+            "y": 644.08,
+            "width": 313.6,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 96.48,
+            "width": 321.6,
+            "height": 134.8
+          }
+        },
+        "geometry": {
+          "widthPx": 1080,
+          "heightPx": 2444,
+          "topPx": 64,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 10
+        },
+        "viewportWidthVp": 345.6,
+        "viewportHeightVp": 782.08,
+        "widthVp": 345.6,
+        "heightVp": 782.08,
+        "immersive": true,
+        "safePx": {
+          "top": 64,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "drawer": [
+        38,
+        760,
+        1043,
+        1950
+      ],
+      "firstButton": [
+        128,
+        1383,
+        953,
+        1683
+      ]
+    },
+    {
+      "gallery": "landscape",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 20.48,
+            "y": 0,
+            "width": 761.6,
+            "height": 345.6
+          },
+          "compact": true,
+          "sidePanel": true,
+          "headerHeight": 54,
+          "drawer": {
+            "x": 458.08000000000004,
+            "y": 64,
+            "width": 308,
+            "height": 269.6
+          },
+          "dock": {
+            "x": 36.480000000000004,
+            "y": 271.6,
+            "width": 393.6,
+            "height": 66
+          },
+          "scene": {
+            "x": 32.480000000000004,
+            "y": 64,
+            "width": 413.6,
+            "height": 195.60000000000002
+          }
+        },
+        "geometry": {
+          "widthPx": 2444,
+          "heightPx": 1080,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 64,
+          "rightPx": 0,
+          "revision": 13
+        },
+        "viewportWidthVp": 782.08,
+        "viewportHeightVp": 345.6,
+        "widthVp": 782.08,
+        "heightVp": 345.6,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 64,
+          "right": 0
+        }
+      },
+      "drawer": [
+        1432,
+        200,
+        2395,
+        1043
+      ],
+      "firstButton": [
+        1522,
+        610,
+        2305,
+        810
+      ]
+    }
+  ]
+}

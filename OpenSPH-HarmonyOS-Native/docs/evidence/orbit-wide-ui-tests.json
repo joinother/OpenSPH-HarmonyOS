@@ -1,0 +1,142 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "widthVp": 707.2,
+  "checks": [
+    "five presets fit drawer",
+    "actual dual orbit selection",
+    "actual planetary system selection",
+    "red and gold body camera tracking",
+    "orbit advances on native surface",
+    "persistent viewport"
+  ],
+  "state": {
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "nbody-v1",
+      "title": "行星系统",
+      "config": {
+        "preset": 4,
+        "count": 200,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 4321
+      },
+      "bodies": []
+    },
+    "simulation": {
+      "state": "paused",
+      "error": "",
+      "count": 4,
+      "frames": 56,
+      "selected": -1,
+      "time": 0.21484375,
+      "duration": 3,
+      "stepMs": 0.041958,
+      "steps": 56,
+      "maxSpeed": 35.10148620605469,
+      "meanDensity": 0,
+      "totalMass": 1.9884213524816496e+30,
+      "energyError": 8.527686506783631e-12,
+      "angularError": 1.1811754424204343e-15,
+      "model": "nbody-v1",
+      "timeUnit": "year",
+      "bodies": [
+        {
+          "name": "恒星",
+          "id": 0,
+          "xAU": -6.840213728764866e-8,
+          "yAU": -8.291859785458655e-7,
+          "zAU": 0,
+          "speedKmS": 0.000012491129382397048,
+          "massSolar": 1
+        },
+        {
+          "name": "蓝色行星",
+          "id": 1,
+          "xAU": 0.21912658214569092,
+          "yAU": 0.975695788860321,
+          "zAU": 0,
+          "speedKmS": 29.784639358520508,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "金色行星",
+          "id": 2,
+          "xAU": -0.2822932004928589,
+          "yAU": -0.6623576283454895,
+          "zAU": 0,
+          "speedKmS": 35.10148620605469,
+          "massSolar": 0.0000024478383693349315
+        },
+        {
+          "name": "红色行星",
+          "id": 3,
+          "xAU": 0.31379279494285583,
+          "yAU": -1.4872596263885498,
+          "zAU": 0,
+          "speedKmS": 24.158632278442383,
+          "massSolar": 3.227156071261561e-7
+        }
+      ],
+      "config": {
+        "preset": 4,
+        "count": 200,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 4321
+      }
+    },
+    "scene": {
+      "preset": 4,
+      "count": 200,
+      "speed": 1,
+      "angle": 0,
+      "duration": 3,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0.15,
+      "pitch": 0.25,
+      "zoom": 2.7,
+      "focus": -1,
+      "color": 0
+    },
+    "ui": {
+      "panelOpen": false,
+      "toolsVisible": true,
+      "panel": 1,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "已暂停，可回看时间轴或调整视角"
+    },
+    "window": {
+      "viewportWidthVp": 707.2,
+      "viewportHeightVp": 706.56,
+      "widthVp": 707.2,
+      "heightVp": 773.12,
+      "immersive": true,
+      "safePx": {
+        "top": 121,
+        "bottom": 87,
+        "left": 0,
+        "right": 0
+      }
+    }
+  }
+}

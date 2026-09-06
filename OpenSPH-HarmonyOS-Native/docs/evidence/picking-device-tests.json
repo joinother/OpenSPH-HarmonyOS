@@ -1,0 +1,97 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "all four body IDs",
+    "empty space",
+    "invalid coordinates",
+    "near-view hidden bodies",
+    "initial vector draft/units/XZ",
+    "invalid preview clears",
+    "apply remains explicit"
+  ],
+  "touch": {
+    "x": 1509,
+    "y": 1210,
+    "focus": 1,
+    "window": {
+      "viewportWidthVp": 707.2,
+      "viewportHeightVp": 706.56,
+      "widthVp": 707.2,
+      "heightVp": 773.12,
+      "immersive": true,
+      "safePx": {
+        "top": 121,
+        "bottom": 87,
+        "left": 0,
+        "right": 0
+      }
+    },
+    "dragRotatesWithoutSelecting": true
+  },
+  "preview": {
+    "ok": true,
+    "body": 1,
+    "draft": true,
+    "reference": "initial-input",
+    "preview": {
+      "valid": true,
+      "error": "",
+      "plane": "XZ",
+      "positionAU": [
+        1,
+        0.2,
+        0.3
+      ],
+      "velocityKmS": [
+        -5,
+        28,
+        4
+      ],
+      "positionPath": "M50 45 L84 34.8 M79.28749467671193 39.972261940194215 L84 34.8 L77.21858990063424 33.075912686601924",
+      "velocityPath": "M50 45 L16 17.799999999999997 M22.93411502785411 18.73704257133163 L16 17.799999999999997 L18.436310685462256 24.359297999321452",
+      "positionScale": 1,
+      "velocityScale": 5
+    }
+  },
+  "projection": {
+    "ready": true,
+    "widthPx": 2210,
+    "heightPx": 2208,
+    "time": 0,
+    "bodies": [
+      {
+        "id": 3,
+        "x": 0.36367377638816833,
+        "y": 0.7428073287010193,
+        "radius": 0.005499999970197678,
+        "depth": -0.2198602855205536,
+        "opacity": 1
+      },
+      {
+        "id": 1,
+        "x": 0.6829401254653931,
+        "y": 0.49315303564071655,
+        "radius": 0.005499999970197678,
+        "depth": -0.14479200541973114,
+        "opacity": 1
+      },
+      {
+        "id": 0,
+        "x": 0.5000000596046448,
+        "y": 0.49999961256980896,
+        "radius": 0.00989999994635582,
+        "depth": 4.7532347480228054e-7,
+        "opacity": 1
+      },
+      {
+        "id": 2,
+        "x": 0.43350332975387573,
+        "y": 0.39097172021865845,
+        "radius": 0.005499999970197678,
+        "depth": 0.2063951939344406,
+        "opacity": 1
+      }
+    ]
+  }
+}

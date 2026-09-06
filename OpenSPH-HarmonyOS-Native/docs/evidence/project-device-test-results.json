@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "projects": [
+    "project-1788673766893-868624",
+    "project-1788673767529-797644"
+  ],
+  "checks": [
+    "custom native config and mass",
+    "invalid input preserves config",
+    "multiple project files",
+    "path validation",
+    "cold launch project restoration",
+    "replay restores original config"
+  ]
+}

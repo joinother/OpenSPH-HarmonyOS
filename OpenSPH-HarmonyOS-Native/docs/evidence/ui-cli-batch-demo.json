@@ -1,0 +1,2589 @@
+{
+  "ok": true,
+  "completed": 8,
+  "total": 8,
+  "results": [
+    {
+      "index": 0,
+      "command": "uiAction",
+      "result": {
+        "ok": true,
+        "protocol": 1,
+        "definition": {
+          "schemaVersion": 1,
+          "model": "nbody-custom-v1",
+          "title": "自定义系统",
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              }
+            ]
+          },
+          "bodies": []
+        },
+        "editor": {
+          "orbitIndex": 1,
+          "orbitName": "蔚蓝",
+          "orbitFields": [
+            "1",
+            "1",
+            "0",
+            "0",
+            "0",
+            "29.784736563281832",
+            "0"
+          ],
+          "orbitSurface": 1,
+          "orbitDraft": false,
+          "editedBody": 0,
+          "targetName": "主天体",
+          "impactorName": "撞击体",
+          "title": "自定义系统",
+          "selectingPreset": false
+        },
+        "appearance": {
+          "clouds": true,
+          "atmosphere": true,
+          "trails": true,
+          "closeup": false,
+          "autoSpin": false
+        },
+        "rendering": {
+          "ready": true,
+          "texturesReady": true,
+          "active": true,
+          "frames": 2464,
+          "submitMs": 0.48425,
+          "previewSeconds": 1.2169402919999999,
+          "error": ""
+        },
+        "simulation": {
+          "state": "paused",
+          "error": "",
+          "count": 4,
+          "frames": 1,
+          "selected": -1,
+          "time": 0,
+          "duration": 3,
+          "stepMs": 0,
+          "steps": 1,
+          "maxSpeed": 35.10162353515625,
+          "meanDensity": 0,
+          "totalMass": 1.9884277878217333e+30,
+          "energyError": 0,
+          "angularError": 0,
+          "model": "nbody-custom-v1",
+          "timeUnit": "year",
+          "bodies": [
+            {
+              "name": "恒星",
+              "surface": 0,
+              "id": 0,
+              "xAU": 3.2643325198478124e-07,
+              "yAU": 2.1122884845681256e-06,
+              "zAU": 0,
+              "speedKmS": 2.7771888198913075e-05,
+              "massSolar": 1
+            },
+            {
+              "name": "蔚蓝",
+              "surface": 1,
+              "id": 1,
+              "xAU": 1.0000003576278687,
+              "yAU": 2.1122884845681256e-06,
+              "zAU": 0,
+              "speedKmS": 29.78473663330078,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "暮云",
+              "surface": 2,
+              "id": 2,
+              "xAU": -0.3634888827800751,
+              "yAU": 0.6215128302574158,
+              "zAU": 0,
+              "speedKmS": 35.10162353515625,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "赤砂",
+              "surface": 3,
+              "id": 3,
+              "xAU": -0.7451961040496826,
+              "yAU": -1.3247931003570557,
+              "zAU": 0,
+              "speedKmS": 24.15863609313965,
+              "massSolar": 3.003489609909593e-06
+            }
+          ],
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              }
+            ]
+          }
+        },
+        "scene": {
+          "preset": 5,
+          "count": 600,
+          "speed": 1,
+          "angle": 0,
+          "duration": 3,
+          "dirty": false
+        },
+        "camera": {
+          "yaw": 0.15,
+          "pitch": 0.25,
+          "zoom": 2.7,
+          "focus": -1,
+          "color": 0
+        },
+        "ui": {
+          "panelOpen": false,
+          "toolsVisible": true,
+          "panel": 0,
+          "playing": false,
+          "ioBusy": false,
+          "foreground": true,
+          "notice": "场景就绪后，点击开始实验"
+        },
+        "window": {
+          "viewportWidthVp": 707.2,
+          "viewportHeightVp": 706.56,
+          "widthVp": 707.2,
+          "heightVp": 773.12,
+          "immersive": true,
+          "safePx": {
+            "top": 121,
+            "bottom": 87,
+            "left": 0,
+            "right": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 1,
+      "command": "uiAction",
+      "result": {
+        "ok": true,
+        "protocol": 1,
+        "definition": {
+          "schemaVersion": 1,
+          "model": "nbody-custom-v1",
+          "title": "自定义系统",
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              },
+              {
+                "name": "新行星 4",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 3.4,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 16.15304134670199,
+                "vzKmS": 0,
+                "surface": 1
+              }
+            ]
+          },
+          "bodies": []
+        },
+        "editor": {
+          "orbitIndex": 4,
+          "orbitName": "新行星 4",
+          "orbitFields": [
+            "1",
+            "3.4",
+            "0",
+            "0",
+            "0",
+            "16.15304134670199",
+            "0"
+          ],
+          "orbitSurface": 1,
+          "orbitDraft": false,
+          "editedBody": 0,
+          "targetName": "主天体",
+          "impactorName": "撞击体",
+          "title": "自定义系统",
+          "selectingPreset": false
+        },
+        "appearance": {
+          "clouds": true,
+          "atmosphere": true,
+          "trails": true,
+          "closeup": false,
+          "autoSpin": false
+        },
+        "rendering": {
+          "ready": true,
+          "texturesReady": true,
+          "active": true,
+          "frames": 2470,
+          "submitMs": 0.9195,
+          "previewSeconds": 1.2169402919999999,
+          "error": ""
+        },
+        "simulation": {
+          "state": "paused",
+          "error": "",
+          "count": 5,
+          "frames": 1,
+          "selected": -1,
+          "time": 0,
+          "duration": 3,
+          "stepMs": 0,
+          "steps": 1,
+          "maxSpeed": 35.10165023803711,
+          "meanDensity": 0,
+          "totalMass": 1.988433759990133e+30,
+          "energyError": 0,
+          "angularError": 0,
+          "model": "nbody-custom-v1",
+          "timeUnit": "year",
+          "bodies": [
+            {
+              "name": "恒星",
+              "surface": 0,
+              "id": 0,
+              "xAU": -9.88530973700108e-06,
+              "yAU": 2.112282118105213e-06,
+              "zAU": 0,
+              "speedKmS": 5.6471413699910045e-05,
+              "massSolar": 1
+            },
+            {
+              "name": "蔚蓝",
+              "surface": 1,
+              "id": 1,
+              "xAU": 0.9999901056289673,
+              "yAU": 2.112282118105213e-06,
+              "zAU": 0,
+              "speedKmS": 29.784687042236328,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "暮云",
+              "surface": 2,
+              "id": 2,
+              "xAU": -0.36349907517433167,
+              "yAU": 0.6215128302574158,
+              "zAU": 0,
+              "speedKmS": 35.10165023803711,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "赤砂",
+              "surface": 3,
+              "id": 3,
+              "xAU": -0.745206356048584,
+              "yAU": -1.3247931003570557,
+              "zAU": 0,
+              "speedKmS": 24.158658981323242,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "新行星 4",
+              "surface": 1,
+              "id": 4,
+              "xAU": 3.3999900817871094,
+              "yAU": 2.112282118105213e-06,
+              "zAU": 0,
+              "speedKmS": 16.152992248535156,
+              "massSolar": 3.003489609909593e-06
+            }
+          ],
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              },
+              {
+                "name": "新行星 4",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 3.4,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 16.15304134670199,
+                "vzKmS": 0,
+                "surface": 1
+              }
+            ]
+          }
+        },
+        "scene": {
+          "preset": 5,
+          "count": 600,
+          "speed": 1,
+          "angle": 0,
+          "duration": 3,
+          "dirty": false
+        },
+        "camera": {
+          "yaw": 0.15,
+          "pitch": 0.25,
+          "zoom": 4.011988335335294,
+          "focus": -1,
+          "color": 0
+        },
+        "ui": {
+          "panelOpen": false,
+          "toolsVisible": true,
+          "panel": 0,
+          "playing": false,
+          "ioBusy": false,
+          "foreground": true,
+          "notice": "已更新初始条件 · 旧轨迹已清空"
+        },
+        "window": {
+          "viewportWidthVp": 707.2,
+          "viewportHeightVp": 706.56,
+          "widthVp": 707.2,
+          "heightVp": 773.12,
+          "immersive": true,
+          "safePx": {
+            "top": 121,
+            "bottom": 87,
+            "left": 0,
+            "right": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 2,
+      "command": "setUiValue",
+      "result": {
+        "ok": true,
+        "protocol": 1,
+        "definition": {
+          "schemaVersion": 1,
+          "model": "nbody-custom-v1",
+          "title": "自定义系统",
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              },
+              {
+                "name": "新行星 4",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 3.4,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 16.15304134670199,
+                "vzKmS": 0,
+                "surface": 1
+              }
+            ]
+          },
+          "bodies": []
+        },
+        "editor": {
+          "orbitIndex": 4,
+          "orbitName": "我的新行星",
+          "orbitFields": [
+            "1",
+            "3.4",
+            "0",
+            "0",
+            "0",
+            "16.15304134670199",
+            "0"
+          ],
+          "orbitSurface": 1,
+          "orbitDraft": true,
+          "editedBody": 0,
+          "targetName": "主天体",
+          "impactorName": "撞击体",
+          "title": "自定义系统",
+          "selectingPreset": false
+        },
+        "appearance": {
+          "clouds": true,
+          "atmosphere": true,
+          "trails": true,
+          "closeup": false,
+          "autoSpin": false
+        },
+        "rendering": {
+          "ready": true,
+          "texturesReady": true,
+          "active": true,
+          "frames": 2473,
+          "submitMs": 0.487917,
+          "previewSeconds": 1.2169402919999999,
+          "error": ""
+        },
+        "simulation": {
+          "state": "paused",
+          "error": "",
+          "count": 5,
+          "frames": 1,
+          "selected": -1,
+          "time": 0,
+          "duration": 3,
+          "stepMs": 0,
+          "steps": 1,
+          "maxSpeed": 35.10165023803711,
+          "meanDensity": 0,
+          "totalMass": 1.988433759990133e+30,
+          "energyError": 0,
+          "angularError": 0,
+          "model": "nbody-custom-v1",
+          "timeUnit": "year",
+          "bodies": [
+            {
+              "name": "恒星",
+              "surface": 0,
+              "id": 0,
+              "xAU": -9.88530973700108e-06,
+              "yAU": 2.112282118105213e-06,
+              "zAU": 0,
+              "speedKmS": 5.6471413699910045e-05,
+              "massSolar": 1
+            },
+            {
+              "name": "蔚蓝",
+              "surface": 1,
+              "id": 1,
+              "xAU": 0.9999901056289673,
+              "yAU": 2.112282118105213e-06,
+              "zAU": 0,
+              "speedKmS": 29.784687042236328,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "暮云",
+              "surface": 2,
+              "id": 2,
+              "xAU": -0.36349907517433167,
+              "yAU": 0.6215128302574158,
+              "zAU": 0,
+              "speedKmS": 35.10165023803711,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "赤砂",
+              "surface": 3,
+              "id": 3,
+              "xAU": -0.745206356048584,
+              "yAU": -1.3247931003570557,
+              "zAU": 0,
+              "speedKmS": 24.158658981323242,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "新行星 4",
+              "surface": 1,
+              "id": 4,
+              "xAU": 3.3999900817871094,
+              "yAU": 2.112282118105213e-06,
+              "zAU": 0,
+              "speedKmS": 16.152992248535156,
+              "massSolar": 3.003489609909593e-06
+            }
+          ],
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              },
+              {
+                "name": "新行星 4",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 3.4,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 16.15304134670199,
+                "vzKmS": 0,
+                "surface": 1
+              }
+            ]
+          }
+        },
+        "scene": {
+          "preset": 5,
+          "count": 600,
+          "speed": 1,
+          "angle": 0,
+          "duration": 3,
+          "dirty": false
+        },
+        "camera": {
+          "yaw": 0.15,
+          "pitch": 0.25,
+          "zoom": 4.011988335335294,
+          "focus": -1,
+          "color": 0
+        },
+        "ui": {
+          "panelOpen": false,
+          "toolsVisible": true,
+          "panel": 0,
+          "playing": false,
+          "ioBusy": false,
+          "foreground": true,
+          "notice": "已更新初始条件 · 旧轨迹已清空"
+        },
+        "window": {
+          "viewportWidthVp": 707.2,
+          "viewportHeightVp": 706.56,
+          "widthVp": 707.2,
+          "heightVp": 773.12,
+          "immersive": true,
+          "safePx": {
+            "top": 121,
+            "bottom": 87,
+            "left": 0,
+            "right": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 3,
+      "command": "setUiValue",
+      "result": {
+        "ok": true,
+        "protocol": 1,
+        "definition": {
+          "schemaVersion": 1,
+          "model": "nbody-custom-v1",
+          "title": "自定义系统",
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              },
+              {
+                "name": "新行星 4",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 3.4,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 16.15304134670199,
+                "vzKmS": 0,
+                "surface": 1
+              }
+            ]
+          },
+          "bodies": []
+        },
+        "editor": {
+          "orbitIndex": 4,
+          "orbitName": "我的新行星",
+          "orbitFields": [
+            "2",
+            "3.4",
+            "0",
+            "0",
+            "0",
+            "16.15304134670199",
+            "0"
+          ],
+          "orbitSurface": 1,
+          "orbitDraft": true,
+          "editedBody": 0,
+          "targetName": "主天体",
+          "impactorName": "撞击体",
+          "title": "自定义系统",
+          "selectingPreset": false
+        },
+        "appearance": {
+          "clouds": true,
+          "atmosphere": true,
+          "trails": true,
+          "closeup": false,
+          "autoSpin": false
+        },
+        "rendering": {
+          "ready": true,
+          "texturesReady": true,
+          "active": true,
+          "frames": 2475,
+          "submitMs": 0.554333,
+          "previewSeconds": 1.2169402919999999,
+          "error": ""
+        },
+        "simulation": {
+          "state": "paused",
+          "error": "",
+          "count": 5,
+          "frames": 1,
+          "selected": -1,
+          "time": 0,
+          "duration": 3,
+          "stepMs": 0,
+          "steps": 1,
+          "maxSpeed": 35.10165023803711,
+          "meanDensity": 0,
+          "totalMass": 1.988433759990133e+30,
+          "energyError": 0,
+          "angularError": 0,
+          "model": "nbody-custom-v1",
+          "timeUnit": "year",
+          "bodies": [
+            {
+              "name": "恒星",
+              "surface": 0,
+              "id": 0,
+              "xAU": -9.88530973700108e-06,
+              "yAU": 2.112282118105213e-06,
+              "zAU": 0,
+              "speedKmS": 5.6471413699910045e-05,
+              "massSolar": 1
+            },
+            {
+              "name": "蔚蓝",
+              "surface": 1,
+              "id": 1,
+              "xAU": 0.9999901056289673,
+              "yAU": 2.112282118105213e-06,
+              "zAU": 0,
+              "speedKmS": 29.784687042236328,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "暮云",
+              "surface": 2,
+              "id": 2,
+              "xAU": -0.36349907517433167,
+              "yAU": 0.6215128302574158,
+              "zAU": 0,
+              "speedKmS": 35.10165023803711,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "赤砂",
+              "surface": 3,
+              "id": 3,
+              "xAU": -0.745206356048584,
+              "yAU": -1.3247931003570557,
+              "zAU": 0,
+              "speedKmS": 24.158658981323242,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "新行星 4",
+              "surface": 1,
+              "id": 4,
+              "xAU": 3.3999900817871094,
+              "yAU": 2.112282118105213e-06,
+              "zAU": 0,
+              "speedKmS": 16.152992248535156,
+              "massSolar": 3.003489609909593e-06
+            }
+          ],
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              },
+              {
+                "name": "新行星 4",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 3.4,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 16.15304134670199,
+                "vzKmS": 0,
+                "surface": 1
+              }
+            ]
+          }
+        },
+        "scene": {
+          "preset": 5,
+          "count": 600,
+          "speed": 1,
+          "angle": 0,
+          "duration": 3,
+          "dirty": false
+        },
+        "camera": {
+          "yaw": 0.15,
+          "pitch": 0.25,
+          "zoom": 4.011988335335294,
+          "focus": -1,
+          "color": 0
+        },
+        "ui": {
+          "panelOpen": false,
+          "toolsVisible": true,
+          "panel": 0,
+          "playing": false,
+          "ioBusy": false,
+          "foreground": true,
+          "notice": "已更新初始条件 · 旧轨迹已清空"
+        },
+        "window": {
+          "viewportWidthVp": 707.2,
+          "viewportHeightVp": 706.56,
+          "widthVp": 707.2,
+          "heightVp": 773.12,
+          "immersive": true,
+          "safePx": {
+            "top": 121,
+            "bottom": 87,
+            "left": 0,
+            "right": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 4,
+      "command": "uiAction",
+      "result": {
+        "ok": true,
+        "protocol": 1,
+        "definition": {
+          "schemaVersion": 1,
+          "model": "nbody-custom-v1",
+          "title": "自定义系统",
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              },
+              {
+                "name": "新行星 4",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 3.4,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 16.15304134670199,
+                "vzKmS": 0,
+                "surface": 1
+              }
+            ]
+          },
+          "bodies": []
+        },
+        "editor": {
+          "orbitIndex": 4,
+          "orbitName": "我的新行星",
+          "orbitFields": [
+            "2",
+            "3.4",
+            "0",
+            "0",
+            "0",
+            "16.15304134670199",
+            "0"
+          ],
+          "orbitSurface": 3,
+          "orbitDraft": true,
+          "editedBody": 0,
+          "targetName": "主天体",
+          "impactorName": "撞击体",
+          "title": "自定义系统",
+          "selectingPreset": false
+        },
+        "appearance": {
+          "clouds": true,
+          "atmosphere": true,
+          "trails": true,
+          "closeup": false,
+          "autoSpin": false
+        },
+        "rendering": {
+          "ready": true,
+          "texturesReady": true,
+          "active": true,
+          "frames": 2477,
+          "submitMs": 0.494334,
+          "previewSeconds": 1.2169402919999999,
+          "error": ""
+        },
+        "simulation": {
+          "state": "paused",
+          "error": "",
+          "count": 5,
+          "frames": 1,
+          "selected": -1,
+          "time": 0,
+          "duration": 3,
+          "stepMs": 0,
+          "steps": 1,
+          "maxSpeed": 35.10165023803711,
+          "meanDensity": 0,
+          "totalMass": 1.988433759990133e+30,
+          "energyError": 0,
+          "angularError": 0,
+          "model": "nbody-custom-v1",
+          "timeUnit": "year",
+          "bodies": [
+            {
+              "name": "恒星",
+              "surface": 0,
+              "id": 0,
+              "xAU": -9.88530973700108e-06,
+              "yAU": 2.112282118105213e-06,
+              "zAU": 0,
+              "speedKmS": 5.6471413699910045e-05,
+              "massSolar": 1
+            },
+            {
+              "name": "蔚蓝",
+              "surface": 1,
+              "id": 1,
+              "xAU": 0.9999901056289673,
+              "yAU": 2.112282118105213e-06,
+              "zAU": 0,
+              "speedKmS": 29.784687042236328,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "暮云",
+              "surface": 2,
+              "id": 2,
+              "xAU": -0.36349907517433167,
+              "yAU": 0.6215128302574158,
+              "zAU": 0,
+              "speedKmS": 35.10165023803711,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "赤砂",
+              "surface": 3,
+              "id": 3,
+              "xAU": -0.745206356048584,
+              "yAU": -1.3247931003570557,
+              "zAU": 0,
+              "speedKmS": 24.158658981323242,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "新行星 4",
+              "surface": 1,
+              "id": 4,
+              "xAU": 3.3999900817871094,
+              "yAU": 2.112282118105213e-06,
+              "zAU": 0,
+              "speedKmS": 16.152992248535156,
+              "massSolar": 3.003489609909593e-06
+            }
+          ],
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              },
+              {
+                "name": "新行星 4",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 3.4,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 16.15304134670199,
+                "vzKmS": 0,
+                "surface": 1
+              }
+            ]
+          }
+        },
+        "scene": {
+          "preset": 5,
+          "count": 600,
+          "speed": 1,
+          "angle": 0,
+          "duration": 3,
+          "dirty": false
+        },
+        "camera": {
+          "yaw": 0.15,
+          "pitch": 0.25,
+          "zoom": 4.011988335335294,
+          "focus": -1,
+          "color": 0
+        },
+        "ui": {
+          "panelOpen": false,
+          "toolsVisible": true,
+          "panel": 0,
+          "playing": false,
+          "ioBusy": false,
+          "foreground": true,
+          "notice": "已更新初始条件 · 旧轨迹已清空"
+        },
+        "window": {
+          "viewportWidthVp": 707.2,
+          "viewportHeightVp": 706.56,
+          "widthVp": 707.2,
+          "heightVp": 773.12,
+          "immersive": true,
+          "safePx": {
+            "top": 121,
+            "bottom": 87,
+            "left": 0,
+            "right": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 5,
+      "command": "uiAction",
+      "result": {
+        "ok": true,
+        "protocol": 1,
+        "definition": {
+          "schemaVersion": 1,
+          "model": "nbody-custom-v1",
+          "title": "自定义系统",
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              },
+              {
+                "name": "我的新行星",
+                "massSolar": 6.006979230929937e-06,
+                "xAU": 3.4,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 16.15304134670199,
+                "vzKmS": 0,
+                "surface": 3
+              }
+            ]
+          },
+          "bodies": []
+        },
+        "editor": {
+          "orbitIndex": 4,
+          "orbitName": "我的新行星",
+          "orbitFields": [
+            "2",
+            "3.4",
+            "0",
+            "0",
+            "0",
+            "16.15304134670199",
+            "0"
+          ],
+          "orbitSurface": 3,
+          "orbitDraft": false,
+          "editedBody": 0,
+          "targetName": "主天体",
+          "impactorName": "撞击体",
+          "title": "自定义系统",
+          "selectingPreset": false
+        },
+        "appearance": {
+          "clouds": true,
+          "atmosphere": true,
+          "trails": true,
+          "closeup": false,
+          "autoSpin": false
+        },
+        "rendering": {
+          "ready": true,
+          "texturesReady": true,
+          "active": true,
+          "frames": 2484,
+          "submitMs": 0.638708,
+          "previewSeconds": 1.2169402919999999,
+          "error": ""
+        },
+        "simulation": {
+          "state": "paused",
+          "error": "",
+          "count": 5,
+          "frames": 2,
+          "selected": -1,
+          "time": 0.00390625,
+          "duration": 3,
+          "stepMs": 0.509458,
+          "steps": 2,
+          "maxSpeed": 35.10167694091797,
+          "meanDensity": 0,
+          "totalMass": 1.9884397321585329e+30,
+          "energyError": 1.0062189481860001e-15,
+          "angularError": 4.243693426863237e-16,
+          "model": "nbody-custom-v1",
+          "timeUnit": "year",
+          "bodies": [
+            {
+              "name": "恒星",
+              "surface": 0,
+              "id": 0,
+              "xAU": -2.0074143321835436e-05,
+              "yAU": 2.0329371182015166e-06,
+              "zAU": 0,
+              "speedKmS": 9.883289021672681e-05,
+              "massSolar": 1
+            },
+            {
+              "name": "蔚蓝",
+              "surface": 1,
+              "id": 1,
+              "xAU": 0.9996787309646606,
+              "yAU": 0.024542834609746933,
+              "zAU": 0,
+              "speedKmS": 29.784637451171875,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "暮云",
+              "surface": 2,
+              "id": 2,
+              "xAU": -0.38817718625068665,
+              "yAU": 0.6064128279685974,
+              "zAU": 0,
+              "speedKmS": 35.10167694091797,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "赤砂",
+              "surface": 3,
+              "id": 3,
+              "xAU": -0.7278024554252625,
+              "yAU": -1.3344389200210571,
+              "zAU": 0,
+              "speedKmS": 24.158681869506836,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "我的新行星",
+              "surface": 3,
+              "id": 4,
+              "xAU": 3.399953842163086,
+              "yAU": 0.013312452472746372,
+              "zAU": 0,
+              "speedKmS": 16.152942657470703,
+              "massSolar": 6.006979219819186e-06
+            }
+          ],
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              },
+              {
+                "name": "我的新行星",
+                "massSolar": 6.006979230929937e-06,
+                "xAU": 3.4,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 16.15304134670199,
+                "vzKmS": 0,
+                "surface": 3
+              }
+            ]
+          }
+        },
+        "scene": {
+          "preset": 5,
+          "count": 600,
+          "speed": 1,
+          "angle": 0,
+          "duration": 3,
+          "dirty": false
+        },
+        "camera": {
+          "yaw": 0.15,
+          "pitch": 0.25,
+          "zoom": 4.011976285550949,
+          "focus": -1,
+          "color": 0
+        },
+        "ui": {
+          "panelOpen": false,
+          "toolsVisible": true,
+          "panel": 0,
+          "playing": false,
+          "ioBusy": false,
+          "foreground": true,
+          "notice": "已更新初始条件 · 旧轨迹已清空"
+        },
+        "window": {
+          "viewportWidthVp": 707.2,
+          "viewportHeightVp": 706.56,
+          "widthVp": 707.2,
+          "heightVp": 773.12,
+          "immersive": true,
+          "safePx": {
+            "top": 121,
+            "bottom": 87,
+            "left": 0,
+            "right": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 6,
+      "command": "uiAction",
+      "result": {
+        "ok": true,
+        "protocol": 1,
+        "definition": {
+          "schemaVersion": 1,
+          "model": "nbody-custom-v1",
+          "title": "自定义系统",
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              },
+              {
+                "name": "我的新行星",
+                "massSolar": 6.006979230929937e-06,
+                "xAU": 3.4,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 16.15304134670199,
+                "vzKmS": 0,
+                "surface": 3
+              }
+            ]
+          },
+          "bodies": []
+        },
+        "editor": {
+          "orbitIndex": 4,
+          "orbitName": "我的新行星",
+          "orbitFields": [
+            "2",
+            "3.4",
+            "0",
+            "0",
+            "0",
+            "16.15304134670199",
+            "0"
+          ],
+          "orbitSurface": 3,
+          "orbitDraft": false,
+          "editedBody": 0,
+          "targetName": "主天体",
+          "impactorName": "撞击体",
+          "title": "自定义系统",
+          "selectingPreset": false
+        },
+        "appearance": {
+          "clouds": true,
+          "atmosphere": true,
+          "trails": true,
+          "closeup": true,
+          "autoSpin": true
+        },
+        "rendering": {
+          "ready": true,
+          "texturesReady": true,
+          "active": true,
+          "frames": 2486,
+          "submitMs": 0.699917,
+          "previewSeconds": 1.2169402919999999,
+          "error": ""
+        },
+        "simulation": {
+          "state": "paused",
+          "error": "",
+          "count": 5,
+          "frames": 2,
+          "selected": -1,
+          "time": 0.00390625,
+          "duration": 3,
+          "stepMs": 0.509458,
+          "steps": 2,
+          "maxSpeed": 35.10167694091797,
+          "meanDensity": 0,
+          "totalMass": 1.9884397321585329e+30,
+          "energyError": 1.0062189481860001e-15,
+          "angularError": 4.243693426863237e-16,
+          "model": "nbody-custom-v1",
+          "timeUnit": "year",
+          "bodies": [
+            {
+              "name": "恒星",
+              "surface": 0,
+              "id": 0,
+              "xAU": -2.0074143321835436e-05,
+              "yAU": 2.0329371182015166e-06,
+              "zAU": 0,
+              "speedKmS": 9.883289021672681e-05,
+              "massSolar": 1
+            },
+            {
+              "name": "蔚蓝",
+              "surface": 1,
+              "id": 1,
+              "xAU": 0.9996787309646606,
+              "yAU": 0.024542834609746933,
+              "zAU": 0,
+              "speedKmS": 29.784637451171875,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "暮云",
+              "surface": 2,
+              "id": 2,
+              "xAU": -0.38817718625068665,
+              "yAU": 0.6064128279685974,
+              "zAU": 0,
+              "speedKmS": 35.10167694091797,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "赤砂",
+              "surface": 3,
+              "id": 3,
+              "xAU": -0.7278024554252625,
+              "yAU": -1.3344389200210571,
+              "zAU": 0,
+              "speedKmS": 24.158681869506836,
+              "massSolar": 3.003489609909593e-06
+            },
+            {
+              "name": "我的新行星",
+              "surface": 3,
+              "id": 4,
+              "xAU": 3.399953842163086,
+              "yAU": 0.013312452472746372,
+              "zAU": 0,
+              "speedKmS": 16.152942657470703,
+              "massSolar": 6.006979219819186e-06
+            }
+          ],
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 3,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0
+              },
+              {
+                "name": "蔚蓝",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": 1,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 29.784736563281832,
+                "vzKmS": 0,
+                "surface": 1
+              },
+              {
+                "name": "暮云",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.36348919531189744,
+                "yAU": 0.6215107439871891,
+                "zAU": 0,
+                "vxKmS": -30.30007191352709,
+                "vyKmS": -17.720930594190353,
+                "vzKmS": 0,
+                "surface": 2
+              },
+              {
+                "name": "赤砂",
+                "massSolar": 3.0034896154649684e-06,
+                "xAU": -0.7451964484378631,
+                "yAU": -1.324795174068654,
+                "zAU": 0,
+                "vxKmS": 21.056060449358704,
+                "vyKmS": -11.84402070001949,
+                "vzKmS": 0,
+                "surface": 3
+              },
+              {
+                "name": "我的新行星",
+                "massSolar": 6.006979230929937e-06,
+                "xAU": 3.4,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 16.15304134670199,
+                "vzKmS": 0,
+                "surface": 3
+              }
+            ]
+          }
+        },
+        "scene": {
+          "preset": 5,
+          "count": 600,
+          "speed": 1,
+          "angle": 0,
+          "duration": 3,
+          "dirty": false
+        },
+        "camera": {
+          "yaw": 0.15,
+          "pitch": 0.25,
+          "zoom": 4.011976285550949,
+          "focus": 4,
+          "color": 0
+        },
+        "ui": {
+          "panelOpen": false,
+          "toolsVisible": true,
+          "panel": 0,
+          "playing": false,
+          "ioBusy": false,
+          "foreground": true,
+          "notice": "外观自转演示 · 不改变物理轨道"
+        },
+        "window": {
+          "viewportWidthVp": 707.2,
+          "viewportHeightVp": 706.56,
+          "widthVp": 707.2,
+          "heightVp": 773.12,
+          "immersive": true,
+          "safePx": {
+            "top": 121,
+            "bottom": 87,
+            "left": 0,
+            "right": 0
+          }
+        }
+      }
+    },
+    {
+      "index": 7,
+      "command": "getUiState",
+      "result": {
+        "ok": true,
+        "actions": [
+          {
+            "id": "panel.parameters",
+            "label": "参数",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "panel.observe",
+            "label": "观察",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "panel.library",
+            "label": "实验库",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "panel.close",
+            "label": "收起",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "ui.focus",
+            "label": "专注",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "ui.restore",
+            "label": "显示工具",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "ui.back",
+            "label": "返回",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "presets.show",
+            "label": "切换实验",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "preset.0",
+            "label": "正面碰撞",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "preset.1",
+            "label": "掠过与碰撞",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "preset.2",
+            "label": "旋转天体",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "preset.3",
+            "label": "双体轨道",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "preset.4",
+            "label": "行星系统",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "preset.5",
+            "label": "自定义系统",
+            "enabled": true,
+            "selected": true
+          },
+          {
+            "id": "simulation.toggle",
+            "label": "开始实验",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "simulation.apply",
+            "label": "应用参数 · 重新生成",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "replay.toggle",
+            "label": "播放回放",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "replay.latest",
+            "label": "最新",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "replay.save",
+            "label": "保存回放",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "replay.load",
+            "label": "载入回放",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "project.save",
+            "label": "另存实验",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "project.open",
+            "label": "打开实验库",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "project.load.project-1788682400072-26417",
+            "label": "载入实验 · 我的第一片星系",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "project.load.project-1788680900474-965469",
+            "label": "载入实验 · 自定义八天体 · 验证",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "project.load.project-1788677229124-399024",
+            "label": "载入实验 · 行星轨道 · 0.6 验证",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "project.load.project-1788673767529-797644",
+            "label": "载入实验 · 撞击比较 B · 120 km",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "project.load.project-1788673766893-868624",
+            "label": "载入实验 · 撞击比较 A · 80 km",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "project.load.project-1788673676356-61850",
+            "label": "载入实验 · 撞击比较 B · 120 km",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "project.load.project-1788673675894-677536",
+            "label": "载入实验 · 撞击比较 A · 80 km",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "project.load.project-1788673596061-508483",
+            "label": "载入实验 · 撞击比较 B · 120 km",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "project.load.project-1788673595595-114695",
+            "label": "载入实验 · 撞击比较 A · 80 km",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "surface.toggle",
+            "label": "返回轨道",
+            "enabled": true,
+            "selected": true
+          },
+          {
+            "id": "surface.previous",
+            "label": "上一颗",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "surface.next",
+            "label": "下一颗",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "focus.0",
+            "label": "跟踪天体 0",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "surface.0",
+            "label": "近看天体 0",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "focus.1",
+            "label": "跟踪天体 1",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "surface.1",
+            "label": "近看天体 1",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "focus.2",
+            "label": "跟踪天体 2",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "surface.2",
+            "label": "近看天体 2",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "focus.3",
+            "label": "跟踪天体 3",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "surface.3",
+            "label": "近看天体 3",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "focus.4",
+            "label": "跟踪天体 4",
+            "enabled": true,
+            "selected": true
+          },
+          {
+            "id": "surface.4",
+            "label": "近看天体 4",
+            "enabled": true,
+            "selected": true
+          },
+          {
+            "id": "focus.all",
+            "label": "全景",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "camera.out",
+            "label": "拉远",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "camera.in",
+            "label": "拉近",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "camera.reset",
+            "label": "复位视角",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "color.0",
+            "label": "原色",
+            "enabled": true,
+            "selected": true
+          },
+          {
+            "id": "color.1",
+            "label": "速度",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "color.2",
+            "label": "密度",
+            "enabled": false,
+            "selected": false
+          },
+          {
+            "id": "appearance.clouds",
+            "label": "云层",
+            "enabled": true,
+            "selected": true
+          },
+          {
+            "id": "appearance.atmosphere",
+            "label": "大气",
+            "enabled": true,
+            "selected": true
+          },
+          {
+            "id": "appearance.trails",
+            "label": "轨迹",
+            "enabled": true,
+            "selected": true
+          },
+          {
+            "id": "appearance.spin",
+            "label": "外观自转",
+            "enabled": true,
+            "selected": true
+          },
+          {
+            "id": "body.primary",
+            "label": "主天体",
+            "enabled": false,
+            "selected": true
+          },
+          {
+            "id": "body.impactor",
+            "label": "撞击体",
+            "enabled": false,
+            "selected": false
+          },
+          {
+            "id": "orbit.add",
+            "label": "添加行星",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "orbit.remove",
+            "label": "删除天体",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "orbit.apply",
+            "label": "应用天体 · 重新生成",
+            "enabled": false,
+            "selected": false
+          },
+          {
+            "id": "orbit.near",
+            "label": "近看这颗天体",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "orbit.select.0",
+            "label": "恒星",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "orbit.select.1",
+            "label": "蔚蓝",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "orbit.select.2",
+            "label": "暮云",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "orbit.select.3",
+            "label": "赤砂",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "orbit.select.4",
+            "label": "我的新行星",
+            "enabled": true,
+            "selected": true
+          },
+          {
+            "id": "orbit.surface.1",
+            "label": "海洋",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "orbit.surface.2",
+            "label": "厚云",
+            "enabled": true,
+            "selected": false
+          },
+          {
+            "id": "orbit.surface.3",
+            "label": "荒漠",
+            "enabled": true,
+            "selected": true
+          }
+        ],
+        "fields": [
+          {
+            "field": "scene.title",
+            "value": "自定义系统",
+            "enabled": true
+          },
+          {
+            "field": "scene.count",
+            "value": 600,
+            "enabled": false
+          },
+          {
+            "field": "scene.speed",
+            "value": 1,
+            "enabled": false
+          },
+          {
+            "field": "scene.angle",
+            "value": 0,
+            "enabled": false
+          },
+          {
+            "field": "scene.duration",
+            "value": 3,
+            "enabled": true
+          },
+          {
+            "field": "body.name",
+            "value": "主天体",
+            "enabled": false
+          },
+          {
+            "field": "body.radius",
+            "value": 100,
+            "enabled": false
+          },
+          {
+            "field": "body.density",
+            "value": 2700,
+            "enabled": false
+          },
+          {
+            "field": "body.spin",
+            "value": 0,
+            "enabled": false
+          },
+          {
+            "field": "orbit.name",
+            "value": "我的新行星",
+            "enabled": true
+          },
+          {
+            "field": "time.frame",
+            "value": -1,
+            "enabled": true
+          },
+          {
+            "field": "orbit.value.0",
+            "value": "2",
+            "enabled": true
+          },
+          {
+            "field": "orbit.value.1",
+            "value": "3.4",
+            "enabled": true
+          },
+          {
+            "field": "orbit.value.2",
+            "value": "0",
+            "enabled": true
+          },
+          {
+            "field": "orbit.value.3",
+            "value": "0",
+            "enabled": true
+          },
+          {
+            "field": "orbit.value.4",
+            "value": "0",
+            "enabled": true
+          },
+          {
+            "field": "orbit.value.5",
+            "value": "16.15304134670199",
+            "enabled": true
+          },
+          {
+            "field": "orbit.value.6",
+            "value": "0",
+            "enabled": true
+          }
+        ],
+        "editor": {
+          "orbitIndex": 4,
+          "orbitName": "我的新行星",
+          "orbitFields": [
+            "2",
+            "3.4",
+            "0",
+            "0",
+            "0",
+            "16.15304134670199",
+            "0"
+          ],
+          "orbitSurface": 3,
+          "orbitDraft": false,
+          "editedBody": 0,
+          "targetName": "主天体",
+          "impactorName": "撞击体",
+          "title": "自定义系统",
+          "selectingPreset": false
+        }
+      }
+    }
+  ]
+}

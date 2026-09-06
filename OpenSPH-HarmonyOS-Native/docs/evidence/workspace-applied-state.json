@@ -1,0 +1,102 @@
+{
+  "ok": true,
+  "protocol": 1,
+  "definition": {
+    "schemaVersion": 1,
+    "model": "sph-rock-v1",
+    "title": "我的碰撞实验",
+    "config": {
+      "preset": 0,
+      "count": 600,
+      "speed": 5,
+      "angle": 0,
+      "duration": 60,
+      "targetRadiusKm": 160,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "targetSpin": 0,
+      "seed": 1234
+    },
+    "bodies": [
+      {
+        "id": "primary",
+        "name": "主天体",
+        "kind": "rock",
+        "radiusKm": 160,
+        "density": 2700
+      },
+      {
+        "id": "impactor",
+        "name": "撞击体",
+        "kind": "rock",
+        "radiusKm": 60,
+        "density": 2700
+      }
+    ]
+  },
+  "simulation": {
+    "state": "running",
+    "error": "",
+    "count": 641,
+    "frames": 32,
+    "selected": -1,
+    "time": 4.52,
+    "duration": 60,
+    "stepMs": 14.4245,
+    "steps": 32,
+    "maxSpeed": 4.9997046043482465,
+    "meanDensity": 2717.3003960743576,
+    "totalMass": 48767571080204550000,
+    "config": {
+      "preset": 0,
+      "count": 600,
+      "speed": 5,
+      "angle": 0,
+      "duration": 60,
+      "targetRadiusKm": 160,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "targetSpin": 0,
+      "seed": 1234
+    }
+  },
+  "scene": {
+    "preset": 0,
+    "count": 600,
+    "speed": 5,
+    "angle": 0,
+    "duration": 60,
+    "dirty": false
+  },
+  "camera": {
+    "yaw": 0.15,
+    "pitch": 0.25,
+    "zoom": 2.7,
+    "focus": -1,
+    "color": 0
+  },
+  "ui": {
+    "panelOpen": false,
+    "toolsVisible": true,
+    "panel": 0,
+    "playing": false,
+    "ioBusy": false,
+    "foreground": true,
+    "notice": "正在运行真实 SPH 求解"
+  },
+  "window": {
+    "viewportWidthVp": 345.6,
+    "viewportHeightVp": 715.52,
+    "widthVp": 345.6,
+    "heightVp": 782.08,
+    "immersive": true,
+    "safePx": {
+      "top": 121,
+      "bottom": 87,
+      "left": 0,
+      "right": 0
+    }
+  }
+}

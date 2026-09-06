@@ -1,0 +1,29 @@
+✔ real ArkTS bridge queues cold launch, preserves Unicode JSON and responds in correlated chunks (66.134666ms)
+✔ serial processing and deduplication prevent repeated mutations (12.824041ms)
+✔ malformed payload, handler errors and queue overflow produce explicit errors (9.696625ms)
+✔ out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored (0.23925ms)
+✔ scene and camera reject partial invalid transactions without changing prior state (155.998958ms)
+✔ start is idempotent, seek bounded, replay failure reported as failure (98.2785ms)
+✔ closing and reopening during a tab animation discards its stale completion (82.683708ms)
+✔ orbit models validate units, survive definitions, and reject invalid speed atomically (80.46225ms)
+✔ appearance changes are visual only and invalid transactions leave the scene intact (89.221833ms)
+✔ loading legacy SPH replay exits orbital closeup without inventing original parameters (76.432584ms)
+✔ custom body edits are transactional; add/delete maintain star and clear stale focus (76.477833ms)
+✔ custom CLI rejects malformed body lists atomically and preserves all initial fields (73.575583ms)
+✔ semantic UI commands expose drafts, share button handlers and reject disabled actions (69.203041ms)
+✔ invalid draft application reports CLI failure without replacing the physical system (81.059833ms)
+✔ all rendered button callbacks and editor changes route through semantic actions (0.6585ms)
+✔ viewport selection shares focus/editor action; misses and invalid coordinates preserve draft (65.2245ms)
+✔ initial vector preview handles 3D axes, zero vectors, invalid drafts and units without applying (72.544917ms)
+✔ sky controls are atomic, shared with UI and independent of physics (68.29775ms)
+✔ continuous selection/edit/overview preserves solver, replay cursor and per-body drafts (77.204708ms)
+✔ placement preview is a cancellable transaction, with shared point positioning and explicit commit (73.065542ms)
+✔ placement physics respects relative reference frames, inclined velocities and conic energy (69.690292ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1596.865458

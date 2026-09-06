@@ -1,0 +1,140 @@
+import { SimulationConfig, OrbitBodyConfig } from 'libsimulation.so';
+
+export interface BodyDefinition { id: string; name: string; kind: string; radiusKm: number; density: number; }
+export interface SceneDefinition {
+  schemaVersion: number; model: string; title: string; config: SimulationConfig; bodies: BodyDefinition[];
+}
+export interface SavedProject { id: string; savedAt: number; scene: SceneDefinition; }
+export function validateConfig(c: SimulationConfig): void {
+  if(!c || typeof c !== 'object') throw new Error('缺少场景配置');
+  check(c.preset,0,5,true);check(c.count,200,2400,true);check(c.speed,c.preset>=3?0.75:0.5,c.preset>=3?1.25:10);check(c.angle,0,70);check(c.duration,1,c.preset>=3?10:120);
+  check(c.targetRadiusKm,40,200);check(c.impactorRadiusKm,20,120);check(c.targetDensity,2400,3000);
+  check(c.impactorDensity,2400,3000);check(c.targetSpin,-0.01,0.01);check(c.seed,1,1000000,true);
+  if(c.preset===5){check(c.speed,1,1);validateOrbitBodies(c.orbitBodies!);}
+  else if(c.orbitBodies!==undefined&&(!Array.isArray(c.orbitBodies)||c.orbitBodies.length!==0))throw new Error("只有自定义系统接受天体列表");
+}
+function check(n: number, low: number, high: number, integer: boolean = false): void {
+  if(typeof n !== 'number' || !Number.isFinite(n) || n<low || n>high || (integer&&!Number.isInteger(n))) throw new Error('参数超出范围 '+low+'…'+high);
+}
+export function validName(name: string): string {
+  if(typeof name !== 'string' || name.trim().length<1 || name.length>48) throw new Error('名称需要 1–48 个字符');
+  return name.trim();
+}
+export function validateScene(s: SceneDefinition): void {
+  if(!s || s.schemaVersion!==1 || (s.model!=='sph-rock-v1'&&s.model!=='nbody-v1'&&s.model!=='nbody-custom-v1')) throw new Error('不支持的场景版本或物理模型');
+  validName(s.title);validateConfig(s.config);
+  if(s.config.preset>=3){
+    if(s.model!==(s.config.preset===5?'nbody-custom-v1':'nbody-v1')||!Array.isArray(s.bodies)||s.bodies.length!==0)throw new Error('引力预设由原生模型定义，不接受岩质天体配置');
+    return;
+  }
+  if(s.model!=='sph-rock-v1')throw new Error('物理模型与预设不匹配');
+  if(!Array.isArray(s.bodies)||s.bodies.length!==(s.config.preset===2?1:2)) throw new Error('天体数量不匹配');
+  for(let i=0;i<s.bodies.length;i++) {
+    const b: BodyDefinition=s.bodies[i];
+    if(!b || b.id!==(i===0?'primary':'impactor') || b.kind!=='rock') throw new Error('不支持的天体类型');
+    validName(b.name);
+    if(b.radiusKm!==(i===0?s.config.targetRadiusKm:s.config.impactorRadiusKm)||b.density!==(i===0?s.config.targetDensity:s.config.impactorDensity)) throw new Error('天体与求解配置不一致');
+  }
+}
+export function sphereMass(radiusKm: number, density: number): number { return 4*Math.PI/3*Math.pow(radiusKm*1000,3)*density; }
+
+// Initial values use AU, km/s and solar mass; the solver shifts the whole system to its barycentre.
+export const EARTH_MASS_SOLAR: number = 398600.435507e9/1.32712440041279419e20;
+export function validateOrbitBodies(bodies: OrbitBodyConfig[]): void {
+  if(!Array.isArray(bodies)||bodies.length<2||bodies.length>8)throw new Error('需要 1 颗恒星与 1–7 颗行星');
+  for(let i=0;i<bodies.length;i++) {
+    const b:OrbitBodyConfig=bodies[i];if(!b||typeof b!=='object')throw new Error('缺少天体参数');
+    validName(b.name);if(/[\x00-\x1f\x7f]/.test(b.name))throw new Error('名称不能包含控制字符');
+    for(let k=0;k<b.name.length;k++){const u=b.name.charCodeAt(k);if(u>=0xd800&&u<=0xdbff){const next=b.name.charCodeAt(++k);if(!(next>=0xdc00&&next<=0xdfff))throw new Error('名称包含无效字符');}else if(u>=0xdc00&&u<=0xdfff)throw new Error('名称包含无效字符');}
+    check(b.massSolar,i===0?0.1:1e-8,i===0?2:0.01);check(b.surface,i===0?0:1,i===0?0:3,true);
+    check(b.xAU,-10,10);check(b.yAU,-10,10);check(b.zAU,-10,10);
+    check(b.vxKmS,-100,100);check(b.vyKmS,-100,100);check(b.vzKmS,-100,100);
+    check(Math.sqrt(b.vxKmS*b.vxKmS+b.vyKmS*b.vyKmS+b.vzKmS*b.vzKmS),0,100);
+    for(let j=0;j<i;j++){const a=bodies[j];if(Math.sqrt((b.xAU-a.xAU)**2+(b.yAU-a.yAU)**2+(b.zAU-a.zAU)**2)<0.05)throw new Error('初始天体间距至少为 0.05 AU');}
+  }
+}
+export function circularBody(name:string,radius:number,phase:number,surface:number,starMass:number=1):OrbitBodyConfig {
+  const speed:number=Math.sqrt(1.32712440041279419e20*(starMass+EARTH_MASS_SOLAR)/(radius*149597870700))/1000;
+  return {name:name,massSolar:EARTH_MASS_SOLAR,xAU:radius*Math.cos(phase),yAU:radius*Math.sin(phase),zAU:0,
+    vxKmS:-speed*Math.sin(phase),vyKmS:speed*Math.cos(phase),vzKmS:0,surface:surface};
+}
+export function defaultOrbitBodies():OrbitBodyConfig[] {
+  const star:OrbitBodyConfig={name:'恒星',massSolar:1,xAU:0,yAU:0,zAU:0,vxKmS:0,vyKmS:0,vzKmS:0,surface:0};
+  return [star,circularBody('蔚蓝',1,0,1),circularBody('暮云',0.72,2.1,2),circularBody('赤砂',1.52,4.2,3)];
+}
+export function copyOrbitBodies(bodies:OrbitBodyConfig[]):OrbitBodyConfig[] {
+  return bodies.map((b:OrbitBodyConfig):OrbitBodyConfig=>{return {name:b.name,massSolar:b.massSolar,xAU:b.xAU,yAU:b.yAU,zAU:b.zAU,vxKmS:b.vxKmS,vyKmS:b.vyKmS,vzKmS:b.vzKmS,surface:b.surface};});
+}
+
+export interface OrbitPreview {
+  valid:boolean; error:string; plane:string; positionAU:number[]; velocityKmS:number[];
+  positionPath:string; velocityPath:string; positionScale:number; velocityScale:number;
+}
+function vectorArrow(v:number[],axis:number,scale:number):string {
+  const dx=v[0]/scale*34,dy=-v[axis]/scale*34,x=50+dx,y=45+dy,length=Math.sqrt(dx*dx+dy*dy);
+  if(length<0.01)return 'M47 45 L53 45 M50 42 L50 48';
+  const ux=dx/length,uy=dy/length,head=Math.min(6,length*.5);
+  return 'M50 45 L'+x+' '+y+' M'+(x-ux*head-uy*head*.6)+' '+(y-uy*head+ux*head*.6)+' L'+x+' '+y+' L'+(x-ux*head+uy*head*.6)+' '+(y-uy*head-ux*head*.6);
+}
+// Input-coordinate preview only: no integration, recentering or system mutation.
+export function previewOrbit(fields:string[],plane:string):OrbitPreview {
+  const p:OrbitPreview={valid:false,error:'请填写有效的位置和速度',plane:plane,positionAU:[],velocityKmS:[],positionPath:'',velocityPath:'',positionScale:1,velocityScale:1};
+  if(fields.length!==7||!['XY','XZ'].includes(plane))return p;
+  const values:number[]=fields.slice(1).map((s:string):number=>s.trim()===''?Number.NaN:Number(s));
+  if(values.some((v:number):boolean=>!Number.isFinite(v)))return p;
+  if(values.slice(0,3).some((v:number):boolean=>Math.abs(v)>10)||Math.hypot(values[3],values[4],values[5])>100)return p;
+  p.positionAU=values.slice(0,3);p.velocityKmS=values.slice(3);const axis=plane==='XY'?1:2;
+  p.positionScale=Math.max(.1,Math.ceil(Math.max(Math.abs(values[0]),Math.abs(values[axis]))*10)/10);
+  p.velocityScale=Math.max(.1,Math.ceil(Math.max(Math.abs(values[3]),Math.abs(values[axis+3]))*10)/10);
+  p.positionPath=vectorArrow(p.positionAU,axis,p.positionScale);p.velocityPath=vectorArrow(p.velocityKmS,axis,p.velocityScale);
+  p.valid=true;p.error='';return p;
+}
+
+export interface PlacementPreview {
+  valid:boolean; error:string; body:OrbitBodyConfig|undefined; speedKmS:number; circularKmS:number;
+  escapeKmS:number; nearestAU:number; bound:boolean; plotScale:number; orbitPath:string;
+  candidateX:number; candidateY:number; markerPath:string; velocityPath:string;
+}
+// Original two-body initial-condition construction. No competitor implementation.
+export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],surface:number,direction:number,plotExtent:number=0):PlacementPreview {
+  const result:PlacementPreview={valid:false,error:'填写有效的放置参数',body:undefined,speedKmS:0,circularKmS:0,escapeKmS:0,nearestAU:0,bound:false,plotScale:1,orbitPath:'',candidateX:120,candidateY:120,markerPath:'',velocityPath:''};
+  try {
+    if(fields.length!==5||fields.some((v:string):boolean=>v.trim()===''))throw new Error('请填写全部放置参数');
+    validateOrbitBodies(bodies);if(bodies.length>=8)throw new Error('最多支持 8 个天体');
+    const v:number[]=fields.map((s:string):number=>Number(s));
+    check(v[0],1e-8/EARTH_MASS_SOLAR,.01/EARTH_MASS_SOLAR);check(v[1],.05,10);check(v[2],0,360);check(v[3],-90,90);check(v[4],0,2);
+    check(surface,1,3,true);if(direction!==1&&direction!==-1)throw new Error('方向无效');
+    const star=bodies[0],r=v[1],phase=v[2]*Math.PI/180,tilt=v[3]*Math.PI/180,mass=v[0]*EARTH_MASS_SOLAR;
+    const cs=Math.cos(phase),sn=Math.sin(phase),ci=Math.cos(tilt),si=Math.sin(tilt);
+    const circular=Math.sqrt(1.32712440041279419e20*(star.massSolar+mass)/(r*149597870700))/1000,speed=circular*v[4];
+    const b:OrbitBodyConfig={name:validName(name),massSolar:mass,surface:surface,
+      xAU:star.xAU+r*cs,yAU:star.yAU+r*sn*ci,zAU:star.zAU+r*sn*si,
+      vxKmS:star.vxKmS-speed*sn*direction,vyKmS:star.vyKmS+speed*cs*ci*direction,vzKmS:star.vzKmS+speed*cs*si*direction};
+    result.body=b;result.circularKmS=circular;result.speedKmS=speed;result.escapeKmS=circular*Math.SQRT2;result.bound=v[4]<Math.SQRT2;
+    result.nearestAU=Math.min(...bodies.map((a:OrbitBodyConfig):number=>Math.hypot(b.xAU-a.xAU,b.yAU-a.yAU,b.zAU-a.zAU)));
+    let extent=r*1.3;for(const a of bodies)extent=Math.max(extent,Math.hypot(a.xAU-star.xAU,(a.yAU-star.yAU)*ci+(a.zAU-star.zAU)*si)*1.15);
+    if(plotExtent>0)extent=plotExtent;
+    result.plotScale=Math.max(.1,extent);const scale=100/result.plotScale;
+    result.candidateX=120+r*cs*scale;result.candidateY=120-r*sn*scale;
+    for(const a of bodies){const x=120+(a.xAU-star.xAU)*scale,y=120-((a.yAU-star.yAU)*ci+(a.zAU-star.zAU)*si)*scale;
+      result.markerPath+='M'+(x-2)+' '+y+' L'+(x+2)+' '+y+' M'+x+' '+(y-2)+' L'+x+' '+(y+2)+' ';}
+    if(v[4]===0)result.orbitPath='M120 120 L'+result.candidateX+' '+result.candidateY;
+    else {let previous=false;for(let i=0;i<=180;i++){
+      const angle=-Math.PI+2*Math.PI*i/180,den=1+(v[4]*v[4]-1)*Math.cos(angle),radius=r*v[4]*v[4]/den;
+      if(den<=.0001||radius>extent*1.05){previous=false;continue;}
+      const x=120+radius*Math.cos(phase+angle)*scale,y=120-radius*Math.sin(phase+angle)*scale;
+      result.orbitPath+=(previous?' L':' M')+x+' '+y;previous=true;
+    }}
+    const length=Math.min(34,v[4]*24),dx=-sn*direction,dy=-cs*direction,x=result.candidateX,y=result.candidateY;
+    if(length>0)result.velocityPath='M'+x+' '+y+' L'+(x+dx*length)+' '+(y+dy*length)+' M'+(x+dx*(length-6)-dy*3)+' '+(y+dy*(length-6)+dx*3)+' L'+(x+dx*length)+' '+(y+dy*length)+' L'+(x+dx*(length-6)+dy*3)+' '+(y+dy*(length-6)-dx*3);
+    validateOrbitBodies(bodies.concat([b]));result.valid=true;result.error='';
+  }catch(e){result.error=String(e);}
+  return result;
+}
+// Plot coordinates are normalized to the square above, in the selected orbital plane.
+export function placementPoint(x:number,y:number,scale:number):number[] {
+  check(x,0,1);check(y,0,1);check(scale,.1,100);
+  const dx=(x*240-120)/100*scale,dy=(120-y*240)/100*scale;
+  const radius=Math.hypot(dx,dy);check(radius,.05,10);
+  return [radius,(Math.atan2(dy,dx)*180/Math.PI+360)%360];
+}

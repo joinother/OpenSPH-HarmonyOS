@@ -1,0 +1,10 @@
+{
+  "app": {
+    "bundleName": "com.opensph.lab",
+    "vendor": "OpenSPH Community",
+    "versionCode": 1000017,
+    "versionName": "0.17.0",
+    "icon": "$media:app_icon",
+    "label": "$string:app_name"
+  }
+}

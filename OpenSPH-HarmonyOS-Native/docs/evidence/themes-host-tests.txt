@@ -1,0 +1,44 @@
+✔ real ArkTS bridge queues cold launch, preserves Unicode JSON and responds in correlated chunks (84.962625ms)
+✔ serial processing and deduplication prevent repeated mutations (19.760292ms)
+✔ malformed payload, handler errors and queue overflow produce explicit errors (14.048875ms)
+✔ out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored (0.221625ms)
+✔ scene and camera reject partial invalid transactions without changing prior state (220.483084ms)
+✔ start is idempotent, seek bounded, replay failure reported as failure (171.072458ms)
+✔ closing and reopening during a tab animation discards its stale completion (129.801ms)
+✔ orbit models validate units, survive definitions, and reject invalid speed atomically (126.745708ms)
+✔ appearance changes are visual only and invalid transactions leave the scene intact (124.627167ms)
+✔ loading legacy SPH replay exits orbital closeup without inventing original parameters (106.412833ms)
+✔ custom body edits are transactional; add/delete maintain star and clear stale focus (113.510084ms)
+✔ custom CLI rejects malformed body lists atomically and preserves all initial fields (114.1ms)
+✔ semantic UI commands expose drafts, share button handlers and reject disabled actions (113.067333ms)
+✔ invalid draft application reports CLI failure without replacing the physical system (107.551709ms)
+✔ all rendered button callbacks and editor changes route through semantic actions (0.918083ms)
+✔ viewport selection shares focus/editor action; misses and invalid coordinates preserve draft (99.605792ms)
+✔ initial vector preview handles 3D axes, zero vectors, invalid drafts and units without applying (146.544375ms)
+✔ sky controls are atomic, shared with UI and independent of physics (111.76425ms)
+✔ continuous selection/edit/overview preserves solver, replay cursor and per-body drafts (124.783625ms)
+✔ placement preview is a cancellable transaction, with shared point positioning and explicit commit (114.346291ms)
+✔ placement physics respects relative reference frames, inclined velocities and conic energy (102.712542ms)
+✔ fold and rotation update composition without losing drafts or mutating the solver (121.895417ms)
+✔ main-window orientation uses the system lock in auto mode and rejects invalid policies (6.111917ms)
+✔ body transactions preserve unrelated drafts; undo and redo restore deleted bodies and draft indices (112.46375ms)
+✔ placement confirm is one undoable transaction, cancel is none, and draft discard leaves replay intact (103.881375ms)
+✔ history branches only on successful commits, stays bounded, and does not undo global duration (107.6385ms)
+✔ history actions obey placement and I/O guards, and scene replacement clears the prior session history (126.754667ms)
+✔ synchronous native rejection leaves body transactions, drafts and history untouched (118.00425ms)
+✔ programmatic input echoes and reselecting the current surface do not create false drafts (120.665ms)
+✔ full-bleed composition keeps controls within insets without shrinking the native viewport (110.514958ms)
+✔ immersive window policy hides status, navigation and gesture indicator independently (3.404834ms)
+✔ theme catalog isolates conditions and collision speed comparison changes only speed (97.580458ms)
+✔ theme restore and compare discard edited initial conditions and reset physical preview exactly once (115.926833ms)
+✔ theme loading rejects atomically and orbital templates retain editable surfaces (96.780792ms)
+✔ library categories use semantic handlers without changing the current scene or camera (95.046583ms)
+✔ initial pause is passed atomically to native for themes, previews and body edits (103.861958ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3819.929709

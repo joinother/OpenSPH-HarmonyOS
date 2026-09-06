@@ -1,0 +1,65 @@
+install completed in 0s 64ms
+> hvigor TYPE CHECK SUCCESSFUL in 366 ms 
+> hvigor UP-TO-DATE :entry:default@PreBuild...  
+> hvigor Finished :entry:default@CreateModuleInfo... after 1 ms 
+> hvigor UP-TO-DATE :entry:default@GenerateMetadata...  
+> hvigor Finished :entry:default@ConfigureCmake... after 15 ms 
+> hvigor UP-TO-DATE :entry:default@MergeProfile...  
+> hvigor UP-TO-DATE :entry:default@CreateBuildProfile...  
+> hvigor Finished :entry:default@PreCheckSyscap... after 1 ms 
+> hvigor Finished :entry:default@GeneratePkgContextInfo... after 8 ms 
+> hvigor UP-TO-DATE :entry:default@GeneratePkgSdkInfo...  
+> hvigor Finished :entry:default@ProcessIntegratedHsp... after 1 ms 
+> hvigor Finished :entry:default@BuildNativeWithCmake... after 15 ms 
+> hvigor UP-TO-DATE :entry:default@MakePackInfo...  
+> hvigor Finished :entry:default@SyscapTransform... after 11 ms 
+> hvigor UP-TO-DATE :entry:default@ProcessProfile...  
+> hvigor UP-TO-DATE :entry:default@ProcessRouterMap...  
+> hvigor UP-TO-DATE :entry:default@ProcessShareConfig...  
+> hvigor Finished :entry:default@ProcessStartupConfig... after 2 ms 
+> hvigor UP-TO-DATE :entry:default@ProcessResource...  
+> hvigor UP-TO-DATE :entry:default@GenerateLoaderJson...  
+> hvigor UP-TO-DATE :entry:default@CompileResource...  
+> hvigor Finished :entry:default@BuildJS... after 2 ms 
+> hvigor Finished :entry:default@BuildNativeWithNinja... after 2 s 37 ms 
+> hvigor Finished :entry:default@ProcessLibs... after 377 ms 
+> hvigor Finished :entry:default@DoNativeStrip... after 64 ms 
+> hvigor Finished :entry:default@CacheNativeLibs... after 4 ms 
+> hvigor WARN: WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:7:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:19:8
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:20:42
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:35:12
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:36:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:36:51
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:36:73
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:37:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:39:38
+ Function may throw exceptions. Special handling is required.
+
+
+> hvigor Finished :entry:default@CompileArkTS... after 6 s 2 ms 
+> hvigor UP-TO-DATE :entry:default@GeneratePkgModuleJson...  
+> hvigor Finished :entry:default@ProcessCompiledResources... after 1 ms 
+> hvigor Finished :entry:default@PackageHap... after 583 ms 
+> hvigor Finished :entry:default@PackingCheck... after 6 ms 
+> hvigor WARN: No signingConfig found for product default
+> hvigor Finished :entry:default@SignHap... after 2 ms 
+> hvigor Finished :entry:default@CollectDebugSymbol... after 2 ms 
+> hvigor Finished :entry:assembleHap... after 1 ms 
+> hvigor BUILD SUCCESSFUL in 10 s 222 ms 

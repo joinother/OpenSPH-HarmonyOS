@@ -1,0 +1,28 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "cold launch",
+    "catalog",
+    "invalid scene atomicity",
+    "camera",
+    "panel transition",
+    "native completion",
+    "seek",
+    "replay roundtrip",
+    "unknown command"
+  ],
+  "window": {
+    "viewportWidthVp": 345.6,
+    "viewportHeightVp": 715.52,
+    "widthVp": 345.6,
+    "heightVp": 782.08,
+    "immersive": true,
+    "safePx": {
+      "top": 121,
+      "bottom": 87,
+      "left": 0,
+      "right": 0
+    }
+  }
+}

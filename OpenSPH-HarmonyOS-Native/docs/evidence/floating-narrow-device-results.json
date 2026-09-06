@@ -1,0 +1,56 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "mode": "bottom-drawer",
+  "window": {
+    "viewportWidthVp": 345.6,
+    "viewportHeightVp": 715.52,
+    "widthVp": 345.6,
+    "heightVp": 782.08,
+    "immersive": true,
+    "safePx": {
+      "top": 121,
+      "bottom": 87,
+      "left": 0,
+      "right": 0
+    }
+  },
+  "geometry": {
+    "canvas": [
+      0,
+      122,
+      1080,
+      2357
+    ],
+    "header": [
+      0,
+      122,
+      1080,
+      327
+    ],
+    "transport": [
+      50,
+      1926,
+      1030,
+      2332
+    ],
+    "drawer": [
+      38,
+      745,
+      1043,
+      1863
+    ],
+    "clearFraction": 0.7154362416107383
+  },
+  "checks": [
+    "single persistent surface",
+    "canvas fills safe area",
+    "unobscured area >65%",
+    "drawer bounds",
+    "solver preserved across panels",
+    "focus mode",
+    "actual canvas pan",
+    "restore controls",
+    "Back closes drawer"
+  ]
+}

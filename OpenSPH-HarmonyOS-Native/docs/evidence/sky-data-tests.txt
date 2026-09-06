@@ -1,0 +1,1 @@
+PASS sky: deterministic 6500 directions, unit sphere, galactic concentration, finite haze, seam continuity; band=2613

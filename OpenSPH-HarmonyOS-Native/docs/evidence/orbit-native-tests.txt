@@ -1,0 +1,13 @@
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/build/native-test
+ninja: no work to do.
+FileTransfer finish, Size:8443752, File count = 1, time:54ms rate:156365.78kB/s
+PASS preset=0 particles=212 time=10.07 mass=1.37526e+19
+PASS preset=1 particles=212 time=10.07 mass=1.37526e+19
+PASS preset=2 particles=210 time=10.07 mass=1.13097e+19
+PASS edited bodies mass, v2 config restoration, v1 compatibility, invalid radius atomicity
+PASS orbit preset=3 pause, 2 years, conserved energy, bounded trails/history, v3 roundtrip, truncation atomicity, cancel and SPH switching
+PASS orbit preset=4 pause, 2 years, conserved energy, bounded trails/history, v3 roundtrip, truncation atomicity, cancel and SPH switching
+PASS 60 s collision, 600-particle budget, bounded 240-frame history
+PASS pause/resume, seek, replay round-trip, deterministic runs, invalid input, corrupt file, cancel/restart

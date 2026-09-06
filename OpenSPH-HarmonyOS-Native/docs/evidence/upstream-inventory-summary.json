@@ -1,0 +1,44 @@
+{
+  "upstreamCommit": "f3033faf4422a056dcb79cc6643c7c6f3d9fee19",
+  "files": 760,
+  "status": {
+    "not-imported": 261,
+    "modified": 3,
+    "identical": 496
+  },
+  "modules": {
+    ".clang-format": 1,
+    ".github": 2,
+    ".gitignore": 1,
+    ".gitlab-ci.yml": 1,
+    "CHANGELOG.md": 1,
+    "CMakeLists.txt": 1,
+    "LICENSE": 1,
+    "QMAKE.md": 1,
+    "README.md": 1,
+    "all.pro": 1,
+    "bench.pro": 1,
+    "bench": 9,
+    "cli.pro": 1,
+    "cli": 46,
+    "cmake": 6,
+    "control": 1,
+    "core": 497,
+    "examples.pro": 1,
+    "examples": 18,
+    "gui": 123,
+    "helpers.py": 1,
+    "post": 3,
+    "regression": 20,
+    "sph.pro": 1,
+    "statistics.sh": 1,
+    "test.pro": 1,
+    "test": 18,
+    "tools.pro": 1
+  },
+  "modified": [
+    "CMakeLists.txt",
+    "core/objects/geometry/Vector.h",
+    "core/run/IRun.cpp"
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "ok": true,
+  "checks": [
+    "orbit rejects density color",
+    "four-to-two body switch clears missing focus",
+    "final installed build completes 3 years"
+  ],
+  "state": {
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "nbody-v1",
+      "title": "行星系统",
+      "config": {
+        "preset": 4,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234
+      },
+      "bodies": []
+    },
+    "simulation": {
+      "state": "completed",
+      "error": "",
+      "count": 4,
+      "frames": 240,
+      "selected": -1,
+      "time": 3,
+      "duration": 3,
+      "stepMs": 0.034791,
+      "steps": 769,
+      "maxSpeed": 35.101131439208984,
+      "meanDensity": 0,
+      "totalMass": 1.9884213524816496e+30,
+      "energyError": 1.0534078877705195e-11,
+      "angularError": -2.559213458577608e-15,
+      "model": "nbody-v1",
+      "timeUnit": "year",
+      "bodies": [
+        {
+          "name": "恒星",
+          "id": 0,
+          "xAU": -0.0000030043863716855412,
+          "yAU": -0.000002247432803414995,
+          "zAU": 0,
+          "speedKmS": 0.00013084945385344326,
+          "massSolar": 1
+        },
+        {
+          "name": "蓝色行星",
+          "id": 1,
+          "xAU": 0.9999834895133972,
+          "yAU": -0.00030947025516070426,
+          "zAU": 0,
+          "speedKmS": 29.785144805908203,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "金色行星",
+          "id": 2,
+          "xAU": 0.02461523748934269,
+          "yAU": 0.7195843458175659,
+          "zAU": 0,
+          "speedKmS": 35.101131439208984,
+          "massSolar": 0.0000024478383693349315
+        },
+        {
+          "name": "红色行星",
+          "id": 3,
+          "xAU": -0.1837768852710724,
+          "yAU": 1.5088711977005005,
+          "zAU": 0,
+          "speedKmS": 24.158342361450195,
+          "massSolar": 3.227156071261561e-7
+        }
+      ],
+      "config": {
+        "preset": 4,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234
+      }
+    },
+    "scene": {
+      "preset": 4,
+      "count": 600,
+      "speed": 1,
+      "angle": 0,
+      "duration": 3,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0.15,
+      "pitch": 0.45,
+      "zoom": 2.4,
+      "focus": -1,
+      "color": 0
+    },
+    "ui": {
+      "panelOpen": false,
+      "toolsVisible": true,
+      "panel": 1,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "已保存最近 240 帧以内的回放"
+    },
+    "window": {
+      "viewportWidthVp": 707.2,
+      "viewportHeightVp": 706.56,
+      "widthVp": 707.2,
+      "heightVp": 773.12,
+      "immersive": true,
+      "safePx": {
+        "top": 121,
+        "bottom": 87,
+        "left": 0,
+        "right": 0
+      }
+    }
+  }
+}

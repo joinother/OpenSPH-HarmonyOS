@@ -1,0 +1,752 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "actual fold/expand and main-window rotation",
+    "native viewport fills entire window; controls avoid safe area",
+    "actual UI bounds and panel/dock separation",
+    "near body visible above UI",
+    "editor and placement drafts preserved",
+    "scene revision, replay frame and camera preserved"
+  ],
+  "results": [
+    {
+      "name": "fold-portrait",
+      "folded": true,
+      "orientation": "portrait",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 20.48,
+            "width": 345.6,
+            "height": 761.6
+          },
+          "compact": false,
+          "sidePanel": false,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 12,
+            "y": 243.28,
+            "width": 321.6,
+            "height": 380.8
+          },
+          "dock": {
+            "x": 16,
+            "y": 644.08,
+            "width": 313.6,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 96.48,
+            "width": 321.6,
+            "height": 134.8
+          }
+        },
+        "geometry": {
+          "widthPx": 1080,
+          "heightPx": 2444,
+          "topPx": 64,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 7
+        },
+        "viewportWidthVp": 345.6,
+        "viewportHeightVp": 782.08,
+        "widthVp": 345.6,
+        "heightVp": 782.08,
+        "immersive": true,
+        "safePx": {
+          "top": 64,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "viewport": [
+        0,
+        0,
+        1080,
+        2444
+      ],
+      "dock": [
+        50,
+        2013,
+        1030,
+        2419
+      ],
+      "drawer": [
+        38,
+        760,
+        1043,
+        1950
+      ],
+      "header": [
+        0,
+        64,
+        1080,
+        270
+      ],
+      "sceneRevision": 2,
+      "surfaceStarts": 1
+    },
+    {
+      "name": "fold-landscape",
+      "folded": true,
+      "orientation": "landscape",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 20.48,
+            "y": 0,
+            "width": 761.6,
+            "height": 345.6
+          },
+          "compact": true,
+          "sidePanel": true,
+          "headerHeight": 54,
+          "drawer": {
+            "x": 458.08000000000004,
+            "y": 64,
+            "width": 308,
+            "height": 269.6
+          },
+          "dock": {
+            "x": 36.480000000000004,
+            "y": 271.6,
+            "width": 393.6,
+            "height": 66
+          },
+          "scene": {
+            "x": 32.480000000000004,
+            "y": 64,
+            "width": 413.6,
+            "height": 195.60000000000002
+          }
+        },
+        "geometry": {
+          "widthPx": 2444,
+          "heightPx": 1080,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 64,
+          "rightPx": 0,
+          "revision": 10
+        },
+        "viewportWidthVp": 782.08,
+        "viewportHeightVp": 345.6,
+        "widthVp": 782.08,
+        "heightVp": 345.6,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 64,
+          "right": 0
+        }
+      },
+      "viewport": [
+        0,
+        0,
+        2444,
+        1080
+      ],
+      "dock": [
+        114,
+        849,
+        1344,
+        1055
+      ],
+      "drawer": [
+        1432,
+        200,
+        2395,
+        1043
+      ],
+      "header": [
+        64,
+        0,
+        2444,
+        169
+      ],
+      "sceneRevision": 2,
+      "surfaceStarts": 1
+    },
+    {
+      "name": "fold-reverse",
+      "folded": true,
+      "orientation": "reverse-landscape",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 0,
+            "width": 761.6,
+            "height": 345.6
+          },
+          "compact": true,
+          "sidePanel": true,
+          "headerHeight": 54,
+          "drawer": {
+            "x": 437.6,
+            "y": 64,
+            "width": 308,
+            "height": 269.6
+          },
+          "dock": {
+            "x": 16,
+            "y": 271.6,
+            "width": 393.6,
+            "height": 66
+          },
+          "scene": {
+            "x": 12,
+            "y": 64,
+            "width": 413.6,
+            "height": 195.60000000000002
+          }
+        },
+        "geometry": {
+          "widthPx": 2444,
+          "heightPx": 1080,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 64,
+          "revision": 12
+        },
+        "viewportWidthVp": 782.08,
+        "viewportHeightVp": 345.6,
+        "widthVp": 782.08,
+        "heightVp": 345.6,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 0,
+          "right": 64
+        }
+      },
+      "viewport": [
+        0,
+        0,
+        2444,
+        1080
+      ],
+      "dock": [
+        50,
+        848,
+        1280,
+        1055
+      ],
+      "drawer": [
+        1367,
+        200,
+        2330,
+        1042
+      ],
+      "header": [
+        0,
+        0,
+        2380,
+        168
+      ],
+      "sceneRevision": 2,
+      "surfaceStarts": 1
+    },
+    {
+      "name": "unfold-landscape",
+      "folded": false,
+      "orientation": "landscape",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 22.4,
+            "y": 0,
+            "width": 750.72,
+            "height": 707.2
+          },
+          "compact": false,
+          "sidePanel": true,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 449.12,
+            "y": 76,
+            "width": 308,
+            "height": 473.20000000000005
+          },
+          "dock": {
+            "x": 187.76000000000002,
+            "y": 569.2,
+            "width": 420,
+            "height": 130
+          },
+          "scene": {
+            "x": 34.4,
+            "y": 76,
+            "width": 402.72,
+            "height": 481.20000000000005
+          }
+        },
+        "geometry": {
+          "widthPx": 2416,
+          "heightPx": 2210,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 70,
+          "rightPx": 0,
+          "revision": 17
+        },
+        "viewportWidthVp": 773.12,
+        "viewportHeightVp": 707.2,
+        "widthVp": 773.12,
+        "heightVp": 707.2,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 70,
+          "right": 0
+        }
+      },
+      "viewport": [
+        0,
+        0,
+        2416,
+        2210
+      ],
+      "dock": [
+        586,
+        1778,
+        1899,
+        2185
+      ],
+      "drawer": [
+        1403,
+        237,
+        2366,
+        1716
+      ],
+      "header": [
+        70,
+        0,
+        2416,
+        206
+      ],
+      "sceneRevision": 2,
+      "surfaceStarts": 1
+    },
+    {
+      "name": "unfold-portrait",
+      "folded": false,
+      "orientation": "portrait",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 22.4,
+            "width": 707.2,
+            "height": 750.72
+          },
+          "compact": false,
+          "sidePanel": true,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 383.20000000000005,
+            "y": 98.4,
+            "width": 308,
+            "height": 516.72
+          },
+          "dock": {
+            "x": 143.60000000000002,
+            "y": 635.12,
+            "width": 420,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 98.4,
+            "width": 359.20000000000005,
+            "height": 524.72
+          }
+        },
+        "geometry": {
+          "widthPx": 2210,
+          "heightPx": 2416,
+          "topPx": 70,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 20
+        },
+        "viewportWidthVp": 707.2,
+        "viewportHeightVp": 773.12,
+        "widthVp": 707.2,
+        "heightVp": 773.12,
+        "immersive": true,
+        "safePx": {
+          "top": 70,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "viewport": [
+        0,
+        0,
+        2210,
+        2416
+      ],
+      "dock": [
+        449,
+        1985,
+        1762,
+        2391
+      ],
+      "drawer": [
+        1198,
+        308,
+        2161,
+        1923
+      ],
+      "header": [
+        0,
+        70,
+        2210,
+        276
+      ],
+      "sceneRevision": 2,
+      "surfaceStarts": 1
+    },
+    {
+      "name": "refold-portrait",
+      "folded": true,
+      "orientation": "portrait",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 20.48,
+            "width": 345.6,
+            "height": 761.6
+          },
+          "compact": false,
+          "sidePanel": false,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 12,
+            "y": 243.28,
+            "width": 321.6,
+            "height": 380.8
+          },
+          "dock": {
+            "x": 16,
+            "y": 644.08,
+            "width": 313.6,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 96.48,
+            "width": 321.6,
+            "height": 134.8
+          }
+        },
+        "geometry": {
+          "widthPx": 1080,
+          "heightPx": 2444,
+          "topPx": 64,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 23
+        },
+        "viewportWidthVp": 345.6,
+        "viewportHeightVp": 782.08,
+        "widthVp": 345.6,
+        "heightVp": 782.08,
+        "immersive": true,
+        "safePx": {
+          "top": 64,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "viewport": [
+        0,
+        0,
+        1080,
+        2444
+      ],
+      "dock": [
+        50,
+        2013,
+        1030,
+        2419
+      ],
+      "drawer": [
+        38,
+        760,
+        1043,
+        1950
+      ],
+      "header": [
+        0,
+        64,
+        1080,
+        270
+      ],
+      "sceneRevision": 2,
+      "surfaceStarts": 1
+    },
+    {
+      "name": "placement-landscape",
+      "folded": true,
+      "orientation": "landscape",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 20.48,
+            "y": 0,
+            "width": 761.6,
+            "height": 345.6
+          },
+          "compact": true,
+          "sidePanel": true,
+          "headerHeight": 54,
+          "drawer": {
+            "x": 458.08000000000004,
+            "y": 64,
+            "width": 308,
+            "height": 269.6
+          },
+          "dock": {
+            "x": 36.480000000000004,
+            "y": 271.6,
+            "width": 393.6,
+            "height": 66
+          },
+          "scene": {
+            "x": 32.480000000000004,
+            "y": 64,
+            "width": 413.6,
+            "height": 195.60000000000002
+          }
+        },
+        "geometry": {
+          "widthPx": 2444,
+          "heightPx": 1080,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 64,
+          "rightPx": 0,
+          "revision": 26
+        },
+        "viewportWidthVp": 782.08,
+        "viewportHeightVp": 345.6,
+        "widthVp": 782.08,
+        "heightVp": 345.6,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 64,
+          "right": 0
+        }
+      },
+      "viewport": [
+        0,
+        0,
+        2444,
+        1080
+      ],
+      "dock": [
+        114,
+        849,
+        1344,
+        1055
+      ],
+      "drawer": [
+        1432,
+        200,
+        2395,
+        1043
+      ],
+      "header": [
+        64,
+        0,
+        2444,
+        169
+      ],
+      "sceneRevision": 2,
+      "surfaceStarts": 1
+    },
+    {
+      "name": "placement-unfold",
+      "folded": false,
+      "orientation": "portrait",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 22.4,
+            "width": 707.2,
+            "height": 750.72
+          },
+          "compact": false,
+          "sidePanel": true,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 383.20000000000005,
+            "y": 98.4,
+            "width": 308,
+            "height": 516.72
+          },
+          "dock": {
+            "x": 143.60000000000002,
+            "y": 635.12,
+            "width": 420,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 98.4,
+            "width": 359.20000000000005,
+            "height": 524.72
+          }
+        },
+        "geometry": {
+          "widthPx": 2210,
+          "heightPx": 2416,
+          "topPx": 70,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 32
+        },
+        "viewportWidthVp": 707.2,
+        "viewportHeightVp": 773.12,
+        "widthVp": 707.2,
+        "heightVp": 773.12,
+        "immersive": true,
+        "safePx": {
+          "top": 70,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "viewport": [
+        0,
+        0,
+        2210,
+        2416
+      ],
+      "dock": [
+        449,
+        1985,
+        1762,
+        2391
+      ],
+      "drawer": [
+        1198,
+        308,
+        2161,
+        1923
+      ],
+      "header": [
+        0,
+        70,
+        2210,
+        276
+      ],
+      "sceneRevision": 2,
+      "surfaceStarts": 1
+    },
+    {
+      "name": "overview-landscape",
+      "folded": true,
+      "orientation": "landscape",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 20.48,
+            "y": 0,
+            "width": 761.6,
+            "height": 345.6
+          },
+          "compact": true,
+          "sidePanel": true,
+          "headerHeight": 54,
+          "drawer": {
+            "x": 458.08000000000004,
+            "y": 64,
+            "width": 308,
+            "height": 269.6
+          },
+          "dock": {
+            "x": 121.28000000000002,
+            "y": 271.6,
+            "width": 560,
+            "height": 66
+          },
+          "scene": {
+            "x": 32.480000000000004,
+            "y": 64,
+            "width": 737.6,
+            "height": 195.60000000000002
+          }
+        },
+        "geometry": {
+          "widthPx": 2444,
+          "heightPx": 1080,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 64,
+          "rightPx": 0,
+          "revision": 38
+        },
+        "viewportWidthVp": 782.08,
+        "viewportHeightVp": 345.6,
+        "widthVp": 782.08,
+        "heightVp": 345.6,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 64,
+          "right": 0
+        }
+      },
+      "viewport": [
+        0,
+        0,
+        2444,
+        1080
+      ],
+      "dock": [
+        379,
+        849,
+        2129,
+        1055
+      ],
+      "drawer": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "header": [
+        64,
+        0,
+        2444,
+        169
+      ],
+      "sceneRevision": 2,
+      "surfaceStarts": 1
+    }
+  ]
+}

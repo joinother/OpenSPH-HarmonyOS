@@ -1,0 +1,1 @@
+PASS panorama: copy ownership; invalid dimensions, null, truncated and oversized buffer rejected

@@ -1,0 +1,41 @@
+--- a/core/objects/geometry/Vector.h
++++ b/core/objects/geometry/Vector.h
+@@ -9,9 +9,14 @@
+ #include "objects/containers/Tuple.h"
+ #include "objects/geometry/Generic.h"
+ #include "objects/wrappers/Interval.h"
++#if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)
+ #include <immintrin.h>
++#include <smmintrin.h>
++#else
++#define SSE2NEON_ALLOC_DEFINED
++#include "common/sse2neon.h"
++#endif
+ #include <iomanip>
+-#include <smmintrin.h>
+ 
+ NAMESPACE_SPH_BEGIN
+ 
+--- a/core/run/IRun.cpp
++++ b/core/run/IRun.cpp
+@@ -237,8 +237,9 @@
+ 
+     // run main loop
+     Size i = 0;
++    Float usedTimeStep = initialDt;
+     for (Float t = timeRange.lower(); t < timeRange.upper() && !condition(runTimer, i);
+-         t += timeStepping->getTimeStep()) {
++         t += usedTimeStep) {
+         // save current statistics
+         stats.set(StatisticsId::RUN_TIME, t);
+         stats.set(StatisticsId::WALLCLOCK_TIME, int(runTimer.elapsed(TimerUnit::MILLISECOND)));
+@@ -256,6 +257,9 @@
+             nextOutput = outputTime->getNextTime();
+         }
+ 
++        // Advance the clock by the step actually integrated, not the next
++        // adaptive step selected by step().
++        usedTimeStep = timeStepping->getTimeStep();
+         // make time step
+         timeStepping->step(*scheduler, *solver, stats);
+ 

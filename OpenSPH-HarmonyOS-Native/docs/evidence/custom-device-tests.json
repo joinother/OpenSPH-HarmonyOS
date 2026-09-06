@@ -1,0 +1,382 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "8-body native status and initial configuration",
+    "body 7 surface shader and camera",
+    "3D motion and energy",
+    "v4 replay complete state restoration",
+    "invalid transaction atomicity",
+    "saved project load"
+  ],
+  "projectId": "project-1788680900474-965469",
+  "state": {
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "nbody-custom-v1",
+      "title": "自定义八天体 · 验证",
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 1,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "中央恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "行星 1",
+            "massSolar": 3e-06,
+            "xAU": 0.6618713738798071,
+            "yAU": 0.6814882863545466,
+            "zAU": 0,
+            "vxKmS": -21.921322433162317,
+            "vyKmS": 21.290308412654024,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "行星 2",
+            "massSolar": 3e-06,
+            "xAU": -0.03795937899167545,
+            "yAU": 1.2994456839539565,
+            "zAU": 0,
+            "vxKmS": -26.11180326717416,
+            "vyKmS": -0.7627774278019412,
+            "vzKmS": 0,
+            "surface": 3
+          },
+          {
+            "name": "行星 3",
+            "massSolar": 3e-06,
+            "xAU": -1.2166996306430555,
+            "yAU": 1.1145142479093986,
+            "zAU": 0,
+            "vxKmS": -15.662225446368991,
+            "vyKmS": -17.098232661799532,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "行星 4",
+            "massSolar": 3e-06,
+            "xAU": -1.9965895515895062,
+            "yAU": -0.11674828685516017,
+            "zAU": 0,
+            "vxKmS": 1.2294172021279184,
+            "vyKmS": -21.025075454497024,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "行星 5",
+            "massSolar": 3e-06,
+            "xAU": -1.5360625090294882,
+            "yAU": -1.7784858639736314,
+            "zAU": 0,
+            "vxKmS": 14.704233367976203,
+            "vyKmS": -12.699916292898648,
+            "vzKmS": 0,
+            "surface": 3
+          },
+          {
+            "name": "行星 6",
+            "massSolar": 3e-06,
+            "xAU": 0.2362472552865076,
+            "yAU": -2.6896444438567695,
+            "zAU": 0,
+            "vxKmS": 18.056891510437865,
+            "vyKmS": 1.586042745572045,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "行星 7",
+            "massSolar": 3e-06,
+            "xAU": 2.365475929456263,
+            "yAU": -1.9253632455105785,
+            "zAU": 0.2,
+            "vxKmS": 10.766057140950146,
+            "vyKmS": 13.227036031486536,
+            "vzKmS": 1,
+            "surface": 2
+          }
+        ]
+      },
+      "bodies": []
+    },
+    "appearance": {
+      "clouds": true,
+      "atmosphere": true,
+      "trails": true,
+      "closeup": false,
+      "autoSpin": false
+    },
+    "rendering": {
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 922,
+      "submitMs": 1.374292,
+      "previewSeconds": 33.564044099,
+      "error": ""
+    },
+    "simulation": {
+      "state": "paused",
+      "error": "",
+      "count": 8,
+      "frames": 1,
+      "selected": -1,
+      "time": 0,
+      "duration": 1,
+      "stepMs": 0,
+      "steps": 1,
+      "maxSpeed": 30.558486938476562,
+      "meanDensity": 0,
+      "totalMass": 1.9884516279238323e+30,
+      "energyError": 0,
+      "angularError": 0,
+      "model": "nbody-custom-v1",
+      "timeUnit": "year",
+      "bodies": [
+        {
+          "name": "中央恒星",
+          "surface": 0,
+          "id": 0,
+          "xAU": 4.571053523250157e-06,
+          "yAU": 1.0244165423500817e-05,
+          "zAU": -5.999874019835261e-07,
+          "speedKmS": 7.344564073719084e-05,
+          "massSolar": 1
+        },
+        {
+          "name": "行星 1",
+          "surface": 2,
+          "id": 1,
+          "xAU": 0.6618759632110596,
+          "yAU": 0.6814985275268555,
+          "zAU": -5.999874019835261e-07,
+          "speedKmS": 30.558486938476562,
+          "massSolar": 3.000000106112566e-06
+        },
+        {
+          "name": "行星 2",
+          "surface": 3,
+          "id": 2,
+          "xAU": -0.03795480728149414,
+          "yAU": 1.2994558811187744,
+          "zAU": -5.999874019835261e-07,
+          "speedKmS": 26.12288475036621,
+          "massSolar": 3.000000106112566e-06
+        },
+        {
+          "name": "行星 3",
+          "surface": 1,
+          "id": 3,
+          "xAU": -1.2166950702667236,
+          "yAU": 1.114524483680725,
+          "zAU": -5.999874019835261e-07,
+          "speedKmS": 23.187313079833984,
+          "massSolar": 3.000000106112566e-06
+        },
+        {
+          "name": "行星 4",
+          "surface": 2,
+          "id": 4,
+          "xAU": -1.9965850114822388,
+          "yAU": -0.11673804372549057,
+          "zAU": -5.999874019835261e-07,
+          "speedKmS": 21.060945510864258,
+          "massSolar": 3.000000106112566e-06
+        },
+        {
+          "name": "行星 5",
+          "surface": 3,
+          "id": 5,
+          "xAU": -1.536057949066162,
+          "yAU": -1.7784756422042847,
+          "zAU": -5.999874019835261e-07,
+          "speedKmS": 19.429431915283203,
+          "massSolar": 3.000000106112566e-06
+        },
+        {
+          "name": "行星 6",
+          "surface": 1,
+          "id": 6,
+          "xAU": 0.2362518310546875,
+          "yAU": -2.689634084701538,
+          "zAU": -5.999874019835261e-07,
+          "speedKmS": 18.126474380493164,
+          "massSolar": 3.000000106112566e-06
+        },
+        {
+          "name": "行星 7",
+          "surface": 2,
+          "id": 7,
+          "xAU": 2.365480422973633,
+          "yAU": -1.9253530502319336,
+          "zAU": 0.19999940693378448,
+          "speedKmS": 17.084054946899414,
+          "massSolar": 3.000000106112566e-06
+        }
+      ],
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 1,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "中央恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "行星 1",
+            "massSolar": 3e-06,
+            "xAU": 0.6618713738798071,
+            "yAU": 0.6814882863545466,
+            "zAU": 0,
+            "vxKmS": -21.921322433162317,
+            "vyKmS": 21.290308412654024,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "行星 2",
+            "massSolar": 3e-06,
+            "xAU": -0.03795937899167545,
+            "yAU": 1.2994456839539565,
+            "zAU": 0,
+            "vxKmS": -26.11180326717416,
+            "vyKmS": -0.7627774278019412,
+            "vzKmS": 0,
+            "surface": 3
+          },
+          {
+            "name": "行星 3",
+            "massSolar": 3e-06,
+            "xAU": -1.2166996306430555,
+            "yAU": 1.1145142479093986,
+            "zAU": 0,
+            "vxKmS": -15.662225446368991,
+            "vyKmS": -17.098232661799532,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "行星 4",
+            "massSolar": 3e-06,
+            "xAU": -1.9965895515895062,
+            "yAU": -0.11674828685516017,
+            "zAU": 0,
+            "vxKmS": 1.2294172021279184,
+            "vyKmS": -21.025075454497024,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "行星 5",
+            "massSolar": 3e-06,
+            "xAU": -1.5360625090294882,
+            "yAU": -1.7784858639736314,
+            "zAU": 0,
+            "vxKmS": 14.704233367976203,
+            "vyKmS": -12.699916292898648,
+            "vzKmS": 0,
+            "surface": 3
+          },
+          {
+            "name": "行星 6",
+            "massSolar": 3e-06,
+            "xAU": 0.2362472552865076,
+            "yAU": -2.6896444438567695,
+            "zAU": 0,
+            "vxKmS": 18.056891510437865,
+            "vyKmS": 1.586042745572045,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "行星 7",
+            "massSolar": 3e-06,
+            "xAU": 2.365475929456263,
+            "yAU": -1.9253632455105785,
+            "zAU": 0.2,
+            "vxKmS": 10.766057140950146,
+            "vyKmS": 13.227036031486536,
+            "vzKmS": 1,
+            "surface": 2
+          }
+        ]
+      }
+    },
+    "scene": {
+      "preset": 5,
+      "count": 600,
+      "speed": 1,
+      "angle": 0,
+      "duration": 1,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0,
+      "pitch": 0.2,
+      "zoom": 2.7,
+      "focus": -1,
+      "color": 0
+    },
+    "ui": {
+      "panelOpen": false,
+      "toolsVisible": true,
+      "panel": 0,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "已载入参数 · 点击开始重新计算"
+    },
+    "window": {
+      "viewportWidthVp": 707.2,
+      "viewportHeightVp": 706.56,
+      "widthVp": 707.2,
+      "heightVp": 773.12,
+      "immersive": true,
+      "safePx": {
+        "top": 121,
+        "bottom": 87,
+        "left": 0,
+        "right": 0
+      }
+    }
+  }
+}

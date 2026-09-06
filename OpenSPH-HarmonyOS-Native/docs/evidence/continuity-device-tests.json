@@ -1,0 +1,1139 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "scene revision unchanged",
+    "surface creation unchanged",
+    "replay time/cursor/history unchanged",
+    "observed intermediate native frames",
+    "rapid retarget",
+    "per-body drafts",
+    "close drawer then return overview",
+    "restore previous camera",
+    "selected planet outside editor bounds"
+  ],
+  "before": {
+    "sky": {
+      "mode": 2,
+      "brightness": 0.65,
+      "reference": "illustrative"
+    },
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "nbody-custom-v1",
+      "title": "自定义系统",
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "蔚蓝",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 29.784736563281832,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "暮云",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.36348919531189744,
+            "yAU": 0.6215107439871891,
+            "zAU": 0,
+            "vxKmS": -30.30007191352709,
+            "vyKmS": -17.720930594190353,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "赤砂",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.7451964484378631,
+            "yAU": -1.324795174068654,
+            "zAU": 0,
+            "vxKmS": 21.056060449358704,
+            "vyKmS": -11.84402070001949,
+            "vzKmS": 0,
+            "surface": 3
+          }
+        ]
+      },
+      "bodies": []
+    },
+    "editor": {
+      "vectorPlane": "XY",
+      "orbitIndex": 1,
+      "orbitName": "蔚蓝",
+      "orbitFields": [
+        "1",
+        "1",
+        "0",
+        "0",
+        "0",
+        "29.784736563281832",
+        "0"
+      ],
+      "orbitSurface": 1,
+      "orbitDraft": true,
+      "editedBody": 0,
+      "targetName": "主天体",
+      "impactorName": "撞击体",
+      "title": "自定义系统",
+      "selectingPreset": false
+    },
+    "appearance": {
+      "clouds": true,
+      "atmosphere": true,
+      "trails": true,
+      "closeup": false,
+      "autoSpin": false
+    },
+    "rendering": {
+      "compositionX": 0.5,
+      "compositionY": 0.5,
+      "compositionScale": 1,
+      "sceneRevision": 4,
+      "surfaceStarts": 1,
+      "cameraMoving": false,
+      "centerX": 0,
+      "centerY": 0,
+      "centerZ": 0,
+      "skyReady": true,
+      "skyStars": 0.6499999761581421,
+      "skyGalaxy": 0.6499999761581421,
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 2312,
+      "submitMs": 1.029541,
+      "previewSeconds": 6.57461242,
+      "error": ""
+    },
+    "simulation": {
+      "state": "completed",
+      "error": "",
+      "count": 4,
+      "frames": 240,
+      "selected": 70,
+      "time": 2.33984375,
+      "duration": 3,
+      "stepMs": 0.183125,
+      "steps": 769,
+      "maxSpeed": 35.10006332397461,
+      "meanDensity": 0,
+      "totalMass": 1.9884277878217333e+30,
+      "energyError": 5.547770890825655e-13,
+      "angularError": 6.642276965834188e-15,
+      "model": "nbody-custom-v1",
+      "timeUnit": "year",
+      "bodies": [
+        {
+          "name": "恒星",
+          "surface": 0,
+          "id": 0,
+          "xAU": -0.000003464336714387173,
+          "yAU": -0.0000021188941445871023,
+          "zAU": 0,
+          "speedKmS": 0.00014719883620273322,
+          "massSolar": 1
+        },
+        {
+          "name": "蔚蓝",
+          "surface": 1,
+          "id": 1,
+          "xAU": -0.5348303318023682,
+          "yAU": 0.8448936939239502,
+          "zAU": 0,
+          "speedKmS": 29.78654670715332,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "暮云",
+          "surface": 2,
+          "id": 2,
+          "xAU": 0.37018290162086487,
+          "yAU": 0.617576003074646,
+          "zAU": 0,
+          "speedKmS": 35.10006332397461,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "赤砂",
+          "surface": 3,
+          "id": 3,
+          "xAU": 1.3180845975875854,
+          "yAU": -0.7569922208786011,
+          "zAU": 0,
+          "speedKmS": 24.158674240112305,
+          "massSolar": 0.000003003489609909593
+        }
+      ],
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "蔚蓝",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 29.784736563281832,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "暮云",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.36348919531189744,
+            "yAU": 0.6215107439871891,
+            "zAU": 0,
+            "vxKmS": -30.30007191352709,
+            "vyKmS": -17.720930594190353,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "赤砂",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.7451964484378631,
+            "yAU": -1.324795174068654,
+            "zAU": 0,
+            "vxKmS": 21.056060449358704,
+            "vyKmS": -11.84402070001949,
+            "vzKmS": 0,
+            "surface": 3
+          }
+        ]
+      }
+    },
+    "scene": {
+      "preset": 5,
+      "count": 600,
+      "speed": 1,
+      "angle": 0,
+      "duration": 3,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0.4,
+      "pitch": 0.3,
+      "zoom": 3.1,
+      "focus": -1,
+      "color": 0
+    },
+    "ui": {
+      "panelOpen": false,
+      "toolsVisible": true,
+      "panel": 0,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "正在计算多体引力 · 轨迹来自积分结果"
+    },
+    "window": {
+      "viewportWidthVp": 707.2,
+      "viewportHeightVp": 706.56,
+      "widthVp": 707.2,
+      "heightVp": 773.12,
+      "immersive": true,
+      "safePx": {
+        "top": 121,
+        "bottom": 87,
+        "left": 0,
+        "right": 0
+      }
+    }
+  },
+  "after": {
+    "sky": {
+      "mode": 2,
+      "brightness": 0.65,
+      "reference": "illustrative"
+    },
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "nbody-custom-v1",
+      "title": "自定义系统",
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "蔚蓝",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 29.784736563281832,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "暮云",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.36348919531189744,
+            "yAU": 0.6215107439871891,
+            "zAU": 0,
+            "vxKmS": -30.30007191352709,
+            "vyKmS": -17.720930594190353,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "赤砂",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.7451964484378631,
+            "yAU": -1.324795174068654,
+            "zAU": 0,
+            "vxKmS": 21.056060449358704,
+            "vyKmS": -11.84402070001949,
+            "vzKmS": 0,
+            "surface": 3
+          }
+        ]
+      },
+      "bodies": []
+    },
+    "editor": {
+      "vectorPlane": "XY",
+      "orbitIndex": 1,
+      "orbitName": "海洋草稿仍在",
+      "orbitFields": [
+        "",
+        "1",
+        "0",
+        "0",
+        "0",
+        "29.784736563281832",
+        "0"
+      ],
+      "orbitSurface": 1,
+      "orbitDraft": true,
+      "editedBody": 0,
+      "targetName": "主天体",
+      "impactorName": "撞击体",
+      "title": "自定义系统",
+      "selectingPreset": false
+    },
+    "appearance": {
+      "clouds": true,
+      "atmosphere": true,
+      "trails": true,
+      "closeup": false,
+      "autoSpin": false
+    },
+    "rendering": {
+      "compositionX": 0.5,
+      "compositionY": 0.5,
+      "compositionScale": 1,
+      "sceneRevision": 4,
+      "surfaceStarts": 1,
+      "cameraMoving": false,
+      "centerX": 0,
+      "centerY": 0,
+      "centerZ": 0,
+      "skyReady": true,
+      "skyStars": 0.6499999761581421,
+      "skyGalaxy": 0.6499999761581421,
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 2456,
+      "submitMs": 0.995125,
+      "previewSeconds": 11.867069631000003,
+      "error": ""
+    },
+    "simulation": {
+      "state": "completed",
+      "error": "",
+      "count": 4,
+      "frames": 240,
+      "selected": 70,
+      "time": 2.33984375,
+      "duration": 3,
+      "stepMs": 0.183125,
+      "steps": 769,
+      "maxSpeed": 35.10006332397461,
+      "meanDensity": 0,
+      "totalMass": 1.9884277878217333e+30,
+      "energyError": 5.547770890825655e-13,
+      "angularError": 6.642276965834188e-15,
+      "model": "nbody-custom-v1",
+      "timeUnit": "year",
+      "bodies": [
+        {
+          "name": "恒星",
+          "surface": 0,
+          "id": 0,
+          "xAU": -0.000003464336714387173,
+          "yAU": -0.0000021188941445871023,
+          "zAU": 0,
+          "speedKmS": 0.00014719883620273322,
+          "massSolar": 1
+        },
+        {
+          "name": "蔚蓝",
+          "surface": 1,
+          "id": 1,
+          "xAU": -0.5348303318023682,
+          "yAU": 0.8448936939239502,
+          "zAU": 0,
+          "speedKmS": 29.78654670715332,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "暮云",
+          "surface": 2,
+          "id": 2,
+          "xAU": 0.37018290162086487,
+          "yAU": 0.617576003074646,
+          "zAU": 0,
+          "speedKmS": 35.10006332397461,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "赤砂",
+          "surface": 3,
+          "id": 3,
+          "xAU": 1.3180845975875854,
+          "yAU": -0.7569922208786011,
+          "zAU": 0,
+          "speedKmS": 24.158674240112305,
+          "massSolar": 0.000003003489609909593
+        }
+      ],
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "蔚蓝",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 29.784736563281832,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "暮云",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.36348919531189744,
+            "yAU": 0.6215107439871891,
+            "zAU": 0,
+            "vxKmS": -30.30007191352709,
+            "vyKmS": -17.720930594190353,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "赤砂",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.7451964484378631,
+            "yAU": -1.324795174068654,
+            "zAU": 0,
+            "vxKmS": 21.056060449358704,
+            "vyKmS": -11.84402070001949,
+            "vzKmS": 0,
+            "surface": 3
+          }
+        ]
+      }
+    },
+    "scene": {
+      "preset": 5,
+      "count": 600,
+      "speed": 1,
+      "angle": 0,
+      "duration": 3,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0.4,
+      "pitch": 0.3,
+      "zoom": 3.1,
+      "focus": -1,
+      "color": 0
+    },
+    "ui": {
+      "panelOpen": false,
+      "toolsVisible": true,
+      "panel": 0,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "系统全景 · 保留当前模拟时间与轨迹"
+    },
+    "window": {
+      "viewportWidthVp": 707.2,
+      "viewportHeightVp": 706.56,
+      "widthVp": 707.2,
+      "heightVp": 773.12,
+      "immersive": true,
+      "safePx": {
+        "top": 121,
+        "bottom": 87,
+        "left": 0,
+        "right": 0
+      }
+    }
+  },
+  "composed": {
+    "sky": {
+      "mode": 2,
+      "brightness": 0.65,
+      "reference": "illustrative"
+    },
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "nbody-custom-v1",
+      "title": "自定义系统",
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "蔚蓝",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 29.784736563281832,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "暮云",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.36348919531189744,
+            "yAU": 0.6215107439871891,
+            "zAU": 0,
+            "vxKmS": -30.30007191352709,
+            "vyKmS": -17.720930594190353,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "赤砂",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.7451964484378631,
+            "yAU": -1.324795174068654,
+            "zAU": 0,
+            "vxKmS": 21.056060449358704,
+            "vyKmS": -11.84402070001949,
+            "vzKmS": 0,
+            "surface": 3
+          }
+        ]
+      },
+      "bodies": []
+    },
+    "editor": {
+      "vectorPlane": "XY",
+      "orbitIndex": 1,
+      "orbitName": "蔚蓝",
+      "orbitFields": [
+        "1",
+        "1",
+        "0",
+        "0",
+        "0",
+        "29.784736563281832",
+        "0"
+      ],
+      "orbitSurface": 1,
+      "orbitDraft": true,
+      "editedBody": 0,
+      "targetName": "主天体",
+      "impactorName": "撞击体",
+      "title": "自定义系统",
+      "selectingPreset": false
+    },
+    "appearance": {
+      "clouds": true,
+      "atmosphere": true,
+      "trails": true,
+      "closeup": true,
+      "autoSpin": false
+    },
+    "rendering": {
+      "compositionX": 0.2709276080131531,
+      "compositionY": 0.5,
+      "compositionScale": 1,
+      "sceneRevision": 4,
+      "surfaceStarts": 1,
+      "cameraMoving": false,
+      "centerX": -0.5348303318023682,
+      "centerY": 0.8448936939239502,
+      "centerZ": 0,
+      "skyReady": true,
+      "skyStars": 0.22750000655651093,
+      "skyGalaxy": 0.22750000655651093,
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 2332,
+      "submitMs": 0.381167,
+      "previewSeconds": 6.57461242,
+      "error": ""
+    },
+    "simulation": {
+      "state": "completed",
+      "error": "",
+      "count": 4,
+      "frames": 240,
+      "selected": 70,
+      "time": 2.33984375,
+      "duration": 3,
+      "stepMs": 0.183125,
+      "steps": 769,
+      "maxSpeed": 35.10006332397461,
+      "meanDensity": 0,
+      "totalMass": 1.9884277878217333e+30,
+      "energyError": 5.547770890825655e-13,
+      "angularError": 6.642276965834188e-15,
+      "model": "nbody-custom-v1",
+      "timeUnit": "year",
+      "bodies": [
+        {
+          "name": "恒星",
+          "surface": 0,
+          "id": 0,
+          "xAU": -0.000003464336714387173,
+          "yAU": -0.0000021188941445871023,
+          "zAU": 0,
+          "speedKmS": 0.00014719883620273322,
+          "massSolar": 1
+        },
+        {
+          "name": "蔚蓝",
+          "surface": 1,
+          "id": 1,
+          "xAU": -0.5348303318023682,
+          "yAU": 0.8448936939239502,
+          "zAU": 0,
+          "speedKmS": 29.78654670715332,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "暮云",
+          "surface": 2,
+          "id": 2,
+          "xAU": 0.37018290162086487,
+          "yAU": 0.617576003074646,
+          "zAU": 0,
+          "speedKmS": 35.10006332397461,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "赤砂",
+          "surface": 3,
+          "id": 3,
+          "xAU": 1.3180845975875854,
+          "yAU": -0.7569922208786011,
+          "zAU": 0,
+          "speedKmS": 24.158674240112305,
+          "massSolar": 0.000003003489609909593
+        }
+      ],
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "蔚蓝",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 29.784736563281832,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "暮云",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.36348919531189744,
+            "yAU": 0.6215107439871891,
+            "zAU": 0,
+            "vxKmS": -30.30007191352709,
+            "vyKmS": -17.720930594190353,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "赤砂",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.7451964484378631,
+            "yAU": -1.324795174068654,
+            "zAU": 0,
+            "vxKmS": 21.056060449358704,
+            "vyKmS": -11.84402070001949,
+            "vzKmS": 0,
+            "surface": 3
+          }
+        ]
+      }
+    },
+    "scene": {
+      "preset": 5,
+      "count": 600,
+      "speed": 1,
+      "angle": 0,
+      "duration": 3,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0.4,
+      "pitch": 0.3,
+      "zoom": 3.1,
+      "focus": 1,
+      "color": 0
+    },
+    "ui": {
+      "panelOpen": true,
+      "toolsVisible": true,
+      "panel": 0,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "编辑初始条件 · 关闭面板或切换天体会保留草稿"
+    },
+    "window": {
+      "viewportWidthVp": 707.2,
+      "viewportHeightVp": 706.56,
+      "widthVp": 707.2,
+      "heightVp": 773.12,
+      "immersive": true,
+      "safePx": {
+        "top": 121,
+        "bottom": 87,
+        "left": 0,
+        "right": 0
+      }
+    }
+  },
+  "evidence": [
+    {
+      "rendering": {
+        "compositionX": 0.5,
+        "compositionY": 0.5,
+        "compositionScale": 1,
+        "sceneRevision": 4,
+        "surfaceStarts": 1,
+        "cameraMoving": true,
+        "centerX": -0.17130190134048462,
+        "centerY": 0.7535840272903442,
+        "centerZ": 0,
+        "skyReady": true,
+        "skyStars": 0.22750000655651093,
+        "skyGalaxy": 0.22750000655651093,
+        "ready": true,
+        "texturesReady": true,
+        "active": true,
+        "frames": 2361,
+        "submitMs": 0.346208,
+        "previewSeconds": 7.430568004000001,
+        "error": ""
+      },
+      "bodies": [
+        {
+          "id": 3,
+          "x": 0.6496648788452148,
+          "y": 0.695425808429718,
+          "radius": 0.004790322855114937,
+          "depth": -0.785836935043335,
+          "opacity": 0
+        },
+        {
+          "id": 0,
+          "x": 0.45402926206588745,
+          "y": 0.6032494306564331,
+          "radius": 0.008622581139206886,
+          "depth": -0.07176864147186279,
+          "opacity": 0
+        },
+        {
+          "id": 2,
+          "x": 0.5005995035171509,
+          "y": 0.5000813603401184,
+          "radius": 0.227898970246315,
+          "depth": -0.02698059007525444,
+          "opacity": 0.9331940412521362
+        },
+        {
+          "id": 1,
+          "x": 0.3830224871635437,
+          "y": 0.48412591218948364,
+          "radius": 0.020762335509061813,
+          "depth": 0.37688446044921875,
+          "opacity": 0.06680595874786377
+        }
+      ]
+    },
+    {
+      "rendering": {
+        "compositionX": 0.5,
+        "compositionY": 0.5,
+        "compositionScale": 1,
+        "sceneRevision": 4,
+        "surfaceStarts": 1,
+        "cameraMoving": false,
+        "centerX": 0.37018290162086487,
+        "centerY": 0.617576003074646,
+        "centerZ": 0,
+        "skyReady": true,
+        "skyStars": 0.22750000655651093,
+        "skyGalaxy": 0.22750000655651093,
+        "ready": true,
+        "texturesReady": true,
+        "active": true,
+        "frames": 2369,
+        "submitMs": 0.2735,
+        "previewSeconds": 7.817897087000001,
+        "error": ""
+      },
+      "bodies": [
+        {
+          "id": 3,
+          "x": 0.6406911611557007,
+          "y": 0.694208025932312,
+          "radius": 0.004790322855114937,
+          "depth": -0.7588563561439514,
+          "opacity": 0
+        },
+        {
+          "id": 0,
+          "x": 0.4450555443763733,
+          "y": 0.6020317077636719,
+          "radius": 0.008622581139206886,
+          "depth": -0.044788047671318054,
+          "opacity": 0
+        },
+        {
+          "id": 2,
+          "x": 0.5,
+          "y": 0.5,
+          "radius": 0.24387097358703613,
+          "depth": 0,
+          "opacity": 1
+        },
+        {
+          "id": 1,
+          "x": 0.3656744956970215,
+          "y": 0.4817717671394348,
+          "radius": 0.004790322855114937,
+          "depth": 0.4038650095462799,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "rendering": {
+        "compositionX": 0.5,
+        "compositionY": 0.5,
+        "compositionScale": 1,
+        "sceneRevision": 4,
+        "surfaceStarts": 1,
+        "cameraMoving": false,
+        "centerX": 0.37018290162086487,
+        "centerY": 0.617576003074646,
+        "centerZ": 0,
+        "skyReady": true,
+        "skyStars": 0.22750000655651093,
+        "skyGalaxy": 0.22750000655651093,
+        "ready": true,
+        "texturesReady": true,
+        "active": true,
+        "frames": 2376,
+        "submitMs": 0.197958,
+        "previewSeconds": 8.162911796000003,
+        "error": ""
+      },
+      "bodies": [
+        {
+          "id": 3,
+          "x": 0.6406911611557007,
+          "y": 0.694208025932312,
+          "radius": 0.004790322855114937,
+          "depth": -0.7588563561439514,
+          "opacity": 0
+        },
+        {
+          "id": 0,
+          "x": 0.4450555443763733,
+          "y": 0.6020317077636719,
+          "radius": 0.008622581139206886,
+          "depth": -0.044788047671318054,
+          "opacity": 0
+        },
+        {
+          "id": 2,
+          "x": 0.5,
+          "y": 0.5,
+          "radius": 0.24387097358703613,
+          "depth": 0,
+          "opacity": 1
+        },
+        {
+          "id": 1,
+          "x": 0.3656744956970215,
+          "y": 0.4817717671394348,
+          "radius": 0.004790322855114937,
+          "depth": 0.4038650095462799,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "rendering": {
+        "compositionX": 0.5,
+        "compositionY": 0.5,
+        "compositionScale": 1,
+        "sceneRevision": 4,
+        "surfaceStarts": 1,
+        "cameraMoving": false,
+        "centerX": 0.37018290162086487,
+        "centerY": 0.617576003074646,
+        "centerZ": 0,
+        "skyReady": true,
+        "skyStars": 0.22750000655651093,
+        "skyGalaxy": 0.22750000655651093,
+        "ready": true,
+        "texturesReady": true,
+        "active": true,
+        "frames": 2383,
+        "submitMs": 0.531833,
+        "previewSeconds": 8.519202921000003,
+        "error": ""
+      },
+      "bodies": [
+        {
+          "id": 3,
+          "x": 0.6406911611557007,
+          "y": 0.694208025932312,
+          "radius": 0.004790322855114937,
+          "depth": -0.7588563561439514,
+          "opacity": 0
+        },
+        {
+          "id": 0,
+          "x": 0.4450555443763733,
+          "y": 0.6020317077636719,
+          "radius": 0.008622581139206886,
+          "depth": -0.044788047671318054,
+          "opacity": 0
+        },
+        {
+          "id": 2,
+          "x": 0.5,
+          "y": 0.5,
+          "radius": 0.24387097358703613,
+          "depth": 0,
+          "opacity": 1
+        },
+        {
+          "id": 1,
+          "x": 0.3656744956970215,
+          "y": 0.4817717671394348,
+          "radius": 0.004790322855114937,
+          "depth": 0.4038650095462799,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "rendering": {
+        "compositionX": 0.5,
+        "compositionY": 0.5,
+        "compositionScale": 1,
+        "sceneRevision": 4,
+        "surfaceStarts": 1,
+        "cameraMoving": false,
+        "centerX": 0.37018290162086487,
+        "centerY": 0.617576003074646,
+        "centerZ": 0,
+        "skyReady": true,
+        "skyStars": 0.22750000655651093,
+        "skyGalaxy": 0.22750000655651093,
+        "ready": true,
+        "texturesReady": true,
+        "active": true,
+        "frames": 2390,
+        "submitMs": 0.736208,
+        "previewSeconds": 8.928340713000004,
+        "error": ""
+      },
+      "bodies": [
+        {
+          "id": 3,
+          "x": 0.6406911611557007,
+          "y": 0.694208025932312,
+          "radius": 0.004790322855114937,
+          "depth": -0.7588563561439514,
+          "opacity": 0
+        },
+        {
+          "id": 0,
+          "x": 0.4450555443763733,
+          "y": 0.6020317077636719,
+          "radius": 0.008622581139206886,
+          "depth": -0.044788047671318054,
+          "opacity": 0
+        },
+        {
+          "id": 2,
+          "x": 0.5,
+          "y": 0.5,
+          "radius": 0.24387097358703613,
+          "depth": 0,
+          "opacity": 1
+        },
+        {
+          "id": 1,
+          "x": 0.3656744956970215,
+          "y": 0.4817717671394348,
+          "radius": 0.004790322855114937,
+          "depth": 0.4038650095462799,
+          "opacity": 0
+        }
+      ]
+    }
+  ]
+}

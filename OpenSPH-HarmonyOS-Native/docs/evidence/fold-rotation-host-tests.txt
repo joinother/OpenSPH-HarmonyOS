@@ -1,0 +1,31 @@
+✔ real ArkTS bridge queues cold launch, preserves Unicode JSON and responds in correlated chunks (76.494458ms)
+✔ serial processing and deduplication prevent repeated mutations (17.870167ms)
+✔ malformed payload, handler errors and queue overflow produce explicit errors (12.046875ms)
+✔ out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored (0.388042ms)
+✔ scene and camera reject partial invalid transactions without changing prior state (172.669333ms)
+✔ start is idempotent, seek bounded, replay failure reported as failure (125.783625ms)
+✔ closing and reopening during a tab animation discards its stale completion (109.209541ms)
+✔ orbit models validate units, survive definitions, and reject invalid speed atomically (109.373792ms)
+✔ appearance changes are visual only and invalid transactions leave the scene intact (114.105458ms)
+✔ loading legacy SPH replay exits orbital closeup without inventing original parameters (88.236875ms)
+✔ custom body edits are transactional; add/delete maintain star and clear stale focus (107.248917ms)
+✔ custom CLI rejects malformed body lists atomically and preserves all initial fields (146.7505ms)
+✔ semantic UI commands expose drafts, share button handlers and reject disabled actions (115.049875ms)
+✔ invalid draft application reports CLI failure without replacing the physical system (92.474958ms)
+✔ all rendered button callbacks and editor changes route through semantic actions (1.126959ms)
+✔ viewport selection shares focus/editor action; misses and invalid coordinates preserve draft (102.831958ms)
+✔ initial vector preview handles 3D axes, zero vectors, invalid drafts and units without applying (103.096041ms)
+✔ sky controls are atomic, shared with UI and independent of physics (93.618084ms)
+✔ continuous selection/edit/overview preserves solver, replay cursor and per-body drafts (92.087292ms)
+✔ placement preview is a cancellable transaction, with shared point positioning and explicit commit (96.034333ms)
+✔ placement physics respects relative reference frames, inclined velocities and conic energy (91.698833ms)
+✔ fold and rotation update composition without losing drafts or mutating the solver (87.099625ms)
+✔ main-window orientation uses the system lock in auto mode and rejects invalid policies (9.262625ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2182.7545

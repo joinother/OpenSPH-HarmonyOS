@@ -1,0 +1,27 @@
+✔ real ArkTS bridge queues cold launch, preserves Unicode JSON and responds in correlated chunks (90.432042ms)
+✔ serial processing and deduplication prevent repeated mutations (23.930625ms)
+✔ malformed payload, handler errors and queue overflow produce explicit errors (18.199833ms)
+✔ out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored (0.38175ms)
+✔ scene and camera reject partial invalid transactions without changing prior state (184.80625ms)
+✔ start is idempotent, seek bounded, replay failure reported as failure (116.652792ms)
+✔ closing and reopening during a tab animation discards its stale completion (96.21725ms)
+✔ orbit models validate units, survive definitions, and reject invalid speed atomically (80.684916ms)
+✔ appearance changes are visual only and invalid transactions leave the scene intact (82.904416ms)
+✔ loading legacy SPH replay exits orbital closeup without inventing original parameters (112.016542ms)
+✔ custom body edits are transactional; add/delete maintain star and clear stale focus (80.109458ms)
+✔ custom CLI rejects malformed body lists atomically and preserves all initial fields (72.733917ms)
+✔ semantic UI commands expose drafts, share button handlers and reject disabled actions (74.068667ms)
+✔ invalid draft application reports CLI failure without replacing the physical system (89.616417ms)
+✔ all rendered button callbacks and editor changes route through semantic actions (0.985292ms)
+✔ viewport selection shares focus/editor action; misses and invalid coordinates preserve draft (77.741542ms)
+✔ initial vector preview handles 3D axes, zero vectors, invalid drafts and units without applying (86.273167ms)
+✔ sky controls are atomic, shared with UI and independent of physics (80.906959ms)
+✔ continuous selection/edit/overview preserves solver, replay cursor and per-body drafts (78.424916ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1657.538875

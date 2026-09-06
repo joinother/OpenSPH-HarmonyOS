@@ -1,0 +1,53 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "galaxyDifference": {
+    "mean": 10.917556921625964,
+    "changed": 349284,
+    "samples": 822798
+  },
+  "starsDifference": {
+    "mean": 0.15636806765856667,
+    "changed": 3214,
+    "samples": 822798
+  },
+  "parallaxDifference": {
+    "mean": 0,
+    "changed": 0,
+    "samples": 821118
+  },
+  "rotationDifference": {
+    "mean": 14.777764377393796,
+    "changed": 451890,
+    "samples": 820872
+  },
+  "nearStrength": 0.2800000309944153,
+  "info": {
+    "ok": true,
+    "reference": "illustrative",
+    "catalog": "procedural-v1",
+    "seed": 24190906,
+    "stars": 6500,
+    "textureSize": [
+      1024,
+      512
+    ],
+    "coordinateFrame": "simulation-orientation",
+    "translationParallax": false,
+    "localZoomAffectsSky": false,
+    "mode": 2,
+    "brightness": 0.65,
+    "rendering": {
+      "skyReady": true,
+      "skyStars": 0.6499999761581421,
+      "skyGalaxy": 0.6499999761581421,
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 991,
+      "submitMs": 0.630666,
+      "previewSeconds": 1.977785167000001,
+      "error": ""
+    }
+  }
+}

@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: real ArkTS bridge queues cold launch, preserves Unicode JSON and responds in correlated chunks
+ok 1 - real ArkTS bridge queues cold launch, preserves Unicode JSON and responds in correlated chunks
+  ---
+  duration_ms: 68.719917
+  ...
+# Subtest: serial processing and deduplication prevent repeated mutations
+ok 2 - serial processing and deduplication prevent repeated mutations
+  ---
+  duration_ms: 27.830875
+  ...
+# Subtest: malformed payload, handler errors and queue overflow produce explicit errors
+ok 3 - malformed payload, handler errors and queue overflow produce explicit errors
+  ---
+  duration_ms: 20.061458
+  ...
+# Subtest: out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored
+ok 4 - out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored
+  ---
+  duration_ms: 0.324791
+  ...
+# Subtest: scene and camera reject partial invalid transactions without changing prior state
+ok 5 - scene and camera reject partial invalid transactions without changing prior state
+  ---
+  duration_ms: 133.503875
+  ...
+# Subtest: start is idempotent, seek bounded, replay failure reported as failure
+ok 6 - start is idempotent, seek bounded, replay failure reported as failure
+  ---
+  duration_ms: 83.386209
+  ...
+# Subtest: closing and reopening during a tab animation discards its stale completion
+ok 7 - closing and reopening during a tab animation discards its stale completion
+  ---
+  duration_ms: 70.373542
+  ...
+# Subtest: orbit models validate units, survive definitions, and reject invalid speed atomically
+ok 8 - orbit models validate units, survive definitions, and reject invalid speed atomically
+  ---
+  duration_ms: 73.64125
+  ...
+# Subtest: appearance changes are visual only and invalid transactions leave the scene intact
+ok 9 - appearance changes are visual only and invalid transactions leave the scene intact
+  ---
+  duration_ms: 61.884291
+  ...
+# Subtest: loading legacy SPH replay exits orbital closeup without inventing original parameters
+ok 10 - loading legacy SPH replay exits orbital closeup without inventing original parameters
+  ---
+  duration_ms: 71.250042
+  ...
+# Subtest: custom body edits are transactional; add/delete maintain star and clear stale focus
+ok 11 - custom body edits are transactional; add/delete maintain star and clear stale focus
+  ---
+  duration_ms: 91.627375
+  ...
+# Subtest: custom CLI rejects malformed body lists atomically and preserves all initial fields
+ok 12 - custom CLI rejects malformed body lists atomically and preserves all initial fields
+  ---
+  duration_ms: 76.5085
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 974.961667

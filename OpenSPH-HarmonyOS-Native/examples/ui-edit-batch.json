@@ -1,0 +1,58 @@
+[
+  {
+    "command": "uiAction",
+    "payload": {
+      "action": "preset.5"
+    },
+    "waitForState": "paused"
+  },
+  {
+    "command": "uiAction",
+    "payload": {
+      "action": "orbit.add"
+    }
+  },
+  {
+    "command": "uiAction",
+    "payload": {
+      "action": "placement.confirm"
+    },
+    "waitForState": "paused"
+  },
+  {
+    "command": "setUiValue",
+    "payload": {
+      "field": "orbit.name",
+      "value": "我的新行星"
+    }
+  },
+  {
+    "command": "setUiValue",
+    "payload": {
+      "field": "orbit.value.0",
+      "value": "2"
+    }
+  },
+  {
+    "command": "uiAction",
+    "payload": {
+      "action": "orbit.surface.3"
+    }
+  },
+  {
+    "command": "uiAction",
+    "payload": {
+      "action": "orbit.apply"
+    },
+    "waitForState": "paused"
+  },
+  {
+    "command": "uiAction",
+    "payload": {
+      "action": "orbit.near"
+    }
+  },
+  {
+    "command": "getUiState"
+  }
+]

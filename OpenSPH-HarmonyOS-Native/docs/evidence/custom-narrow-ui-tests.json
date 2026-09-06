@@ -1,0 +1,257 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "widthVp": 345.6,
+  "checks": [
+    "actual custom preset selection",
+    "add planet",
+    "keyboard name and mass editing",
+    "apply transaction",
+    "surface choice",
+    "body 4 near view",
+    "next/previous wrap",
+    "controls fit",
+    "delete resets focus"
+  ],
+  "state": {
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "nbody-custom-v1",
+      "title": "自定义系统",
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "蔚蓝",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 29.784736563281832,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "暮云",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.36348919531189744,
+            "yAU": 0.6215107439871891,
+            "zAU": 0,
+            "vxKmS": -30.30007191352709,
+            "vyKmS": -17.720930594190353,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "赤砂",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.7451964484378631,
+            "yAU": -1.324795174068654,
+            "zAU": 0,
+            "vxKmS": 21.056060449358704,
+            "vyKmS": -11.84402070001949,
+            "vzKmS": 0,
+            "surface": 3
+          }
+        ]
+      },
+      "bodies": []
+    },
+    "appearance": {
+      "clouds": true,
+      "atmosphere": true,
+      "trails": true,
+      "closeup": false,
+      "autoSpin": false
+    },
+    "rendering": {
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 3630,
+      "submitMs": 0.535583,
+      "previewSeconds": 16.142306756999997,
+      "error": ""
+    },
+    "simulation": {
+      "state": "paused",
+      "error": "",
+      "count": 4,
+      "frames": 1,
+      "selected": -1,
+      "time": 0,
+      "duration": 3,
+      "stepMs": 0,
+      "steps": 1,
+      "maxSpeed": 35.10162353515625,
+      "meanDensity": 0,
+      "totalMass": 1.9884277878217333e+30,
+      "energyError": 0,
+      "angularError": 0,
+      "model": "nbody-custom-v1",
+      "timeUnit": "year",
+      "bodies": [
+        {
+          "name": "恒星",
+          "surface": 0,
+          "id": 0,
+          "xAU": 3.2643325198478124e-7,
+          "yAU": 0.0000021122884845681256,
+          "zAU": 0,
+          "speedKmS": 0.000027771888198913075,
+          "massSolar": 1
+        },
+        {
+          "name": "蔚蓝",
+          "surface": 1,
+          "id": 1,
+          "xAU": 1.0000003576278687,
+          "yAU": 0.0000021122884845681256,
+          "zAU": 0,
+          "speedKmS": 29.78473663330078,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "暮云",
+          "surface": 2,
+          "id": 2,
+          "xAU": -0.3634888827800751,
+          "yAU": 0.6215128302574158,
+          "zAU": 0,
+          "speedKmS": 35.10162353515625,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "赤砂",
+          "surface": 3,
+          "id": 3,
+          "xAU": -0.7451961040496826,
+          "yAU": -1.3247931003570557,
+          "zAU": 0,
+          "speedKmS": 24.15863609313965,
+          "massSolar": 0.000003003489609909593
+        }
+      ],
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "蔚蓝",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 29.784736563281832,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "暮云",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.36348919531189744,
+            "yAU": 0.6215107439871891,
+            "zAU": 0,
+            "vxKmS": -30.30007191352709,
+            "vyKmS": -17.720930594190353,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "赤砂",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": -0.7451964484378631,
+            "yAU": -1.324795174068654,
+            "zAU": 0,
+            "vxKmS": 21.056060449358704,
+            "vyKmS": -11.84402070001949,
+            "vzKmS": 0,
+            "surface": 3
+          }
+        ]
+      }
+    },
+    "scene": {
+      "preset": 5,
+      "count": 600,
+      "speed": 1,
+      "angle": 0,
+      "duration": 3,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0.15,
+      "pitch": 0.25,
+      "zoom": 2.7,
+      "focus": -1,
+      "color": 0
+    },
+    "ui": {
+      "panelOpen": true,
+      "toolsVisible": true,
+      "panel": 0,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "已更新初始条件 · 旧轨迹已清空"
+    },
+    "window": {
+      "viewportWidthVp": 345.6,
+      "viewportHeightVp": 715.52,
+      "widthVp": 345.6,
+      "heightVp": 782.08,
+      "immersive": true,
+      "safePx": {
+        "top": 121,
+        "bottom": 87,
+        "left": 0,
+        "right": 0
+      }
+    }
+  }
+}

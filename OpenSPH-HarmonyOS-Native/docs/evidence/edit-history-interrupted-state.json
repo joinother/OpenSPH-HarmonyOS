@@ -1,0 +1,468 @@
+{
+  "placement": {
+    "active": false,
+    "name": "新行星 5",
+    "fields": [
+      "1",
+      "2.093",
+      "38.89",
+      "0",
+      "0"
+    ],
+    "surface": 1,
+    "direction": 1,
+    "preview": {
+      "valid": false,
+      "error": "Error: 初始天体间距至少为 0.05 AU",
+      "body": {
+        "name": "新行星 5",
+        "massSolar": 0.0000030034896154649684,
+        "surface": 1,
+        "xAU": 1.629092278334865,
+        "yAU": 1.31404236943476,
+        "zAU": 0,
+        "vxKmS": 0,
+        "vyKmS": 0,
+        "vzKmS": 0
+      },
+      "speedKmS": 0,
+      "circularKmS": 20.58776247573623,
+      "escapeKmS": 29.115492912102066,
+      "nearestAU": 0,
+      "bound": true,
+      "plotScale": 9.8358,
+      "orbitPath": "M120 120 L136.56288536097588 106.64020852971024",
+      "candidateX": 136.56288536097588,
+      "candidateY": 106.64020852971024,
+      "markerPath": "M118 120 L122 120 M120 118 L120 122 M128.16694117407837 120 L132.16694117407837 120 M130.16694117407837 118 L130.16694117407837 122 M114.30442673385086 113.68113682682457 L118.30442673385086 113.68113682682457 M116.30442673385086 111.68113682682457 L116.30442673385086 115.68113682682457 M110.42363154560013 133.46911460245892 L114.42363154560013 133.46911460245892 M112.42363154560013 131.46911460245892 L112.42363154560013 135.46911460245892 M129.52921270830987 97.63719725396473 L133.52921270830987 97.63719725396473 M131.52921270830987 95.63719725396473 L131.52921270830987 99.63719725396473 M134.56288536097588 106.64020852971024 L138.56288536097588 106.64020852971024 M136.56288536097588 104.64020852971024 L136.56288536097588 108.64020852971024 ",
+      "velocityPath": ""
+    }
+  },
+  "sky": {
+    "mode": 2,
+    "brightness": 0.65,
+    "reference": "photographic-panorama"
+  },
+  "ok": true,
+  "protocol": 1,
+  "definition": {
+    "schemaVersion": 1,
+    "model": "nbody-custom-v1",
+    "title": "自定义系统",
+    "config": {
+      "preset": 5,
+      "count": 600,
+      "speed": 1,
+      "angle": 0,
+      "duration": 3,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "targetSpin": 0,
+      "seed": 1234,
+      "orbitBodies": [
+        {
+          "name": "恒星",
+          "massSolar": 1,
+          "xAU": 0,
+          "yAU": 0,
+          "zAU": 0,
+          "vxKmS": 0,
+          "vyKmS": 0,
+          "vzKmS": 0,
+          "surface": 0
+        },
+        {
+          "name": "蔚蓝",
+          "massSolar": 0.0000030034896154649684,
+          "xAU": 1,
+          "yAU": 0,
+          "zAU": 0,
+          "vxKmS": 0,
+          "vyKmS": 29.784736563281832,
+          "vzKmS": 0,
+          "surface": 1
+        },
+        {
+          "name": "暮云新名称",
+          "massSolar": 0.000002447838287796944,
+          "xAU": -0.36348919531189744,
+          "yAU": 0.6215107439871891,
+          "zAU": 0,
+          "vxKmS": -30.300063495413617,
+          "vyKmS": -17.72092567087515,
+          "vzKmS": 0,
+          "surface": 2
+        },
+        {
+          "name": "赤砂",
+          "massSolar": 3.2271560829322774e-7,
+          "xAU": -0.7451964484378631,
+          "yAU": -1.324795174068654,
+          "zAU": 0,
+          "vxKmS": 21.056032226154784,
+          "vyKmS": -11.844004824485117,
+          "vzKmS": 0,
+          "surface": 3
+        },
+        {
+          "name": "远洋",
+          "massSolar": 0.000006006979230929937,
+          "xAU": 1.1339903035639434,
+          "yAU": 2.1995605524945376,
+          "zAU": 0.3549638958160112,
+          "vxKmS": -16.788162936966238,
+          "vyKmS": 8.435501221730886,
+          "vzKmS": 1.3613166381941437,
+          "surface": 1
+        },
+        {
+          "name": "新行星 5",
+          "massSolar": 0.0000030034896154649684,
+          "xAU": 1.629092278334865,
+          "yAU": 1.31404236943476,
+          "zAU": 0,
+          "vxKmS": 0,
+          "vyKmS": 0,
+          "vzKmS": 0,
+          "surface": 1
+        }
+      ]
+    },
+    "bodies": []
+  },
+  "editor": {
+    "drafts": [
+      {
+        "index": 1,
+        "name": "蔚蓝待编辑",
+        "fields": [
+          "1",
+          "1",
+          "0",
+          "0",
+          "0",
+          "29.784736563281832",
+          "0"
+        ],
+        "surface": 1
+      },
+      {
+        "index": 3,
+        "name": "赤砂",
+        "fields": [
+          "0.10744688665862703",
+          "-0.7451964484378631",
+          "-1.324795174068654",
+          "0",
+          "21.056032226154784",
+          "-11.844004824485117",
+          ""
+        ],
+        "surface": 3
+      },
+      {
+        "index": 5,
+        "name": "新行星 5",
+        "fields": [
+          "1",
+          "1.629092278334865",
+          "1.31404236943476",
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        "surface": 1
+      }
+    ],
+    "history": {
+      "undoCount": 2,
+      "redoCount": 0,
+      "undoLabel": "添加 · 新行星 5",
+      "redoLabel": "",
+      "limit": 20,
+      "scope": "custom-body-initial-conditions"
+    },
+    "vectorPlane": "XY",
+    "orbitIndex": 5,
+    "orbitName": "新行星 5",
+    "orbitFields": [
+      "1",
+      "1.629092278334865",
+      "1.31404236943476",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "orbitSurface": 1,
+    "orbitDraft": true,
+    "editedBody": 0,
+    "targetName": "主天体",
+    "impactorName": "撞击体",
+    "title": "自定义系统",
+    "selectingPreset": false
+  },
+  "appearance": {
+    "clouds": true,
+    "atmosphere": true,
+    "trails": true,
+    "closeup": false,
+    "autoSpin": false
+  },
+  "rendering": {
+    "compositionX": 0.5,
+    "compositionY": 0.5,
+    "compositionScale": 1,
+    "sceneRevision": 4,
+    "surfaceStarts": 1,
+    "cameraMoving": false,
+    "centerX": 0,
+    "centerY": 0,
+    "centerZ": 0,
+    "panoramaReady": true,
+    "panoramaBlend": 1,
+    "skyReady": true,
+    "skyStars": 0.6499999761581421,
+    "skyGalaxy": 0.6499999761581421,
+    "ready": true,
+    "texturesReady": true,
+    "active": true,
+    "frames": 1615,
+    "submitMs": 1.706709,
+    "previewSeconds": 0,
+    "error": ""
+  },
+  "simulation": {
+    "state": "failed",
+    "error": "积分精度不足：能量偏差超过阈值，已停止；请增大间距或降低初速",
+    "count": 6,
+    "frames": 137,
+    "selected": -1,
+    "time": 0.53125,
+    "duration": 3,
+    "stepMs": 0.391542,
+    "steps": 137,
+    "maxSpeed": 108.54582977294922,
+    "meanDensity": 0,
+    "totalMass": 1.988439268986849e+30,
+    "energyError": 0.000016819532875629316,
+    "angularError": -8.089587998949837e-15,
+    "model": "nbody-custom-v1",
+    "timeUnit": "year",
+    "bodies": [
+      {
+        "name": "恒星",
+        "surface": 0,
+        "id": 0,
+        "xAU": 0.000007125443971744971,
+        "yAU": -0.000015024310414446518,
+        "zAU": -0.000002227435516033438,
+        "speedKmS": 0.0005181931192055345,
+        "massSolar": 1
+      },
+      {
+        "name": "蔚蓝",
+        "surface": 1,
+        "id": 1,
+        "xAU": -0.9807932376861572,
+        "yAU": -0.19503438472747803,
+        "zAU": -0.0000015380586546598352,
+        "speedKmS": 29.784637451171875,
+        "massSolar": 0.000003003489609909593
+      },
+      {
+        "name": "暮云新名称",
+        "surface": 2,
+        "id": 2,
+        "xAU": 0.2062602937221527,
+        "yAU": 0.689821183681488,
+        "zAU": -0.0000022375161279342137,
+        "speedKmS": 35.09978103637695,
+        "massSolar": 0.0000024478383693349315
+      },
+      {
+        "name": "赤砂",
+        "surface": 3,
+        "id": 3,
+        "xAU": 1.4512066841125488,
+        "yAU": -0.4521341919898987,
+        "zAU": -0.0000026953628093906445,
+        "speedKmS": 24.158750534057617,
+        "massSolar": 3.227156071261561e-7
+      },
+      {
+        "name": "远洋",
+        "surface": 1,
+        "id": 4,
+        "xAU": -0.9124847650527954,
+        "yAU": 2.297753095626831,
+        "zAU": 0.37081030011177063,
+        "speedKmS": 18.837440490722656,
+        "massSolar": 0.000006006979219819186
+      },
+      {
+        "name": "新行星 5",
+        "surface": 1,
+        "id": 5,
+        "xAU": 0.10934501141309738,
+        "yAU": 0.08819038420915604,
+        "zAU": -0.0000010628692734826473,
+        "speedKmS": 108.54582977294922,
+        "massSolar": 0.000003003489609909593
+      }
+    ],
+    "config": {
+      "preset": 5,
+      "count": 600,
+      "speed": 1,
+      "angle": 0,
+      "duration": 3,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "targetSpin": 0,
+      "seed": 1234,
+      "orbitBodies": [
+        {
+          "name": "恒星",
+          "massSolar": 1,
+          "xAU": 0,
+          "yAU": 0,
+          "zAU": 0,
+          "vxKmS": 0,
+          "vyKmS": 0,
+          "vzKmS": 0,
+          "surface": 0
+        },
+        {
+          "name": "蔚蓝",
+          "massSolar": 0.0000030034896154649684,
+          "xAU": 1,
+          "yAU": 0,
+          "zAU": 0,
+          "vxKmS": 0,
+          "vyKmS": 29.784736563281832,
+          "vzKmS": 0,
+          "surface": 1
+        },
+        {
+          "name": "暮云新名称",
+          "massSolar": 0.000002447838287796944,
+          "xAU": -0.36348919531189744,
+          "yAU": 0.6215107439871891,
+          "zAU": 0,
+          "vxKmS": -30.300063495413617,
+          "vyKmS": -17.72092567087515,
+          "vzKmS": 0,
+          "surface": 2
+        },
+        {
+          "name": "赤砂",
+          "massSolar": 3.2271560829322774e-7,
+          "xAU": -0.7451964484378631,
+          "yAU": -1.324795174068654,
+          "zAU": 0,
+          "vxKmS": 21.056032226154784,
+          "vyKmS": -11.844004824485117,
+          "vzKmS": 0,
+          "surface": 3
+        },
+        {
+          "name": "远洋",
+          "massSolar": 0.000006006979230929937,
+          "xAU": 1.1339903035639434,
+          "yAU": 2.1995605524945376,
+          "zAU": 0.3549638958160112,
+          "vxKmS": -16.788162936966238,
+          "vyKmS": 8.435501221730886,
+          "vzKmS": 1.3613166381941437,
+          "surface": 1
+        },
+        {
+          "name": "新行星 5",
+          "massSolar": 0.0000030034896154649684,
+          "xAU": 1.629092278334865,
+          "yAU": 1.31404236943476,
+          "zAU": 0,
+          "vxKmS": 0,
+          "vyKmS": 0,
+          "vzKmS": 0,
+          "surface": 1
+        }
+      ]
+    }
+  },
+  "scene": {
+    "preset": 5,
+    "count": 600,
+    "speed": 1,
+    "angle": 0,
+    "duration": 3,
+    "dirty": false
+  },
+  "camera": {
+    "yaw": 2.868166640625,
+    "pitch": 1.5,
+    "zoom": 2.9499734251930287,
+    "focus": -1,
+    "color": 0
+  },
+  "ui": {
+    "panelOpen": false,
+    "toolsVisible": true,
+    "panel": 0,
+    "playing": false,
+    "ioBusy": false,
+    "foreground": true,
+    "notice": "正在计算多体引力 · 轨迹来自积分结果"
+  },
+  "window": {
+    "layout": {
+      "compact": false,
+      "sidePanel": true,
+      "headerHeight": 66,
+      "drawer": {
+        "x": 426.72,
+        "y": 76,
+        "width": 308,
+        "height": 406.64
+      },
+      "dock": {
+        "x": 165.36,
+        "y": 502.64,
+        "width": 420,
+        "height": 130
+      },
+      "scene": {
+        "x": 12,
+        "y": 76,
+        "width": 726.72,
+        "height": 414.64
+      }
+    },
+    "geometry": {
+      "widthPx": 2416,
+      "heightPx": 2210,
+      "topPx": 121,
+      "bottomPx": 87,
+      "leftPx": 70,
+      "rightPx": 0,
+      "revision": 8
+    },
+    "viewportWidthVp": 750.72,
+    "viewportHeightVp": 640.64,
+    "widthVp": 773.12,
+    "heightVp": 707.2,
+    "immersive": true,
+    "safePx": {
+      "top": 121,
+      "bottom": 87,
+      "left": 70,
+      "right": 0
+    }
+  }
+}

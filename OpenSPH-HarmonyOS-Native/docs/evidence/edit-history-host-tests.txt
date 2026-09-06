@@ -1,0 +1,37 @@
+✔ real ArkTS bridge queues cold launch, preserves Unicode JSON and responds in correlated chunks (85.467834ms)
+✔ serial processing and deduplication prevent repeated mutations (21.152416ms)
+✔ malformed payload, handler errors and queue overflow produce explicit errors (15.65975ms)
+✔ out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored (0.366333ms)
+✔ scene and camera reject partial invalid transactions without changing prior state (204.140167ms)
+✔ start is idempotent, seek bounded, replay failure reported as failure (142.866875ms)
+✔ closing and reopening during a tab animation discards its stale completion (121.862ms)
+✔ orbit models validate units, survive definitions, and reject invalid speed atomically (143.845333ms)
+✔ appearance changes are visual only and invalid transactions leave the scene intact (131.145625ms)
+✔ loading legacy SPH replay exits orbital closeup without inventing original parameters (104.543209ms)
+✔ custom body edits are transactional; add/delete maintain star and clear stale focus (117.56425ms)
+✔ custom CLI rejects malformed body lists atomically and preserves all initial fields (102.868375ms)
+✔ semantic UI commands expose drafts, share button handlers and reject disabled actions (100.874292ms)
+✔ invalid draft application reports CLI failure without replacing the physical system (89.109208ms)
+✔ all rendered button callbacks and editor changes route through semantic actions (1.176417ms)
+✔ viewport selection shares focus/editor action; misses and invalid coordinates preserve draft (94.453625ms)
+✔ initial vector preview handles 3D axes, zero vectors, invalid drafts and units without applying (87.203625ms)
+✔ sky controls are atomic, shared with UI and independent of physics (124.334ms)
+✔ continuous selection/edit/overview preserves solver, replay cursor and per-body drafts (115.2985ms)
+✔ placement preview is a cancellable transaction, with shared point positioning and explicit commit (118.386041ms)
+✔ placement physics respects relative reference frames, inclined velocities and conic energy (118.553417ms)
+✔ fold and rotation update composition without losing drafts or mutating the solver (233.205708ms)
+✔ main-window orientation uses the system lock in auto mode and rejects invalid policies (17.172667ms)
+✔ body transactions preserve unrelated drafts; undo and redo restore deleted bodies and draft indices (188.588292ms)
+✔ placement confirm is one undoable transaction, cancel is none, and draft discard leaves replay intact (124.419708ms)
+✔ history branches only on successful commits, stays bounded, and does not undo global duration (127.676875ms)
+✔ history actions obey placement and I/O guards, and scene replacement clears the prior session history (130.110125ms)
+✔ synchronous native rejection leaves body transactions, drafts and history untouched (161.405708ms)
+✔ programmatic input echoes and reselecting the current surface do not create false drafts (105.474625ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3483.955625

@@ -1,0 +1,185 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "actual cloud pixel changes",
+    "actual atmosphere pixel changes",
+    "visual controls preserve physics",
+    "invalid appearance atomicity",
+    "surface motion independent of paused solver",
+    "background suspends visual clock",
+    "four rendered surface styles",
+    "return to orbital integration",
+    "SPH rendering remains valid"
+  ],
+  "cloudDifference": {
+    "mean": 20.48070359053387,
+    "changed": 474567
+  },
+  "airDifference": {
+    "mean": 2.1988550783185494,
+    "changed": 173011
+  },
+  "motionDifference": {
+    "mean": 32.488225051641315,
+    "changed": 854014
+  },
+  "rendered": [
+    0,
+    2,
+    3
+  ],
+  "initialRendering": {
+    "ready": true,
+    "texturesReady": true,
+    "active": true,
+    "frames": 2606,
+    "submitMs": 0.942083,
+    "previewSeconds": 1.999760625,
+    "error": ""
+  },
+  "final": {
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "sph-rock-v1",
+      "title": "碰撞实验",
+      "config": {
+        "preset": 0,
+        "count": 200,
+        "speed": 5,
+        "angle": 0,
+        "duration": 1,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234
+      },
+      "bodies": [
+        {
+          "id": "primary",
+          "name": "主天体",
+          "kind": "rock",
+          "radiusKm": 100,
+          "density": 2700
+        },
+        {
+          "id": "impactor",
+          "name": "撞击体",
+          "kind": "rock",
+          "radiusKm": 60,
+          "density": 2700
+        }
+      ]
+    },
+    "editor": {
+      "vectorPlane": "XY",
+      "orbitIndex": 1,
+      "orbitName": "蔚蓝",
+      "orbitFields": [
+        "1",
+        "1",
+        "0.2",
+        "0.3",
+        "-5",
+        "29.784736563281832",
+        "4"
+      ],
+      "orbitSurface": 1,
+      "orbitDraft": true,
+      "editedBody": 0,
+      "targetName": "主天体",
+      "impactorName": "撞击体",
+      "title": "碰撞实验",
+      "selectingPreset": false
+    },
+    "appearance": {
+      "clouds": true,
+      "atmosphere": true,
+      "trails": true,
+      "closeup": false,
+      "autoSpin": false
+    },
+    "rendering": {
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 2992,
+      "submitMs": 0.115166,
+      "previewSeconds": 6.456931293000001,
+      "error": ""
+    },
+    "simulation": {
+      "state": "paused",
+      "error": "",
+      "count": 212,
+      "frames": 1,
+      "selected": -1,
+      "time": 0,
+      "duration": 1,
+      "stepMs": 12.632791,
+      "steps": 1,
+      "maxSpeed": 5,
+      "meanDensity": 2700,
+      "totalMass": 13752636000354738000,
+      "energyError": 0,
+      "angularError": 0,
+      "model": "sph-rock-v1",
+      "timeUnit": "s",
+      "bodies": [],
+      "config": {
+        "preset": 0,
+        "count": 200,
+        "speed": 5,
+        "angle": 0,
+        "duration": 1,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234
+      }
+    },
+    "scene": {
+      "preset": 0,
+      "count": 200,
+      "speed": 5,
+      "angle": 0,
+      "duration": 1,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0.15,
+      "pitch": 0.25,
+      "zoom": 2.7,
+      "focus": -1,
+      "color": 0
+    },
+    "ui": {
+      "panelOpen": false,
+      "toolsVisible": true,
+      "panel": 0,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "场景就绪后，点击开始实验"
+    },
+    "window": {
+      "viewportWidthVp": 707.2,
+      "viewportHeightVp": 706.56,
+      "widthVp": 707.2,
+      "heightVp": 773.12,
+      "immersive": true,
+      "safePx": {
+        "top": 121,
+        "bottom": 87,
+        "left": 0,
+        "right": 0
+      }
+    }
+  }
+}

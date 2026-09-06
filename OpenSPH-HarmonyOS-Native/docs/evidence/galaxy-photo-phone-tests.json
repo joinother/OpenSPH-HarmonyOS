@@ -1,0 +1,75 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "galaxyDifference": {
+    "mean": 14.203815586003524,
+    "changed": 271688,
+    "samples": 407836
+  },
+  "starsDifference": {
+    "mean": 0.1278250734772474,
+    "changed": 1268,
+    "samples": 407836
+  },
+  "parallaxDifference": {
+    "mean": 0,
+    "changed": 0,
+    "samples": 406879
+  },
+  "rotationDifference": {
+    "mean": 16.57139486181164,
+    "changed": 259736,
+    "samples": 406836
+  },
+  "wrapDifference": {
+    "mean": 0.0003514484580403234,
+    "changed": 0,
+    "samples": 407836
+  },
+  "nearStrength": 0.2800000309944153,
+  "info": {
+    "ok": true,
+    "reference": "photographic-panorama",
+    "catalog": "procedural-v1 (stars-only mode)",
+    "proceduralStarsVisible": false,
+    "seed": 24190906,
+    "stars": 6500,
+    "textureSize": [
+      2048,
+      1024
+    ],
+    "panorama": "eso0932a",
+    "credit": "ESO/S. Brunier",
+    "sourceUrl": "https://www.eso.org/public/images/eso0932a/",
+    "license": "CC BY 4.0",
+    "coordinateFrame": "simulation-orientation (not astrometric)",
+    "translationParallax": false,
+    "localZoomAffectsSky": false,
+    "loadError": "",
+    "mode": 2,
+    "brightness": 0.65,
+    "rendering": {
+      "compositionX": 0.5,
+      "compositionY": 0.5,
+      "compositionScale": 1,
+      "sceneRevision": 3,
+      "surfaceStarts": 1,
+      "cameraMoving": false,
+      "centerX": 0,
+      "centerY": 0,
+      "centerZ": 0,
+      "panoramaReady": true,
+      "panoramaBlend": 1,
+      "skyReady": true,
+      "skyStars": 0.6499999761581421,
+      "skyGalaxy": 0.6499999761581421,
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 3079,
+      "submitMs": 0.423,
+      "previewSeconds": 3.9870118350000006,
+      "error": ""
+    }
+  }
+}

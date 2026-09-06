@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.16)
+project(Simulation LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+get_filename_component(PROJECT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../.." ABSOLUTE)
+add_subdirectory(${PROJECT_ROOT}/third_party/opensph ${CMAKE_CURRENT_BINARY_DIR}/opensph)
+add_library(simulation SHARED engine.cpp orbit.cpp planet_texture.cpp planet_material.cpp sky_data.cpp sky_renderer.cpp renderer.cpp napi_init.cpp)
+target_link_libraries(simulation PRIVATE core ace_napi.z ace_ndk.z EGL GLESv3 hilog_ndk.z)

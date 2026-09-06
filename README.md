@@ -1,5 +1,7 @@
 # OpenSPH-HarmonyOS
 
+本分支保存星体实验室 0.17.0 的 ArkTS/ArkUI 原生检查点，继续开发请进入 [OpenSPH-HarmonyOS-Native](OpenSPH-HarmonyOS-Native)，恢复步骤和本轮验证见 [检查点说明](CHECKPOINT.md)。以下正文保留旧 wxWidgets 桌面移植路线；两个工程分别维护。
+
 把开源 [OpenSPH](https://github.com/pavelsevecek/OpenSPH)（光滑粒子流体动力学 / SPH 物理仿真软件）以**保留原生 wxWidgets UI** 的方式移植到鸿蒙 PC（HarmonyOS NEXT）的完整工程。
 
 本项目是**适配层 + 壳工程 + 汉化**，不 fork 上游源码。OpenSPH 与 wxWidgets 的改动以 patch 形式提供，可精确复现。

@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "markdownFiles": 25,
+  "localLinksChecked": 126,
+  "sourceVersion": "0.12.0",
+  "errors": [],
+  "organizedDate": "2026-09-06",
+  "timezone": "Asia/Shanghai",
+  "movedMarkdown": 19,
+  "evidenceFilesPreservedByteForByte": 95,
+  "releaseArtifactsVerifiedAgainstManifest": 2,
+  "pythonScriptsSyntaxChecked": [
+    "check-docs.py",
+    "audit-upstream.py"
+  ],
+  "applicationRebuilt": false,
+  "deviceTestsRerun": false,
+  "externalLinksFetched": false
+}

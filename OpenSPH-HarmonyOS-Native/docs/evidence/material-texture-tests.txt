@@ -1,0 +1,1 @@
+PASS deterministic surface/cloud maps; ocean coverage=0.381422 cloud coverage=0.226716 max longitude seam=5.96046e-08; bounded texture allocation

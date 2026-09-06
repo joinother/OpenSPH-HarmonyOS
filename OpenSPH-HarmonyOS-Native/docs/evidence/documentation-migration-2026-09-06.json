@@ -1,0 +1,463 @@
+{
+  "organizedAt": "2026-09-06T17:53:06+08:00",
+  "timezone": "Asia/Shanghai",
+  "datePolicy": "Only organization time is normalized; source event/publication dates are not inferred from filesystem metadata.",
+  "moved": [
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/RELEASE-0.6.0.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.6.0.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/RELEASE-0.7.0.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.7.0.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/RELEASE-0.11.0.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.11.0.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/RELEASE-0.10.0.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.10.0.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/RELEASE-0.12.0.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.12.0.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/RELEASE-0.3.0.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.3.0.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/RELEASE-0.8.0.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.8.0.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/RELEASE-0.4.0.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.4.0.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/RELEASE-0.5.0.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.5.0.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/RELEASE-0.8.1.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.8.1.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/RELEASE-0.9.0.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.9.0.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/DESIGN-0.5.0.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/archive/DESIGN-0.5.0.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/ui-verification.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/archive/UI-VERIFICATION-2026-09-06.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/PEER-RESEARCH-2026-09.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/research/PEER-RESEARCH-2026-09-06.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/UPSTREAM-AUDIT.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/reference/UPSTREAM-AUDIT.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/CLI.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/archive/CLI-HISTORY-THROUGH-0.12.0.md"
+    },
+    {
+      "from": "outputs/OpenSPH-鸿蒙移植调研与实施方案.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/research/archive/PORTING-RESEARCH-2026-09-06.md"
+    },
+    {
+      "from": "outputs/SpaceSim网站与论坛调研-2026-09-06.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/research/archive/SPACESIM-RESEARCH-2026-09-06.md"
+    },
+    {
+      "from": "outputs/全宇宙交互架构与Celestia复用评估.md",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/research/archive/UNIVERSE-ARCHITECTURE-2026-09-06.md"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/custom-native-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/custom-native-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/placement-touch-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/placement-touch-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/workspace-edited-state.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/workspace-edited-state.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/sky-device-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/sky-device-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/orbit-device-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/orbit-device-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/orbit-arm64-numerical-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/orbit-arm64-numerical-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/custom-numerical-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/custom-numerical-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/sky-material-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/sky-material-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/picking-device-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/picking-device-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/ui-cli-device-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/ui-cli-device-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/scene-host-test-results.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/scene-host-test-results.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/placement-phone-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/placement-phone-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/scene-native-test-results.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/scene-native-test-results.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/workspace-final-state.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/workspace-final-state.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/orbit-narrow-ui-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/orbit-narrow-ui-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/cli-build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/cli-build-result.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/orbit-host-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/orbit-host-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/floating-build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/floating-build-result.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/custom-narrow-ui-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/custom-narrow-ui-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/sky-ui-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/sky-ui-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/continuity-final-state.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/continuity-final-state.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/placement-build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/placement-build-result.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/material-narrow-ui-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/material-narrow-ui-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/orbit-final-state.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/orbit-final-state.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/material-host-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/material-host-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/sky-data-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/sky-data-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/workspace-cli-device-results.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/workspace-cli-device-results.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/custom-device-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/custom-device-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/continuity-device-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/continuity-device-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/orbit-wide-ui-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/orbit-wide-ui-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/emulator-test-results.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/emulator-test-results.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/project-device-test-results.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/project-device-test-results.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/orbit-numerical-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/orbit-numerical-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/orbit-wide-layout-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/orbit-wide-layout-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/sky-final-state.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/sky-final-state.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/floating-narrow-device-results.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/floating-narrow-device-results.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/workspace-host-test-results.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/workspace-host-test-results.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/scene-cli-device-test-results.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/scene-cli-device-test-results.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/workspace-applied-state.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/workspace-applied-state.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/custom-build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/custom-build-result.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/picking-build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/picking-build-result.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/continuity-material-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/continuity-material-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/material-final-state.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/material-final-state.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/continuity-ui-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/continuity-ui-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/picking-ui-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/picking-ui-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/build-result.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/cli-host-test-results.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/cli-host-test-results.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/custom-wide-ui-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/custom-wide-ui-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/floating-cli-device-results.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/floating-cli-device-results.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/picking-phone-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/picking-phone-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/workspace-narrow-device-results.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/workspace-narrow-device-results.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/continuity-host-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/continuity-host-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/placement-ui-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/placement-ui-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/material-device-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/material-device-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/sky-host-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/sky-host-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/orbit-cli-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/orbit-cli-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/placement-final-state.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/placement-final-state.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/placement-host-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/placement-host-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/continuity-build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/continuity-build-result.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/custom-material-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/custom-material-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/ui-cli-batch-demo.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/ui-cli-batch-demo.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/projection-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/projection-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/floating-final-state.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/floating-final-state.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/upstream-inventory-summary.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/upstream-inventory-summary.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/workspace-build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/workspace-build-result.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/picking-material-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/picking-material-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/ui-cli-host-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/ui-cli-host-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/orbit-native-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/orbit-native-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/floating-wide-device-results.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/floating-wide-device-results.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/continuity-phone-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/continuity-phone-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/floating-host-test-results.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/floating-host-test-results.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/cli-device-test-results.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/cli-device-test-results.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/scene-cli-catalog.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/scene-cli-catalog.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/custom-host-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/custom-host-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/placement-device-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/placement-device-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/continuity-sky-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/continuity-sky-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/continuity-picking-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/continuity-picking-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/placement-phone-touch-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/placement-phone-touch-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/workspace-wide-device-results.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/workspace-wide-device-results.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/sky-phone-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/sky-phone-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/scene-final-device-state.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/scene-final-device-state.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/sky-picking-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/sky-picking-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/material-build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/material-build-result.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/ui-cli-build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/ui-cli-build-result.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/scene-build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/scene-build-result.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/placement-continuity-regression.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/placement-continuity-regression.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/upstream-file-inventory.csv",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/upstream-file-inventory.csv"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/picking-final-state.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/picking-final-state.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/custom-final-state.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/custom-final-state.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/material-texture-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/material-texture-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/picking-host-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/picking-host-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/continuity-projection-tests.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/continuity-projection-tests.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/sky-build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/sky-build-result.txt"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/material-wide-ui-tests.json",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/material-wide-ui-tests.json"
+    },
+    {
+      "from": "outputs/OpenSPH-HarmonyOS-Native/docs/orbit-build-result.txt",
+      "to": "outputs/OpenSPH-HarmonyOS-Native/docs/evidence/orbit-build-result.txt"
+    }
+  ]
+}

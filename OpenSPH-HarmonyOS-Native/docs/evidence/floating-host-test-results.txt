@@ -1,0 +1,45 @@
+TAP version 13
+# Subtest: real ArkTS bridge queues cold launch, preserves Unicode JSON and responds in correlated chunks
+ok 1 - real ArkTS bridge queues cold launch, preserves Unicode JSON and responds in correlated chunks
+  ---
+  duration_ms: 71.3635
+  ...
+# Subtest: serial processing and deduplication prevent repeated mutations
+ok 2 - serial processing and deduplication prevent repeated mutations
+  ---
+  duration_ms: 20.681208
+  ...
+# Subtest: malformed payload, handler errors and queue overflow produce explicit errors
+ok 3 - malformed payload, handler errors and queue overflow produce explicit errors
+  ---
+  duration_ms: 13.907625
+  ...
+# Subtest: out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored
+ok 4 - out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored
+  ---
+  duration_ms: 0.13125
+  ...
+# Subtest: scene and camera reject partial invalid transactions without changing prior state
+ok 5 - scene and camera reject partial invalid transactions without changing prior state
+  ---
+  duration_ms: 73.158875
+  ...
+# Subtest: start is idempotent, seek bounded, replay failure reported as failure
+ok 6 - start is idempotent, seek bounded, replay failure reported as failure
+  ---
+  duration_ms: 47.5185
+  ...
+# Subtest: closing and reopening during a tab animation discards its stale completion
+ok 7 - closing and reopening during a tab animation discards its stale completion
+  ---
+  duration_ms: 47.4075
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 446.884958

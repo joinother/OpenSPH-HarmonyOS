@@ -1,0 +1,70 @@
+{
+  "preset": 5,
+  "count": 600,
+  "speed": 1,
+  "angle": 0,
+  "duration": 3,
+  "targetRadiusKm": 100,
+  "impactorRadiusKm": 60,
+  "targetDensity": 2700,
+  "impactorDensity": 2700,
+  "targetSpin": 0,
+  "seed": 1234,
+  "orbitBodies": [
+    {
+      "name": "恒星",
+      "massSolar": 1,
+      "xAU": 0,
+      "yAU": 0,
+      "zAU": 0,
+      "vxKmS": 0,
+      "vyKmS": 0,
+      "vzKmS": 0,
+      "surface": 0
+    },
+    {
+      "name": "蔚蓝",
+      "massSolar": 3.0034896154649684e-06,
+      "xAU": 1.0,
+      "yAU": 0.0,
+      "zAU": 0.0,
+      "vxKmS": -0.0,
+      "vyKmS": 29.784736563281832,
+      "vzKmS": 0.0,
+      "surface": 1
+    },
+    {
+      "name": "暮云",
+      "massSolar": 2.447838287796944e-06,
+      "xAU": -0.36348919531189744,
+      "yAU": 0.6215107439871891,
+      "zAU": 0.0,
+      "vxKmS": -30.300063495413614,
+      "vyKmS": -17.72092567087515,
+      "vzKmS": -0.0,
+      "surface": 2
+    },
+    {
+      "name": "赤砂",
+      "massSolar": 3.2271560829322774e-07,
+      "xAU": -0.7451964484378631,
+      "yAU": -1.324795174068654,
+      "zAU": -0.0,
+      "vxKmS": 21.056032226154784,
+      "vyKmS": -11.844004824485117,
+      "vzKmS": -0.0,
+      "surface": 3
+    },
+    {
+      "name": "远洋",
+      "massSolar": 6.006979230929937e-06,
+      "xAU": 1.1339903035639434,
+      "yAU": 2.1995605524945376,
+      "zAU": 0.3549638958160112,
+      "vxKmS": -16.788162936966238,
+      "vyKmS": 8.435501221730886,
+      "vzKmS": 1.3613166381941437,
+      "surface": 1
+    }
+  ]
+}

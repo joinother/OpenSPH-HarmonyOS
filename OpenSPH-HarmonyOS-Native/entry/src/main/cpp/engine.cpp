@@ -1,0 +1,458 @@
+#include "engine.h"
+#include "orbit.h"
+#include "Sph.h"
+#include "io/LogWriter.h"
+#include "thread/Scheduler.h"
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdio>
+#include <fstream>
+#include <stdexcept>
+
+namespace lab {
+using namespace Sph;
+using Clock = std::chrono::steady_clock;
+class Experiment : public IRun, public IRunCallbacks {
+    Engine &engine;
+    Config cfg;
+    uint64_t generation;
+    Size split = 0;
+    Clock::time_point last = Clock::now();
+    double elapsed = 0, usedDt = 0;
+
+  public:
+    Experiment(Engine &e, Config c, uint64_t g) : engine(e), cfg(c), generation(g) {
+        scheduler = SequentialScheduler::getGlobalInstance();
+        settings.set(RunSettingsId::RUN_LOGGER, LoggerEnum::NONE);
+        settings.set(RunSettingsId::RUN_OUTPUT_TYPE, IoEnum::NONE);
+        settings.set(RunSettingsId::RUN_RNG_SEED, cfg.seed);
+        settings.set(RunSettingsId::RUN_END_TIME, Float(cfg.duration));
+        settings.set(RunSettingsId::TIMESTEPPING_CRITERION, TimeStepCriterionEnum::COURANT);
+        settings.set(RunSettingsId::TIMESTEPPING_INITIAL_TIMESTEP, 0.02_f);
+        settings.set(RunSettingsId::TIMESTEPPING_MAX_TIMESTEP, 0.15_f);
+        logWriter = makeAuto<NullLogWriter>();
+    }
+    void setUp(SharedPtr<Storage> storage) override {
+        InitialConditions ic(settings);
+        BodySettings body;
+        body.set(BodySettingsId::PARTICLE_COUNT, cfg.preset == 2 ? cfg.count : cfg.count * 3 / 4);
+        body.set(BodySettingsId::DENSITY, Float(cfg.targetDensity));
+        auto target = ic.addMonolithicBody(*storage, SphericalDomain(Vector(0._f), Float(cfg.targetRadiusKm * 1000)), body);
+        target.addRotation(Vector(0._f, 0._f, Float(cfg.targetSpin)), Vector(0._f));
+        split = storage->getParticleCnt();
+        if (cfg.preset == 2) {
+            target.addRotation(Vector(0._f, 0._f, Float(cfg.speed * 0.003)), Vector(0._f));
+        } else {
+            body.set(BodySettingsId::PARTICLE_COUNT, cfg.count / 4);
+            const double a = cfg.angle * 3.141592653589793 / 180.0;
+            const double distance = 1125.0 * (cfg.targetRadiusKm + cfg.impactorRadiusKm);
+            const double offset = std::sin(a) * distance * 0.5;
+            body.set(BodySettingsId::DENSITY, Float(cfg.impactorDensity));
+            auto impactor = ic.addMonolithicBody(
+                *storage, SphericalDomain(Vector(Float(distance), Float(offset), 0._f), Float(cfg.impactorRadiusKm * 1000)), body);
+            impactor.addVelocity(Vector(Float(-cfg.speed * 1000), 0._f, 0._f));
+        }
+    }
+    void tearDown(const Storage &, const Statistics &) override {}
+    void snapshot(const Storage &storage, double time) {
+        if (storage.getParticleCnt() == 0 || engine.stopped(generation))
+            return;
+        auto f = std::make_shared<Frame>();
+        f->time = time;
+        const auto &r = storage.getValue<Vector>(QuantityId::POSITION);
+        const auto &v = storage.getDt<Vector>(QuantityId::POSITION);
+        const auto &rho = storage.getValue<Float>(QuantityId::DENSITY);
+        const auto &mass = storage.getValue<Float>(QuantityId::MASS);
+        double weights[2] = {};
+        f->particles.reserve(r.size());
+        for (Size i = 0; i < r.size(); ++i) {
+            double speed = std::sqrt(double(v[i][X] * v[i][X] + v[i][Y] * v[i][Y] + v[i][Z] * v[i][Z]));
+            if (!std::isfinite(speed) || !std::isfinite(double(r[i][X])) || !std::isfinite(double(r[i][Y])) ||
+                !std::isfinite(double(r[i][Z])) || !std::isfinite(double(rho[i])))
+                throw std::runtime_error("Non-finite particle state; reduce speed or increase resolution.");
+            int body = i < split ? 0 : 1;
+            f->particles.push_back({float(r[i][X] / 1.e5), float(r[i][Y] / 1.e5), float(r[i][Z] / 1.e5),
+                                    float(speed / 1000), float(rho[i]), float(body)});
+            f->maxSpeed = std::max(f->maxSpeed, speed / 1000);
+            f->meanDensity += rho[i];
+            f->totalMass += mass[i];
+            weights[body] += mass[i];
+            for (int j = 0; j < 3; ++j)
+                f->centers[body * 3 + j] += double(r[i][j] / 1.e5) * mass[i];
+        }
+        for (int b = 0; b < 2; ++b)
+            for (int j = 0; j < 3; ++j)
+                if (weights[b] > 0)
+                    f->centers[b * 3 + j] /= weights[b];
+        f->meanDensity /= r.size();
+        auto now = Clock::now();
+        engine.publish(f, generation, std::chrono::duration<double, std::milli>(now - last).count());
+        last = now;
+    }
+    void onSetUp(const Storage &storage, Statistics &) override {
+        snapshot(storage, 0);
+        engine.waitUntilRunning(generation);
+        last = Clock::now();
+    }
+    void onTimeStep(const Storage &storage, Statistics &stats) override {
+        // OpenSPH updates the next time-step during step(). Track the physical
+        // step used for this snapshot independently of its pre-step RUN_TIME.
+        if (storage.getParticleCnt() == 0)
+            return;
+        if (usedDt == 0)
+            usedDt = 0.02;
+        elapsed += usedDt;
+        if (stats.has(StatisticsId::TIMESTEP_VALUE))
+            usedDt = stats.get<Float>(StatisticsId::TIMESTEP_VALUE);
+        snapshot(storage, elapsed);
+        engine.waitUntilRunning(generation);
+        // Keep input responsive and bound preview production on fast scenes.
+        std::this_thread::sleep_for(std::chrono::milliseconds(8));
+        last = Clock::now();
+    }
+    bool shouldAbortRun() const override { return engine.stopped(generation); }
+};
+static void runOrbit(Engine &engine, Config cfg, uint64_t generation) {
+    std::vector<OrbitBody> initial;
+    for(const auto &b:cfg.orbitBodies)initial.push_back({b.massSolar,{b.xAU,b.yAU,b.zAU},{b.vxKmS*1000*YEAR/AU,b.vyKmS*1000*YEAR/AU,b.vzKmS*1000*YEAR/AU}});
+    OrbitSystem system=cfg.preset==5?OrbitSystem(initial):OrbitSystem(cfg.preset,cfg.speed);
+    const double e0=system.energy(),l0=norm(system.angularMomentum());
+    double energyScale=0,angularScale=0;
+    for(size_t i=0;i<system.bodies.size();++i){const auto &b=system.bodies[i];
+        energyScale+=.5*b.mass*norm(b.velocity)*norm(b.velocity);
+        angularScale+=b.mass*norm(b.position)*std::max(norm(b.velocity),std::sqrt(ORBIT_G/std::max(.02,norm(b.position))));
+        for(size_t j=0;j<i;++j){Vec3 d;for(int k=0;k<3;++k)d[k]=b.position[k]-system.bodies[j].position[k];energyScale+=ORBIT_G*b.mass*system.bodies[j].mass/norm(d);}}
+    const double eden=(std::abs(e0)<1.e-6*energyScale?energyScale:std::abs(e0)),lden=(l0<1.e-6*angularScale?angularScale:l0);
+    std::vector<std::deque<Particle>> trails(system.bodies.size());
+    double time=0;
+    auto publish=[&](double ms) {
+        auto f=std::make_shared<Frame>();f->orbital=true;f->time=time;
+        f->energyError=(system.energy()-e0)/eden;
+        f->angularError=(norm(system.angularMomentum())-l0)/lden;
+        for(size_t i=0;i<system.bodies.size();++i){const auto &b=system.bodies[i];
+            Particle p{float(b.position[0]),float(b.position[1]),float(b.position[2]),float(norm(b.velocity)*AU/YEAR/1000),float(b.mass),float(i)};
+            f->surfaces.push_back(cfg.preset==5?cfg.orbitBodies[i].surface:int(i));
+            f->particles.push_back(p);trails[i].push_back(p);if(trails[i].size()>512)trails[i].pop_front();
+            f->trails.insert(f->trails.end(),trails[i].begin(),trails[i].end());
+            f->maxSpeed=std::max(f->maxSpeed,double(p.speed));f->totalMass+=b.mass*SOLAR_MASS;
+            if(i<2)for(int k=0;k<3;++k)f->centers[3*i+k]=b.position[k];
+        }
+        engine.publish(f,generation,ms);
+    };
+    publish(0);
+    while(time<cfg.duration&&!engine.stopped(generation)){
+        if(!engine.waitUntilRunning(generation))return;
+        auto begin=Clock::now();
+        for(int k=0;k<(cfg.preset==5?128:16)&&time<cfg.duration;++k){double dt=std::min(ORBIT_DT/(cfg.preset==5?8:1),cfg.duration-time);system.step(dt);time+=dt;
+            if(cfg.preset==5&&std::abs(system.energy()-e0)>eden*.01)throw std::runtime_error("积分精度不足：能量偏差超过阈值，已停止；请增大间距或降低初速");}
+        publish(std::chrono::duration<double,std::milli>(Clock::now()-begin).count());
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    }
+}
+Engine::Engine() : worker(&Engine::loop, this) {}
+Engine::~Engine() {
+    quit = true;
+    ++generation;
+    cv.notify_all();
+    if (worker.joinable())
+        worker.join();
+}
+Engine &Engine::instance() {
+    static Engine e;
+    return e;
+}
+static bool validOrbitName(const std::string &name) {
+    size_t units=0;bool visible=false;
+    for(size_t i=0;i<name.size();){unsigned char c=name[i++];uint32_t cp=c;int extra=0;uint32_t minimum=0;
+        if(c>=0xf0&&c<=0xf4){extra=3;cp=c&7;minimum=0x10000;}
+        else if(c>=0xe0&&c<=0xef){extra=2;cp=c&15;minimum=0x800;}
+        else if(c>=0xc2&&c<=0xdf){extra=1;cp=c&31;minimum=0x80;}
+        else if(c>=0x80)return false;
+        for(int k=0;k<extra;++k){if(i>=name.size())return false;unsigned char d=name[i++];if((d&0xc0)!=0x80)return false;cp=(cp<<6)|(d&63);}
+        if(cp<minimum||cp>0x10ffff||(cp>=0xd800&&cp<=0xdfff)||cp<32||cp==127)return false;
+        units+=cp>0xffff?2:1;if(units>48)return false;
+        bool space=cp==32||cp==0xa0||cp==0x1680||(cp>=0x2000&&cp<=0x200a)||cp==0x2028||cp==0x2029||cp==0x202f||cp==0x205f||cp==0x3000||cp==0xfeff;
+        visible|=!space;
+    }
+    return visible;
+}
+bool validConfig(const Config &c) {
+    auto range = [](double x, double low, double high) { return std::isfinite(x) && x >= low && x <= high; };
+    if(c.preset==5){
+        if(c.orbitBodies.size()<2||c.orbitBodies.size()>8||c.speed!=1)return false;
+        for(size_t i=0;i<c.orbitBodies.size();++i){const auto &b=c.orbitBodies[i];
+            if(!validOrbitName(b.name))return false;
+            if(!range(b.massSolar,i==0?.1:1.e-8,i==0?2:.01)||b.surface<(i==0?0:1)||b.surface>(i==0?0:3))return false;
+            if(!range(b.xAU,-10,10)||!range(b.yAU,-10,10)||!range(b.zAU,-10,10)||!range(norm({b.vxKmS,b.vyKmS,b.vzKmS}),0,100))return false;
+            for(size_t j=0;j<i;++j){const auto &a=c.orbitBodies[j];if(norm({b.xAU-a.xAU,b.yAU-a.yAU,b.zAU-a.zAU})<.05)return false;}
+        }
+    }else if(!c.orbitBodies.empty())return false;
+    return c.preset >= 0 && c.preset <= 5 && c.count >= 200 && c.count <= 2400 &&
+        range(c.speed,c.preset>=3?0.75:0.5,c.preset>=3?1.25:10) && range(c.angle,0,70) && range(c.duration,1,c.preset>=3?10:120) &&
+        range(c.targetRadiusKm,40,200) && range(c.impactorRadiusKm,20,120) &&
+        range(c.targetDensity,2400,3000) && range(c.impactorDensity,2400,3000) &&
+        range(c.targetSpin,-0.01,0.01) && c.seed >= 1 && c.seed <= 1000000;
+}
+void Engine::start(Config c, bool initiallyPaused) {
+    if (!validConfig(c)) throw std::invalid_argument("Invalid scene parameters");
+    std::lock_guard<std::mutex> lock(mutex);
+    ++generation;
+    config = c;
+    pending = true;
+    paused = initiallyPaused;
+    history.clear();
+    current = Status{};
+    current.state = "preparing";
+    current.duration = c.duration;
+    cv.notify_all();
+}
+void Engine::pause(bool value) {
+    std::lock_guard<std::mutex> lock(mutex);
+    if (current.state == "running" || current.state == "paused" || current.state == "preparing") {
+        paused = value;
+        if (current.state != "preparing")
+            current.state = value ? "paused" : "running";
+    }
+    if (!value)
+        current.selected = -1;
+    cv.notify_all();
+}
+void Engine::cancel() {
+    std::lock_guard<std::mutex> lock(mutex);
+    ++generation;
+    pending = false;
+    paused = false;
+    current.state = "cancelled";
+    cv.notify_all();
+}
+void Engine::seek(int i) {
+    std::lock_guard<std::mutex> lock(mutex);
+    if (i < 0) {
+        current.selected = -1;
+        return;
+    }
+    if (history.empty())
+        return;
+    paused = true;
+    if (current.state == "running")
+        current.state = "paused";
+    current.selected = std::min(i, int(history.size() - 1));
+}
+bool Engine::stopped(uint64_t g) const { return quit || g != generation.load(); }
+bool Engine::waitUntilRunning(uint64_t g) {
+    std::unique_lock<std::mutex> lock(mutex);
+    cv.wait(lock, [&] { return !paused || stopped(g); });
+    return !stopped(g);
+}
+void Engine::publish(std::shared_ptr<Frame> f, uint64_t g, double ms) {
+    std::lock_guard<std::mutex> lock(mutex);
+    if (stopped(g))
+        return;
+    history.push_back(f);
+    if (history.size() > maxFrames) {
+        history.pop_front();
+        if (current.selected >= 0)
+            current.selected = std::max(0, current.selected - 1);
+    }
+    current.state = paused ? "paused" : "running";
+    current.stepMs = ms;
+    current.steps++;
+    current.time = f->time;
+    current.count = f->particles.size();
+}
+Status Engine::status() {
+    std::lock_guard<std::mutex> lock(mutex);
+    Status s = current;
+    s.config = config;
+    s.frames = history.size();
+    if (!history.empty()) {
+        auto f = current.selected < 0 ? history.back()
+                                      : history[std::min(size_t(current.selected), history.size() - 1)];
+        s.time = f->time;
+        s.maxSpeed = f->maxSpeed;
+        s.meanDensity = f->meanDensity;
+        s.totalMass = f->totalMass;
+        s.count = f->particles.size();
+        s.energyError=f->energyError;s.angularError=f->angularError;
+        if(f->orbital)s.bodies=f->particles;
+    }
+    return s;
+}
+std::shared_ptr<const Frame> Engine::frame() {
+    std::lock_guard<std::mutex> lock(mutex);
+    if (history.empty())
+        return {};
+    return current.selected < 0 ? history.back()
+                                : history[std::min(size_t(current.selected), history.size() - 1)];
+}
+void Engine::loop() {
+    while (!quit) {
+        Config c;
+        uint64_t g;
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            cv.wait(lock, [&] { return pending || quit; });
+            if (quit)
+                return;
+            c = config;
+            g = generation;
+            pending = false;
+        }
+        try {
+            if(c.preset>=3) runOrbit(*this,c,g);
+            else {Experiment run(*this, c, g);Storage storage;run.run(storage, run);}
+            std::lock_guard<std::mutex> lock(mutex);
+            if (!stopped(g))
+                current.state = "completed";
+        } catch (const Sph::Exception &e) {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (!stopped(g)) {
+                current.state = "failed";
+                current.error = e.what();
+            }
+        } catch (const std::exception &e) {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (!stopped(g)) {
+                current.state = "failed";
+                current.error = e.what();
+            }
+        }
+    }
+}
+// Versioned, bounded playback format. This is visualization history, not a solver checkpoint.
+// Fixed-width little-endian ARM64/desktop fields; reject other formats/version.
+bool Engine::saveReplay(const std::string &dir) {
+    std::deque<std::shared_ptr<Frame>> frames;
+    double duration;
+    Config saved;
+    bool known;
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        frames = history;
+        duration = current.duration;
+        saved = config; known = current.configKnown;
+    }
+    if (frames.empty())
+        return false;
+    std::string path = dir + "/last-replay.osphr", temp = path + ".tmp";
+    std::ofstream out(temp, std::ios::binary);
+    uint32_t magic = 0x4c485053, version = known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1, n = frames.size();
+    out.write(reinterpret_cast<char *>(&magic), 4);
+    out.write(reinterpret_cast<char *>(&version), 4);
+    out.write(reinterpret_cast<char *>(&n), 4);
+    out.write(reinterpret_cast<char *>(&duration), 8);
+    if (version >= 2) {
+        double values[] = {double(saved.preset),double(saved.count),saved.speed,saved.angle,saved.duration,
+            saved.targetRadiusKm,saved.impactorRadiusKm,saved.targetDensity,saved.impactorDensity,saved.targetSpin,double(saved.seed)};
+        out.write(reinterpret_cast<char *>(values),sizeof(values));
+    }
+    if(version==4){uint32_t count=saved.orbitBodies.size();out.write(reinterpret_cast<char *>(&count),4);
+        for(const auto &b:saved.orbitBodies){uint32_t len=b.name.size();out.write(reinterpret_cast<char *>(&len),4);out.write(b.name.data(),len);
+            double v[]={b.massSolar,b.xAU,b.yAU,b.zAU,b.vxKmS,b.vyKmS,b.vzKmS,double(b.surface)};out.write(reinterpret_cast<char *>(v),sizeof(v));}}
+    for (auto &f : frames) {
+        uint32_t count = f->particles.size();
+        out.write(reinterpret_cast<char *>(&count), 4);
+        double values[] = {f->time, f->maxSpeed, f->meanDensity, f->totalMass};
+        out.write(reinterpret_cast<char *>(values), sizeof(values));
+        out.write(reinterpret_cast<char *>(f->centers), sizeof(f->centers));
+        out.write(reinterpret_cast<char *>(f->particles.data()), count * sizeof(Particle));
+        if(version>=3){uint32_t ntrail=f->trails.size();double d[]={f->energyError,f->angularError};
+            out.write(reinterpret_cast<char *>(d),sizeof(d));out.write(reinterpret_cast<char *>(&ntrail),4);
+            out.write(reinterpret_cast<char *>(f->trails.data()),ntrail*sizeof(Particle));}
+    }
+    out.flush();
+    bool ok = bool(out);
+    out.close();
+    if (!ok) {
+        std::remove(temp.c_str());
+        return false;
+    }
+    return std::rename(temp.c_str(), path.c_str()) == 0;
+}
+bool Engine::loadReplay(const std::string &dir) {
+    std::ifstream in(dir + "/last-replay.osphr", std::ios::binary);
+    uint32_t magic = 0, version = 0, n = 0;
+    double duration = 0;
+    in.read(reinterpret_cast<char *>(&magic), 4);
+    in.read(reinterpret_cast<char *>(&version), 4);
+    in.read(reinterpret_cast<char *>(&n), 4);
+    in.read(reinterpret_cast<char *>(&duration), 8);
+    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
+        duration <= 0 || duration > 120)
+        return false;
+    Config saved;
+    if (version >= 2) {
+        double v[11]; in.read(reinterpret_cast<char *>(v),sizeof(v));
+        if (!in) return false;
+        for (double x : v) if (!std::isfinite(x) || std::abs(x) > 1.e7) return false;
+        for (int i : {0,1,10}) if (std::trunc(v[i]) != v[i]) return false;
+        saved = {int(v[0]),int(v[1]),v[2],v[3],v[4],v[5],v[6],v[7],v[8],v[9],int(v[10])};
+        if(version==4){uint32_t count=0;in.read(reinterpret_cast<char *>(&count),4);if(!in||count<2||count>8)return false;
+            for(uint32_t i=0;i<count;++i){uint32_t len=0;in.read(reinterpret_cast<char *>(&len),4);if(!in||len<1||len>192)return false;
+                std::string name(len,'\0');in.read(&name[0],len);double d[8];in.read(reinterpret_cast<char *>(d),sizeof(d));if(!in)return false;
+                for(double x:d)if(!std::isfinite(x))return false;
+                if(d[7]<0||d[7]>3||std::trunc(d[7])!=d[7])return false;
+                saved.orbitBodies.push_back({name,d[0],d[1],d[2],d[3],d[4],d[5],d[6],int(d[7])});}}
+        if (!validConfig(saved) || saved.duration != duration || (version>=3)!=(saved.preset>=3) || (version==4)!=(saved.preset==5)) return false;
+    }
+    std::deque<std::shared_ptr<Frame>> frames;
+    for (uint32_t k = 0; k < n; ++k) {
+        uint32_t count = 0;
+        in.read(reinterpret_cast<char *>(&count), 4);
+        if (count == 0 || count > 10000)
+            return false;
+        auto f = std::make_shared<Frame>();
+        double v[4];
+        in.read(reinterpret_cast<char *>(v), sizeof(v));
+        if (!in)
+            return false;
+        for (double d : v)
+            if (!std::isfinite(d))
+                return false;
+        f->time = v[0];
+        f->maxSpeed = v[1];
+        f->meanDensity = v[2];
+        f->totalMass = v[3];
+        in.read(reinterpret_cast<char *>(f->centers), sizeof(f->centers));
+        for (double d : f->centers)
+            if (!std::isfinite(d))
+                return false;
+        f->particles.resize(count);
+        in.read(reinterpret_cast<char *>(f->particles.data()), count * sizeof(Particle));
+        if (!in)
+            return false;
+        for (const auto &p : f->particles)
+            if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z) ||
+                !std::isfinite(p.speed) || !std::isfinite(p.density) || (p.body < 0 || p.body > (version>=3?7:1) || std::trunc(p.body)!=p.body))
+                return false;
+        if(version>=3){
+            if(count!=uint32_t(saved.preset==5?saved.orbitBodies.size():(saved.preset==3?2:4)))return false;
+            f->orbital=true;for(uint32_t i=0;i<count;++i)f->surfaces.push_back(saved.preset==5?saved.orbitBodies[i].surface:int(i));double d[2];uint32_t nt=0;
+            in.read(reinterpret_cast<char *>(d),sizeof(d));in.read(reinterpret_cast<char *>(&nt),4);
+            if(!in||!std::isfinite(d[0])||!std::isfinite(d[1])||nt==0||nt>count*512||nt%count!=0)return false;
+            f->energyError=d[0];f->angularError=d[1];f->trails.resize(nt);
+            in.read(reinterpret_cast<char *>(f->trails.data()),nt*sizeof(Particle));if(!in)return false;
+            for(uint32_t i=0;i<nt;++i){const auto &p=f->trails[i];if(!std::isfinite(p.x)||!std::isfinite(p.y)||!std::isfinite(p.z)||!std::isfinite(p.speed)||!std::isfinite(p.density)||p.body!=float(i/(nt/count)))return false;}
+            for(uint32_t i=0;i<count;++i)if(f->particles[i].body!=float(i))return false;
+        }
+        if(f->time<0||f->time>duration+0.15||(!frames.empty()&&f->time<frames.back()->time))return false;
+        frames.push_back(f);
+    }
+    if (in.peek() != std::char_traits<char>::eof())
+        return false;
+    std::lock_guard<std::mutex> lock(mutex);
+    ++generation;
+    pending = false;
+    paused = false;
+    history = std::move(frames);
+    current = Status{};
+    current.state = "replay";
+    current.configKnown = version >= 2;
+    if (current.configKnown) config = saved;else config=Config{};
+    current.duration = duration;
+    current.selected = 0;
+    cv.notify_all();
+    return true;
+}
+} // namespace lab

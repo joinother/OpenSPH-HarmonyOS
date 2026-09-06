@@ -1,0 +1,60 @@
+TAP version 13
+# Subtest: real ArkTS bridge queues cold launch, preserves Unicode JSON and responds in correlated chunks
+ok 1 - real ArkTS bridge queues cold launch, preserves Unicode JSON and responds in correlated chunks
+  ---
+  duration_ms: 91.349
+  ...
+# Subtest: serial processing and deduplication prevent repeated mutations
+ok 2 - serial processing and deduplication prevent repeated mutations
+  ---
+  duration_ms: 28.334958
+  ...
+# Subtest: malformed payload, handler errors and queue overflow produce explicit errors
+ok 3 - malformed payload, handler errors and queue overflow produce explicit errors
+  ---
+  duration_ms: 17.866
+  ...
+# Subtest: out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored
+ok 4 - out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored
+  ---
+  duration_ms: 0.405375
+  ...
+# Subtest: scene and camera reject partial invalid transactions without changing prior state
+ok 5 - scene and camera reject partial invalid transactions without changing prior state
+  ---
+  duration_ms: 111.778042
+  ...
+# Subtest: start is idempotent, seek bounded, replay failure reported as failure
+ok 6 - start is idempotent, seek bounded, replay failure reported as failure
+  ---
+  duration_ms: 75.906292
+  ...
+# Subtest: closing and reopening during a tab animation discards its stale completion
+ok 7 - closing and reopening during a tab animation discards its stale completion
+  ---
+  duration_ms: 73.679666
+  ...
+# Subtest: orbit models validate units, survive definitions, and reject invalid speed atomically
+ok 8 - orbit models validate units, survive definitions, and reject invalid speed atomically
+  ---
+  duration_ms: 64.736416
+  ...
+# Subtest: appearance changes are visual only and invalid transactions leave the scene intact
+ok 9 - appearance changes are visual only and invalid transactions leave the scene intact
+  ---
+  duration_ms: 53.655375
+  ...
+# Subtest: loading legacy SPH replay exits orbital closeup without inventing original parameters
+ok 10 - loading legacy SPH replay exits orbital closeup without inventing original parameters
+  ---
+  duration_ms: 46.890709
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 776.750375

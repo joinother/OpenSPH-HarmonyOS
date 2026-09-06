@@ -1,0 +1,90 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "actual fold/expand and main-window rotation",
+    "native viewport matches safe area",
+    "actual UI bounds and panel/dock separation",
+    "near body visible above UI",
+    "editor and placement drafts preserved",
+    "scene revision, replay frame and camera preserved"
+  ],
+  "results": [
+    {
+      "name": "overview-landscape",
+      "folded": true,
+      "orientation": "landscape",
+      "window": {
+        "layout": {
+          "compact": true,
+          "sidePanel": true,
+          "headerHeight": 54,
+          "drawer": {
+            "x": 437.6,
+            "y": 64,
+            "width": 308,
+            "height": 241.76
+          },
+          "dock": {
+            "x": 100.80000000000001,
+            "y": 243.76,
+            "width": 560,
+            "height": 66
+          },
+          "scene": {
+            "x": 12,
+            "y": 64,
+            "width": 737.6,
+            "height": 167.76
+          }
+        },
+        "geometry": {
+          "widthPx": 2444,
+          "heightPx": 1080,
+          "topPx": 0,
+          "bottomPx": 87,
+          "leftPx": 64,
+          "rightPx": 0,
+          "revision": 18
+        },
+        "viewportWidthVp": 761.6,
+        "viewportHeightVp": 317.76,
+        "widthVp": 782.08,
+        "heightVp": 345.6,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 87,
+          "left": 64,
+          "right": 0
+        }
+      },
+      "viewport": [
+        64,
+        0,
+        2444,
+        993
+      ],
+      "dock": [
+        379,
+        762,
+        2129,
+        968
+      ],
+      "drawer": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "header": [
+        64,
+        0,
+        2444,
+        169
+      ],
+      "sceneRevision": 2,
+      "surfaceStarts": 1
+    }
+  ]
+}

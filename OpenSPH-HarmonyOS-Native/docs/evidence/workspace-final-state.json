@@ -1,0 +1,102 @@
+{
+  "ok": true,
+  "protocol": 1,
+  "definition": {
+    "schemaVersion": 1,
+    "model": "sph-rock-v1",
+    "title": "碰撞实验",
+    "config": {
+      "preset": 0,
+      "count": 600,
+      "speed": 5,
+      "angle": 0,
+      "duration": 60,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "targetSpin": 0,
+      "seed": 1234
+    },
+    "bodies": [
+      {
+        "id": "primary",
+        "name": "主天体",
+        "kind": "rock",
+        "radiusKm": 100,
+        "density": 2700
+      },
+      {
+        "id": "impactor",
+        "name": "撞击体",
+        "kind": "rock",
+        "radiusKm": 60,
+        "density": 2700
+      }
+    ]
+  },
+  "simulation": {
+    "state": "completed",
+    "error": "",
+    "count": 641,
+    "frames": 240,
+    "selected": -1,
+    "time": 60.01999999999961,
+    "duration": 60,
+    "stepMs": 10.984125,
+    "steps": 402,
+    "maxSpeed": 6.379587712395849,
+    "meanDensity": 1933.1200136834582,
+    "totalMass": 13752636000354638000,
+    "config": {
+      "preset": 0,
+      "count": 600,
+      "speed": 5,
+      "angle": 0,
+      "duration": 60,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "targetSpin": 0,
+      "seed": 1234
+    }
+  },
+  "scene": {
+    "preset": 0,
+    "count": 600,
+    "speed": 5,
+    "angle": 0,
+    "duration": 60,
+    "dirty": false
+  },
+  "camera": {
+    "yaw": 3.5105412890625,
+    "pitch": 0.13227765625,
+    "zoom": 2.7,
+    "focus": -1,
+    "color": 0
+  },
+  "ui": {
+    "panelOpen": false,
+    "toolsVisible": true,
+    "panel": 0,
+    "playing": false,
+    "ioBusy": false,
+    "foreground": true,
+    "notice": "计算完成 · 可在时间轴回看结果"
+  },
+  "window": {
+    "viewportWidthVp": 707.2,
+    "viewportHeightVp": 706.56,
+    "widthVp": 707.2,
+    "heightVp": 773.12,
+    "immersive": true,
+    "safePx": {
+      "top": 121,
+      "bottom": 87,
+      "left": 0,
+      "right": 0
+    }
+  }
+}
