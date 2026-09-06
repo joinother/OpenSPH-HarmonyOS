@@ -8,10 +8,10 @@ const require=createRequire(import.meta.url);
 const ts=require(process.env.TYPESCRIPT_PATH||'/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/node_modules/typescript/lib/typescript.js');
 const source=readFileSync(new URL('../entry/src/main/ets/common/CliBridge.ets',import.meta.url),'utf8');
 function bridge() {
-  const lines=[];
-  const context={exports:{},require:()=>({hilog:{info:(_domain,_tag,_format,id,index,total,chunk)=>lines.push(`SPHCLI ${id} ${index}/${total} ${chunk}`)}})};
+  const lines=[],emissions=[];let clock=0;
+  const context={exports:{},Date:{now:()=>clock},setTimeout:(fn,ms)=>{clock+=ms;queueMicrotask(fn);},require:()=>({hilog:{info:(_domain,_tag,_format,id,index,total,chunk)=>{lines.push(`SPHCLI ${id} ${index}/${total} ${chunk}`);emissions.push({at:clock,bytes:Buffer.byteLength(chunk)+128});}}})};
   vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,context);
-  return {Bridge:context.exports.CliBridge,lines};
+  return {Bridge:context.exports.CliBridge,lines,emissions};
 }
 function want(id,command='getState',payload='{}') {
   return {parameters:{'sph.request':id,'sph.command':command,'sph.payload':encodeURIComponent(payload)}};
@@ -41,7 +41,7 @@ test('malformed payload, handler errors and queue overflow produce explicit erro
   await tick();
   for(const id of ['bad','scalar','unknown'])assert.equal(collect(lines.join('\n'),id).ok,false);
   Bridge.unbind();for(let i=0;i<17;i++)Bridge.receive(want('q'+i));
-  assert.match(collect(lines.join('\n'),'q16').error,/queue full/);
+  await tick();assert.match(collect(lines.join('\n'),'q16').error,/queue full/);
 });
 test('out-of-order, duplicate and delayed chunks remain complete; unrelated requests ignored',()=>{
   const parts=new Map();
@@ -59,8 +59,8 @@ function page() {
   const body=original.slice(original.indexOf('struct Index {')+'struct Index {'.length,original.indexOf('  @Builder\n  header()'));
   const transformed=(interfaces+'\nclass Index {'+body+'}\nexports.Index=Index;').replace(/@StorageLink\('[^']+'\)\s*/g,'').replace(/@Watch\('[^']+'\)\s*/g,'').replace(/@State\s*/g,'');
   let state={state:'paused',error:'',count:212,frames:5,selected:-1,time:1,duration:10,stepMs:5,steps:4,maxSpeed:5,meanDensity:2700};
-  const calls=[],initialPauses=[];let trace={enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:6,outerPeriodHours:14,model:'restricted-circular-kepler-v1'};
-  const simulation={ringTraceStatus:()=>({...trace}),configureRingTrace:(enabled,running,target,massSolar)=>{if(enabled&&!trace.enabled)trace.timeHours=0;trace={...trace,enabled,running,target,massSolar};},seekRingTrace:seconds=>{trace.timeHours=seconds/3600;trace.running=false;},setComposition:()=>{},setSky:(mode,brightness)=>{state.sky={mode,brightness};},pickBody:()=>state.pick??-1,projectedScene:()=>({ready:true,bodies:[]}),setAppearance:()=>{},renderStatus:()=>({panoramaReady:state.panoramaReady??false,panoramaBlend:state.panoramaReady?1:0,ready:true,texturesReady:true,active:true,frames:1,submitMs:1,previewSeconds:0,error:''}),status:()=>({...state}),startScene:(c,initiallyPaused)=>{if(state.rejectStart)throw Error('native rejected scene');initialPauses.push(initiallyPaused);calls.push(['start',c.preset,c.count,c.speed,c.angle,c.duration]);state.state='preparing';},pause:v=>{calls.push(['pause',v]);if(state.state!=='preparing')state.state=v?'paused':'running';},setCamera:(...args)=>calls.push(['camera',...args]),seek:i=>state.selected=i,saveReplay:async()=>false,loadReplay:async()=>{if(state.loadReplayOK){state.state='replay';return true;}return false;}};
+  const calls=[],initialPauses=[];let trace={speedScale:1,rateHours:1,eccentricity:0,referenceXKm:76800,referenceYKm:0,innerApoapsisKm:76800,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:6,outerPeriodHours:14,model:'restricted-circular-kepler-v1'};
+  const simulation={setRingParameters:(speedScale,rateHours)=>{if(speedScale!==trace.speedScale){trace.timeHours=0;trace.running=false;}trace.speedScale=speedScale;trace.rateHours=rateHours;trace.eccentricity=speedScale*speedScale-1;},ringTraceStatus:()=>({...trace}),configureRingTrace:(enabled,running,target,massSolar)=>{if(enabled&&(!trace.enabled||target!==trace.target||massSolar!==trace.massSolar)){trace.timeHours=0;trace.speedScale=1;trace.rateHours=1;}trace={...trace,enabled,running,target,massSolar};},seekRingTrace:seconds=>{trace.timeHours=seconds/3600;trace.running=false;},setComposition:()=>{},setSky:(mode,brightness)=>{state.sky={mode,brightness};},pickBody:()=>state.pick??-1,projectedScene:()=>({ready:true,bodies:[]}),setAppearance:()=>{},renderStatus:()=>({panoramaReady:state.panoramaReady??false,panoramaBlend:state.panoramaReady?1:0,ready:true,texturesReady:true,active:true,frames:1,submitMs:1,previewSeconds:0,error:''}),status:()=>({...state}),startScene:(c,initiallyPaused)=>{if(state.rejectStart)throw Error('native rejected scene');initialPauses.push(initiallyPaused);calls.push(['start',c.preset,c.count,c.speed,c.angle,c.duration]);state.state='preparing';},pause:v=>{calls.push(['pause',v]);if(state.state!=='preparing')state.state=v?'paused':'running';},setCamera:(...args)=>calls.push(['camera',...args]),seek:i=>state.selected=i,saveReplay:async()=>false,loadReplay:async()=>{if(state.loadReplayOK){state.state='replay';return true;}return false;}};
   const modelContext={exports:{}};
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/SceneModel.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/WorkspaceLayout.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
@@ -402,7 +402,7 @@ test('immersive window policy hides status, navigation and gesture indicator ind
 
 test('theme catalog isolates conditions and collision speed comparison changes only speed',async()=>{
   const {page:app}=page();
-  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,8);
+  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,9);
   const [slow,fast]=catalog.experiments;assert.equal(slow.config.speed,2);assert.equal(fast.config.speed,8);
   assert.deepEqual({...slow.config,speed:8},fast.config);
   assert.ok(catalog.experiments.every(t=>t.goal&&t.limit&&t.question));
@@ -492,4 +492,38 @@ test('local ring mode exits on host restart or body changes and pause stops both
  await app.execute('uiAction',{action:'theme.kepler-ring'});state.state='paused';await app.execute('uiAction',{action:'theme.ocean-world'});assert.equal(app.trace.enabled,false);
  await app.execute('uiAction',{action:'theme.kepler-ring'});state.state='paused';await app.execute('uiAction',{action:'orbit.add'});assert.equal(app.trace.enabled,false);
  await app.execute('uiAction',{action:'placement.cancel'});await app.execute('uiAction',{action:'theme.kepler-ring'});state.state='paused';await app.execute('uiAction',{action:'replay.latest'});assert.equal(app.trace.enabled,false);
+});
+
+test('elliptic launch and rate controls reset only on launch change, with atomic validation',async()=>{
+ const {page:app,state,calls}=page();await app.execute('uiAction',{action:'theme.eccentric-ring'});state.state='paused';
+ assert.equal(app.trace.speedScale,1.12);assert.equal(app.trace.running,false);
+ const before=JSON.parse(app.snapshot()),starts=calls.filter(c=>c[0]==='start').length;
+ await app.execute('setUiValue',{field:'trace.hours',value:2});await app.execute('uiAction',{action:'trace.play'});
+ await app.execute('setUiValue',{field:'trace.rate',value:.1});assert.equal(app.trace.timeHours,2);assert.equal(app.trace.running,true);
+ await app.execute('setUiValue',{field:'trace.speed',value:1.12});assert.equal(app.trace.timeHours,2);assert.equal(app.trace.running,true);
+ for(const [field,value] of [['trace.speed',.99],['trace.speed',1.21],['trace.speed','1.1'],['trace.rate',0],['trace.rate',4.1],['trace.rate',null]]){
+  const stable=app.snapshot();await assert.rejects(app.execute('setUiValue',{field,value}));assert.equal(app.snapshot(),stable);
+ }
+ await app.execute('setUiValue',{field:'trace.speed',value:1.2});assert.equal(app.trace.timeHours,0);assert.equal(app.trace.running,false);assert.equal(app.trace.rateHours,.1);
+ await app.execute('uiAction',{action:'trace.apoapsis'});assert.equal(app.trace.timeHours,app.trace.innerPeriodHours/2);
+ await app.execute('uiAction',{action:'trace.circular'});assert.equal(app.trace.speedScale,1);assert.equal(app.trace.timeHours,0);
+ await app.execute('uiAction',{action:'trace.ellipse'});assert.equal(app.trace.speedScale,1.12);
+ assert.deepEqual(JSON.parse(app.snapshot()).camera,before.camera);assert.deepEqual(JSON.parse(app.snapshot()).definition,before.definition);assert.equal(calls.filter(c=>c[0]==='start').length,starts);
+ await app.execute('uiAction',{action:'trace.toggle'});await assert.rejects(app.execute('setUiValue',{field:'trace.speed',value:1.1}));
+ await app.execute('uiAction',{action:'trace.toggle'});assert.equal(app.trace.speedScale,1);assert.equal(app.trace.rateHours,1);
+});
+test('reference orbit plot is finite at circular and maximum eccentricity, readouts share native position',async()=>{
+ const {page:app,state}=page();await app.execute('uiAction',{action:'theme.eccentric-ring'});state.state='paused';
+ app.pathPixels=p=>p;
+ for(const value of [1,1.12,1.2]){await app.execute('setUiValue',{field:'trace.speed',value});const path=app.tracePlotPath();assert.equal((path.match(/ L/g)||[]).length,96);assert.doesNotMatch(path,/NaN|Infinity/);assert.doesNotMatch(app.tracePlotPath(true),/NaN|Infinity/);}
+});
+
+test('HiLog replies pace UTF-8 bytes across sequential large requests and bound output size',async()=>{
+ const {Bridge,lines,emissions}=bridge(),text='星🙂'.repeat(4000);
+ Bridge.bind(async()=>JSON.stringify({ok:true,text}));Bridge.receive(want('largeone'));Bridge.receive(want('largetwo'));await tick();
+ for(const line of lines){assert.doesNotMatch(line,/[\uD800-\uDBFF]$/);assert.doesNotMatch(line,/\d+\/\d+ [\uDC00-\uDFFF]/);}
+ assert.equal(collect(lines.join('\n'),'largeone').text,text);assert.equal(collect(lines.join('\n'),'largetwo').text,text);
+ assert.ok(emissions.at(-1).at>2000);
+ for(let i=1;i<emissions.length;i++)assert.ok(emissions[i].at-emissions[i-1].at>=emissions[i-1].bytes/24-1,'unpaced chunk burst');
+ Bridge.bind(async()=>JSON.stringify({ok:true,text:'a'.repeat(65000)}));Bridge.receive(want('oversize'));await tick();assert.equal(collect(lines.join('\n'),'oversize').ok,false);
 });

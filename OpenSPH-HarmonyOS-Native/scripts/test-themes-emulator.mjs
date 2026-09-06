@@ -20,7 +20,7 @@ function uiNodes(){const remote='/data/local/tmp/sph-theme-ui.json',local=join(t
  function walk(v){if(!v||typeof v!=='object')return;if(v.attributes?.bounds)nodes.push({...v.attributes,rect:(v.attributes.bounds.match(/-?\d+/g)||[]).map(Number)});Object.entries(v).filter(([k])=>k!=='attributes').forEach(([,x])=>walk(x));}walk(JSON.parse(readFileSync(local,'utf8')));return nodes;
 }
 try {
- call('listCommands');call('getUiState');const catalog=call('listExperiments');assert.equal(catalog.experiments.length,8);
+ call('listCommands');call('getUiState');const catalog=call('listExperiments');assert.equal(catalog.experiments.length,9);
  const [slow,fast]=catalog.experiments;assert.deepEqual({...slow.config,speed:8},fast.config);
  h('shell','hidumper','-s','DisplayManagerService','-a','-y');call('setWindowOrientation',{orientation:'portrait'});
  for(const t of catalog.experiments){

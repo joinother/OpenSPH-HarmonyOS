@@ -38,10 +38,11 @@ interface ExperimentInfo { title: string; caption: string; symbol: string; }
 struct ChoiceChip {
   @Prop label: string = '';
   @Prop active: boolean = false;
+  @Prop enabledAction: boolean = true;
   @State pressed: boolean = false;
   onPress: () => void = () => {};
   build() {
-    Button(this.label, {type:ButtonType.Normal}).fontSize(12).fontWeight(FontWeight.Medium)
+    Button(this.label, {type:ButtonType.Normal}).enabled(this.enabledAction).opacity(this.enabledAction?1:.4).fontSize(12).fontWeight(FontWeight.Medium)
       .fontColor(this.active ? '#F1EDFF' : '#B9BACB')
       .backgroundColor(this.active ? '#55493B70' : '#162E3044').borderRadius(18).height(36)
       .border({width:0.6,radius:18,color:this.active?'#807E68AC':'#24D4CDEF'})
@@ -159,7 +160,7 @@ struct Index {
   @State closeup: boolean = false;
   @State autoSpin: boolean = false;
   @State rings: boolean = true;
-  @State trace:RingTraceStatus={enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-circular-kepler-v1'};
+  @State trace:RingTraceStatus={speedScale:1,rateHours:1,eccentricity:0,innerApoapsisKm:76800,outerApoapsisKm:133200,referenceXKm:76800,referenceYKm:0,referenceRadiusKm:76800,referenceSpeedKmS:0,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-elliptic-kepler-v2'};
   @State skyLoadError:string='';
   @State rendering: RenderStatus = {panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
   @State colorMode: number = 0;
@@ -301,6 +302,22 @@ struct Index {
     if(now.timeHours>=24)simulation.seekRingTrace(0);
     simulation.configureRingTrace(true,!now.running,now.target,now.massSolar);this.trace=simulation.ringTraceStatus(false);
   }
+  private traceParameter(field:string,value:number):void {
+    this.checked(value,field==='trace.speed'?1:.1,field==='trace.speed'?1.2:4);
+    if(!this.trace.enabled)throw new Error('示踪环未开启');
+    const now:RingTraceStatus=simulation.ringTraceStatus(false);
+    simulation.setRingParameters(field==='trace.speed'?value:now.speedScale,field==='trace.rate'?value:now.rateHours);
+    this.trace=simulation.ringTraceStatus(false);
+    this.notice=field==='trace.speed'?'发射速度已调整 · 从近点重新开始，主星系保持暂停':'已调整局部播放倍率 · 当前时刻保持';
+  }
+  // Face-on diagnostic for the innermost reference particle; follows native x/y.
+  private tracePlotPath(marker:boolean=false):string {
+    const e=this.trace.eccentricity,a=76800/(1-e),scale=68/a;
+    if(marker){const x=90+(this.trace.referenceXKm+a*e)*scale,y=76-this.trace.referenceYKm*scale;return this.tracePlotPixels('M'+(x-3)+' '+y+' L'+(x+3)+' '+y+' M'+x+' '+(y-3)+' L'+x+' '+(y+3));}
+    let path='';for(let i=0;i<=96;i++){const E=i*2*Math.PI/96;path+=(i===0?'M':' L')+(90+68*Math.cos(E))+' '+(76-68*Math.sqrt(1-e*e)*Math.sin(E));}
+    return this.tracePlotPixels(path);
+  }
+  private tracePlotPixels(path:string):string {return this.pathPixels(path.replace(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/g,(v:string):string=>String(Number(v)*112/180)));}
   private traceTime(hours:number):void {this.checked(hours,0,24);if(!this.trace.enabled)throw new Error('示踪环未开启');simulation.seekRingTrace(hours*3600);this.trace=simulation.ringTraceStatus(false);}
   private camera(): void {
     if(this.trace.enabled&&(!this.canTrace()||this.trace.target!==this.focus))this.stopTrace();
@@ -363,8 +380,8 @@ struct Index {
     this.yaw=t.yaw;this.pitch=t.pitch;this.zoom=t.zoom;this.focus=t.focus;
     this.rings=true;this.clouds=true;this.atmosphere=true;this.trails=true;this.closeup=t.closeup;this.autoSpin=t.closeup;this.colorMode=0;
     this.dirty=false;this.toolsVisible=true;this.info=simulation.status();this.camera();this.setPanel(-1);
-    if(t.id==='kepler-ring')this.toggleTrace();
-    this.notice=t.question+(t.id==='kepler-ring'?' · 点击运行环':' · 点击开始实验');
+    if(t.id==='kepler-ring'||t.id==='eccentric-ring'){this.toggleTrace();if(t.id==='eccentric-ring')this.traceParameter('trace.speed',1.12);}
+    this.notice=t.question+((t.id==='kepler-ring'||t.id==='eccentric-ring')?' · 点击运行环，调轨可改发射速度':' · 点击开始实验');
   }
   private choose(i: number): void {
     if (this.ioBusy) return;
@@ -608,6 +625,7 @@ struct Index {
     add('sky.mode.0','纯净',true,this.skyMode===0);add('sky.mode.1','星空',true,this.skyMode===1);add('sky.mode.2','银河',true,this.skyMode===2);
     add('focus.all','全景');add('camera.out','拉远');add('camera.in','拉近');add('camera.reset','复位视角');
     add('color.0','原色',true,this.colorMode===0);add('color.1','速度',true,this.colorMode===1);add('color.2','密度',this.preset<3,this.colorMode===2);
+    add('trace.controls','调整局部轨道',this.trace.enabled);add('trace.circular','圆轨道对照',this.trace.enabled);add('trace.ellipse','拉长轨道',this.trace.enabled);add('trace.apoapsis','跳到内圈远点',this.trace.enabled&&this.trace.innerPeriodHours/2<=24);
     add('trace.toggle','开普勒示踪粒子',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
     add('appearance.rings','环带',this.preset>=3,this.rings);add('appearance.clouds','云层',this.preset>=3,this.clouds);add('appearance.atmosphere','大气',this.preset>=3,this.atmosphere);add('appearance.trails','轨迹',this.preset>=3,this.trails);add('appearance.spin','外观自转',this.preset>=3,this.autoSpin);
     add('body.primary','主天体',this.preset<3,this.editedBody===0);add('body.impactor','撞击体',this.preset<2,this.editedBody===1);
@@ -625,7 +643,7 @@ struct Index {
   }
   private uiFields():UiFieldInfo[] {
     const active:boolean=!this.ioBusy,rock:boolean=this.preset<3;
-    const fields:UiFieldInfo[]=[{field:'trace.hours',value:this.trace.timeHours,enabled:active&&this.trace.enabled},{field:'sky.brightness',value:this.skyBrightness*100,enabled:active},{field:'scene.title',value:this.title,enabled:active},
+    const fields:UiFieldInfo[]=[{field:'trace.speed',value:this.trace.speedScale,enabled:active&&this.trace.enabled},{field:'trace.rate',value:this.trace.rateHours,enabled:active&&this.trace.enabled},{field:'trace.hours',value:this.trace.timeHours,enabled:active&&this.trace.enabled},{field:'sky.brightness',value:this.skyBrightness*100,enabled:active},{field:'scene.title',value:this.title,enabled:active},
       {field:'scene.count',value:this.count,enabled:active&&rock},{field:'scene.speed',value:this.speed,enabled:active&&this.preset!==5},
       {field:'scene.angle',value:this.angle,enabled:active&&this.preset<2},{field:'scene.duration',value:this.duration,enabled:active},
       {field:'body.name',value:this.editedBody===0?this.targetName:this.impactorName,enabled:active&&rock},
@@ -659,6 +677,7 @@ struct Index {
       return;
     }
     if(typeof value!=='number')throw new Error('Expected number');
+    if(field==='trace.speed'||field==='trace.rate'){this.traceParameter(field,value);return;}
     if(field==='trace.hours'){this.traceTime(value);return;}
     if(field==='sky.brightness'){this.checked(value,0,100);this.changeSky(this.skyMode,value/100);return;}
     if(field==='time.frame'){this.checked(value,-1,this.info.frames-1,true);this.stopTrace();this.playing=false;simulation.seek(value);this.info=simulation.status();return;}
@@ -708,6 +727,10 @@ struct Index {
     else if(action==='camera.in')this.easeCamera(this.yaw,this.pitch,Math.max(.5,this.zoom/1.2));
     else if(action==='camera.reset'){this.closeSurface();this.easeCamera(.15,.25,2.7);}
     else if(action.startsWith('color.')){this.colorMode=Number(action.slice(6));this.camera();}
+    else if(action==='trace.controls'){this.setPanel(1);this.scroller.scrollEdge(Edge.Top);}
+    else if(action==='trace.circular')this.traceParameter('trace.speed',1);
+    else if(action==='trace.ellipse')this.traceParameter('trace.speed',1.12);
+    else if(action==='trace.apoapsis')this.traceTime(this.trace.innerPeriodHours/2);
     else if(action==='trace.toggle')this.toggleTrace();
     else if(action==='trace.play')this.playTrace();
     else if(action==='trace.reset')this.traceTime(0);
@@ -758,7 +781,7 @@ struct Index {
     if(command==='listCommands') {
       const catalog: CommandCatalog = {ok:true,commands:[
       {name:'getState',payload:'{}'},
-      {name:'getRingTrace',payload:'{particles?:boolean}; local circular test particles in km/km/s, independent 0–24 hour clock'},
+      {name:'getRingTrace',payload:'{particles?:boolean}; local bound Kepler test particles in km/km/s; speedScale 1–1.2, rateHours 0.1–4, independent 0–24 hour clock'},
       {name:'setSky',payload:'{mode?:0 clean|1 stars|2 galaxy,brightness?:0..1}; photographic galaxy / procedural stars; fixed-direction background'},
       {name:'setWindowOrientation',payload:'{orientation:auto|portrait|landscape|reverse-landscape}; main window only; auto respects system rotation lock'},
       {name:'getSkyInfo',payload:'{} - provenance and sky rendering status'},
@@ -891,7 +914,7 @@ struct Index {
         Column({space:5}) {
           Text(this.closeup?this.surfaceName()+' · 近看':this.title).fontColor('#F1EDFC').fontSize(14).fontWeight(FontWeight.Medium).maxLines(1)
           Text(this.stateLabel()+' · '+(this.trace.enabled?'192 个示踪点':this.info.count+(this.preset>=3?' 个天体':' 粒子'))).fontSize(11).fontColor('#A5A0B7')
-          if(this.preset>=3&&!this.layout().compact) {Text(this.trace.enabled?'中心引力 · 解析圆轨道 · 不含碰撞':this.closeup?(this.autoSpin?'程序表面 · 外观自转演示':'程序表面 · 随轨道时间变化'):'牛顿引力 · AU / 年 · 天体尺寸已放大').fontSize(10).fontColor('#9E97B4')}
+          if(this.preset>=3&&!this.layout().compact) {Text(this.trace.enabled?'中心引力 · 开普勒轨道 · 不含碰撞':this.closeup?(this.autoSpin?'程序表面 · 外观自转演示':'程序表面 · 随轨道时间变化'):'牛顿引力 · AU / 年 · 天体尺寸已放大').fontSize(10).fontColor('#9E97B4')}
           if(this.preset>=3&&!this.closeup&&!this.layout().compact) {Text(this.focus>=0?'已选中 · '+this.surfaceName():'轻点天体以选中 · 拖动旋转').fontSize(11).fontColor('#C9B8F3')}
           if(this.skyMode===2&&!this.layout().compact) {Text(this.rendering.panoramaReady?'银河摄影 · 非定位星图':(this.skyLoadError?'银河示意 · 摄影全景加载失败':'银河背景 · 载入摄影全景')).fontSize(10).fontColor('#9E97B4')}
           if(this.preset<3) {Text('岩质 SPH · 未启用自引力').fontSize(10).fontColor('#9E97B4')}
@@ -944,10 +967,11 @@ struct Index {
             Slider({value:this.trace.timeHours,min:0,max:24,step:.01}).id('ring-time-slider').layoutWeight(1).height(30).selectedColor('#9CDEED').trackColor('#404154').blockColor('#F1E9FF')
               .onChange((v:number,mode:SliderChangeMode)=>{if(mode===SliderChangeMode.Moving||mode===SliderChangeMode.Click||mode===SliderChangeMode.End)this.input('trace.hours',v);})
             FloatingButton({label:this.trace.running?'暂停':'运行环',primary:true,compact:true,onPress:()=>{this.press('trace.play');}})
-            FloatingButton({label:'归零',compact:true,onPress:()=>{this.press('trace.reset');}})
+            FloatingButton({label:'调轨',compact:true,onPress:()=>{this.press('trace.controls');}})
+            if(this.layout().sidePanel&&!this.layout().compact){FloatingButton({label:'归零',compact:true,onPress:()=>{this.press('trace.reset');}})}
           }.width('100%')
           Text('内圈 '+this.trace.innerPeriodHours.toFixed(2)+' h · 外圈 '+this.trace.outerPeriodHours.toFixed(2)+' h / 周').id('ring-periods').fontSize(10).fontColor('#A7D5DD')
-          if(!this.layout().compact){Text('局部环时钟 · 1 秒演示 1 小时 · 主系统暂停').fontSize(10).fontColor('#AAA6BC')}
+          if(!this.layout().compact){Text('局部环时钟 · 1 秒演示 '+this.trace.rateHours.toFixed(1)+' 小时 · 主系统暂停').fontSize(10).fontColor('#AAA6BC')}
         }.id('ring-transport').width('100%')
       } else if(this.layout().compact) {
         Row({space:6}) {
@@ -1111,6 +1135,42 @@ struct Index {
     }.width('100%')
   }
   @Builder
+  traceControls() {
+    Column({space:8}) {
+      Text('给环一点额外速度').fontSize(16).fontColor('#E2EEF5').width('100%')
+      Row({space:6}) {
+        ChoiceChip({label:'圆轨道',active:this.trace.speedScale===1,onPress:()=>{this.press('trace.circular');}})
+        ChoiceChip({label:'拉长轨道',active:Math.abs(this.trace.speedScale-1.12)<.00001,onPress:()=>{this.press('trace.ellipse');}})
+        ChoiceChip({label:'到远点',enabledAction:this.trace.innerPeriodHours/2<=24,onPress:()=>{this.press('trace.apoapsis');}})
+      }.width('100%')
+      Text('发射速度 '+this.trace.speedScale.toFixed(2)+' × 圆轨道速度').fontSize(12).fontColor('#BAE2ED').width('100%')
+      Slider({value:this.trace.speedScale,min:1,max:1.2,step:.01}).id('ring-speed-slider').width('100%').height(28).selectedColor('#A5DFFF').trackColor('#3C4058')
+        .onChange((v:number,mode:SliderChangeMode)=>{if(mode===SliderChangeMode.Moving||mode===SliderChangeMode.Click||mode===SliderChangeMode.End)this.input('trace.speed',v);})
+      Text('慢放 / 快进 · '+this.trace.rateHours.toFixed(1)+' 小时 / 秒').fontSize(12).fontColor('#C2B6DF').width('100%')
+      Slider({value:this.trace.rateHours,min:.1,max:4,step:.1}).id('ring-rate-slider').width('100%').height(28).selectedColor('#C4ACEB').trackColor('#3C4058')
+        .onChange((v:number,mode:SliderChangeMode)=>{if(mode===SliderChangeMode.Moving||mode===SliderChangeMode.Click||mode===SliderChangeMode.End)this.input('trace.rate',v);})
+      Row({space:8}) {
+        Stack({alignContent:Alignment.TopStart}) {
+          Path().width(112).height(95).commands(this.tracePlotPath()).stroke('#809EA9').strokeWidth(1.5).fillOpacity(0)
+          Circle().width(2*68*(1-this.trace.eccentricity)/1.28*112/180).height(2*68*(1-this.trace.eccentricity)/1.28*112/180).fill('#755F78')
+            .position({x:(90+68*this.trace.eccentricity-68*(1-this.trace.eccentricity)/1.28)*112/180,y:(76-68*(1-this.trace.eccentricity)/1.28)*112/180})
+          Path().width(112).height(95).commands(this.tracePlotPath(true)).stroke('#A9F0F8').strokeWidth(3).fillOpacity(0)
+        }.width(112).height(95).id('ring-orbit-preview')
+        Column({space:4}) {
+          Text('内圈首粒子 · 俯视').fontSize(10).fontColor('#BADCE7').width('100%')
+          Text('e = '+this.trace.eccentricity.toFixed(3)).id('ring-orbit-diagnostics').fontSize(11).fontColor('#BADCE7').width('100%')
+          Text('近点 76,800 km').fontSize(10).fontColor('#BDB7CC').width('100%')
+          Text('远点 '+this.trace.innerApoapsisKm.toFixed(0)+' km').fontSize(10).fontColor('#BDB7CC').width('100%')
+          Text('当前 '+this.trace.referenceRadiusKm.toFixed(0)+' km').fontSize(10).fontColor('#BDB7CC').width('100%')
+          Text(this.trace.referenceSpeedKmS.toFixed(2)+' km/s').fontSize(10).fontColor('#BDB7CC').width('100%')
+        }.layoutWeight(1)
+      }.width('100%')
+      ChoiceChip({label:'回到起点',onPress:()=>{this.press('trace.reset');}})
+      Text('改发射速度会归零并暂停；倍率只改变播放。距离从行星中心计，半径假定 60,000 km；仅中心引力，环带外观不随示踪点变形。').fontSize(10).fontColor('#AAA5B9').lineHeight(16)
+      Divider().color('#33B4A7D6')
+    }.width('100%')
+  }
+  @Builder
   vectorPlot(path:string,label:string,scale:number,color:string) {
     Column({space:3}) {
       Text(label+' · ±'+scale.toFixed(1)).fontSize(10).fontColor(color)
@@ -1200,6 +1260,7 @@ struct Index {
     if(id==='rock-fast')return $r('app.media.theme_rock_fast');
     if(id==='rock-oblique')return $r('app.media.theme_rock_oblique');
     if(id==='rock-spin')return $r('app.media.theme_rock_spin');
+    if(id==='eccentric-ring')return $r('app.media.theme_eccentric_ring');
     if(id==='kepler-ring')return $r('app.media.theme_kepler_ring');
     if(id==='ring-world')return $r('app.media.theme_ring_world');
     if(id==='ocean-world')return $r('app.media.theme_ocean_world');
@@ -1294,6 +1355,7 @@ struct Index {
           ChoiceChip({label:'打开实验库',active:false,onPress:() => {this.press('project.open');}})
         }.width('100%')
       } else if(this.tab===1) {
+        if(this.trace.enabled){this.traceControls()}
         this.themeGuide()
         this.skyControls()
         if(this.preset>=3) {

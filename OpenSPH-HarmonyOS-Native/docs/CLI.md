@@ -1,8 +1,8 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.19.0；更新日期：2026-09-06（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.20.0；更新日期：2026-09-07（Asia/Shanghai）。
 
-在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
+在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
 ## 开始使用
 
@@ -30,7 +30,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 ## 主题实验库
 
-实验库的“碰撞／探索／我的实验”分类使用 `library.collision`、`library.explore`、`library.saved`；只切换内容，不重建当前场景。`listExperiments` 返回目录版本、八个主题的完整初始条件、默认镜头、问题和模型说明。
+实验库的“碰撞／探索／我的实验”分类使用 `library.collision`、`library.explore`、`library.saved`；只切换内容，不重建当前场景。`listExperiments` 返回目录版本、九个主题的完整初始条件、默认镜头、问题和模型说明。
 
 | 动作 | 内容 |
 | --- | --- |
@@ -107,18 +107,23 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 ## 局部示踪环
 
-`theme.kepler-ring` 进入第八个主题；也可选中自定义系统里 `surface:4` 的行星，通过观察面板或 `trace.toggle` 开启。底部切换为独立的 0–24 小时时间轴，主系统保持暂停。退出局部模式不会自动继续主系统。
+`theme.kepler-ring` 进入第九个主题；也可选中自定义系统里 `surface:4` 的行星，通过观察面板或 `trace.toggle` 开启。底部切换为独立的 0–24 小时时间轴，主系统保持暂停。退出局部模式不会自动继续主系统。
 
 | 动作／命令 | 行为 |
 | --- | --- |
 | `trace.toggle` | 开关局部模式，开启时从小时零点开始，并停用外观自转 |
 | `trace.play` | 运行／暂停局部小时钟；24 小时结束后再次运行从零开始 |
-| `trace.reset` | 小时时间归零并暂停 |
+| `trace.reset` | 小时时间归零并暂停，保留发射速度与倍率 |
+| `trace.controls` | 打开观察面板顶部的调轨区域 |
+| `trace.circular` / `trace.ellipse` | 设置 1.00 / 1.12 倍切向发射速度；速度实际改变时归零并暂停 |
+| `trace.apoapsis` | 跳到内圈首次远点并暂停；若超过 24 小时，动作禁用 |
+| `setUiValue {field:"trace.speed",value:1..1.2}` | 相对每圈圆轨道速度的倍数；改变时重新从近点发射，不重建主星系 |
+| `setUiValue {field:"trace.rate",value:0.1..4}` | 每真实秒演示的小时数；保持当前时间和运行／暂停状态 |
 | `setUiValue {field:"trace.hours",value:0..24}` | 定位到任意小时并暂停，与滑块共用逻辑 |
 | `getRingTrace {particles:true}` | 返回局部状态、192 个示踪点的环平面位置（km）、速度（km/s）、半径与周期（h）；默认包含点列表 |
 | `getRingTrace {particles:false}` | 只返回时钟、质量、假定半径和内外圈周期 |
 
-`getState.ringTrace` 是轻量状态；`getUiState` 包含对应动作和 `trace.hours` 字段。主系统仍由 `simulation` 字段描述，不能把 `simulation.time` 的年数当成局部小时。`start` 会退出局部模式后启动主系统；`pause` 暂停两个时钟；原有 `seek` 使用保留帧索引。主系统重建、回放操作、切换天体、返回全景和进入放置会退出局部模式。
+`getState.ringTrace` 是轻量状态；`getUiState` 包含对应动作和 `trace.hours`、`trace.speed`、`trace.rate` 字段。主系统仍由 `simulation` 字段描述，不能把 `simulation.time` 的年数当成局部小时。`start` 会退出局部模式后启动主系统；`pause` 暂停两个时钟；原有 `seek` 使用保留帧索引。主系统重建、回放操作、切换天体、返回全景和进入放置会退出局部模式。
 
 ```sh
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"theme.kepler-ring"}' --wait-state paused
@@ -126,9 +131,9 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setUiValue --payl
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getRingTrace --payload-json '{"particles":true}'
 ```
 
-运行速率固定为每秒演示约 1 小时；渲染暂停、后台或长卡顿不补算墙钟时间。示踪点无质量，仅使用所选行星的中心引力，位置用解析圆轨道求得；假定半径 60000 km，轨道半径 76800–133200 km。青色到金色表示由内圈到外圈，不是温度。环时钟和开关属于会话状态；现有命名实验及 v4 回放不保存局部时刻，`theme.restore` 可重新开启该主题。
+默认每秒演示约 1 小时，可在 0.1–4 小时/秒间调整；渲染暂停、后台或长卡顿不补算墙钟时间。示踪点无质量，仅使用所选行星的中心引力，位置通过开普勒方程求得；假定半径 60000 km，初始距离（近点）76800–133200 km。纯切向发射比例 f 对应 e=f²−1、a=r₀/(2−f²)，范围限定 e=0–0.44，未实现向内发射或逃逸。状态返回 `speedScale`、`rateHours`、`eccentricity`、两圈远点、`referenceXKm/YKm`、`referenceRadiusKm`、`referenceSpeedKmS`；参考点为内圈第一个粒子。粒子数组的 `radiusKm` 保持原义，为初始半径，当前距离应由 x/y 求模。青色到金色表示由内圈到外圈，不是温度。环时钟、开关、发射比例与倍率属于会话状态；现有命名实验及 v4 回放不保存这些局部参数，`theme.restore` 可重新开启该主题。重新进入局部模式恢复圆轨道和默认倍率；椭圆主题再设为 1.12 倍。主题的 modified 标记仍描述主系统初值。俯视图来自原生参考点，艺术环带保持原外观。
 
-验证入口：`bash scripts/test-ring-trace.sh` 为独立物理与计时基线；`node scripts/test-ring-trace-emulator.mjs 127.0.0.1:5555` 会切换场景、折叠和方向，调用方需事先保存并在结束后恢复会话。详见 [0.19.0 验证记录](releases/RELEASE-0.19.0.md)。
+验证入口：`bash scripts/test-ring-trace.sh` 为独立物理与计时基线；`node scripts/test-ring-trace-emulator.mjs 127.0.0.1:5555` 会切换场景、折叠和方向，调用方需事先保存并在结束后恢复会话。椭圆验收使用 `node scripts/test-elliptic-trace-emulator.mjs 127.0.0.1:5555`。详见 [0.20.0 验证记录](releases/RELEASE-0.20.0.md)。
 
 ## 场景、求解与回放
 

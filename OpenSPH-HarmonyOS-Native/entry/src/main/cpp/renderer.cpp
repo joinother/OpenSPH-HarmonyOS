@@ -258,7 +258,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                         SurfaceView view{projectedBody.x*2-1,1-projectedBody.y*2,-projectedBody.depth/100,
                             projectedBody.radius*2,aspect,c.yaw,c.pitch,phase,float(std::fmod(frame->time*.78+previewTime*.014+.07,1.0)),
                             {light[0],light[1],light[2]},frame->surfaces[i],c.color,p.speed,a.clouds,a.atmosphere,a.rings,projectedBody.opacity};
-                        if(view.opacity>.001f){material.draw(view);if(trace.enabled&&trace.target==int(i))material.drawTrace(view,sampleRing(trace.massSolar,trace.seconds));}
+                        if(view.opacity>.001f){material.draw(view);if(trace.enabled&&trace.target==int(i))material.drawTrace(view,sampleRing(trace.massSolar,trace.seconds,trace.speedScale));}
                     }
                     glEnable(GL_DEPTH_TEST);
                 } else {
@@ -306,6 +306,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             thread.join();
     }
     void configureTrace(bool on,bool play,int target,double mass){std::lock_guard<std::mutex> lock(mutex);ringClock.configure(on,play,target,mass);ringRevision=Engine::instance().sceneRevision();}
+    void traceParameters(double scale,double rate){std::lock_guard<std::mutex> lock(mutex);ringClock.parameters(scale,rate);}
     void seekTrace(double t){std::lock_guard<std::mutex> lock(mutex);ringClock.seek(t);}
     RingClock traceStatus(){std::lock_guard<std::mutex> lock(mutex);return ringClock;}
     void setComposition(float x,float y,float scale){std::lock_guard<std::mutex> lock(mutex);composition={x,y,scale};}
@@ -343,6 +344,7 @@ void destroyed(OH_NativeXComponent *, void *) {
 OH_NativeXComponent_Callback callbacks = {created, changed, destroyed, nullptr};
 } // namespace
 void configureRingTrace(bool on,bool play,int target,double mass){renderer().configureTrace(on,play,target,mass);}
+void setRingParameters(double scale,double rate){renderer().traceParameters(scale,rate);}
 void seekRingTrace(double t){renderer().seekTrace(t);}
 RingClock ringTraceStatus(){return renderer().traceStatus();}
 void setAppearance(bool clouds,bool atmosphere,bool trails,bool closeup,bool autoSpin,bool rings){renderer().setAppearance({clouds,atmosphere,trails,closeup,autoSpin,rings});}

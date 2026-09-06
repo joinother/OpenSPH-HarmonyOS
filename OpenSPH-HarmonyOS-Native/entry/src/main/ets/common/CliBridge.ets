@@ -44,11 +44,28 @@ export class CliBridge {
       CliBridge.drain();
     } catch (_) { CliBridge.reply(id, JSON.stringify({ok:false,error:'invalid payload encoding'})); }
   }
-  private static reply(id: string, value: string): void {
+  private static nextReplyAt:number=0;
+  private static async reply(id: string, value: string): Promise<void> {
+    // Pace across requests too: HiLog is a bounded log stream, not a bulk-data socket.
+    // Charge UTF-8 bytes (surrogate pairs conservatively count as six) plus line metadata.
+    if(value.length>64000)value=JSON.stringify({ok:false,error:'response exceeds CLI limit; request a smaller result'});
     const size: number = 500;
-    const total: number = Math.ceil(value.length / size);
+    let chunks:string[]=[];
+    for(let start=0;start<value.length;){
+      let end:number=Math.min(value.length,start+size);
+      const last:number=value.charCodeAt(end-1),next:number=value.charCodeAt(end);
+      if(end<value.length&&last>=0xD800&&last<=0xDBFF&&next>=0xDC00&&next<=0xDFFF)end--;
+      chunks.push(value.slice(start,end));start=end;
+    }
+    if(chunks.length>128)chunks=[JSON.stringify({ok:false,error:'response exceeds CLI chunk limit'})];
+    const total:number=chunks.length;
     for (let index = 0; index < total; index++) {
-      hilog.info(0x0001, 'SPHCLI', 'SPHCLI %{public}s %{public}d/%{public}d %{public}s', id, index, total, value.slice(index*size,(index+1)*size));
+      const chunk:string=chunks[index];
+      let bytes:number=128;for(let j=0;j<chunk.length;j++){const code:number=chunk.charCodeAt(j);bytes+=code<128?1:(code<2048?2:3);}
+      const now:number=Date.now(),due:number=Math.max(now,CliBridge.nextReplyAt);
+      CliBridge.nextReplyAt=due+Math.ceil(bytes/24000*1000);
+      if(due>now)await new Promise<void>((resolve:()=>void)=>{setTimeout(resolve,due-now);});
+      hilog.info(0x0001, 'SPHCLI', 'SPHCLI %{public}s %{public}d/%{public}d %{public}s', id, index, total, chunk);
     }
   }
   private static async drain(): Promise<void> {
@@ -59,8 +76,8 @@ export class CliBridge {
       try {
         const parsed: CommandPayload = JSON.parse(r.payload) as CommandPayload;
         if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('payload must be an object');
-        CliBridge.reply(r.id, await CliBridge.handler(r.command, parsed));
-      } catch (error) { CliBridge.reply(r.id, JSON.stringify({ok:false,error:String(error)})); }
+        await CliBridge.reply(r.id, await CliBridge.handler(r.command, parsed));
+      } catch (error) { await CliBridge.reply(r.id, JSON.stringify({ok:false,error:String(error)})); }
     }
     CliBridge.busy = false;
   }

@@ -1,0 +1,2 @@
+PASS projection: portrait/landscape scale, depth, touch tolerance, invisible bodies, boundaries, closeup
+PASS camera journey: interrupted geometry, convex live tracking, old/new surface weights, overview, cadence, scene replacement

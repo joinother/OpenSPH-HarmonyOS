@@ -17,6 +17,7 @@ struct ProjectedScene { bool ready=false; int width=0,height=0; double time=0; s
 ProjectedScene projectedScene();
 void configureRingTrace(bool enabled,bool running,int target,double mass);
 void seekRingTrace(double seconds);
+void setRingParameters(double speedScale,double rateHours);
 RingClock ringTraceStatus();
 void setAppearance(bool clouds,bool atmosphere,bool trails,bool closeup,bool autoSpin,bool rings);
 void setRenderActive(bool active);

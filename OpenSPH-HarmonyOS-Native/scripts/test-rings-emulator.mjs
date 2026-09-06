@@ -21,7 +21,7 @@ function outerDifference(a,b){assert.equal(a.width,b.width);assert.equal(a.heigh
  }return {changed,mean:total/n};}
 const results=[];
 call('listCommands');call('getUiState');h('shell','hidumper','-s','DisplayManagerService','-a','-y');call('setWindowOrientation',{orientation:'portrait'});
-const catalog=call('listExperiments'),theme=catalog.experiments.find(t=>t.id==='ring-world');assert.ok(theme);assert.equal(catalog.experiments.length,8);
+const catalog=call('listExperiments'),theme=catalog.experiments.find(t=>t.id==='ring-world');assert.ok(theme);assert.equal(catalog.experiments.length,9);
 action('theme.ring-world','paused');call('setAppearance',{autoSpin:false});await settled();
 const original=call('getState');assert.equal(original.simulation.time,0);assert.equal(original.definition.config.orbitBodies[1].surface,4);
 await capture('wide');call('setSky',{mode:0});action('ui.focus');const on=await capture('on');

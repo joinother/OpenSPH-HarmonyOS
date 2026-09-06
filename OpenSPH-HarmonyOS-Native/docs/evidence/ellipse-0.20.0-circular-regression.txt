@@ -1,0 +1,1 @@
+{"ok":true,"changed":8699,"foregroundBudgetHours":0.887,"backgroundAdvanceHours":0.17682662500000035,"layouts":[{"name":"phone","width":1080,"height":2444,"slider":[250,2044,574,2138]},{"name":"landscape","width":2444,"height":1080,"slider":[579,880,1673,974]}]}

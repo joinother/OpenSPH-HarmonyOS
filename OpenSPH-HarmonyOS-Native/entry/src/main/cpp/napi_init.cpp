@@ -124,12 +124,18 @@ napi_value appearance(napi_env e,napi_callback_info i){
         lab::setAppearance(b[0],b[1],b[2],b[3],b[4],b[5]);}catch(const std::exception &ex){return fail(e,ex);}return undef(e);
 }
 napi_value configureTrace(napi_env e,napi_callback_info i){try{auto a=args(e,i,4);bool on,play;if(napi_get_value_bool(e,a[0],&on)!=napi_ok||napi_get_value_bool(e,a[1],&play)!=napi_ok)throw std::invalid_argument("Boolean expected");lab::configureRingTrace(on,play,integer(e,a[2]),number(e,a[3]));}catch(const std::exception &ex){return fail(e,ex);}return undef(e);}
+napi_value traceParameters(napi_env e,napi_callback_info i){try{auto a=args(e,i,2);lab::setRingParameters(number(e,a[0]),number(e,a[1]));}catch(const std::exception &ex){return fail(e,ex);}return undef(e);}
 napi_value seekTrace(napi_env e,napi_callback_info i){try{auto a=args(e,i,1);lab::seekRingTrace(number(e,a[0]));}catch(const std::exception &ex){return fail(e,ex);}return undef(e);}
 napi_value traceStatus(napi_env e,napi_callback_info i){try{auto a=args(e,i,1);bool include;if(napi_get_value_bool(e,a[0],&include)!=napi_ok)throw std::invalid_argument("Boolean expected");auto s=lab::ringTraceStatus();napi_value o,v;napi_create_object(e,&o);
  napi_get_boolean(e,s.enabled,&v);napi_set_named_property(e,o,"enabled",v);napi_get_boolean(e,s.running,&v);napi_set_named_property(e,o,"running",v);
  num(e,o,"target",s.target);num(e,o,"timeHours",s.seconds/3600);num(e,o,"massSolar",s.massSolar);num(e,o,"radiusKm",lab::RING_RADIUS_KM);num(e,o,"count",lab::RING_COUNT);
- num(e,o,"innerPeriodHours",lab::ringPeriod(s.massSolar,lab::RING_RADIUS_KM*lab::RING_INNER)/3600);num(e,o,"outerPeriodHours",lab::ringPeriod(s.massSolar,lab::RING_RADIUS_KM*lab::RING_OUTER)/3600);str(e,o,"model","restricted-circular-kepler-v1");
- if(include){napi_value list;napi_create_array(e,&list);int index=0;for(const auto &p:lab::sampleRing(s.massSolar,s.seconds)){napi_value point;napi_create_object(e,&point);num(e,point,"xKm",p.x);num(e,point,"yKm",p.y);num(e,point,"vxKmS",p.vx);num(e,point,"vyKmS",p.vy);num(e,point,"radiusKm",p.radiusKm);num(e,point,"periodHours",p.periodSeconds/3600);napi_set_element(e,list,index++,point);}napi_set_named_property(e,o,"particles",list);}return o;
+ const double e0=s.speedScale*s.speedScale-1,inner=lab::RING_RADIUS_KM*lab::RING_INNER,outer=lab::RING_RADIUS_KM*lab::RING_OUTER;
+ const auto ref=lab::ringPoint(s.massSolar,s.seconds,inner,s.speedScale);
+ num(e,o,"speedScale",s.speedScale);num(e,o,"rateHours",s.rateHours);num(e,o,"eccentricity",e0);
+ num(e,o,"innerApoapsisKm",inner*(1+e0)/(1-e0));num(e,o,"outerApoapsisKm",outer*(1+e0)/(1-e0));
+ num(e,o,"referenceXKm",ref.x);num(e,o,"referenceYKm",ref.y);num(e,o,"referenceRadiusKm",std::hypot(ref.x,ref.y));num(e,o,"referenceSpeedKmS",std::hypot(ref.vx,ref.vy));
+ num(e,o,"innerPeriodHours",ref.periodSeconds/3600);num(e,o,"outerPeriodHours",lab::ringPeriod(s.massSolar,outer/(1-e0))/3600);str(e,o,"model","restricted-elliptic-kepler-v2");
+ if(include){napi_value list;napi_create_array(e,&list);int index=0;for(const auto &p:lab::sampleRing(s.massSolar,s.seconds,s.speedScale)){napi_value point;napi_create_object(e,&point);num(e,point,"xKm",p.x);num(e,point,"yKm",p.y);num(e,point,"vxKmS",p.vx);num(e,point,"vyKmS",p.vy);num(e,point,"radiusKm",p.radiusKm);num(e,point,"periodHours",p.periodSeconds/3600);napi_set_element(e,list,index++,point);}napi_set_named_property(e,o,"particles",list);}return o;
  }catch(const std::exception &ex){return fail(e,ex);}}
 napi_value panorama(napi_env e,napi_callback_info i){
     try{auto a=args(e,i,3);void* data=nullptr;size_t size=0;
@@ -261,6 +267,7 @@ napi_value Init(napi_env e, napi_value exports) {
     lab::Engine::instance();
     napi_property_descriptor props[] = {
         {"configureRingTrace",nullptr,configureTrace,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"setRingParameters",nullptr,traceParameters,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"seekRingTrace",nullptr,seekTrace,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"ringTraceStatus",nullptr,traceStatus,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setSkyPanorama",nullptr,panorama,nullptr,nullptr,nullptr,napi_default,nullptr},
