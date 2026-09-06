@@ -8,5 +8,5 @@ struct PlanetTexture { int width, height; std::vector<uint8_t> surface, clouds; 
 // Original deterministic art, sampled in 3D on a unit sphere (no longitude seam).
 PlanetTexel planetTexel(int style, double x, double y, double z);
 PlanetTexture makePlanetTexture(int style, int width=1024, int height=512);
-const std::array<PlanetTexture,4> &planetTextures();
+const std::array<PlanetTexture,5> &planetTextures();
 }

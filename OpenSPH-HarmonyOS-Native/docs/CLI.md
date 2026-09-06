@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.17.0；更新日期：2026-09-06（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.18.0；更新日期：2026-09-06（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -30,7 +30,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 ## 主题实验库
 
-实验库的“碰撞／探索／我的实验”分类使用 `library.collision`、`library.explore`、`library.saved`；只切换内容，不重建当前场景。`listExperiments` 返回目录版本、六个主题的完整初始条件、默认镜头、问题和模型说明。
+实验库的“碰撞／探索／我的实验”分类使用 `library.collision`、`library.explore`、`library.saved`；只切换内容，不重建当前场景。`listExperiments` 返回目录版本、七个主题的完整初始条件、默认镜头、问题和模型说明。
 
 | 动作 | 内容 |
 | --- | --- |
@@ -39,6 +39,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 | `theme.rock-spin` | 单岩质天体自转 |
 | `theme.ocean-world` | 海洋行星近看，带恒星的双体轨道 |
 | `theme.three-worlds` | 三种表面行星与恒星组成的系统 |
+| `theme.ring-world` | “环影之间”：虚构带环气态行星、1 AU 轨道与 1 年探索；不是实际土星系统 |
 | `theme.restore` | 恢复当前主题的完整初始条件和默认镜头 |
 | `theme.compare` | 慢撞／快撞切换，恢复另一组完整初始条件 |
 
@@ -97,7 +98,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 `orbit.add` 仅打开草稿。`placement.confirm` 才加入天体并从初始条件重建；`placement.cancel`、返回或关闭面板取消候选，保留原场景、历史与旧编辑草稿。放置期间部分实验操作禁用，应查询 enabled。确认会清空旧轨迹，保留已有天体的编辑草稿，并记入一步天体编辑历史。
 
 - `placement.name` 与 `placement.value.0..4` 为字符串；五个值依次为地球质量倍数、距离 AU、方位角度、倾角角度、圆轨道速度倍数。
-- `placement.circular`、`placement.still`、`placement.escape`、`placement.reverse` 设置圆轨道、相对恒星静止、1.45 倍圆轨道速度及反向；`placement.surface.1..3` 设置表面。
+- `placement.circular`、`placement.still`、`placement.escape`、`placement.reverse` 设置圆轨道、相对恒星静止、1.45 倍圆轨道速度及反向；`placement.surface.1..4` 设置表面。
 - `setPlacementPoint {x,y}` 使用预览图内 0–1 坐标，与轻点／拖动共用转换，不会自动确认。
 - `getPlacementPreview` 返回 valid、error、完整候选初值、相对速度、圆轨道／逃逸速度、最近距离和解析引导路径；无效输入不能确认。
 
@@ -120,7 +121,18 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 ## 外观与相机
 
-`setAppearance` 接受可选布尔值 clouds、atmosphere、trails、closeup、autoSpin。也可用 `appearance.clouds`、`appearance.atmosphere`、`appearance.trails`、`appearance.spin`。
+`setAppearance` 接受可选布尔值 clouds、atmosphere、trails、closeup、autoSpin、rings。也可用 `appearance.clouds`、`appearance.atmosphere`、`appearance.trails`、`appearance.spin`、`appearance.rings`。
+
+带环外观使用行星 `surface:4`；`orbit.surface.4` 修改编辑草稿，`placement.surface.4` 修改放置预览，按原有确认流程应用。它与 1 海洋、2 厚云、3 荒漠并存；恒星只能使用 0。`rings` 默认开启，只控制带环材质的环面和环影；开关保留时间、轨迹、镜头和场景版本。环尺寸与倾斜目前固定，未提供任意环参数输入；球面仍是点选区域，环面不单独响应选中。
+
+天体材质编号随命名实验及 v4 回放保存；全局环带开关与其他外观选项仍只保留在本次会话中。包含材质 4 的文件需本版或更新版读取，旧版会拒绝；本版仍读取旧文件。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"theme.ring-world"}' --wait-state paused
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setAppearance --payload-json '{"rings":false,"autoSpin":false}'
+```
+
+`node scripts/test-rings-emulator.mjs 127.0.0.1:5555` 验证环带像素、侧面投影、布局和新主题积分，会改变当前场景与折叠／方向状态；运行前保存状态，结束由调用方恢复。
 
 `setSky` 接受 mode（0 干净背景、1 星空、2 银河）与 brightness（0–1）；UI 字段 `sky.brightness` 使用 0–100 百分比，不能混用。`getSkyInfo` 返回当前资源来源：摄影就绪时 reference 为 `photographic-panorama`，否则为 `procedural-fallback`；同时返回 ESO/S. Brunier 署名、素材／许可链接、纹理尺寸、loadError 与 rendering。银河摄影为 2048×1024，星空模式仍使用 6500 个程序星点；`proceduralStarsVisible` 描述稳定模式下是否使用程序星点。切换动画中的混合权重另看渲染状态。这不是可定位的星表。
 
@@ -147,7 +159,7 @@ orientation 支持 auto、portrait、landscape、reverse-landscape；方向覆�
 
 默认隐藏状态栏、传统导航栏和手势导航指示条，切回前台时重新应用；系统边缘手势临时唤出的栏仍由系统管理。`window.immersive` 表示应用窗口策略调用成功，不代表临时系统浮层当前一定不可见。宇宙画面铺满窗口，控件继续按动态避让区域布局。`getProjectedBodies` 的像素宽高应匹配完整窗口，不再与安全区相加。
 
-0.17.0 的当前布局验收使用 `node scripts/test-themes-emulator.mjs 127.0.0.1:5555`，覆盖主题实验库的展开、折叠竖屏和横屏。完整沉浸矩阵的历史证据见 [0.16.0 记录](releases/RELEASE-0.16.0.md)；旧窗口与编辑验收脚本保留固定版本的输出文件名，复用时应先修改输出路径，避免覆盖历史证据。
+主题实验库布局验收使用 `node scripts/test-themes-emulator.mjs 127.0.0.1:5555`，覆盖主题实验库的展开、折叠竖屏和横屏；输出按当前源码版本命名。0.18.0 带环画面的布局验证使用 `test-rings-emulator.mjs`。完整沉浸矩阵的历史证据见 [0.16.0 记录](releases/RELEASE-0.16.0.md)；旧窗口与编辑验收脚本保留固定版本的输出文件名，复用时应先修改输出路径，避免覆盖历史证据。
 
 验收会替换当前会话并进行系统折叠和主窗口方向切换，结束恢复 auto；不会保存或覆盖用户实验库。脚本通过不代表真机传感器姿态、触摸或全部半折叠形态通过。
 

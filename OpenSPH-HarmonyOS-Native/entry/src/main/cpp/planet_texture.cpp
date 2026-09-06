@@ -30,6 +30,13 @@ PlanetTexel planetTexel(int style,double x,double y,double z){
   p.ocean=float((1-land)*(1-ice));p.cloud=float(cloud*.90);return p;
  }
  if(style==2){double cracks=smooth(.46,.49,detail)*(1-smooth(.52,.56,detail));p.color=color(.47+.32*terrain-.16*cracks,.23+.25*terrain-.10*cracks,.09+.13*terrain);p.cloud=float(.64+.34*fbm(wx*9+11,y*19,wz*9,5));return p;}
+ if(style==4){
+  // Original latitude bands, warped gently by spherical turbulence; no external textures.
+  double bands=.5+.5*std::sin(y*65+2.2*fbm(x*6,y*5,z*6,3));
+  double fine=.5+.5*std::sin(y*190+.9*detail);
+  p.color=color(.62+.23*bands+.035*fine,.47+.25*bands+.035*fine,.30+.25*bands+.025*fine);
+  p.cloud=float(.08+.13*fbm(wx*12,y*45,wz*12,4));return p;
+ }
  double basin=smooth(.42,.57,terrain),dust=.7+.3*detail;
  p.color=color((.32+.32*basin)*dust,(.12+.18*basin)*dust,(.065+.09*basin)*dust);
  // Deterministic circular depressions with brighter rims; synthetic geology.
@@ -37,7 +44,7 @@ PlanetTexel planetTexel(int style,double x,double y,double z){
  double ice=smooth(.94,.985,std::abs(y)+.02*detail);for(auto &c:p.color)c=float(mix(c,.83,ice));p.cloud=float(cloud*.10);return p;
 }
 PlanetTexture makePlanetTexture(int style,int width,int height){
- if(style<0||style>3||width<8||height<4||width>2048||height>1024)throw std::invalid_argument("Invalid planet texture dimensions/style");
+ if(style<0||style>4||width<8||height<4||width>2048||height>1024)throw std::invalid_argument("Invalid planet texture dimensions/style");
  PlanetTexture t{width,height,std::vector<uint8_t>(size_t(width)*height*4),std::vector<uint8_t>(size_t(width)*height)};
  for(int j=0;j<height;++j){double lat=((j+.5)/height-.5)*3.141592653589793;
   for(int i=0;i<width;++i){double lon=((i+.5)/width-.5)*6.283185307179586;auto p=planetTexel(style,std::cos(lat)*std::cos(lon),std::sin(lat),std::cos(lat)*std::sin(lon));size_t k=size_t(j)*width+i;
@@ -46,5 +53,5 @@ PlanetTexture makePlanetTexture(int style,int width,int height){
  }
  return t;
 }
-const std::array<PlanetTexture,4>& planetTextures(){static const std::array<PlanetTexture,4> maps={makePlanetTexture(0),makePlanetTexture(1),makePlanetTexture(2),makePlanetTexture(3)};return maps;}
+const std::array<PlanetTexture,5>& planetTextures(){static const std::array<PlanetTexture,5> maps={makePlanetTexture(0),makePlanetTexture(1),makePlanetTexture(2),makePlanetTexture(3),makePlanetTexture(4)};return maps;}
 }

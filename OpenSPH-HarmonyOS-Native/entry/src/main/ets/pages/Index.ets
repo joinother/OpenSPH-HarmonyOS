@@ -25,7 +25,7 @@ interface SafeAreaState { top: number; bottom: number; left: number; right: numb
 interface WindowState { layout:WorkspaceLayout; geometry:WindowGeometry; viewportWidthVp: number; viewportHeightVp: number; widthVp: number; heightVp: number; immersive: boolean; safePx: SafeAreaState; }
 interface ProjectSummary { id: string; title: string; savedAt: number; }
 interface ProjectList { ok: boolean; projects: ProjectSummary[]; }
-interface AppearanceState { clouds:boolean; atmosphere:boolean; trails:boolean; closeup:boolean; autoSpin:boolean; }
+interface AppearanceState { clouds:boolean; atmosphere:boolean; trails:boolean; closeup:boolean; autoSpin:boolean; rings:boolean; }
 interface SkyState {mode:number;brightness:number;reference:string;}
 interface PlacementState { active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
 interface ThemeState { id:string; title:string; goal:string; limit:string; modified:boolean; compareId:string; }
@@ -158,6 +158,7 @@ struct Index {
   @State trails: boolean = true;
   @State closeup: boolean = false;
   @State autoSpin: boolean = false;
+  @State rings: boolean = true;
   @State skyLoadError:string='';
   @State rendering: RenderStatus = {panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
   @State colorMode: number = 0;
@@ -287,7 +288,7 @@ struct Index {
     this.composeViewport();
     simulation.setSky(this.skyMode,this.skyBrightness);
     simulation.setCamera(this.yaw,this.pitch,this.zoom,this.focus,this.colorMode);
-    simulation.setAppearance(this.clouds,this.atmosphere,this.trails,this.closeup,this.autoSpin);
+    simulation.setAppearance(this.clouds,this.atmosphere,this.trails,this.closeup,this.autoSpin,this.rings);
   }
   private surfaceName(): string {if(this.preset===5)return this.orbitBodies[Math.max(0,this.focus)]?.name??'行星';return this.focus===0?'恒星':(this.focus===2?'厚云行星':(this.focus===3?'荒漠行星':'海洋行星'));}
   private openSurface(body: number = 1): void {
@@ -302,13 +303,13 @@ struct Index {
     this.notice='系统全景 · 保留当前模拟时间与轨迹';
   }
   private changeAppearance(p: CommandPayload): void {
-    const values: (boolean|undefined)[]=[p.clouds,p.atmosphere,p.trails,p.closeup,p.autoSpin];
+    const values: (boolean|undefined)[]=[p.clouds,p.atmosphere,p.trails,p.closeup,p.autoSpin,p.rings];
     for(const v of values)if(v!==undefined&&typeof v!=='boolean')throw new Error('外观参数必须是 boolean');
     const closeup:boolean=p.closeup??this.closeup;
     if(closeup&&this.preset<3)throw new Error('近看表面仅支持引力预设');
     this.clouds=p.clouds??this.clouds;this.atmosphere=p.atmosphere??this.atmosphere;this.trails=p.trails??this.trails;
     if(closeup)this.rememberOverview();
-    this.closeup=closeup;this.autoSpin=p.autoSpin??this.autoSpin;
+    this.closeup=closeup;this.autoSpin=p.autoSpin??this.autoSpin;this.rings=p.rings??this.rings;
     if(this.closeup&&this.focus<0)this.focus=1;
     this.camera();
   }
@@ -340,7 +341,7 @@ struct Index {
     this.placing=false;this.placementView=undefined;this.playing=false;this.selectingPreset=false;
     this.activeThemeId=t.id;this.title=t.title;this.targetName='玄岩';this.impactorName='赭岩';
     this.yaw=t.yaw;this.pitch=t.pitch;this.zoom=t.zoom;this.focus=t.focus;
-    this.clouds=true;this.atmosphere=true;this.trails=true;this.closeup=t.closeup;this.autoSpin=t.closeup;this.colorMode=0;
+    this.rings=true;this.clouds=true;this.atmosphere=true;this.trails=true;this.closeup=t.closeup;this.autoSpin=t.closeup;this.colorMode=0;
     this.dirty=false;this.toolsVisible=true;this.info=simulation.status();this.camera();this.setPanel(-1);
     this.notice=t.question+' · 点击开始实验';
   }
@@ -548,7 +549,7 @@ struct Index {
   private snapshot(): string {
     this.info=simulation.status();
     const snapshot: AppSnapshot = {theme:this.themeState(),placement:{active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
-      appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin},rendering:simulation.renderStatus(),
+      appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},rendering:simulation.renderStatus(),
       simulation:this.info,
       scene:{preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,dirty:this.dirty},
       camera:{yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode},
@@ -585,17 +586,17 @@ struct Index {
     add('sky.mode.0','纯净',true,this.skyMode===0);add('sky.mode.1','星空',true,this.skyMode===1);add('sky.mode.2','银河',true,this.skyMode===2);
     add('focus.all','全景');add('camera.out','拉远');add('camera.in','拉近');add('camera.reset','复位视角');
     add('color.0','原色',true,this.colorMode===0);add('color.1','速度',true,this.colorMode===1);add('color.2','密度',this.preset<3,this.colorMode===2);
-    add('appearance.clouds','云层',this.preset>=3,this.clouds);add('appearance.atmosphere','大气',this.preset>=3,this.atmosphere);add('appearance.trails','轨迹',this.preset>=3,this.trails);add('appearance.spin','外观自转',this.preset>=3,this.autoSpin);
+    add('appearance.rings','环带',this.preset>=3,this.rings);add('appearance.clouds','云层',this.preset>=3,this.clouds);add('appearance.atmosphere','大气',this.preset>=3,this.atmosphere);add('appearance.trails','轨迹',this.preset>=3,this.trails);add('appearance.spin','外观自转',this.preset>=3,this.autoSpin);
     add('body.primary','主天体',this.preset<3,this.editedBody===0);add('body.impactor','撞击体',this.preset<2,this.editedBody===1);
     add('placement.cancel','取消放置',this.placing);add('placement.confirm','确认加入 · 重新计算',this.placing&&this.placementPreview().valid);
     add('placement.circular','圆轨道',this.placing);add('placement.still','相对静止',this.placing);add('placement.escape','掠过',this.placing);add('placement.reverse','反向',this.placing,this.placementDirection===-1);
-    for(let i=1;i<=3;i++)add('placement.surface.'+i,['海洋','厚云','荒漠'][i-1],this.placing,this.placementSurface===i);
+    for(let i=1;i<=4;i++)add('placement.surface.'+i,['海洋','厚云','荒漠','带环'][i-1],this.placing,this.placementSurface===i);
     add('orbit.add','添加行星',this.preset===5&&this.orbitBodies.length<8);add('orbit.remove','删除天体',this.preset===5&&this.orbitEdit>0&&this.orbitBodies.length>2);
     add('orbit.undo','撤销天体编辑',this.preset===5&&this.orbitUndo.length>0);add('orbit.redo','重做天体编辑',this.preset===5&&this.orbitRedo.length>0);
     add('orbit.discard','还原当前输入',this.preset===5&&this.orbitDraft);
     add('orbit.apply','应用天体 · 重新生成',this.preset===5&&this.orbitDraft);add('orbit.near','近看这颗天体',this.preset===5);
     if(this.preset===5)for(let i=0;i<this.orbitBodies.length;i++)add('orbit.select.'+i,this.orbitBodies[i].name,true,this.orbitEdit===i);
-    for(let i=1;i<=3;i++)add('orbit.surface.'+i,['海洋','厚云','荒漠'][i-1],this.preset===5&&this.orbitEdit>0,this.orbitSurface===i);
+    for(let i=1;i<=4;i++)add('orbit.surface.'+i,['海洋','厚云','荒漠','带环'][i-1],this.preset===5&&this.orbitEdit>0,this.orbitSurface===i);
     if(this.placing)for(const action of a)if(!action.id.startsWith('placement.')&&action.id!=='ui.back'&&action.id!=='panel.close')action.enabled=false;
     return a;
   }
@@ -683,6 +684,7 @@ struct Index {
     else if(action==='camera.in')this.easeCamera(this.yaw,this.pitch,Math.max(.5,this.zoom/1.2));
     else if(action==='camera.reset'){this.closeSurface();this.easeCamera(.15,.25,2.7);}
     else if(action.startsWith('color.')){this.colorMode=Number(action.slice(6));this.camera();}
+    else if(action==='appearance.rings'){this.rings=!this.rings;this.camera();}
     else if(action==='appearance.clouds'){this.clouds=!this.clouds;this.camera();}
     else if(action==='appearance.atmosphere'){this.atmosphere=!this.atmosphere;this.camera();}
     else if(action==='appearance.trails'){this.trails=!this.trails;this.camera();}
@@ -746,7 +748,7 @@ struct Index {
       {name:'start',payload:'{}'}, {name:'pause',payload:'{}'}, {name:'reset',payload:'{}'},
       {name:'seek',payload:'{frame:-1 or retained frame index}'},
       {name:'setCamera',payload:'{yaw:-100..100,pitch:-1.5..1.5,zoom:0.5..15,focus:-1..1 (orbit preset 4: -1..3; custom: -1..bodyCount-1),color:0..2 (orbit 0..1)}'},
-      {name:'setAppearance',payload:'{clouds?:boolean,atmosphere?:boolean,trails?:boolean,closeup?:boolean,autoSpin?:boolean} (visual settings only)'},
+      {name:'setAppearance',payload:'{clouds?:boolean,atmosphere?:boolean,trails?:boolean,closeup?:boolean,autoSpin?:boolean,rings?:boolean} (visual settings only)'},
       {name:'setPanel',payload:'{panel:-1 close,0 parameters,1 observe,2 library}'},
       {name:'listProjects',payload:'{}'}, {name:'saveProject',payload:'{title:string}'}, {name:'loadProject',payload:'{id:string}'},
       {name:'saveReplay',payload:'{}'}, {name:'loadReplay',payload:'{}'}]};
@@ -991,6 +993,7 @@ struct Index {
           ChoiceChip({label:'海洋',active:this.orbitSurface===1,onPress:()=>{this.press('orbit.surface.1');}})
           ChoiceChip({label:'厚云',active:this.orbitSurface===2,onPress:()=>{this.press('orbit.surface.2');}})
           ChoiceChip({label:'荒漠',active:this.orbitSurface===3,onPress:()=>{this.press('orbit.surface.3');}})
+          ChoiceChip({label:'带环',active:this.orbitSurface===4,onPress:()=>{this.press('orbit.surface.4');}})
         }
       }
       ForEach(this.orbitLabels,(label:string,i:number)=>{
@@ -1051,6 +1054,7 @@ struct Index {
         ChoiceChip({label:'海洋',active:this.placementSurface===1,onPress:()=>{this.press('placement.surface.1');}})
         ChoiceChip({label:'厚云',active:this.placementSurface===2,onPress:()=>{this.press('placement.surface.2');}})
         ChoiceChip({label:'荒漠',active:this.placementSurface===3,onPress:()=>{this.press('placement.surface.3');}})
+          ChoiceChip({label:'带环',active:this.placementSurface===4,onPress:()=>{this.press('placement.surface.4');}})
       }
       ForEach(this.placementLabels,(label:string,i:number)=>{
         Row({space:8}) {
@@ -1152,6 +1156,7 @@ struct Index {
     if(id==='rock-fast')return $r('app.media.theme_rock_fast');
     if(id==='rock-oblique')return $r('app.media.theme_rock_oblique');
     if(id==='rock-spin')return $r('app.media.theme_rock_spin');
+    if(id==='ring-world')return $r('app.media.theme_ring_world');
     if(id==='ocean-world')return $r('app.media.theme_ocean_world');
     return $r('app.media.theme_three_worlds');
   }
@@ -1253,8 +1258,9 @@ struct Index {
             ChoiceChip({label:'大气',active:this.atmosphere,onPress:() => {this.press('appearance.atmosphere');}})
             ChoiceChip({label:'轨迹',active:this.trails,onPress:() => {this.press('appearance.trails');}})
           }.width('100%')
+          ChoiceChip({label:'显示气态行星环带',active:this.rings,onPress:()=>{this.press('appearance.rings');}})
           ChoiceChip({label:this.autoSpin?'停止外观自转':'演示外观自转',active:this.autoSpin,onPress:() => {this.press('appearance.spin');}})
-          Text('海陆与云层为程序生成的教学外观；不代表实时地图、气象或流体计算。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
+          Text('海陆、云层与环带为程序生成的外观；环带不参与引力、碰撞或流体计算。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
           Divider().color('#33B4A7D6')
         }
         Text(this.preset>=3?'天体着色':'粒子着色').fontSize(13).fontColor('#AEBDCD').width('100%')

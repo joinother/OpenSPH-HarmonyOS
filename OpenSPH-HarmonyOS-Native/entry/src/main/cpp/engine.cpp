@@ -183,7 +183,7 @@ bool validConfig(const Config &c) {
         if(c.orbitBodies.size()<2||c.orbitBodies.size()>8||c.speed!=1)return false;
         for(size_t i=0;i<c.orbitBodies.size();++i){const auto &b=c.orbitBodies[i];
             if(!validOrbitName(b.name))return false;
-            if(!range(b.massSolar,i==0?.1:1.e-8,i==0?2:.01)||b.surface<(i==0?0:1)||b.surface>(i==0?0:3))return false;
+            if(!range(b.massSolar,i==0?.1:1.e-8,i==0?2:.01)||b.surface<(i==0?0:1)||b.surface>(i==0?0:4))return false;
             if(!range(b.xAU,-10,10)||!range(b.yAU,-10,10)||!range(b.zAU,-10,10)||!range(norm({b.vxKmS,b.vyKmS,b.vzKmS}),0,100))return false;
             for(size_t j=0;j<i;++j){const auto &a=c.orbitBodies[j];if(norm({b.xAU-a.xAU,b.yAU-a.yAU,b.zAU-a.zAU})<.05)return false;}
         }
@@ -392,7 +392,7 @@ bool Engine::loadReplay(const std::string &dir) {
             for(uint32_t i=0;i<count;++i){uint32_t len=0;in.read(reinterpret_cast<char *>(&len),4);if(!in||len<1||len>192)return false;
                 std::string name(len,'\0');in.read(&name[0],len);double d[8];in.read(reinterpret_cast<char *>(d),sizeof(d));if(!in)return false;
                 for(double x:d)if(!std::isfinite(x))return false;
-                if(d[7]<0||d[7]>3||std::trunc(d[7])!=d[7])return false;
+                if(d[7]<0||d[7]>4||std::trunc(d[7])!=d[7])return false;
                 saved.orbitBodies.push_back({name,d[0],d[1],d[2],d[3],d[4],d[5],d[6],int(d[7])});}}
         if (!validConfig(saved) || saved.duration != duration || (version>=3)!=(saved.preset>=3) || (version==4)!=(saved.preset==5)) return false;
     }

@@ -120,8 +120,8 @@ napi_value camera(napi_env e, napi_callback_info i) {
     return undef(e);
 }
 napi_value appearance(napi_env e,napi_callback_info i){
-    try {auto a=args(e,i,5);bool b[5];for(int k=0;k<5;++k)if(napi_get_value_bool(e,a[k],&b[k])!=napi_ok)throw std::invalid_argument("Appearance requires booleans");
-        lab::setAppearance(b[0],b[1],b[2],b[3],b[4]);}catch(const std::exception &ex){return fail(e,ex);}return undef(e);
+    try {auto a=args(e,i,6);bool b[6];for(int k=0;k<6;++k)if(napi_get_value_bool(e,a[k],&b[k])!=napi_ok)throw std::invalid_argument("Appearance requires booleans");
+        lab::setAppearance(b[0],b[1],b[2],b[3],b[4],b[5]);}catch(const std::exception &ex){return fail(e,ex);}return undef(e);
 }
 napi_value panorama(napi_env e,napi_callback_info i){
     try{auto a=args(e,i,3);void* data=nullptr;size_t size=0;

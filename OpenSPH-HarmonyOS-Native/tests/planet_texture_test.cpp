@@ -12,7 +12,7 @@ int main(){try {
   for(int i=0;i<120;++i){double lon=i*6.283185307179586/120;auto p=planetTexel(1,std::cos(lat)*std::cos(lon),std::sin(lat),std::cos(lat)*std::sin(lon));sea+=p.ocean;cloud+=p.cloud;++n;}
  }
  check(sea/n>.2&&sea/n<.9,"ocean/land coverage");check(cloud/n>.05&&cloud/n<.7,"cloud coverage");check(maxSeam<1e-5,"longitude seam");
- for(int style=0;style<4;++style){auto a=makePlanetTexture(style,128,64),b=makePlanetTexture(style,128,64);check(a.surface==b.surface&&a.clouds==b.clouds,"non deterministic maps");check(a.surface.size()==128*64*4&&a.clouds.size()==128*64,"map bounds");}
+ for(int style=0;style<5;++style){auto a=makePlanetTexture(style,128,64),b=makePlanetTexture(style,128,64);check(a.surface==b.surface&&a.clouds==b.clouds,"non deterministic maps");check(a.surface.size()==128*64*4&&a.clouds.size()==128*64,"map bounds");}
  bool bad=false;try{makePlanetTexture(1,999999,1);}catch(const std::invalid_argument&){bad=true;}check(bad,"unbounded texture accepted");
  std::cout<<"PASS deterministic surface/cloud maps; ocean coverage="<<sea/n<<" cloud coverage="<<cloud/n<<" max longitude seam="<<maxSeam<<"; bounded texture allocation\n";
 }catch(const std::exception&e){std::cerr<<"FAIL "<<e.what()<<'\n';return 1;}}

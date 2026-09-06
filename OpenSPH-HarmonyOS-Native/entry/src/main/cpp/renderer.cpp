@@ -245,11 +245,13 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                         const auto &star=frame->particles[0];auto light=rotate(star.x-p.x,star.y-p.y,star.z-p.z);
                         float len=std::sqrt(light[0]*light[0]+light[1]*light[1]+light[2]*light[2]);if(len<1.e-6f)light={-.4f,.5f,1.f};else for(auto &x:light)x/=len;
                         auto projectedBody=projectBody(c,int(i),v,w,h,blend,journey.detail(int(i)));
+                        // Reserve the ring envelope through the existing continuous detail transition.
+                        if(frame->surfaces[i]==4)projectedBody.radius/=1.f+1.26f*journey.detail(int(i));
                         projectedBody.x=compositionNow[0]+(projectedBody.x-.5f)*compositionNow[2];projectedBody.y=compositionNow[1]+(projectedBody.y-.5f)*compositionNow[2];projectedBody.radius*=compositionNow[2];shown.bodies.push_back(projectedBody);
                         float phase=float(std::fmod(frame->time*.75+previewTime*.012,1.0));
                         SurfaceView view{projectedBody.x*2-1,1-projectedBody.y*2,-projectedBody.depth/100,
                             projectedBody.radius*2,aspect,c.yaw,c.pitch,phase,float(std::fmod(frame->time*.78+previewTime*.014+.07,1.0)),
-                            {light[0],light[1],light[2]},frame->surfaces[i],c.color,p.speed,a.clouds,a.atmosphere,projectedBody.opacity};
+                            {light[0],light[1],light[2]},frame->surfaces[i],c.color,p.speed,a.clouds,a.atmosphere,a.rings,projectedBody.opacity};
                         if(view.opacity>.001f)material.draw(view);
                     }
                     glEnable(GL_DEPTH_TEST);
@@ -331,7 +333,7 @@ void destroyed(OH_NativeXComponent *, void *) {
 }
 OH_NativeXComponent_Callback callbacks = {created, changed, destroyed, nullptr};
 } // namespace
-void setAppearance(bool clouds,bool atmosphere,bool trails,bool closeup,bool autoSpin){renderer().setAppearance({clouds,atmosphere,trails,closeup,autoSpin});}
+void setAppearance(bool clouds,bool atmosphere,bool trails,bool closeup,bool autoSpin,bool rings){renderer().setAppearance({clouds,atmosphere,trails,closeup,autoSpin,rings});}
 void setComposition(float x,float y,float scale){renderer().setComposition(x,y,scale);}
 void setSkyPanorama(std::shared_ptr<const SkyPanorama> p){renderer().setPanorama(std::move(p));}
 void setSky(int mode,float brightness){renderer().setSky({mode,brightness});}

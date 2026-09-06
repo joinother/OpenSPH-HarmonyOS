@@ -8,18 +8,19 @@ import {fileURLToPath} from 'node:url';
 const device=process.argv[2];if(device!=='127.0.0.1:5555')throw Error('Explicit development emulator required');
 const project=fileURLToPath(new URL('../',import.meta.url)),cli=project+'scripts/opensph-cli.mjs';
 const hdc='/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/hdc';
+const version=JSON.parse(readFileSync(project+'AppScope/app.json5','utf8')).app.versionName;
 const temp=mkdtempSync(join(tmpdir(),'sph-themes-')),results=[];
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const h=(...a)=>execFileSync(hdc,['-t',device,...a],{encoding:'utf8',timeout:15000});
 const call=(command,payload={},wait)=>JSON.parse(execFileSync(process.execPath,[cli,'--device',device,'--command',command,'--payload-json',JSON.stringify(payload),...(wait?['--wait-state',wait]:[])],{encoding:'utf8',timeout:35000}));
 const action=(action,wait)=>call('uiAction',{action},wait);
-function screenshot(name){const remote='/data/local/tmp/sph-theme.png';h('shell','uitest','screenCap','-p',remote);h('file','recv',remote,project+'../OpenSPH-0.17.0-'+name+'.png');h('shell','rm',remote);}
+function screenshot(name){const remote='/data/local/tmp/sph-theme.png';h('shell','uitest','screenCap','-p',remote);h('file','recv',remote,project+'../OpenSPH-'+version+'-'+name+'.png');h('shell','rm',remote);}
 async function waitFor(predicate,limit=120000){const end=Date.now()+limit;let polls=0;do{const s=call('getState');if(++polls%15===0)console.log('WAIT '+JSON.stringify({ready:s.rendering.ready,moving:s.rendering.cameraMoving,state:s.simulation.state,time:s.simulation.time}));if(s.rendering.error)throw Error('Renderer failed: '+s.rendering.error);if(s.simulation.state==='failed')throw Error('Solver failed: '+s.simulation.error);if(predicate(s))return s;await delay(600);}while(Date.now()<end);throw Error('Scene did not settle');}
 function uiNodes(){const remote='/data/local/tmp/sph-theme-ui.json',local=join(temp,'ui.json');h('shell','uitest','dumpLayout','-p',remote);h('file','recv',remote,local);h('shell','rm',remote);const nodes=[];
  function walk(v){if(!v||typeof v!=='object')return;if(v.attributes?.bounds)nodes.push({...v.attributes,rect:(v.attributes.bounds.match(/-?\d+/g)||[]).map(Number)});Object.entries(v).filter(([k])=>k!=='attributes').forEach(([,x])=>walk(x));}walk(JSON.parse(readFileSync(local,'utf8')));return nodes;
 }
 try {
- call('listCommands');call('getUiState');const catalog=call('listExperiments');assert.equal(catalog.experiments.length,6);
+ call('listCommands');call('getUiState');const catalog=call('listExperiments');assert.equal(catalog.experiments.length,7);
  const [slow,fast]=catalog.experiments;assert.deepEqual({...slow.config,speed:8},fast.config);
  h('shell','hidumper','-s','DisplayManagerService','-a','-y');call('setWindowOrientation',{orientation:'portrait'});
  for(const t of catalog.experiments){
@@ -28,7 +29,7 @@ try {
   call('start');s=await waitFor(s=>s.simulation.state==='completed');assert.ok(Math.abs(s.simulation.time-t.config.duration)<(t.category==='collision'?.151:1e-8),'end time exceeds one maximum SPH step');assert.equal(s.rendering.error,'');
   results.push({id:t.id,config:s.definition.config,simulation:s.simulation});
   if(t.category==='collision'){call('setCamera',{...s.camera,zoom:t.id==='rock-fast'?5:3.5});await delay(500);screenshot(t.id+'-result');}
-  writeFileSync(project+'docs/evidence/themes-'+t.id+'-state.json',JSON.stringify(s,null,2)+'\n');console.log('PASS '+t.id+' '+s.simulation.time+' '+s.simulation.timeUnit);
+  writeFileSync(project+'docs/evidence/themes-'+version+'-'+t.id+'-state.json',JSON.stringify(s,null,2)+'\n');console.log('PASS '+t.id+' '+s.simulation.time+' '+s.simulation.timeUnit);
  }
  for(let i=0;i<20;i++){const zero=action('theme.ocean-world','paused');assert.equal(zero.simulation.time,0);assert.equal(zero.simulation.frames,1);}
  console.log('PASS atomic paused start x20');
@@ -54,5 +55,5 @@ try {
  }
  action('library.explore');await delay(650);screenshot('library-explore');assert.equal(call('getUiState').librarySection,'explore');
  action('library.saved');assert.equal(call('getUiState').librarySection,'saved');assert.deepEqual(call('getState').definition,reference.definition);
- writeFileSync(project+'docs/evidence/themes-device-tests.json',JSON.stringify({ok:true,device,checks:['six fixed templates complete native integration','20 repeated native initial-paused starts remain at time zero','speed-only comparison and exact restore','gallery navigation preserves scene and camera','full immersive viewport and theme gallery in wide/phone/landscape'],results},null,2)+'\n');console.log('PASS gallery and comparisons');
+ writeFileSync(project+'docs/evidence/themes-'+version+'-device-tests.json',JSON.stringify({ok:true,device,checks:['seven fixed templates complete native integration','20 repeated native initial-paused starts remain at time zero','speed-only comparison and exact restore','gallery navigation preserves scene and camera','full immersive viewport and theme gallery in wide/phone/landscape'],results},null,2)+'\n');console.log('PASS gallery and comparisons');
 } finally {try{call('pause');call('setWindowOrientation',{orientation:'auto'});}catch{}rmSync(temp,{recursive:true,force:true});}

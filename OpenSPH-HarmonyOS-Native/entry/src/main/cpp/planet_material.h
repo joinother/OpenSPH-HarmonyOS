@@ -6,10 +6,10 @@ struct SurfaceView {
  float x,y,z,radius,aspect; // screen center NDC, depth and radius in vertical NDC units
  float yaw,pitch,phase,cloudPhase;
  float light[3];int style,color;float speed;
- bool clouds,atmosphere;float opacity;
+ bool clouds,atmosphere,rings;float opacity;
 };
 class PlanetMaterial {
- GLuint program=0,vao=0,vbo=0,surfaces[4]{},cloudMaps[4]{};
+ GLuint program=0,vao=0,vbo=0,surfaces[5]{},cloudMaps[5]{};
 public:
  bool init(std::string &error);
  void draw(const SurfaceView &view);

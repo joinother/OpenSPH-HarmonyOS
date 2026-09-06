@@ -402,7 +402,7 @@ test('immersive window policy hides status, navigation and gesture indicator ind
 
 test('theme catalog isolates conditions and collision speed comparison changes only speed',async()=>{
   const {page:app}=page();
-  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,6);
+  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,7);
   const [slow,fast]=catalog.experiments;assert.equal(slow.config.speed,2);assert.equal(fast.config.speed,8);
   assert.deepEqual({...slow.config,speed:8},fast.config);
   assert.ok(catalog.experiments.every(t=>t.goal&&t.limit&&t.question));
@@ -446,4 +446,28 @@ test('initial pause is passed atomically to native for themes, previews and body
   app.prepare(true);assert.equal(initialPauses.at(-1),false);
   await app.execute('uiAction',{action:'theme.ocean-world'});assert.equal(initialPauses.at(-1),true);
   app.orbitName='修改名称';app.orbitDraft=true;app.applyOrbit();assert.equal(initialPauses.at(-1),true);
+});
+
+test('ring appearance shares UI and CLI, validates atomically and preserves the solver and camera',async()=>{
+  const {page:app,calls,state}=page();await app.execute('uiAction',{action:'theme.ring-world'});state.state='paused';
+  const before=JSON.parse(app.snapshot()),starts=calls.filter(c=>c[0]==='start').length;
+  assert.equal(before.definition.config.orbitBodies[1].surface,4);assert.equal(before.appearance.rings,true);
+  await app.execute('uiAction',{action:'appearance.rings'});assert.equal(app.rings,false);
+  await app.execute('setAppearance',{rings:true});assert.equal(app.rings,true);
+  const snapshot=app.snapshot();await assert.rejects(app.execute('setAppearance',{rings:'yes',clouds:false}));assert.equal(app.snapshot(),snapshot);
+  await assert.rejects(app.execute('uiAction',{action:'orbit.surface.5'}));
+  assert.deepEqual(JSON.parse(app.snapshot()).camera,before.camera);assert.deepEqual(JSON.parse(app.snapshot()).definition.config,before.definition.config);
+  assert.equal(calls.filter(c=>c[0]==='start').length,starts);
+});
+test('ring style survives placement, edit history and serialized scene reload',async()=>{
+  const {page:app,state}=page();app.choose(5);state.state='paused';
+  await app.execute('uiAction',{action:'orbit.add'});await app.execute('uiAction',{action:'placement.surface.4'});
+  assert.equal(app.placementPreview().valid,true);assert.equal(app.placementPreview().body.surface,4);
+  await app.execute('uiAction',{action:'placement.confirm'});state.state='paused';
+  assert.equal(app.orbitBodies[4].surface,4);
+  await app.execute('uiAction',{action:'orbit.undo'});state.state='paused';assert.equal(app.orbitBodies.length,4);
+  await app.execute('uiAction',{action:'orbit.redo'});state.state='paused';assert.equal(app.orbitBodies[4].surface,4);
+  const saved=JSON.parse(JSON.stringify(app.definition()));await app.execute('setScene',saved.config);state.state='paused';
+  assert.equal(app.orbitBodies[4].surface,4);
+  const before=app.snapshot();saved.config.orbitBodies[4].surface=5;await assert.rejects(app.execute('setScene',saved.config));assert.equal(app.snapshot(),before);
 });
