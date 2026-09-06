@@ -59,6 +59,8 @@ python3 scripts/check-docs.py
 
 [SpaceEngine 调研](docs/research/SPACEENGINE-2026-09-06.md) 补充了环带光照、分层外观和可编排连续镜头的实施建议与许可边界；这些是后续待办，尚未加入当前版本。
 
+[同行更新日志筛选](docs/research/PEER-UPDATES-2026-09-06.md) 补充复制为放置草稿、主题外观持久化、实验曲线和设备画质分档；区分已发布功能、开发分支与未来计划，不替代当前土星环外观和物理验证的优先顺序。
+
 ## 许可
 
 新应用代码采用 MIT；OpenSPH 许可见 [第三方许可](third_party/opensph/LICENSE)，sse2neon 保留头文件许可。银河摄影署名 ESO/S. Brunier，使用 CC BY 4.0；见 [素材来源](docs/reference/SKY-ASSETS.md)。第三方许可文本随 HAP 打包。GitHub 检查点保留原有桌面工程；本项目未引入 SpaceSim、Universe Sandbox 或 SpaceEngine 的私有实现与素材。

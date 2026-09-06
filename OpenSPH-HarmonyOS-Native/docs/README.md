@@ -15,6 +15,7 @@
 | [同行调研与路线](research/PEER-RESEARCH-2026-09-06.md) | SpaceSim、Universe Sandbox、Celestia 等来源与实现取舍 |
 | [SpaceEngine 调研](research/SPACEENGINE-2026-09-06.md) | 许可、连续漫游、分层行星、场景脚本与下载安装取舍 |
 | [宇宙沙盒操作记录](research/UNIVERSE-SANDBOX-SESSION-2026-09-06.md) | Steam 启动后的实际观察、操作边界与输入问题 |
+| [同行更新日志筛选](research/PEER-UPDATES-2026-09-06.md) | Universe Sandbox、SpaceSim 更新和 Celestia 开发提交对当前路线的补充 |
 | [文档维护流程](WORKFLOW.md) | 文件归属、日期、命名、更新和交付检查 |
 
 ## 版本记录
