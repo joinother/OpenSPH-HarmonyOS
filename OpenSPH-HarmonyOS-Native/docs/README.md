@@ -1,6 +1,6 @@
 # 文档目录
 
-> 类型：当前文档索引；源码版本：0.31.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前文档索引；源码版本：0.32.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 先阅读 [项目概览](../README.md)，操作应用使用 [CLI 指南](CLI.md)，维护资料遵循 [文档流程](WORKFLOW.md) 和 [开发约定](../AGENTS.md)。本目录区分当前说明与历史记录；归档内容不覆盖当前规则。
 
@@ -9,6 +9,7 @@
 | 文档 | 用途 |
 | --- | --- |
 | [天体程序化生成专题](research/PROCEDURAL-CELESTIAL-GENERATION-2026-09-07.md) | Baopinsui 视频索引与 NPGS 10 份文件选读、9 个开源候选、逐天体种子／地貌／大气路线与 8 个预设；未播放视频或接入新代码 |
+| [行星独立外观](reference/SURFACE-GENERATION.md) | 地表／云层种子、后台生成、独立历史、v3 存档与设备预算 |
 | [准备阶段与取消](reference/PREPARATION.md) | 请求身份、真实阶段、耗时提示与等待失败证据 |
 | [SPH 材料与敏感性基线](reference/SPH-BASELINE.md) | 解析极限、固定步长与粒子预算研究、跨平台数据和未收敛项 |
 | [SPH 诊断与验证](reference/SPH-DIAGNOSTICS.md) | 压力／比内能／损伤、双精度统计、回放 v5、桌面同初值对照与后续接入路线 |
@@ -35,6 +36,7 @@
 
 | 版本 | 主题 |
 | --- | --- |
+| [0.32.0](releases/RELEASE-0.32.0.md) | 独立地貌与云层、后台生成、外观历史及 v3 配方 |
 | [0.31.0](releases/RELEASE-0.31.0.md) | 准备阶段跟踪、取消与 CLI 超时诊断 |
 | [0.30.0](releases/RELEASE-0.30.0.md) | 碰撞精度对照主题与材料／数值敏感性基线 |
 | [0.29.0](releases/RELEASE-0.29.0.md) | SPH 五指标曲线、采样极值定位与原始 CSV 导出 |

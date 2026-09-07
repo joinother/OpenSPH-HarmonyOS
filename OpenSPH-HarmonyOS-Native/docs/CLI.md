@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.31.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.32.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -405,3 +405,13 @@ CLI 验证覆盖状态和共享动作；实际触摸、键盘焦点、动画观�
 月面不使用云、大气、海洋反光与环带，曝光仍有效；这些全局开关仍可为其他行星设置。含 surface 5 的命名实验或 v4 回放需要 0.24.0 及更新版读取，旧版拒绝，不自动替换外观。
 
 验收：`node scripts/test-moon-emulator.mjs 127.0.0.1:5555`；窗口和新按钮命中：`node scripts/test-moon-layout-emulator.mjs 127.0.0.1:5555`。脚本替换当前会话，须先备份并在结束后恢复，不能用于其他设备。
+
+## 逐天体地貌与云层
+
+自定义系统中的虚构行星支持 `setSurfaceSeed`，例如 `{ "body": 1, "surfaceSeed": 731, "cloudSeed": 919 }`。两个种子分别为 0–1000000 的整数；省略的字段保持原值，0 使用旧生成规则。恒星与真实月面不接受非零种子。该命令与界面的外观操作共享事务，不改变模拟初值、时间、回放选帧或相机。
+
+观察面板提供 `terrain.new`、`terrain.clouds`、`terrain.undo`、`terrain.redo`。按钮作用于已聚焦的行星，未聚焦时作用于编辑器选中的行星；标签显示名称。外观历史最多 20 次，独立于质量／轨道历史；增加、删除或应用天体初值后清空外观历史，天体历史本身保留该次对应的外观配方。
+
+`getState.surfaces` 按当前天体次序返回 `{version:1,seed,cloudSeed}`。排序变化由复制／删除事务同步处理，种子不会按新数组索引重新推算。`surfaceUndoCount`／`surfaceRedoCount` 返回外观历史数量。`rendering.surfacePending` 为后台待完成天体数，`surfaceGenerated` 为已得到当前配方 CPU 纹理的天体数，`surfaceError` 为生成或上传失败；`surfaceGenerated` 不是性能指标或逐天体 GPU 上传回执。命令返回不代表纹理与 350 ms 过渡已完成。
+
+命名实验采用外观配方 v3，保存种子、生成版本和现有观察设置。v1／v2 和无配方存档读取后使用旧地貌，不改写原文件。回放文件仍不包含外观配方。实现、预算与限制见 [行星独立外观](reference/SURFACE-GENERATION.md)。

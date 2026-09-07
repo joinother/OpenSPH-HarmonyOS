@@ -31,7 +31,8 @@ export const setSkyPanorama:(pixels:ArrayBuffer,width:number,height:number)=>voi
 export const setSky:(mode:number,brightness:number)=>void;
 export const setComposition:(x:number,y:number,scale:number)=>void;
 export const setMoonTexture:(pixels:ArrayBuffer,width:number,height:number)=>void;
-export interface RenderStatus { moonReady:boolean; moonUploads:number; moonBlend:number; moonError:string; materialExposure:number; materialOcean:boolean; materialCloudShadows:boolean; panoramaReady:boolean; panoramaBlend:number; compositionX:number; compositionY:number; compositionScale:number; sceneRevision:number; surfaceStarts:number; cameraMoving:boolean; centerX:number; centerY:number; centerZ:number; skyReady:boolean; skyStars:number; skyGalaxy:number; ready:boolean; texturesReady:boolean; active:boolean; frames:number; submitMs:number; previewSeconds:number; error:string; }
+export const setSurfaceSeeds:(pairs:number[])=>void;
+export interface RenderStatus { surfacePending:number;surfaceGenerated:number;surfaceError:string; moonReady:boolean; moonUploads:number; moonBlend:number; moonError:string; materialExposure:number; materialOcean:boolean; materialCloudShadows:boolean; panoramaReady:boolean; panoramaBlend:number; compositionX:number; compositionY:number; compositionScale:number; sceneRevision:number; surfaceStarts:number; cameraMoving:boolean; centerX:number; centerY:number; centerZ:number; skyReady:boolean; skyStars:number; skyGalaxy:number; ready:boolean; texturesReady:boolean; active:boolean; frames:number; submitMs:number; previewSeconds:number; error:string; }
 export const setMaterial:(exposure:number,ocean:boolean,cloudShadows:boolean)=>void;
 export const setAppearance:(clouds:boolean,atmosphere:boolean,trails:boolean,closeup:boolean,autoSpin:boolean,rings:boolean)=>void;
 export const setRenderActive:(active:boolean)=>void;

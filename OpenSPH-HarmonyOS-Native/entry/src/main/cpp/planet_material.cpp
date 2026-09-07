@@ -1,4 +1,5 @@
 #include "planet_material.h"
+#include <stdexcept>
 #include "planet_texture.h"
 #include "projection.h"
 namespace lab {
@@ -16,7 +17,8 @@ const char *fragment=R"(#version 300 es
 precision highp float;
 in vec2 local;
 out vec4 outputColor;
-uniform sampler2D surfaceMap,cloudMap;
+uniform sampler2D surfaceMap,cloudMap,previousSurfaceMap,previousCloudMap;
+uniform float generationBlend;
 uniform vec3 light;
 uniform vec2 orientation;
 uniform float phase,cloudPhase,speed,opacity,exposure,moonBlend;
@@ -52,7 +54,7 @@ vec4 sampleMap(sampler2D map,vec2 p){vec2 dx=dFdx(p),dy=dFdy(p);dx.x-=round(dx.x
 vec4 surfaceAt(vec3 n){vec2 p=uv(n,phase);
  // NASA map is north-first and east-positive; our front-facing basis reverses longitude.
  if(style==5){p=vec2(1.0)-p;return mix(vec4(.45,.45,.45,0),vec4(sampleMap(surfaceMap,p).rgb,0),moonBlend);}
- return sampleMap(surfaceMap,p);}
+ return mix(sampleMap(previousSurfaceMap,p),sampleMap(surfaceMap,p),generationBlend);}
 
 vec4 sphereColor(){
  float r=length(local),edge=max(fwidth(r),.0006);
@@ -74,8 +76,8 @@ vec4 sphereColor(){
  float cover=0.0,shadow=0.0;
  if(style!=5&&clouds==1&&colorMode==0){
    vec3 cn=vec3(local/1.012,sqrt(max(0.0,1.0-dot(local/1.012,local/1.012))));
-   cover=sampleMap(cloudMap,uv(surfaceNormal(cn),cloudPhase)).r;
-   if(cloudShadows==1)shadow=sampleMap(cloudMap,uv(normalize(w+surfaceNormal(light)*.016),cloudPhase)).r;
+   cover=mix(sampleMap(previousCloudMap,uv(surfaceNormal(cn),cloudPhase)).r,sampleMap(cloudMap,uv(surfaceNormal(cn),cloudPhase)).r,generationBlend);
+   if(cloudShadows==1)shadow=mix(sampleMap(previousCloudMap,uv(normalize(w+surfaceNormal(light)*.016),cloudPhase)).r,sampleMap(cloudMap,uv(normalize(w+surfaceNormal(light)*.016),cloudPhase)).r,generationBlend);
  }
  vec3 lit=base*(.035+diffuse*.95)*(1.0-shadow*.32);
  if(colorMode==0&&style==1&&ocean==1){float spec=pow(max(dot(n,normalize(light+vec3(0,0,1))),0.0),90.0)*texel.a*diffuse*(1.0-cover);
@@ -148,6 +150,16 @@ bool PlanetMaterial::init(std::string &error){
  for(int i=0;i<5;++i){upload(surfaces[i],maps[i],false);upload(cloudMaps[i],maps[i],true);}
  GLenum e=glGetError();if(e!=GL_NO_ERROR){error="Planet texture upload GL error "+std::to_string(e);release();return false;}return true;
 }
+void PlanetMaterial::updateGenerated(int index,std::shared_ptr<const GeneratedSurface> data,float dt){
+ auto &s=generated.at(index);s.blend=std::min(1.f,s.blend+dt/.35f);
+ if(s.blend>=1){if(s.previousSurface)glDeleteTextures(1,&s.previousSurface);if(s.previousCloud)glDeleteTextures(1,&s.previousCloud);s.previousSurface=s.previousCloud=0;}
+ if(data==s.data)return;
+ if(!data){for(auto id:{s.surface,s.cloud,s.previousSurface,s.previousCloud})if(id)glDeleteTextures(1,&id);s=Slot{};return;}
+ GLuint maps[2];glGenTextures(2,maps);upload(maps[0],data->texture,false);upload(maps[1],data->texture,true);
+ if(glGetError()!=GL_NO_ERROR){glDeleteTextures(2,maps);throw std::runtime_error("Generated surface upload failed");}
+ if(s.previousSurface)glDeleteTextures(1,&s.previousSurface);if(s.previousCloud)glDeleteTextures(1,&s.previousCloud);
+ s.previousSurface=s.surface;s.previousCloud=s.cloud;s.surface=maps[0];s.cloud=maps[1];s.data=std::move(data);s.blend=0;
+}
 void PlanetMaterial::draw(const SurfaceView &v){
  if(v.style<0||v.style>5)return;
  glUseProgram(program);glBindVertexArray(vao);
@@ -158,8 +170,13 @@ void PlanetMaterial::draw(const SurfaceView &v){
  glUniform1i(glGetUniformLocation(program,"style"),v.style);glUniform1i(glGetUniformLocation(program,"colorMode"),v.color);
  glUniform1f(glGetUniformLocation(program,"exposure"),v.exposure);glUniform1i(glGetUniformLocation(program,"ocean"),v.ocean);glUniform1i(glGetUniformLocation(program,"cloudShadows"),v.cloudShadows);
  glUniform1i(glGetUniformLocation(program,"rings"),v.rings);glUniform1i(glGetUniformLocation(program,"clouds"),v.clouds);glUniform1i(glGetUniformLocation(program,"atmosphere"),v.atmosphere);
- glActiveTexture(GL_TEXTURE0);glBindTexture(GL_TEXTURE_2D,v.style==5?(moonTexture?moonTexture:surfaces[3]):surfaces[v.style]);glUniform1i(glGetUniformLocation(program,"surfaceMap"),0);
- glActiveTexture(GL_TEXTURE1);glBindTexture(GL_TEXTURE_2D,cloudMaps[v.style==5?3:v.style]);glUniform1i(glGetUniformLocation(program,"cloudMap"),1);
+ GLuint baseSurface=v.style==5?(moonTexture?moonTexture:surfaces[3]):surfaces[v.style],baseCloud=cloudMaps[v.style==5?3:v.style];
+ Slot *slot=v.bodyIndex>=0&&v.bodyIndex<8?&generated[v.bodyIndex]:nullptr;
+ bool custom=slot&&slot->data&&slot->data->key.style==v.style;
+ GLuint maps[4]={custom?slot->surface:baseSurface,custom?slot->cloud:baseCloud,custom&&slot->previousSurface?slot->previousSurface:baseSurface,custom&&slot->previousCloud?slot->previousCloud:baseCloud};
+ const char *names[4]={"surfaceMap","cloudMap","previousSurfaceMap","previousCloudMap"};
+ for(int k=0;k<4;k++){glActiveTexture(GL_TEXTURE0+k);glBindTexture(GL_TEXTURE_2D,maps[k]);glUniform1i(glGetUniformLocation(program,names[k]),k);}
+ glUniform1f(glGetUniformLocation(program,"generationBlend"),custom?slot->blend:1.f);
  glDrawArrays(GL_TRIANGLES,0,6);glActiveTexture(GL_TEXTURE0);
 }
 void PlanetMaterial::drawTrace(const SurfaceView &v,const std::vector<RingPoint> &points){
@@ -179,5 +196,5 @@ bool PlanetMaterial::uploadMoon(const MoonMap &map,std::string &error){
  GLenum status=glGetError();if(status!=GL_NO_ERROR){glDeleteTextures(1,&next);error="Moon upload GL error "+std::to_string(status);return false;}
  if(moonTexture)glDeleteTextures(1,&moonTexture);moonTexture=next;return true;
 }
-void PlanetMaterial::release(){if(moonTexture)glDeleteTextures(1,&moonTexture);moonTexture=0;if(traceVbo)glDeleteBuffers(1,&traceVbo);if(traceVao)glDeleteVertexArrays(1,&traceVao);if(traceProgram)glDeleteProgram(traceProgram);traceVbo=traceVao=traceProgram=0;if(vbo)glDeleteBuffers(1,&vbo);if(vao)glDeleteVertexArrays(1,&vao);if(program)glDeleteProgram(program);glDeleteTextures(5,surfaces);glDeleteTextures(5,cloudMaps);vbo=vao=program=0;for(auto &v:surfaces)v=0;for(auto &v:cloudMaps)v=0;}
+void PlanetMaterial::release(){for(int i=0;i<8;i++)updateGenerated(i,nullptr,0);if(moonTexture)glDeleteTextures(1,&moonTexture);moonTexture=0;if(traceVbo)glDeleteBuffers(1,&traceVbo);if(traceVao)glDeleteVertexArrays(1,&traceVao);if(traceProgram)glDeleteProgram(traceProgram);traceVbo=traceVao=traceProgram=0;if(vbo)glDeleteBuffers(1,&vbo);if(vao)glDeleteVertexArrays(1,&vao);if(program)glDeleteProgram(program);glDeleteTextures(5,surfaces);glDeleteTextures(5,cloudMaps);vbo=vao=program=0;for(auto &v:surfaces)v=0;for(auto &v:cloudMaps)v=0;}
 }

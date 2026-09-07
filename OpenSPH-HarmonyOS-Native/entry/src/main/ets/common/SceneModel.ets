@@ -13,8 +13,16 @@ export function validateMaterial(m:RecipeMaterial):void {
 }
 export interface RecipeSky { mode:number; brightness:number; }
 export interface RecipeRing { enabled:boolean; target:number; timeHours:number; speedScale:number; rateHours:number; }
+export interface SurfaceRecipe { version:number;seed:number;cloudSeed:number; }
+export function legacySurfaces(count:number):SurfaceRecipe[] {const values:SurfaceRecipe[]=[];for(let i=0;i<count;i++)values.push({version:1,seed:0,cloudSeed:0});return values;}
+export function copySurfaces(values:SurfaceRecipe[]):SurfaceRecipe[] {return values.map((v:SurfaceRecipe):SurfaceRecipe=>({version:v.version,seed:v.seed,cloudSeed:v.cloudSeed}));}
+export function validateSurfaces(values:SurfaceRecipe[],bodies:OrbitBodyConfig[]):void {
+  if(!Array.isArray(values)||values.length!==bodies.length)throw new Error('外观数量与天体不匹配');
+  for(let i=0;i<values.length;i++){const v=values[i];if(!v||v.version!==1)throw new Error('不支持的地貌生成版本');check(v.seed,0,1000000,true);check(v.cloudSeed,0,1000000,true);
+    if((i===0||bodies[i].surface===5)&&(v.seed!==0||v.cloudSeed!==0))throw new Error('恒星和真实月面保留原外观');}
+}
 export interface ExperimentRecipe {
-  schemaVersion:number; appearanceVersion:number; themeId:string; camera:RecipeCamera;
+  surfaces?:SurfaceRecipe[]; schemaVersion:number; appearanceVersion:number; themeId:string; camera:RecipeCamera;
   material?:RecipeMaterial; overview?:RecipeCamera; appearance:RecipeAppearance; sky:RecipeSky; ring:RecipeRing;
 }
 export interface SavedProject { id: string; savedAt: number; scene: SceneDefinition; recipe?:ExperimentRecipe; }
@@ -26,11 +34,13 @@ export function defaultRecipe(scene:SceneDefinition):ExperimentRecipe {
     sky:{mode:2,brightness:.65},ring:{enabled:false,target:-1,timeHours:0,speedScale:1,rateHours:1}};
 }
 export function validateRecipe(r:ExperimentRecipe,scene:SceneDefinition):void {
-  if(!r||r.schemaVersion!==1||(r.appearanceVersion!==1&&r.appearanceVersion!==2))throw new Error('不支持的实验配方版本');
-  if(r.appearanceVersion===2)validateMaterial(r.material!);
+  if(!r||r.schemaVersion!==1||(r.appearanceVersion!==1&&r.appearanceVersion!==2&&r.appearanceVersion!==3))throw new Error('不支持的实验配方版本');
+  if(r.appearanceVersion>=2)validateMaterial(r.material!);
   else if(r.material!==undefined)throw new Error('旧外观版本不支持材质配置');
   if(typeof r.themeId!=='string'||r.themeId.length>64||!/^[a-z0-9-]*$/.test(r.themeId))throw new Error('无效主题编号');
   const preset=scene.config.preset;
+  if(r.appearanceVersion===3)validateSurfaces(r.surfaces!,preset===5?scene.config.orbitBodies!:[]);
+  else if(r.surfaces!==undefined)throw new Error('旧外观版本不支持地貌配方');
   const maxFocus=preset===5?scene.config.orbitBodies!.length-1:(preset===4?3:1);
   validateRecipeCamera(r.camera,maxFocus,preset);
   if(r.overview!==undefined){validateRecipeCamera(r.overview,maxFocus,preset);if(r.overview.focus!==-1)throw new Error('返回视角必须是全景');}

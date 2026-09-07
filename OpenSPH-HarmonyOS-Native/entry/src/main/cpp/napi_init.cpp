@@ -137,6 +137,13 @@ napi_value moonTexture(napi_env e,napi_callback_info i){try{auto a=args(e,i,3);v
  if(napi_get_arraybuffer_info(e,a[0],&data,&length)!=napi_ok)throw std::invalid_argument("Moon RGBA ArrayBuffer required");
  lab::setMoonMap(std::make_shared<const lab::MoonMap>(integer(e,a[1]),integer(e,a[2]),static_cast<const uint8_t*>(data),length));
  }catch(const std::exception &ex){return fail(e,ex);}return undef(e);}
+napi_value surfaceSeeds(napi_env e,napi_callback_info i){try{
+ auto a=args(e,i,1);bool isArray=false;napi_is_array(e,a[0],&isArray);uint32_t length=0;napi_get_array_length(e,a[0],&length);
+ if(!isArray||length!=16)throw std::invalid_argument("Expected eight seed pairs");
+ std::array<lab::SurfaceKey,8> keys{};
+ for(uint32_t n=0;n<16;n++){napi_value v;napi_get_element(e,a[0],n,&v);int value=integer(e,v);if(value<0||value>1000000)throw std::invalid_argument("Surface seed out of range");if(n%2)keys[n/2].cloudSeed=value;else keys[n/2].seed=value;}
+ lab::setSurfaceSeeds(keys);
+ }catch(const std::exception &ex){return fail(e,ex);}return undef(e);}
 napi_value material(napi_env e,napi_callback_info i){
  try{auto a=args(e,i,3);double exposure=number(e,a[0]);bool ocean,shadows;if(exposure<-2||exposure>2||napi_get_value_bool(e,a[1],&ocean)!=napi_ok||napi_get_value_bool(e,a[2],&shadows)!=napi_ok)throw std::invalid_argument("Invalid material settings");lab::setMaterial(exposure,ocean,shadows);}catch(const std::exception &ex){return fail(e,ex);}return undef(e);
 }
@@ -169,6 +176,7 @@ napi_value composition(napi_env e,napi_callback_info i){try{auto a=args(e,i,3);d
 napi_value renderActive(napi_env e,napi_callback_info i){try{auto a=args(e,i,1);bool b;if(napi_get_value_bool(e,a[0],&b)!=napi_ok)throw std::invalid_argument("Boolean expected");lab::setRenderActive(b);}catch(const std::exception &ex){return fail(e,ex);}return undef(e);}
 napi_value renderStatus(napi_env e,napi_callback_info){auto s=lab::renderStatus();napi_value o;napi_create_object(e,&o);
     auto boolean=[&](const char *key,bool b){napi_value v;napi_get_boolean(e,b,&v);napi_set_named_property(e,o,key,v);};
+    num(e,o,"surfacePending",s.surfacePending);num(e,o,"surfaceGenerated",s.surfaceGenerated);str(e,o,"surfaceError",s.surfaceError);
     boolean("moonReady",s.moonReady);num(e,o,"moonUploads",s.moonUploads);num(e,o,"moonBlend",s.moonBlend);str(e,o,"moonError",s.moonError);
     num(e,o,"materialExposure",s.materialExposure);boolean("materialOcean",s.materialOcean);boolean("materialCloudShadows",s.materialCloudShadows);
     num(e,o,"compositionX",s.compositionX);num(e,o,"compositionY",s.compositionY);num(e,o,"compositionScale",s.compositionScale);num(e,o,"sceneRevision",s.sceneRevision);num(e,o,"surfaceStarts",s.surfaceStarts);boolean("cameraMoving",s.cameraMoving);num(e,o,"centerX",s.centerX);num(e,o,"centerY",s.centerY);num(e,o,"centerZ",s.centerZ);
@@ -338,6 +346,7 @@ napi_value Init(napi_env e, napi_value exports) {
         {"setComposition",nullptr,composition,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setMoonTexture",nullptr,moonTexture,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setMaterial",nullptr,material,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"setSurfaceSeeds",nullptr,surfaceSeeds,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setAppearance",nullptr,appearance,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setRenderActive",nullptr,renderActive,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"renderStatus",nullptr,renderStatus,nullptr,nullptr,nullptr,napi_default,nullptr},

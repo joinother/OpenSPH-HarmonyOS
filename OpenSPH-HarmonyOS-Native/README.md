@@ -1,6 +1,6 @@
 # 星体实验室 · OpenSPH HarmonyOS Native
 
-> 类型：当前项目概览；源码版本：0.31.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前项目概览；源码版本：0.32.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 鸿蒙原生科学探索应用，使用 ArkTS/ArkUI 构建交互界面，以 OpenSPH C++ 计算岩质碰撞，以独立的 C++ 多体引力模型计算行星轨道，通过 XComponent/OpenGL ES 显示。包名为 `com.opensph.lab`。
 
@@ -64,7 +64,9 @@ python3 scripts/check-docs.py
 
 ## 验证与下一步
 
-[天体程序化生成调研](docs/research/PROCEDURAL-CELESTIAL-GENERATION-2026-09-07.md) 已核对 Baopinsui 关联的 NPGS 公开源码、9 个开源候选和华为渲染 MCP 文档，形成逐天体种子与外观配方、陨坑／云层、大气、系统初值和黑洞专项的分批路线。近期优先解决同类行星地貌重复、编辑与存档保持外观；SPH 收敛和自引力继续走独立物理路线。Shadertoy 目录与 Bilibili 空间访问受限，视频仅阅读可见索引，尚未播放；本次研究未接入新功能。
+0.32.0 已接入自定义行星独立地表／云层种子、后台生成、350 ms 材质过渡、外观撤销／重做、复制与删除归属恢复，以及 v3 外观配方。操作外观不会重启物理或镜头；旧存档保留旧外观，真实月面保持观测底图。用法和边界见 [独立外观指南](docs/reference/SURFACE-GENERATION.md)。
+
+[天体程序化生成调研](docs/research/PROCEDURAL-CELESTIAL-GENERATION-2026-09-07.md) 已核对 Baopinsui 关联的 NPGS 公开源码、9 个开源候选和华为渲染 MCP 文档，形成逐天体种子与外观配方、陨坑／云层、大气、系统初值和黑洞专项的分批路线。该调研基线为 0.31.0，独立种子与外观保存已在 0.32.0 接入；可调地形、物理大气和系统生成仍待实现，SPH 收敛和自引力继续走独立物理路线。Shadertoy 目录与 Bilibili 空间访问受限，视频仅阅读可见索引，尚未播放。
 
 准备阶段跟踪、协作取消及等待诊断见 [0.31.0 记录](docs/releases/RELEASE-0.31.0.md) 和 [准备诊断指南](docs/reference/PREPARATION.md)。这提供定位证据与阶段间退出能力，未确定 0.30 首次卡顿的根因。
 

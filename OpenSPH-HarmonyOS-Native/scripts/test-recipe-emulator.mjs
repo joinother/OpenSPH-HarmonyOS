@@ -31,7 +31,7 @@ try{
  value('trace.speed',1.17);value('trace.rate',.3);value('trace.hours',4.75);await settled();
  const before=call('getState'),particles=call('getRingTrace',{particles:true}).ringTrace.particles;
  const saved=call('saveProject',{title:'验收 · 环与观察配方'});created.push(saved.id);const file=read(saved.id);
- assert.equal(file.recipe.ring.timeHours,4.75);assert.equal(file.recipe.appearanceVersion,2);
+ assert.equal(file.recipe.ring.timeHours,4.75);assert.equal(file.recipe.appearanceVersion,3);
  action('theme.rock-slow','paused');h('shell','aa','force-stop','com.opensph.lab');
  call('loadProject',{id:saved.id},'paused');const loaded=await settled();equivalent(loaded,file.recipe);assert.deepEqual(loaded.definition,file.scene);assert.deepEqual(call('getRingTrace',{particles:true}).ringTrace.particles,particles);
  assert.equal(call('listProjects').projects.find(p=>p.id===saved.id).hasRecipe,true);checks.push('cold process restores recipe, initial conditions and all 192 ring positions');
@@ -41,7 +41,7 @@ try{
  const prefix=Date.now();const bad=structuredClone(file);bad.id='project-'+prefix+'-701';bad.recipe.ring.speedScale=2;fixture(bad);
  const stable=call('getState');const rejected=spawnSync(process.execPath,[cli,'--device',device,'--command','loadProject','--payload-json',JSON.stringify({id:bad.id})],{encoding:'utf8'});assert.equal(rejected.status,2);assert.match(JSON.parse(rejected.stdout).error,/参数超出范围/);
  const after=call('getState');assert.deepEqual(after.definition,stable.definition);assert.deepEqual(after.camera,stable.camera);assert.equal(after.rendering.sceneRevision,stable.rendering.sceneRevision);assert.equal(after.ringTrace.timeHours,stable.ringTrace.timeHours);assert.ok(!call('listProjects').projects.some(p=>p.id===bad.id));checks.push('corrupt recipe rejected without replacing scene; isolated from valid library entries');
- const v1=structuredClone(file);v1.recipe.appearanceVersion=1;delete v1.recipe.material;fixture(v1);
+ const v1=structuredClone(file);v1.recipe.appearanceVersion=1;delete v1.recipe.material;delete v1.recipe.surfaces;fixture(v1);
  call('loadProject',{id:v1.id},'paused');equivalent(await settled(),v1.recipe);assert.equal(read(v1.id).recipe.appearanceVersion,1);checks.push('v1 appearance migrates in memory to default material without rewriting file');
  const broken=structuredClone(file);broken.recipe.material.exposure=9;fixture(broken);const stableMaterial=call('getState');
  const invalid=spawnSync(process.execPath,[cli,'--device',device,'--command','loadProject','--payload-json',JSON.stringify({id:broken.id})],{encoding:'utf8'});assert.equal(invalid.status,2);const intact=call('getState');assert.deepEqual(intact.material,stableMaterial.material);assert.equal(intact.rendering.sceneRevision,stableMaterial.rendering.sceneRevision);checks.push('invalid material recipe rejected before scene mutation');

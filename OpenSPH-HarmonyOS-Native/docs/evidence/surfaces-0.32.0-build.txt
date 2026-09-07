@@ -1,0 +1,119 @@
+install completed in 0s 39ms
+> hvigor TYPE CHECK SUCCESSFUL in 296 ms 
+> hvigor UP-TO-DATE :entry:default@PreBuild...  
+> hvigor Finished :entry:default@CreateModuleInfo... after 1 ms 
+> hvigor UP-TO-DATE :entry:default@GenerateMetadata...  
+> hvigor Finished :entry:default@ConfigureCmake... after 9 ms 
+> hvigor UP-TO-DATE :entry:default@MergeProfile...  
+> hvigor UP-TO-DATE :entry:default@CreateBuildProfile...  
+> hvigor Finished :entry:default@PreCheckSyscap... after 1 ms 
+> hvigor Finished :entry:default@GeneratePkgContextInfo... after 7 ms 
+> hvigor UP-TO-DATE :entry:default@GeneratePkgSdkInfo...  
+> hvigor Finished :entry:default@ProcessIntegratedHsp... after 1 ms 
+> hvigor Finished :entry:default@BuildNativeWithCmake... after 10 ms 
+> hvigor UP-TO-DATE :entry:default@MakePackInfo...  
+> hvigor Finished :entry:default@SyscapTransform... after 10 ms 
+> hvigor UP-TO-DATE :entry:default@ProcessProfile...  
+> hvigor UP-TO-DATE :entry:default@ProcessRouterMap...  
+> hvigor UP-TO-DATE :entry:default@ProcessShareConfig...  
+> hvigor Finished :entry:default@ProcessStartupConfig... after 1 ms 
+> hvigor UP-TO-DATE :entry:default@ProcessResource...  
+> hvigor UP-TO-DATE :entry:default@GenerateLoaderJson...  
+> hvigor UP-TO-DATE :entry:default@CompileResource...  
+> hvigor Finished :entry:default@BuildJS... after 4 ms 
+> hvigor Finished :entry:default@BuildNativeWithNinja... after 45 ms 
+> hvigor UP-TO-DATE :entry:default@ProcessLibs...  
+> hvigor UP-TO-DATE :entry:default@DoNativeStrip...  
+> hvigor UP-TO-DATE :entry:default@CacheNativeLibs...  
+> hvigor WARN: WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/WindowControl.ets:8:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/WindowControl.ets:9:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/WindowControl.ets:25:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:7:39
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:8:8
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:9:28
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:17:12
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:18:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:18:34
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:18:56
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:19:10
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:19:40
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:20:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:22:31
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:25:73
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ObservationStore.ets:25:93
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:7:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:19:8
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:20:42
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:38:12
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:39:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:39:51
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:39:73
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:40:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/ProjectStore.ets:42:38
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/MoonTexture.ets:12:20
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/src/main/ets/common/SkyPanorama.ets:13:23
+ Function may throw exceptions. Special handling is required.
+
+
+> hvigor Finished :entry:default@CompileArkTS... after 5 s 918 ms 
+> hvigor UP-TO-DATE :entry:default@GeneratePkgModuleJson...  
+> hvigor Finished :entry:default@ProcessCompiledResources... after 1 ms 
+> hvigor Finished :entry:default@PackageHap... after 525 ms 
+> hvigor Finished :entry:default@PackingCheck... after 5 ms 
+> hvigor WARN: No signingConfig found for product default
+> hvigor Finished :entry:default@SignHap... after 2 ms 
+> hvigor Finished :entry:default@CollectDebugSymbol... after 1 ms 
+> hvigor Finished :entry:assembleHap... after 1 ms 
+> hvigor BUILD SUCCESSFUL in 8 s 918 ms 

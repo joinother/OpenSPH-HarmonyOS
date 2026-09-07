@@ -4,7 +4,7 @@ import { ObservationStore } from '../common/ObservationStore';
 import { observationPlot, ObservationPlot } from '../common/ObservationModel';
 import simulation, { SphObservationSample, SphObservation, OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
-import { copiedPlanetDraft, PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
+import { SurfaceRecipe, legacySurfaces, copySurfaces, validateSurfaces, copiedPlanetDraft, PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
 import { themeExperiments, themeConfigMatches, ThemeExperiment } from '../common/ExperimentCatalog';
 import { ProjectStore } from '../common/ProjectStore';
 import { curves, LengthMetrics } from '@kit.ArkUI';
@@ -16,7 +16,7 @@ import { loadSkyPanorama } from '../common/SkyPanorama';
 import { fileIo as fs } from '@kit.CoreFileKit';
 
 interface OrbitDraftState { index:number; name:string; fields:string[]; surface:number; }
-interface OrbitWorkspace { bodies:OrbitBodyConfig[]; selected:number; drafts:OrbitDraftState[]; }
+interface OrbitWorkspace { surfaces:SurfaceRecipe[]; bodies:OrbitBodyConfig[]; selected:number; drafts:OrbitDraftState[]; }
 interface OrbitHistoryEntry { label:string; workspace:OrbitWorkspace; }
 interface EditHistoryState { undoCount:number; redoCount:number; undoLabel:string; redoLabel:string; limit:number; scope:string; }
 interface UiActionInfo { id:string; label:string; enabled:boolean; selected:boolean; }
@@ -42,7 +42,7 @@ interface ObservationReply {ok:boolean;metric:string;data:OrbitObservation;plot:
 interface ThemeState { id:string; title:string; goal:string; limit:string; modified:boolean; compareId:string; }
 interface MoonAssetInfo {source:string;asset:string;credit:string;width:number;height:number;requested:boolean;ready:boolean;uploads:number;blend:number;error:string;decodedBudgetBytes:number;gpuBudgetBytes:number;}
 interface MoonAssetReply {ok:boolean;moon:MoonAssetInfo;}
-interface AppSnapshot { material:RecipeMaterial; cameraMotion:CameraMotionStatus; ringTrace:RingTraceStatus; theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
+interface AppSnapshot { surfaces:SurfaceRecipe[];surfaceUndoCount:number;surfaceRedoCount:number; material:RecipeMaterial; cameraMotion:CameraMotionStatus; ringTrace:RingTraceStatus; theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
 interface CommandDescription { name: string; payload: string; }
 interface CommandCatalog { ok: boolean; commands: CommandDescription[]; }
 interface ExperimentInfo { title: string; caption: string; symbol: string; }
@@ -188,7 +188,7 @@ struct Index {
   @State observed:OrbitObservation={sceneRevision:0,body:1,name:'',selected:-1,samples:[]};
   @State trace:RingTraceStatus={speedScale:1,rateHours:1,eccentricity:0,innerApoapsisKm:76800,outerApoapsisKm:133200,referenceXKm:76800,referenceYKm:0,referenceRadiusKm:76800,referenceSpeedKmS:0,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-elliptic-kepler-v2'};
   @State skyLoadError:string='';
-  @State rendering: RenderStatus = {moonReady:false,moonUploads:0,moonBlend:0,moonError:'',materialExposure:0,materialOcean:true,materialCloudShadows:true,panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
+  @State rendering: RenderStatus = {surfacePending:0,surfaceGenerated:0,surfaceError:'',moonReady:false,moonUploads:0,moonBlend:0,moonError:'',materialExposure:0,materialOcean:true,materialCloudShadows:true,panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
   @State colorMode: number = 0;
   @State cameraFlight:string='idle';
   @State focus: number = -1;
@@ -314,6 +314,38 @@ struct Index {
   @State private orbitDrafts:OrbitDraftState[]=[];
   @State private orbitUndo:OrbitHistoryEntry[]=[];
   @State private orbitRedo:OrbitHistoryEntry[]=[];
+  @State private surfaces:SurfaceRecipe[]=[];
+  @State private surfaceUndo:SurfaceRecipe[][]=[];
+  @State private surfaceRedo:SurfaceRecipe[][]=[];
+  private surfaceTarget():number {return this.focus>0?this.focus:this.orbitEdit;}
+  private canGenerateSurface():boolean {const i=this.surfaceTarget();return this.preset===5&&!this.placing&&i>0&&i<this.orbitBodies.length&&this.orbitBodies[i].surface!==5;}
+  private syncSurfaces():void {
+    const pairs:number[]=[];for(let i=0;i<8;i++){const v=this.surfaces[i];pairs.push(v?v.seed:0,v?v.cloudSeed:0);}simulation.setSurfaceSeeds(pairs);
+  }
+  private resetSurfaces(fresh:boolean=false):void {
+    this.surfaces=legacySurfaces(this.preset===5?this.orbitBodies.length:0);
+    if(fresh)this.surfaces=this.surfaces.map((v:SurfaceRecipe,i:number):SurfaceRecipe=>i===0||this.orbitBodies[i].surface===5?v:{version:1,seed:(this.seed+i*104729)%1000000+1,cloudSeed:(this.seed+i*193939)%1000000+1});
+    this.surfaceUndo=[];this.surfaceRedo=[];this.syncSurfaces();
+  }
+  private changeSurface(body:number,seed:number,cloudSeed:number):void {
+    if(this.preset!==5||this.placing||this.ioBusy||!Number.isInteger(body)||body<1||body>=this.orbitBodies.length)throw new Error('请选择自定义系统中的行星');
+    const next=copySurfaces(this.surfaces);next[body]={version:1,seed:seed,cloudSeed:cloudSeed};validateSurfaces(next,this.orbitBodies);
+    if(JSON.stringify(next)===JSON.stringify(this.surfaces))return;
+    this.surfaceUndo=this.surfaceUndo.concat([copySurfaces(this.surfaces)]).slice(-20);this.surfaceRedo=[];this.surfaces=next;this.syncSurfaces();
+    this.notice='已修改 '+this.orbitBodies[body].name+' 的外观 · 模拟与视角保留';
+  }
+  private regenerateSurface(cloudOnly:boolean):void {
+    const i=this.surfaceTarget(),v=this.surfaces[i];
+    if(!this.canGenerateSurface()||!v)throw new Error('当前天体不支持程序化地貌');
+    this.changeSurface(i,cloudOnly?v.seed:(v.seed+104729)%1000000+1,cloudOnly?(v.cloudSeed+193939)%1000000+1:v.cloudSeed);
+  }
+  private travelSurfaceHistory(redo:boolean):void {
+    const from=redo?this.surfaceRedo:this.surfaceUndo;if(!from.length)throw new Error('没有可恢复的外观编辑');
+    const next=copySurfaces(from[from.length-1]);validateSurfaces(next,this.orbitBodies);
+    if(redo){this.surfaceRedo=this.surfaceRedo.slice(0,-1);this.surfaceUndo=this.surfaceUndo.concat([copySurfaces(this.surfaces)]).slice(-20);}
+    else{this.surfaceUndo=this.surfaceUndo.slice(0,-1);this.surfaceRedo=this.surfaceRedo.concat([copySurfaces(this.surfaces)]).slice(-20);}
+    this.surfaces=next;this.syncSurfaces();this.notice='已'+(redo?'重做':'撤销')+'外观 · 模拟与视角保留';
+  }
   private clearOrbitHistory():void {this.orbitUndo=[];this.orbitRedo=[];}
   private editHistory():EditHistoryState {
     return {undoCount:this.orbitUndo.length,redoCount:this.orbitRedo.length,
@@ -328,7 +360,7 @@ struct Index {
     return drafts.sort((a:OrbitDraftState,b:OrbitDraftState):number=>a.index-b.index);
   }
   private captureOrbitWorkspace():OrbitWorkspace {
-    return {bodies:copyOrbitBodies(this.orbitBodies),selected:this.orbitEdit,drafts:this.bodyDrafts()};
+    return {surfaces:copySurfaces(this.surfaces),bodies:copyOrbitBodies(this.orbitBodies),selected:this.orbitEdit,drafts:this.bodyDrafts()};
   }
   private hasBodyDraft(index:number):boolean {return this.bodyDrafts().some((d:OrbitDraftState):boolean=>d.index===index);}
   private restoreBodyDrafts(workspace:OrbitWorkspace):void {
@@ -506,7 +538,7 @@ struct Index {
     this.focus = -1;
     this.yaw = 0.15; this.pitch = 0.25; this.zoom = 2.7;
     if(i===5){this.title='自定义系统';this.orbitBodies=defaultOrbitBodies();this.selectOrbit(1,true);}
-    this.prepare(false);
+    this.resetSurfaces(true);this.prepare(false);
   }
   private run(): void {
     this.stopTrace();
@@ -533,6 +565,7 @@ struct Index {
     if(c.preset===5){this.orbitBodies=copyOrbitBodies(c.orbitBodies!);this.selectOrbit(1,true);this.focus=-1;this.closeup=false;this.autoSpin=false;}
     if(this.focus>this.maxFocus())this.focus=-1;
     if(c.preset>=3&&this.colorMode>=2)this.colorMode=0;
+    this.resetSurfaces(true);
   }
   private definition(): SceneDefinition {
     if(this.preset>=3){const scene:SceneDefinition={schemaVersion:1,model:this.preset===5?'nbody-custom-v1':'nbody-v1',title:this.title,config:this.config(),bodies:[]};return scene;}
@@ -556,11 +589,12 @@ struct Index {
     this.orbitDraft=false;
   }
   private installOrbitWorkspace(workspace:OrbitWorkspace):void {
-    validateOrbitBodies(workspace.bodies);
+    validateOrbitBodies(workspace.bodies);validateSurfaces(workspace.surfaces,workspace.bodies);
     const config=this.config();config.orbitBodies=copyOrbitBodies(workspace.bodies);validateConfig(config);
     // Submit validated initial conditions before altering drafts or history.
     simulation.startScene(config,true);simulation.pause(true);this.stopTrace();
     this.stopCameraMotion();this.overviewCamera=undefined;this.playing=false;this.placing=false;this.placementView=undefined;
+    this.surfaces=copySurfaces(workspace.surfaces);this.surfaceUndo=[];this.surfaceRedo=[];this.syncSurfaces();
     this.restoreBodyDrafts(workspace);this.focus=-1;this.closeup=false;this.autoSpin=false;
     let mass:number=0,cx:number=0,cy:number=0,cz:number=0;
     for(const b of workspace.bodies){mass+=b.massSolar;cx+=b.massSolar*b.xAU;cy+=b.massSolar*b.yAU;cz+=b.massSolar*b.zAU;}
@@ -574,7 +608,11 @@ struct Index {
     const before=this.captureOrbitWorkspace();
     const drafts:OrbitDraftState[]=before.drafts.filter((d:OrbitDraftState):boolean=>d.index!==applied&&d.index!==removed)
       .map((d:OrbitDraftState):OrbitDraftState=>({index:removed>=0&&d.index>removed?d.index-1:d.index,name:d.name,fields:d.fields.slice(),surface:d.surface}));
-    this.installOrbitWorkspace({bodies:bodies,selected:selected,drafts:drafts});
+    let surfaces=copySurfaces(before.surfaces);
+    if(removed>=0)surfaces.splice(removed,1);
+    while(surfaces.length<bodies.length){const source=this.placementSource;surfaces.push(this.placing&&source>0?copySurfaces([before.surfaces[source]])[0]:{version:1,seed:Date.now()%1000000+1,cloudSeed:(Date.now()+193939)%1000000+1});}
+    surfaces=surfaces.map((v:SurfaceRecipe,i:number):SurfaceRecipe=>bodies[i].surface===5?{version:1,seed:0,cloudSeed:0}:v);
+    this.installOrbitWorkspace({surfaces:surfaces,bodies:bodies,selected:selected,drafts:drafts});
     this.orbitUndo=this.orbitUndo.concat([{label:label,workspace:before}]).slice(-20);this.orbitRedo=[];
     this.notice='已'+label+' · 可撤销，其他天体草稿保留，旧轨迹已清空';
   }
@@ -630,7 +668,7 @@ struct Index {
   }
   private captureRecipe():ExperimentRecipe {
     const trace=simulation.ringTraceStatus(false);
-    const recipe:ExperimentRecipe={schemaVersion:1,appearanceVersion:2,material:this.materialState(),themeId:this.activeThemeId,
+    const recipe:ExperimentRecipe={schemaVersion:1,appearanceVersion:3,surfaces:copySurfaces(this.surfaces),material:this.materialState(),themeId:this.activeThemeId,
       camera:{yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode},
       appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},
       sky:{mode:this.skyMode,brightness:this.skyBrightness},
@@ -640,6 +678,7 @@ struct Index {
     return recipe;
   }
   private restoreRecipe(recipe:ExperimentRecipe):void {
+    this.surfaces=recipe.appearanceVersion===3?copySurfaces(recipe.surfaces!):legacySurfaces(this.preset===5?this.orbitBodies.length:0);this.surfaceUndo=[];this.surfaceRedo=[];this.syncSurfaces();
     this.applyMaterial(recipe.appearanceVersion===1?defaultMaterial():recipe.material!);
     const c=recipe.camera,a=recipe.appearance;
     this.yaw=c.yaw;this.pitch=c.pitch;this.zoom=c.zoom;this.focus=c.focus;this.colorMode=c.color;
@@ -736,7 +775,7 @@ struct Index {
   }
   private snapshot(): string {
     this.info=simulation.status();
-    const snapshot: AppSnapshot = {ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{sourceIndex:this.placing?this.placementSource:-1,sourceName:this.placing&&this.placementSource>0?this.orbitBodies[this.placementSource].name:'',active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
+    const snapshot: AppSnapshot = {surfaces:copySurfaces(this.surfaces),surfaceUndoCount:this.surfaceUndo.length,surfaceRedoCount:this.surfaceRedo.length,ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{sourceIndex:this.placing?this.placementSource:-1,sourceName:this.placing&&this.placementSource>0?this.orbitBodies[this.placementSource].name:'',active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
       material:this.materialState(),appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},rendering:simulation.renderStatus(),
       simulation:this.info,
       scene:{preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,dirty:this.dirty},
@@ -791,6 +830,8 @@ struct Index {
     add('observation.minimum','记录最小',this.preset>=3&&this.observationView().available);add('observation.maximum','记录最大',this.preset>=3&&this.observationView().available);
     add('moon.retry','重试月面贴图',!!(this.moonLoadError||this.rendering.moonError));
     add('material.ocean','海洋反光',this.preset>=3,this.ocean);add('material.cloudShadows','云影',this.preset>=3,this.cloudShadows);add('material.reset','还原光照',this.preset>=3);
+    add('terrain.new','新地貌',this.canGenerateSurface());add('terrain.clouds','换云层',this.canGenerateSurface());
+    add('terrain.undo','撤销外观',this.preset===5&&!this.placing&&this.surfaceUndo.length>0);add('terrain.redo','重做外观',this.preset===5&&!this.placing&&this.surfaceRedo.length>0);
     add('appearance.rings','环带',this.preset>=3,this.rings);add('appearance.clouds','云层',this.preset>=3,this.clouds);add('appearance.atmosphere','大气',this.preset>=3,this.atmosphere);add('appearance.trails','轨迹',this.preset>=3,this.trails);add('appearance.spin','外观自转',this.preset>=3,this.autoSpin);
     add('body.primary','主天体',this.preset<3,this.editedBody===0);add('body.impactor','撞击体',this.preset<2,this.editedBody===1);
     add('placement.cancel','取消放置',this.placing);add('placement.confirm','确认加入 · 重新计算',this.placing&&this.placementPreview().valid);
@@ -907,6 +948,10 @@ struct Index {
     else if(action==='material.ocean')this.changeMaterial({ocean:!this.ocean});
     else if(action==='material.cloudShadows')this.changeMaterial({cloudShadows:!this.cloudShadows});
     else if(action==='material.reset')this.applyMaterial(defaultMaterial());
+    else if(action==='terrain.new')this.regenerateSurface(false);
+    else if(action==='terrain.clouds')this.regenerateSurface(true);
+    else if(action==='terrain.undo')this.travelSurfaceHistory(false);
+    else if(action==='terrain.redo')this.travelSurfaceHistory(true);
     else if(action==='appearance.rings'){this.rings=!this.rings;this.camera();}
     else if(action==='appearance.clouds'){this.clouds=!this.clouds;this.camera();}
     else if(action==='appearance.atmosphere'){this.atmosphere=!this.atmosphere;this.camera();}
@@ -1004,6 +1049,7 @@ struct Index {
       {name:'seek',payload:'{frame:-1 or retained frame index}'},
       {name:'setCamera',payload:'{yaw:-100..100,pitch:-1.5..1.5,zoom:0.5..15,focus:-1..1 (orbit preset 4: -1..3; custom: -1..bodyCount-1),color:0..5 (0 original,1 speed,2 density,3 pressure,4 specific internal energy,5 damage; orbit 0..1)}'},
       {name:'getSurfaceInfo',payload:'{}; Moon source, loading state, upload count and bounded memory'},
+      {name:'setSurfaceSeed',payload:'{body:1..7,surfaceSeed?:0..1000000,cloudSeed?:0..1000000}; custom planets; preserves simulation and camera; 0 = legacy'},
       {name:'setMaterial',payload:'{exposure?:-2..2 EV,ocean?:boolean,cloudShadows?:boolean}; original-color orbital surfaces only; no camera or solver reset'},
       {name:'setAppearance',payload:'{clouds?:boolean,atmosphere?:boolean,trails?:boolean,closeup?:boolean,autoSpin?:boolean,rings?:boolean} (visual settings only)'},
       {name:'setPanel',payload:'{panel:-1 close,0 parameters,1 observe,2 library}'},
@@ -1035,6 +1081,7 @@ struct Index {
     if(command==='getObservationReference')return JSON.stringify({ok:true,reference:this.comparisonReference??null,error:this.comparisonError});
     if(command==='getObservationTable'){this.refreshObservation();const ref=this.comparisonReference;const reply:ObservationTableReply={ok:true,csv:observationCsv(this.observed,ref?.data),rows:this.observed.samples.length+(ref?.data.samples.length??0),timeAlignment:'simulation-start',reference:ref?referenceSummary(ref):undefined,currentName:this.observed.name,currentConfig:simulation.status().config};return JSON.stringify(reply);}
     if(command==='getOrbitObservation'){this.refreshObservation();const reply:ObservationReply={ok:true,metric:this.observationMetric,data:this.observed,plot:observationPlot(this.observed,this.observationMetric)};return JSON.stringify(reply);}
+    if(command==='setSurfaceSeed'){const body=this.checked(p.body,1,this.orbitBodies.length-1);if(!Number.isInteger(body))throw new Error('天体编号必须为整数');const old=this.surfaces[body];if(!old)throw new Error('需要自定义系统');this.changeSurface(body,p.surfaceSeed===undefined?old.seed:p.surfaceSeed,p.cloudSeed===undefined?old.cloudSeed:p.cloudSeed);return this.snapshot();}
     if(command==='getPlacementPreview')return JSON.stringify({ok:true,active:this.placing,preview:this.placementPreview()});
     if(command==='setPlacementPoint'){this.movePlacement(this.checked(p.x,0,1),this.checked(p.y,0,1));return this.snapshot();}
     if(command==='getOrbitPreview'){if(this.preset!==5)throw new Error('需要自定义系统');return JSON.stringify({ok:true,body:this.orbitEdit,draft:this.orbitDraft,reference:'initial-input',preview:this.orbitPreview()});}
@@ -1742,6 +1789,18 @@ struct Index {
           ChoiceChip({label:'打开实验库',active:false,onPress:() => {this.press('project.open');}})
         }.width('100%')
       } else if(this.tab===1) {
+          if(this.preset===5) {
+            Text(this.canGenerateSurface()?'独立外观 · '+this.orbitBodies[this.surfaceTarget()].name:'选择一颗行星可生成新外观').fontSize(12).fontColor('#D9CCF5')
+            Row({space:6}) {
+              ChoiceChip({label:'新地貌',enabledAction:this.canGenerateSurface(),onPress:()=>{this.press('terrain.new');}})
+              ChoiceChip({label:'换云层',enabledAction:this.canGenerateSurface(),onPress:()=>{this.press('terrain.clouds');}})
+            }
+            Row({space:6}) {
+              ChoiceChip({label:'撤销外观',enabledAction:this.surfaceUndo.length>0&&!this.placing,onPress:()=>{this.press('terrain.undo');}})
+              ChoiceChip({label:'重做外观',enabledAction:this.surfaceRedo.length>0&&!this.placing,onPress:()=>{this.press('terrain.redo');}})
+            }
+            Text(this.rendering.surfaceError|| (this.rendering.surfacePending>0?'地貌正在生成…':'外观随实验保存 · 不改变物理参数')).fontSize(11).fontColor('#A5A0B6')
+          }
         if(this.trace.enabled){this.traceControls()}
         if(this.preset>=3){this.observationControls();this.materialControls()}else{this.sphControls()}
         this.themeGuide()

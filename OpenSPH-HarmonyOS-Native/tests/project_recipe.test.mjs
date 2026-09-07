@@ -41,3 +41,13 @@ test('v2 materials are bounded, v1 loads unchanged, invalid variants never creat
   const path=join(dir,old.id+'.json'),bytes=JSON.stringify(old);fs.writeFileSync(path,bytes);assert.deepEqual(JSON.parse(JSON.stringify(ProjectStore.load(dir,old.id))),JSON.parse(JSON.stringify(old)));assert.equal(fs.readFileSync(path,'utf8'),bytes);
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+test('v3 surface recipes roundtrip; seeds and generator versions validate before storage',()=>{
+ const dir=fs.mkdtempSync(join(tmpdir(),'sph-surfaces-'));try{
+  const s=scene(),r=model.defaultRecipe(s);r.appearanceVersion=3;r.surfaces=model.legacySurfaces(4);r.surfaces[1]={version:1,seed:812,cloudSeed:619};
+  const saved=ProjectStore.save(dir,s,r);assert.deepEqual(JSON.parse(JSON.stringify(ProjectStore.load(dir,saved.id).recipe)),JSON.parse(JSON.stringify(r)));
+  const mutations=[r=>r.surfaces.pop(),r=>r.surfaces[1].version=2,r=>r.surfaces[1].seed=-1,r=>r.surfaces[1].cloudSeed=1.5,r=>r.surfaces[0].seed=1,r=>r.surfaces[1].seed='1',r=>delete r.surfaces,r=>r.appearanceVersion=2];
+  for(const change of mutations){const v=JSON.parse(JSON.stringify(r));change(v);assert.throws(()=>ProjectStore.save(dir,s,v));}
+  s.config.orbitBodies[1].surface=5;assert.throws(()=>ProjectStore.save(dir,s,r));assert.equal(fs.readdirSync(dir).length,1);
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

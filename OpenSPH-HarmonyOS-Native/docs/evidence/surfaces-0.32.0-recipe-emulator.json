@@ -1,0 +1,48 @@
+{
+  "ok": true,
+  "checks": [
+    "cold process restores recipe, initial conditions and all 192 ring positions",
+    "running ring captured at save and restored paused",
+    "corrupt recipe rejected without replacing scene; isolated from valid library entries",
+    "v1 appearance migrates in memory to default material without rewriting file",
+    "invalid material recipe rejected before scene mutation",
+    "legacy scene-only file loads with deterministic defaults",
+    "ArkUI save action and direct CLI save share the recipe writer",
+    "wide, folded portrait and landscape library controls in bounds, immersive and recipe retained"
+  ],
+  "layouts": [
+    {
+      "name": "wide",
+      "width": 2210,
+      "height": 2416,
+      "saveButton": [
+        1250,
+        981,
+        2109,
+        1106
+      ]
+    },
+    {
+      "name": "phone",
+      "width": 1080,
+      "height": 2444,
+      "saveButton": [
+        90,
+        1433,
+        991,
+        1558
+      ]
+    },
+    {
+      "name": "landscape",
+      "width": 2444,
+      "height": 1080,
+      "saveButton": [
+        1484,
+        823,
+        2343,
+        948
+      ]
+    }
+  ]
+}
