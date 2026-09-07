@@ -65,6 +65,8 @@ python3 scripts/check-docs.py
 
 后续批次细化见 [宇宙沙盒博客与论坛专题](docs/research/UNIVERSE-SANDBOX-BLOG-FORUM-2026-09-07.md)：优先完成实验配方保存、复制放置与结果对照，再做卫星扰动和 SPH 诊断，逐步进入自引力碰撞。文中 32 项建议与 14 个实验方案均标明现有基础、依赖及验收门槛，尚未实现的部分不计入当前能力。
 
+[Wiki 补充调研](docs/research/UNIVERSE-SANDBOX-WIKI-2026-09-07.md) 进一步提出分步引导、观测曲线、参数锁定与图片配方，记录 374 页筛查和 66 页重点阅读；WoMa 可作为后续平衡行星与 SPH 初态的候选对照工具，尚未安装或接入。
+
 ## 许可
 
 新应用代码采用 MIT；OpenSPH 许可见 [第三方许可](third_party/opensph/LICENSE)，sse2neon 保留头文件许可。银河摄影署名 ESO/S. Brunier，使用 CC BY 4.0；见 [素材来源](docs/reference/SKY-ASSETS.md)。第三方许可文本随 HAP 打包。GitHub 检查点保留原有桌面工程；本项目未引入 SpaceSim、Universe Sandbox 或 SpaceEngine 的私有实现与素材。
