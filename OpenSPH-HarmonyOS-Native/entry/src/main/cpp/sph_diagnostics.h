@@ -1,4 +1,5 @@
 #pragma once
+#include "sph_structure.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -9,7 +10,7 @@ namespace lab {
 struct SphScalar {float pressureGPa, internalMJkg, damage;};
 static_assert(sizeof(SphScalar)==12,"Replay v5 requires three 32-bit scalars");
 enum SphStat {PressureMin,PressureMax,PressureMean,InternalMin,InternalMax,InternalMean,DamageMean,DamageMax,KineticJ,InternalJ};
-struct SphDiagnostics {bool available=false;std::array<double,10> values{};};
+struct SphDiagnostics {bool available=false;std::array<double,10> values{};SphStructure structure;};
 inline bool validSphScalar(const SphScalar &p) {
     return std::isfinite(p.pressureGPa)&&std::isfinite(p.internalMJkg)&&std::isfinite(p.damage)&&p.damage>=0&&p.damage<=1;
 }

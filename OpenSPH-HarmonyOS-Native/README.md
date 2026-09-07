@@ -1,12 +1,14 @@
 # 星体实验室 · OpenSPH HarmonyOS Native
 
-> 类型：当前项目概览；源码版本：0.34.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前项目概览；源码版本：0.35.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 鸿蒙原生科学探索应用，使用 ArkTS/ArkUI 构建交互界面，以 OpenSPH C++ 计算岩质碰撞，以独立的 C++ 多体引力模型计算行星轨道，通过 XComponent/OpenGL ES 显示。包名为 `com.opensph.lab`。
 
 从 [文档目录](docs/README.md) 查找指南和记录；操作应用见 [CLI 指南](docs/CLI.md)，继续开发前阅读 [开发约定](AGENTS.md) 和 [文档流程](docs/WORKFLOW.md)。
 
 ## 当前能力
+
+- SPH 新增引力势能、扣除整体平移的相对动能、材料分布尺度和平均径向速度；支持曲线、极值定位、CSV 和回放保存，见 [结构与能量](docs/reference/SPH-STRUCTURE.md)。
 
 - 岩质实验增加材料自引力开关，应用后重新计算；命名实验和 v6 回放保留模型身份。基线与边界见 [SPH 自引力](docs/reference/SPH-GRAVITY.md)。
 
@@ -65,6 +67,8 @@ python3 scripts/check-docs.py
 | [上游记录](third_party/opensph/UPSTREAM.md) | 固定提交、许可与本地修改 |
 
 ## 验证与下一步
+
+0.35.0 加入材料结构与能量读数，明确区分整体飞行、内部运动与材料收缩。见 [本轮记录](docs/releases/RELEASE-0.35.0.md)。
 
 0.34.0 接入可选材料自引力、独立球壳积分和短时岩球基线，并保留实验／回放模型身份。见 [本轮记录](docs/releases/RELEASE-0.34.0.md)。
 

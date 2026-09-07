@@ -4,7 +4,12 @@ import {openSync,writeFileSync,fsyncSync,closeSync,unlinkSync,mkdirSync} from 'n
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 export function exportTable(table,output){
- if(!table?.ok||!Number.isInteger(table.rows)||table.rows<1||table.rows>240||typeof table.csv!=='string'||!table.csv.startsWith('frame,time_s,pressure_min_GPa,pressure_max_GPa,pressure_mean_GPa,internal_min_MJkg,internal_max_MJkg,internal_mean_MJkg,damage_mean,damage_max,kinetic_J,internal_J\n')||table.csv.split('\n').length!==table.rows+2)throw Error('No valid observation rows to export');
+ const base='frame,time_s,pressure_min_GPa,pressure_max_GPa,pressure_mean_GPa,internal_min_MJkg,internal_max_MJkg,internal_mean_MJkg,damage_mean,damage_max,kinetic_J,internal_J';
+ const extended=base+',gravity_J,relative_kinetic_J,rms_radius_km,radial_velocity_ms';
+ if(!table?.ok||!Number.isInteger(table.rows)||table.rows<1||table.rows>240||typeof table.csv!=='string')throw Error('No valid observation rows to export');
+ const lines=table.csv.split('\n'),columns=lines[0]===base?12:(lines[0]===extended?16:0);
+ if(!columns||lines.length!==table.rows+2||lines.at(-1)!=='')throw Error('Invalid SPH table schema');
+ for(let i=1;i<=table.rows;i++){const cells=lines[i].split(',');if(cells.length!==columns||cells.some(v=>v.trim()===''||!Number.isFinite(Number(v)))||Number(cells[0])!==i-1)throw Error('Invalid SPH table row');}
  if(!/\.csv$/i.test(output))throw Error('Output must end in .csv');
  const csv=resolve(output),metadata=csv.replace(/\.csv$/i,'.metadata.json'),created=[];
  const {csv:rows,...provenance}=table;mkdirSync(dirname(csv),{recursive:true});

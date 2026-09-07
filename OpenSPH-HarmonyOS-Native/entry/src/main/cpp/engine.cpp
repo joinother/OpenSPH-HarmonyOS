@@ -2,6 +2,8 @@
 #include "sph_gravity.h"
 #include "orbit.h"
 #include "Sph.h"
+#include "gravity/IGravity.h"
+#include "system/Factory.h"
 #include "io/LogWriter.h"
 #include "thread/Scheduler.h"
 #include <algorithm>
@@ -19,6 +21,7 @@ static void preparationPoint(Engine& engine,uint64_t generation,const char* stag
     if(!engine.preparationStage(generation,stage))throw std::runtime_error("Preparation superseded or cancelled");
 }
 class Experiment : public IRun, public IRunCallbacks {
+    AutoPtr<IGravity> energyGravity;
     Engine &engine;
     Config cfg;
     uint64_t generation;
@@ -30,6 +33,7 @@ class Experiment : public IRun, public IRunCallbacks {
     Experiment(Engine &e, Config c, uint64_t g) : engine(e), cfg(c), generation(g) {
         scheduler = SequentialScheduler::getGlobalInstance();
         configureSphGravity(settings, cfg.selfGravity);
+        if(cfg.selfGravity)energyGravity=Factory::getGravity(settings);
         settings.set(RunSettingsId::RUN_LOGGER, LoggerEnum::NONE);
         settings.set(RunSettingsId::RUN_OUTPUT_TYPE, IoEnum::NONE);
         settings.set(RunSettingsId::RUN_RNG_SEED, cfg.seed);
@@ -77,6 +81,7 @@ class Experiment : public IRun, public IRunCallbacks {
         const auto &internal=storage.getValue<Float>(QuantityId::ENERGY);
         const auto &damage=storage.getValue<Float>(QuantityId::DAMAGE);
         SphAccumulator diagnostics;f->scalars.reserve(r.size());
+        std::vector<StructureParticle> structure;structure.reserve(r.size());
         double weights[2] = {};
         f->particles.reserve(r.size());
         for (Size i = 0; i < r.size(); ++i) {
@@ -84,6 +89,7 @@ class Experiment : public IRun, public IRunCallbacks {
             if (!std::isfinite(speed) || !std::isfinite(double(r[i][X])) || !std::isfinite(double(r[i][Y])) ||
                 !std::isfinite(double(r[i][Z])) || !std::isfinite(double(rho[i])))
                 throw std::runtime_error("Non-finite particle state; reduce speed or increase resolution.");
+            structure.push_back({double(mass[i]),{double(r[i][X]),double(r[i][Y]),double(r[i][Z])},{double(v[i][X]),double(v[i][Y]),double(v[i][Z])}});
             f->scalars.push_back(diagnostics.add(pressure[i],internal[i],damage[i],mass[i],speed));
             int body = i < split ? 0 : 1;
             f->particles.push_back({float(r[i][X] / 1.e5), float(r[i][Y] / 1.e5), float(r[i][Z] / 1.e5),
@@ -100,6 +106,9 @@ class Experiment : public IRun, public IRunCallbacks {
                 if (weights[b] > 0)
                     f->centers[b * 3 + j] /= weights[b];
         f->meanDensity /= r.size();f->sph=diagnostics.finish();
+        double potential=0;
+        if(energyGravity){Statistics stats;energyGravity->build(*scheduler,storage);potential=energyGravity->evalEnergy(*scheduler,stats);}
+        f->sph.structure=measureSphStructure(structure,potential);
         auto now = Clock::now();
         engine.publish(f, generation, std::chrono::duration<double, std::milli>(now - last).count());
         last = now;
@@ -327,7 +336,7 @@ SphObservation Engine::sphObservation() {
     SphObservation result;result.sceneRevision=generation.load();result.selected=current.selected;
     for(size_t i=0;i<history.size();++i){const auto &f=*history[i];
         if(f.orbital||!f.sph.available){result.samples.clear();return result;}
-        result.samples.push_back({int(i),f.time,f.sph.values});
+        result.samples.push_back({int(i),f.time,f.sph.values,f.sph.structure});
     }
     return result;
 }
@@ -409,9 +418,10 @@ bool Engine::saveReplay(const std::string &dir) {
         return false;
     std::string path = dir + "/last-replay.osphr", temp = path + ".tmp";
     const bool diagnostics=known&&saved.preset<3&&std::all_of(frames.begin(),frames.end(),[](const auto &f){return f->sph.available&&f->scalars.size()==f->particles.size();});
+    const bool structure=diagnostics&&std::all_of(frames.begin(),frames.end(),[](const auto& f){return validSphStructure(f->sph.structure);});
     if (saved.selfGravity && !diagnostics) return false;
     std::ofstream out(temp, std::ios::binary);
-    uint32_t magic = 0x4c485053, version = diagnostics?(saved.selfGravity?6:5):(known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1), n = frames.size();
+    uint32_t magic = 0x4c485053, version = diagnostics?(structure?(saved.selfGravity?8:7):(saved.selfGravity?6:5)):(known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1), n = frames.size();
     out.write(reinterpret_cast<char *>(&magic), 4);
     out.write(reinterpret_cast<char *>(&version), 4);
     out.write(reinterpret_cast<char *>(&n), 4);
@@ -431,7 +441,8 @@ bool Engine::saveReplay(const std::string &dir) {
         out.write(reinterpret_cast<char *>(values), sizeof(values));
         out.write(reinterpret_cast<char *>(f->centers), sizeof(f->centers));
         out.write(reinterpret_cast<char *>(f->particles.data()), count * sizeof(Particle));
-        if(version==5||version==6){out.write(reinterpret_cast<const char *>(f->sph.values.data()),sizeof(double)*10);out.write(reinterpret_cast<const char *>(f->scalars.data()),count*sizeof(SphScalar));}
+        if(version>=5){out.write(reinterpret_cast<const char *>(f->sph.values.data()),sizeof(double)*10);out.write(reinterpret_cast<const char *>(f->scalars.data()),count*sizeof(SphScalar));}
+        if(version>=7)out.write(reinterpret_cast<const char*>(f->sph.structure.values.data()),sizeof(double)*4);
         if(version==3||version==4){uint32_t ntrail=f->trails.size();double d[]={f->energyError,f->angularError};
             out.write(reinterpret_cast<char *>(d),sizeof(d));out.write(reinterpret_cast<char *>(&ntrail),4);
             out.write(reinterpret_cast<char *>(f->trails.data()),ntrail*sizeof(Particle));}
@@ -453,7 +464,7 @@ bool Engine::loadReplay(const std::string &dir) {
     in.read(reinterpret_cast<char *>(&version), 4);
     in.read(reinterpret_cast<char *>(&n), 4);
     in.read(reinterpret_cast<char *>(&duration), 8);
-    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4 && version != 5 && version != 6) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
+    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4 && version != 5 && version != 6 && version != 7 && version != 8) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
         duration <= 0 || duration > 120)
         return false;
     Config saved;
@@ -463,7 +474,7 @@ bool Engine::loadReplay(const std::string &dir) {
         for (double x : v) if (!std::isfinite(x) || std::abs(x) > 1.e7) return false;
         for (int i : {0,1,10}) if (std::trunc(v[i]) != v[i]) return false;
         saved = {int(v[0]),int(v[1]),v[2],v[3],v[4],v[5],v[6],v[7],v[8],v[9],int(v[10])};
-        saved.selfGravity = version == 6;
+        saved.selfGravity = version == 6 || version == 8;
         if(version==4){uint32_t count=0;in.read(reinterpret_cast<char *>(&count),4);if(!in||count<2||count>8)return false;
             for(uint32_t i=0;i<count;++i){uint32_t len=0;in.read(reinterpret_cast<char *>(&len),4);if(!in||len<1||len>192)return false;
                 std::string name(len,'\0');in.read(&name[0],len);double d[8];in.read(reinterpret_cast<char *>(d),sizeof(d));if(!in)return false;
@@ -502,12 +513,14 @@ bool Engine::loadReplay(const std::string &dir) {
             if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z) ||
                 !std::isfinite(p.speed) || !std::isfinite(p.density) || (p.body < 0 || p.body > ((version==3||version==4)?7:1) || std::trunc(p.body)!=p.body))
                 return false;
-        if(version==5||version==6){
+        if(version>=5){
             f->sph.available=true;in.read(reinterpret_cast<char *>(f->sph.values.data()),sizeof(double)*10);
             f->scalars.resize(count);in.read(reinterpret_cast<char *>(f->scalars.data()),count*sizeof(SphScalar));
             if(!in||!validSphDiagnostics(f->sph))return false;
             for(const auto &p:f->scalars)if(!validSphScalar(p))return false;
         }
+        if(version>=7){f->sph.structure.available=true;in.read(reinterpret_cast<char*>(f->sph.structure.values.data()),sizeof(double)*4);
+            if(!in||!validSphStructure(f->sph.structure)||(!saved.selfGravity&&f->sph.structure.values[0]!=0))return false;}
         if(version==3||version==4){
             if(count!=uint32_t(saved.preset==5?saved.orbitBodies.size():(saved.preset==3?2:4)))return false;
             f->orbital=true;for(uint32_t i=0;i<count;++i)f->surfaces.push_back(saved.preset==5?saved.orbitBodies[i].surface:int(i));double d[2];uint32_t nt=0;

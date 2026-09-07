@@ -1,0 +1,489 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "four structure metrics and both extrema actually tapped in expanded, folded portrait and folded landscape",
+    "signed radial curve and physical units",
+    "guarded extrema seek; definition camera pose and native surface preserved",
+    "immersive window and no rendering errors"
+  ],
+  "results": [
+    {
+      "name": "wide",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 22.4,
+            "width": 707.2,
+            "height": 750.72
+          },
+          "compact": false,
+          "sidePanel": true,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 383.20000000000005,
+            "y": 98.4,
+            "width": 308,
+            "height": 516.72
+          },
+          "dock": {
+            "x": 143.60000000000002,
+            "y": 635.12,
+            "width": 420,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 98.4,
+            "width": 359.20000000000005,
+            "height": 524.72
+          }
+        },
+        "geometry": {
+          "widthPx": 2210,
+          "heightPx": 2416,
+          "topPx": 70,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 7
+        },
+        "viewportWidthVp": 707.2,
+        "viewportHeightVp": 773.12,
+        "widthVp": 707.2,
+        "heightVp": 773.12,
+        "immersive": true,
+        "safePx": {
+          "top": 70,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "composition": {
+        "x": 0.2709276080131531,
+        "y": 0.4666287302970886,
+        "scale": 0.5079185366630554
+      },
+      "taps": [
+        {
+          "metric": "gravity",
+          "bounds": [
+            1665,
+            1189,
+            1891,
+            1302
+          ]
+        },
+        {
+          "metric": "relativeKinetic",
+          "bounds": [
+            1250,
+            1321,
+            1476,
+            1434
+          ]
+        },
+        {
+          "metric": "radius",
+          "bounds": [
+            1495,
+            1321,
+            1721,
+            1434
+          ]
+        },
+        {
+          "metric": "radial",
+          "bounds": [
+            1740,
+            1321,
+            1966,
+            1434
+          ]
+        },
+        {
+          "extreme": "minimum",
+          "time": 0,
+          "bounds": [
+            1250,
+            1292,
+            1476,
+            1405
+          ]
+        },
+        {
+          "extreme": "maximum",
+          "time": 20.119999999999987,
+          "bounds": [
+            1495,
+            1292,
+            1721,
+            1405
+          ]
+        }
+      ],
+      "diagnostics": {
+        "ok": true,
+        "time": 20.119999999999987,
+        "timeUnit": "s",
+        "selected": 135,
+        "frameCount": 136,
+        "model": "sph-rock-gravity-v1",
+        "config": {
+          "preset": 0,
+          "count": 600,
+          "speed": 5,
+          "angle": 0,
+          "duration": 20,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "selfGravity": true,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "diagnostics": {
+          "available": true,
+          "pressureMinGPa": 0.02611117478091139,
+          "pressureMaxGPa": 76.8692325871738,
+          "pressureMeanGPa": 5.412961973413903,
+          "internalMinMJkg": 0.00003315895249160256,
+          "internalMaxMJkg": 8.91525384314285,
+          "internalMeanMJkg": 0.6493779779381528,
+          "damageMean": 0.00008696806976197475,
+          "damageMax": 0.04209611751882474,
+          "kineticJ": 2.1611989636712923e+25,
+          "internalJ": 8.930658957229741e+24,
+          "structure": [
+            -6.942578936878601e+22,
+            1.6187781899817465e+25,
+            82.60015361417312,
+            -145.62794390004174
+          ]
+        },
+        "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+      }
+    },
+    {
+      "name": "phone",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 20.48,
+            "width": 345.6,
+            "height": 761.6
+          },
+          "compact": false,
+          "sidePanel": false,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 12,
+            "y": 243.28,
+            "width": 321.6,
+            "height": 380.8
+          },
+          "dock": {
+            "x": 16,
+            "y": 644.08,
+            "width": 313.6,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 96.48,
+            "width": 321.6,
+            "height": 134.8
+          }
+        },
+        "geometry": {
+          "widthPx": 1080,
+          "heightPx": 2444,
+          "topPx": 64,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 10
+        },
+        "viewportWidthVp": 345.6,
+        "viewportHeightVp": 782.08,
+        "widthVp": 345.6,
+        "heightVp": 782.08,
+        "immersive": true,
+        "safePx": {
+          "top": 64,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "composition": {
+        "x": 0.5,
+        "y": 0.20954376459121704,
+        "scale": 0.39004629850387573
+      },
+      "taps": [
+        {
+          "metric": "gravity",
+          "bounds": [
+            505,
+            1641,
+            731,
+            1754
+          ]
+        },
+        {
+          "metric": "relativeKinetic",
+          "bounds": [
+            749,
+            1641,
+            975,
+            1754
+          ]
+        },
+        {
+          "metric": "radius",
+          "bounds": [
+            90,
+            1773,
+            316,
+            1886
+          ]
+        },
+        {
+          "metric": "radial",
+          "bounds": [
+            335,
+            1773,
+            561,
+            1886
+          ]
+        },
+        {
+          "extreme": "minimum",
+          "time": 0,
+          "bounds": [
+            90,
+            1938,
+            316,
+            1948
+          ]
+        },
+        {
+          "extreme": "maximum",
+          "time": 20.119999999999987,
+          "bounds": [
+            335,
+            1938,
+            561,
+            1948
+          ]
+        }
+      ],
+      "diagnostics": {
+        "ok": true,
+        "time": 20.119999999999987,
+        "timeUnit": "s",
+        "selected": 135,
+        "frameCount": 136,
+        "model": "sph-rock-gravity-v1",
+        "config": {
+          "preset": 0,
+          "count": 600,
+          "speed": 5,
+          "angle": 0,
+          "duration": 20,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "selfGravity": true,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "diagnostics": {
+          "available": true,
+          "pressureMinGPa": 0.02611117478091139,
+          "pressureMaxGPa": 76.8692325871738,
+          "pressureMeanGPa": 5.412961973413903,
+          "internalMinMJkg": 0.00003315895249160256,
+          "internalMaxMJkg": 8.91525384314285,
+          "internalMeanMJkg": 0.6493779779381528,
+          "damageMean": 0.00008696806976197475,
+          "damageMax": 0.04209611751882474,
+          "kineticJ": 2.1611989636712923e+25,
+          "internalJ": 8.930658957229741e+24,
+          "structure": [
+            -6.942578936878601e+22,
+            1.6187781899817465e+25,
+            82.60015361417312,
+            -145.62794390004174
+          ]
+        },
+        "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+      }
+    },
+    {
+      "name": "landscape",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 20.48,
+            "y": 0,
+            "width": 761.6,
+            "height": 345.6
+          },
+          "compact": true,
+          "sidePanel": true,
+          "headerHeight": 54,
+          "drawer": {
+            "x": 458.08000000000004,
+            "y": 64,
+            "width": 308,
+            "height": 269.6
+          },
+          "dock": {
+            "x": 36.480000000000004,
+            "y": 271.6,
+            "width": 393.6,
+            "height": 66
+          },
+          "scene": {
+            "x": 32.480000000000004,
+            "y": 64,
+            "width": 413.6,
+            "height": 195.60000000000002
+          }
+        },
+        "geometry": {
+          "widthPx": 2444,
+          "heightPx": 1080,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 64,
+          "rightPx": 0,
+          "revision": 13
+        },
+        "viewportWidthVp": 782.08,
+        "viewportHeightVp": 345.6,
+        "widthVp": 782.08,
+        "heightVp": 345.6,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 64,
+          "right": 0
+        }
+      },
+      "composition": {
+        "x": 0.30595335364341736,
+        "y": 0.46817129850387573,
+        "scale": 0.5659722089767456
+      },
+      "taps": [
+        {
+          "metric": "gravity",
+          "bounds": [
+            1899,
+            1031,
+            2125,
+            1041
+          ]
+        },
+        {
+          "metric": "relativeKinetic",
+          "bounds": [
+            1484,
+            809,
+            1710,
+            922
+          ]
+        },
+        {
+          "metric": "radius",
+          "bounds": [
+            1729,
+            809,
+            1955,
+            922
+          ]
+        },
+        {
+          "metric": "radial",
+          "bounds": [
+            1974,
+            809,
+            2200,
+            922
+          ]
+        },
+        {
+          "extreme": "minimum",
+          "time": 0,
+          "bounds": [
+            1484,
+            743,
+            1710,
+            856
+          ]
+        },
+        {
+          "extreme": "maximum",
+          "time": 20.119999999999987,
+          "bounds": [
+            1729,
+            743,
+            1955,
+            856
+          ]
+        }
+      ],
+      "diagnostics": {
+        "ok": true,
+        "time": 20.119999999999987,
+        "timeUnit": "s",
+        "selected": 135,
+        "frameCount": 136,
+        "model": "sph-rock-gravity-v1",
+        "config": {
+          "preset": 0,
+          "count": 600,
+          "speed": 5,
+          "angle": 0,
+          "duration": 20,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "selfGravity": true,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "diagnostics": {
+          "available": true,
+          "pressureMinGPa": 0.02611117478091139,
+          "pressureMaxGPa": 76.8692325871738,
+          "pressureMeanGPa": 5.412961973413903,
+          "internalMinMJkg": 0.00003315895249160256,
+          "internalMaxMJkg": 8.91525384314285,
+          "internalMeanMJkg": 0.6493779779381528,
+          "damageMean": 0.00008696806976197475,
+          "damageMax": 0.04209611751882474,
+          "kineticJ": 2.1611989636712923e+25,
+          "internalJ": 8.930658957229741e+24,
+          "structure": [
+            -6.942578936878601e+22,
+            1.6187781899817465e+25,
+            82.60015361417312,
+            -145.62794390004174
+          ]
+        },
+        "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+      }
+    }
+  ]
+}

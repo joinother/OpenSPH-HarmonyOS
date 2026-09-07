@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.34.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.35.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -243,7 +243,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 | `damageMean`、`damageMax` | 上游标量 DAMAGE 的三次方，0–1；Mean 为质量加权 |
 | `kineticJ`、`internalJ` | 所有粒子的动能、内能总量，J；不包含完整弹性／引力能量预算 |
 
-压力色标为蓝 −10／白 0／红 +10 GPa，比内能为深蓝 0 至金色 10 MJ/kg，损伤为青色 0 至红色 1。色标固定且显示饱和；原始读数不裁切。比内能不换算为温度，损伤不代表碎片计数。v5 保存无自引力逐帧诊断，v6 保存开启材料自引力的诊断和模型身份；v1/v2 缺少此数据时提示重新运行，选择新色号时渲染回退原色。轨道仍使用 v3/v4。详情见 [诊断与复现](reference/SPH-DIAGNOSTICS.md)。
+压力色标为蓝 −10／白 0／红 +10 GPa，比内能为深蓝 0 至金色 10 MJ/kg，损伤为青色 0 至红色 1。色标固定且显示饱和；原始读数不裁切。比内能不换算为温度，损伤不代表碎片计数。v7/v8 保存新结构记录（分别关闭／开启自引力）；v5/v6 只有原十项材料诊断；v1/v2 缺少此数据时提示重新运行，选择新色号时渲染回退原色。轨道仍使用 v3/v4。详情见 [诊断与复现](reference/SPH-DIAGNOSTICS.md)。
 
 ### SPH 曲线与原始数据导出
 
@@ -274,7 +274,7 @@ node scripts/export-sph.mjs --device 127.0.0.1:5555 --output /tmp/sph-run.csv
 | `reset` | 重新初始化并暂停 |
 | `seek` | `{ "frame": -1 }` 回最新帧，或指定保留帧索引；暂停求解并停止自动回放 |
 | `listProjects` / `saveProject` / `loadProject` | 列表／按 title 保存／按 id 载入命名实验配方，最多 50 个 |
-| `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v6 |
+| `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v8 |
 
 预设 0–2 为 SPH，3 为双体，4 为四体，5 为自定义。完整配置范围以命令目录和应用校验为准。`getState.definition` 是初始条件，`simulation.bodies` 为当前显示的质心参考系数据；SPH 时间单位为秒，轨道为儒略年。
 
@@ -432,3 +432,13 @@ CLI 验证覆盖状态和共享动作；实际触摸、键盘焦点、动画观�
 `setScene` 可传 `selfGravity:true`，仅适用于 preset 0–2、count 200–1200；省略或 false 使用旧模型。字符串、null、轨道预设或过大预算会在改变当前实验前被拒绝。模型标记为 `sph-rock-gravity-v1`，无自引力仍为 `sph-rock-v1`。命名实验校验模型与布尔值一致；旧应用拒绝新模型，避免静默丢失物理设置。回放 v6 使用与 v5 相同的帧布局，以版本号标明自引力；旧版回放按原样读取。
 
 采用上游逐对求和及 SPH 三次样条软化，每一步重新计算。此开关不影响环；未加入静力平衡、分层行星或碎片再聚合。验证方法见 [自引力基线](reference/SPH-GRAVITY.md)。
+
+## SPH 结构与能量
+
+`uiAction` 新增 `sph.metric.gravity`、`sph.metric.relativeKinetic`、`sph.metric.radius`、`sph.metric.radial`，与观察面板四个按钮共用动作；`sph.minimum`／`sph.maximum` 定位保留样本的极值。界面回看不重建物理场景。
+
+`getSphDiagnostics.diagnostics.structure` 及原生 `sphObservation.samples[].structure` 为可选四元素数组，顺序是软化引力势能 J、质心系相对动能 J、距质心均方根距离 km、质量加权平均径向速度 m/s。旧回放省略数组，不伪造零值。结构缺失时新指标动作不可用；已经选中的新指标显示无数据，不输出虚构曲线样本。
+
+`getSphTable` 的新 CSV 在原 12 列之后追加 `gravity_J,relative_kinetic_J,rms_radius_km,radial_velocity_ms`，共 16 列。旧回放仍导出 12 列。`scripts/export-sph.mjs` 校验两种表头和完整有限数值行，保存原样 CSV 及来源元数据；下游应按表头识别列。
+
+新回放 v7/v8 在每帧原材料记录之后追加四个 double；物理模型配置不变。v1–v6 按原版本读取，重新保存旧回放不会捏造结构数据。全部材料的分布尺度不是单颗行星表面半径，径向速度不是碎片数量或再聚合判据，势能也不能补齐尚缺的弹性应变能。见 [定义与验证](reference/SPH-STRUCTURE.md)。

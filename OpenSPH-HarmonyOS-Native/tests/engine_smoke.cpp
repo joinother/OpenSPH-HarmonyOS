@@ -5,6 +5,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <sys/stat.h>
 #include <thread>
@@ -25,10 +26,10 @@ void awaitState(Engine &e, const std::string &value) {
     throw std::runtime_error("Timed out: " + value);
 }
 std::string legacySph(const std::string &data) {
-    require(data.size()>108&&data[4]==5,"expected SPH v5");
+    require(data.size()>108&&(data[4]==5||data[4]==7),"expected SPH v5");
     std::string result=data.substr(0,108);result[4]=2;size_t at=108;uint32_t n=0;std::memcpy(&n,data.data()+8,4);
     for(uint32_t i=0;i<n;++i){uint32_t count=0;require(at+4<=data.size(),"v5 count missing");std::memcpy(&count,data.data()+at,4);
-        size_t bytes=84+size_t(count)*sizeof(Particle);require(at+bytes+80+size_t(count)*sizeof(SphScalar)<=data.size(),"v5 truncated");result+=data.substr(at,bytes);at+=bytes+80+size_t(count)*sizeof(SphScalar);}
+        size_t bytes=84+size_t(count)*sizeof(Particle);require(at+bytes+80+size_t(count)*sizeof(SphScalar)<=data.size(),"v5 truncated");result+=data.substr(at,bytes);at+=bytes+80+size_t(count)*sizeof(SphScalar)+(data[4]>=7?32:0);}
     require(at==data.size(),"v5 trailing data");return result;
 }
 int main(int argc, char **argv) {
@@ -36,6 +37,28 @@ int main(int argc, char **argv) {
         std::string dir = argc > 1 ? argv[1] : ".";
         mkdir(dir.c_str(), 0700);
         Engine e;
+        {
+            Config c{0,200,5,0,1};c.selfGravity=true;e.start(c,true);awaitState(e,"paused");
+            auto first=e.frame();require(validSphStructure(first->sph.structure),"missing structure");
+            const double targetMass=4./3.*3.141592653589793*1e15*2700,impactMass=targetMass*.216;
+            const double relativeKinetic=.5*(targetMass*impactMass/(targetMass+impactMass))*25e6;
+            require(std::abs(first->sph.structure.values[1]/relativeKinetic-1)<1e-12,"COM collision kinetic reference");
+            require(first->sph.structure.values[0]<0&&first->sph.structure.values[2]>0&&first->sph.structure.values[3]<0,"initial collision structure signs");
+            require(e.saveReplay(dir),"structure replay save");const std::string path=dir+"/last-replay.osphr";
+            std::ifstream input(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(input)),{});input.close();require(bytes[4]==8,"expected gravity v8");
+            uint32_t count=0;std::memcpy(&count,bytes.data()+108,4);const size_t at=108+84+size_t(count)*sizeof(Particle)+80+size_t(count)*sizeof(SphScalar);
+            for(int mode=0;mode<5;++mode){auto bad=bytes;double value=mode==0?1.:-1.;if(mode==3)value=std::numeric_limits<double>::quiet_NaN();
+                if(mode==4)bad.pop_back();else std::memcpy(&bad[at+8*mode],&value,8);
+                {std::ofstream out(path,std::ios::binary);out.write(bad.data(),bad.size());}
+                const auto current=e.frame();require(!e.loadReplay(dir)&&e.frame()==current,"malformed structure replaced state");}
+            {std::ofstream out(path,std::ios::binary);out.write(bytes.data(),bytes.size());}
+            require(e.loadReplay(dir)&&e.status().config.selfGravity,"v8 model lost");require(e.frame()->sph.structure.values==first->sph.structure.values,"structure replay changed");
+            auto legacy=bytes.substr(0,bytes.size()-32);legacy[4]=6;
+            {std::ofstream out(path,std::ios::binary);out.write(legacy.data(),legacy.size());}
+            require(e.loadReplay(dir)&&e.status().config.selfGravity&&!e.status().sph.structure.available,"legacy v6 fabricated structure");
+            require(!e.sphObservation().samples[0].structure.available,"legacy curve fabricated structure");
+            std::cout<<"PASS structure: analytic collision COM energy, signed potential/radial, v8 roundtrip, corrupted payload rejection, legacy v6 absence"<<std::endl;
+        }
         try {
             e.start({0, 0, 5, 0, 1});
             throw std::runtime_error("invalid config accepted");

@@ -7,7 +7,7 @@ export interface SimulationConfig {
 }
 export const startScene: (config: SimulationConfig, initiallyPaused?: boolean) => void;
 export interface OrbitBodyStatus { id:number; name:string; surface?:number; xAU:number; yAU:number; zAU:number; speedKmS:number; massSolar:number; }
-export interface SphDiagnostics {available:boolean;pressureMinGPa?:number;pressureMaxGPa?:number;pressureMeanGPa?:number;internalMinMJkg?:number;internalMaxMJkg?:number;internalMeanMJkg?:number;damageMean?:number;damageMax?:number;kineticJ?:number;internalJ?:number;}
+export interface SphDiagnostics {structure?:number[];available:boolean;pressureMinGPa?:number;pressureMaxGPa?:number;pressureMeanGPa?:number;internalMinMJkg?:number;internalMaxMJkg?:number;internalMeanMJkg?:number;damageMean?:number;damageMax?:number;kineticJ?:number;internalJ?:number;}
 export interface SimulationStatus {
   preparation?:PreparationStatus;
   sph?:SphDiagnostics;
@@ -61,7 +61,7 @@ export interface OrbitObservation {sceneRevision:number;body:number;name:string;
 export const orbitObservation:(body:number)=>OrbitObservation;
 export const seekObservation:(frame:number,sceneRevision:number,time:number)=>void;
 
-export interface SphObservationSample {frame:number;time:number;values:number[];}
+export interface SphObservationSample {frame:number;time:number;values:number[];structure?:number[];}
 export interface SphObservation {sceneRevision:number;selected:number;samples:SphObservationSample[];}
 export const sphObservation:()=>SphObservation;
 export const seekSphObservation:(frame:number,sceneRevision:number,time:number)=>void;

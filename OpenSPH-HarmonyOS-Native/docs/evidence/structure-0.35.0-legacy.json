@@ -1,0 +1,46 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "actual prior-version replay preserves all ten diagnostics",
+    "structure explicitly absent; four new controls disabled",
+    "legacy data do not fabricate structure diagnostics",
+    "legacy CSV retains twelve columns; old pressure curve works"
+  ],
+  "diagnostics": {
+    "ok": true,
+    "time": 120.0200000000017,
+    "timeUnit": "s",
+    "selected": -1,
+    "frameCount": 240,
+    "model": "sph-rock-gravity-v1",
+    "config": {
+      "preset": 1,
+      "count": 1200,
+      "speed": 10,
+      "angle": 45,
+      "duration": 120,
+      "targetRadiusKm": 140,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "selfGravity": true,
+      "targetSpin": -0.009999999776482582,
+      "seed": 1234
+    },
+    "diagnostics": {
+      "available": true,
+      "pressureMinGPa": -0.7072178730734109,
+      "pressureMaxGPa": 24.11934850332878,
+      "pressureMeanGPa": 0.16835994909649662,
+      "internalMinMJkg": 0.017594266463718457,
+      "internalMaxMJkg": 19.490413289435335,
+      "internalMeanMJkg": 0.8392874562137368,
+      "damageMean": 0.9599962331076767,
+      "damageMax": 1,
+      "kineticJ": 1.060678371920551e+26,
+      "internalJ": 2.8096667812100275e+25
+    },
+    "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+  }
+}

@@ -1,4 +1,4 @@
-import { sphPlot, sphCsv, sphMetricLabel, sphMetricIndex } from '../common/SphObservationModel';
+import { sphPlot, sphCsv, sphMetricLabel, sphMetricIndex, sphMetricValue } from '../common/SphObservationModel';
 import { ObservationReference, ReferenceSummary, ComparisonPlot, comparisonPlot, referenceSummary, observationCsv } from '../common/ObservationComparison';
 import { ObservationStore } from '../common/ObservationStore';
 import { observationPlot, ObservationPlot } from '../common/ObservationModel';
@@ -828,7 +828,7 @@ struct Index {
     add('trace.disturb','局部扰动',this.trace.enabled,this.trace.impulse>0);add('trace.clear','清除扰动',this.trace.enabled);add('trace.points','显示环颗粒',this.trace.enabled,this.trace.points);
     add('trace.controls','调整局部轨道',this.trace.enabled);add('trace.circular','圆轨道对照',this.trace.enabled);add('trace.ellipse','拉长轨道',this.trace.enabled);add('trace.apoapsis','跳到内圈远点',this.trace.enabled&&this.trace.innerPeriodHours/2<=24);
     add('trace.toggle','启用动态环带',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
-    for(const metric of ['pressure','internal','damage','kinetic','energy'])add('sph.metric.'+metric,sphMetricLabel(metric),this.preset<3,this.sphMetric===metric);
+    for(const metric of ['pressure','internal','damage','kinetic','energy','gravity','relativeKinetic','radius','radial'])add('sph.metric.'+metric,sphMetricLabel(metric),this.preset<3&&(sphMetricIndex(metric)<10||this.info.sph?.structure!==undefined),this.sphMetric===metric);
     add('sph.minimum','SPH 记录最小',this.preset<3&&this.sphView().available);add('sph.maximum','SPH 记录最大',this.preset<3&&this.sphView().available);
     add('color.3','压力',this.preset<3&&this.info.sph?.available===true,this.colorMode===3);add('color.4','比内能',this.preset<3&&this.info.sph?.available===true,this.colorMode===4);add('color.5','材料损伤',this.preset<3&&this.info.sph?.available===true,this.colorMode===5);
     add('comparison.capture',this.comparisonReference?'替换参照':'保存作参照',this.preset>=3&&this.observed.samples.length>=2);
@@ -1088,7 +1088,7 @@ struct Index {
     if(command==='getProjectedBodies')return JSON.stringify({ok:true,projection:simulation.projectedScene()});
     if(command==='pickBody'){const hit=await this.pickViewport(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,hit:hit});}
     if(command==='getPreparation'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,state:state.state,error:state.error,config:state.config,preparation:state.preparation});}
-    if(command==='getSphObservation'){this.refreshObservation();const reply:SphCurveReply={ok:true,metric:this.sphMetric,label:this.sphLabel(),data:{sceneRevision:this.sphObserved.sceneRevision,selected:this.sphObserved.selected,samples:this.sphObserved.samples.map((s:SphObservationSample):SphCurveSample=>({frame:s.frame,time:s.time,value:s.values[sphMetricIndex(this.sphMetric)]}))},plot:this.sphView()};return JSON.stringify(reply);}
+    if(command==='getSphObservation'){this.refreshObservation();const reply:SphCurveReply={ok:true,metric:this.sphMetric,label:this.sphLabel(),data:{sceneRevision:this.sphObserved.sceneRevision,selected:this.sphObserved.selected,samples:(this.sphView().available?this.sphObserved.samples.map((s:SphObservationSample):SphCurveSample=>({frame:s.frame,time:s.time,value:sphMetricValue(s,sphMetricIndex(this.sphMetric))})):[])},plot:this.sphView()};return JSON.stringify(reply);}
     if(command==='getSphTable'){const data:SphObservation=simulation.sphObservation(),config:SimulationConfig|undefined=simulation.status().config;if(simulation.sphObservation().sceneRevision!==data.sceneRevision)throw new Error('场景已变化，请重试导出');return JSON.stringify({ok:true,rows:data.samples.length,timeUnit:'s',sceneRevision:data.sceneRevision,config,csv:sphCsv(data)});}
     if(command==='getSphDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,time:state.time,timeUnit:state.config&&state.config.preset>=3?'year':'s',selected:state.selected,frameCount:state.frames,model:state.model,config:state.config,diagnostics:state.sph??{available:false},source:'OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted'});}
     if(command==='getObservationComparison'){this.refreshObservation();const reply:ComparisonReply={ok:true,visible:this.comparisonShown,reference:this.comparisonReference?referenceSummary(this.comparisonReference):undefined,currentName:this.observed.name,currentCount:this.observed.samples.length,currentConfig:simulation.status().config,chart:this.comparisonView(),error:this.comparisonError};return JSON.stringify(reply);}
@@ -1211,6 +1211,12 @@ struct Index {
         ChoiceChip({label:'平均损伤',active:this.sphMetric==='damage',onPress:()=>{this.press('sph.metric.damage');}}).id('sph-curve-damage')
         ChoiceChip({label:'动能',active:this.sphMetric==='kinetic',onPress:()=>{this.press('sph.metric.kinetic');}}).id('sph-curve-kinetic')
         ChoiceChip({label:'内能总量',active:this.sphMetric==='energy',onPress:()=>{this.press('sph.metric.energy');}}).id('sph-curve-energy')
+        if(this.info.sph?.structure!==undefined){
+          ChoiceChip({label:'引力势能',active:this.sphMetric==='gravity',onPress:()=>{this.press('sph.metric.gravity');}}).id('sph-curve-gravity')
+          ChoiceChip({label:'相对动能',active:this.sphMetric==='relativeKinetic',onPress:()=>{this.press('sph.metric.relativeKinetic');}}).id('sph-curve-relativeKinetic')
+          ChoiceChip({label:'分布尺度',active:this.sphMetric==='radius',onPress:()=>{this.press('sph.metric.radius');}}).id('sph-curve-radius')
+          ChoiceChip({label:'径向速度',active:this.sphMetric==='radial',onPress:()=>{this.press('sph.metric.radial');}}).id('sph-curve-radial')
+        }
       }.width('100%')
       if(this.sphView().available) {
         Text(this.sphView().current.toPrecision(5)+' '+this.sphView().unit+' · '+this.sphView().currentTime.toFixed(2)+' s').id('sph-curve-current').fontSize(12).fontColor('#BDE9FF').width('100%')
@@ -1226,7 +1232,7 @@ struct Index {
           ChoiceChip({label:'记录最大',onPress:()=>{this.press('sph.maximum');}}).id('sph-curve-maximum')
         }.width('100%')
         Text('最近 '+this.sphObserved.samples.length+' / 240 帧；极值只代表保留的采样，不等于接触或破碎事件。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
-      } else {Text('等待完整 SPH 诊断记录').fontSize(12).fontColor('#B7C5D5')}
+      } else {Text(sphMetricIndex(this.sphMetric)>=10?'此回放缺少结构记录，重新计算后可查看':'等待完整 SPH 诊断记录').fontSize(12).fontColor('#B7C5D5')}
     }.width('100%')
   }
   @Builder
@@ -1250,8 +1256,15 @@ struct Index {
         MetricRow({label:'损伤 · 最大值',value:this.sphNumber(this.info.sph?.damageMax,'')})
         MetricRow({label:'动能',value:this.sphNumber(this.info.sph?.kineticJ,'J')})
         MetricRow({label:'内能',value:this.sphNumber(this.info.sph?.internalJ,'J')})
+        if(this.info.sph?.structure!==undefined){
+          MetricRow({label:'引力势能',value:this.sphNumber(this.info.sph?.structure![0],'J')})
+          MetricRow({label:'相对动能',value:this.sphNumber(this.info.sph?.structure![1],'J')})
+          MetricRow({label:'分布尺度',value:this.sphNumber(this.info.sph?.structure![2],'km')})
+          MetricRow({label:'平均径向速度',value:this.sphNumber(this.info.sph?.structure![3],'m/s')})
+        }
+        Text('相对动能扣除整体平移；分布尺度为全部材料距质心的质量加权均方根距离，并非天体表面半径。径向速度为负表示平均向内运动，不代表碎片已经聚合。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
         Text('压力保留正负号；比内能不是温度。损伤是材料模型中 0–1 的强度退化量，不等于碎片数量。均值按粒子质量加权，随时间轴回看。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
-        Text(this.info.config?.selfGravity===true?'已启用材料自引力；动能与内能未包括引力势能和弹性应变能，不能当作完整守恒预算。':'未启用自引力；动能与内能未包括弹性应变能，不能当作完整守恒预算。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+        Text('引力势能来自同一软化引力模型；关闭自引力时为零。尚未计入弹性应变能，不能当作完整守恒预算。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
       } else {Text(this.info.state==='replay'?'旧回放没有压力、内能或损伤记录；重新运行实验后可查看。':'等待 SPH 初始帧').fontSize(12).fontColor('#B7C5D5').width('100%')}
       Divider().color('#33B4A7D6')
     }.width('100%')
@@ -1354,7 +1367,7 @@ struct Index {
           if(this.preset>=3&&!this.layout().compact) {Text(this.trace.enabled?'中心引力 · 开普勒轨道 · 不含碰撞':this.closeup?(this.selectedMoon()?'NASA SVS 月面底图 · 非实时月相':(this.autoSpin?'程序表面 · 外观自转演示':'程序表面 · 随轨道时间变化')):'牛顿引力 · AU / 年 · 天体尺寸已放大').fontSize(10).fontColor('#9E97B4')}
           if(this.preset>=3&&!this.closeup&&!this.layout().compact) {Text(this.focus>=0?'已选中 · '+this.surfaceName():'轻点天体以选中 · 拖动旋转').fontSize(11).fontColor('#C9B8F3')}
           if(this.skyMode===2&&!this.layout().compact) {Text(this.rendering.panoramaReady?'银河摄影 · 非定位星图':(this.skyLoadError?'银河示意 · 摄影全景加载失败':'银河背景 · 载入摄影全景')).fontSize(10).fontColor('#9E97B4')}
-          if(this.preset<3) {Text(this.info.config?.selfGravity===true?'岩质 SPH · 材料自引力已开启':'岩质 SPH · 未启用自引力').fontSize(10).fontColor('#9E97B4')}
+          if(this.preset<3) {Text(this.info.config?.selfGravity===true?'岩质 SPH · 自引力开启':'岩质 SPH · 未启用自引力').fontSize(10).fontColor('#9E97B4')}
           if(this.dirty) {Text('参数待应用').fontSize(11).fontColor('#F0BD82')}
         }.alignItems(HorizontalAlign.Start).padding({left:16,right:16,top:this.layout().compact?8:16,bottom:8}).width(this.layout().safe.width).margin({left:this.layout().safe.x,top:this.layout().safe.y+this.layout().headerHeight+10}).hitTestBehavior(HitTestMode.None)
           .onAreaChange((_:Area,area:Area)=>{this.hudHeight=Number(area.height);})

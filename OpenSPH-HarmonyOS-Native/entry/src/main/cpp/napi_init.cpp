@@ -218,7 +218,9 @@ napi_value sphObservation(napi_env e,napi_callback_info) {
     try{const auto data=lab::Engine::instance().sphObservation();napi_value o,list;napi_create_object(e,&o);napi_create_array_with_length(e,data.samples.size(),&list);
         num(e,o,"sceneRevision",data.sceneRevision);num(e,o,"selected",data.selected);
         for(size_t k=0;k<data.samples.size();++k){const auto &p=data.samples[k];napi_value v,values;napi_create_object(e,&v);napi_create_array_with_length(e,10,&values);
-            num(e,v,"frame",p.frame);num(e,v,"time",p.time);for(size_t j=0;j<10;++j){napi_value n;napi_create_double(e,p.values[j],&n);napi_set_element(e,values,j,n);}napi_set_named_property(e,v,"values",values);napi_set_element(e,list,k,v);}
+            num(e,v,"frame",p.frame);num(e,v,"time",p.time);for(size_t j=0;j<10;++j){napi_value n;napi_create_double(e,p.values[j],&n);napi_set_element(e,values,j,n);}napi_set_named_property(e,v,"values",values);
+            if(p.structure.available){napi_value a;napi_create_array_with_length(e,4,&a);for(size_t j=0;j<4;j++){napi_value n;napi_create_double(e,p.structure.values[j],&n);napi_set_element(e,a,j,n);}napi_set_named_property(e,v,"structure",a);}
+            napi_set_element(e,list,k,v);}
         napi_set_named_property(e,o,"samples",list);return o;
     }catch(const std::exception &ex){return fail(e,ex);}
 }
@@ -257,6 +259,7 @@ napi_value status(napi_env e, napi_callback_info) {
     napi_value diag,available;napi_create_object(e,&diag);napi_get_boolean(e,s.sph.available,&available);napi_set_named_property(e,diag,"available",available);
     const char *keys[]={"pressureMinGPa","pressureMaxGPa","pressureMeanGPa","internalMinMJkg","internalMaxMJkg","internalMeanMJkg","damageMean","damageMax","kineticJ","internalJ"};
     if(s.sph.available)for(int k=0;k<10;++k)num(e,diag,keys[k],s.sph.values[k]);
+    if(s.sph.structure.available){napi_value a;napi_create_array_with_length(e,4,&a);for(size_t j=0;j<4;j++){napi_value n;napi_create_double(e,s.sph.structure.values[j],&n);napi_set_element(e,a,j,n);}napi_set_named_property(e,diag,"structure",a);}
     napi_set_named_property(e,o,"sph",diag);
     num(e,o,"energyError",s.energyError);num(e,o,"angularError",s.angularError);
     str(e,o,"model",s.config.preset==5?"nbody-custom-v1":(s.config.preset>=3?"nbody-v1":(s.config.selfGravity?"sph-rock-gravity-v1":"sph-rock-v1")));

@@ -12,7 +12,7 @@ for(const preset of [0,1,2]){
   const after=call('getState');assert.deepEqual(after.camera,before.camera);assert.deepEqual(after.definition,before.definition);assert.equal(after.rendering.sceneRevision,before.rendering.sceneRevision);assert.equal(after.rendering.surfaceStarts,before.rendering.surfaceStarts);
  }
  const table=call('getSphTable'),lines=table.csv.trim().split('\n');assert.equal(table.rows,curve.data.samples.length);assert.equal(lines.length,table.rows+1);
- for(let i=0;i<table.rows;i++){const row=lines[i+1].split(',').map(Number);assert.equal(row.length,12);assert.equal(row[0],i);assert.equal(row[1],curve.data.samples[i].time);assert.ok(row.every(Number.isFinite));}
+ for(let i=0;i<table.rows;i++){const row=lines[i+1].split(',').map(Number);assert.equal(row.length,lines[0].split(',').length);assert.ok(row.length===12||row.length===16);assert.equal(row[0],i);assert.equal(row[1],curve.data.samples[i].time);assert.ok(row.every(Number.isFinite));}
  const selected=call('getSphDiagnostics').diagnostics;const latest=call('getSphObservation');assert.equal(latest.plot.current,selected.internalJ);
  call('seek',{frame:-1});results.push({preset,samples:table.rows,first:curve.data.samples[0].time,last:curve.data.samples.at(-1).time,plot:call('getSphObservation').plot});
 }

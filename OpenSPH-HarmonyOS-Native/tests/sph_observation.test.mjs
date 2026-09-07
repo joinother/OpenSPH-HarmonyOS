@@ -22,3 +22,18 @@ test('SPH CSV contains all raw diagnostics and export preserves provenance and r
   assert.equal(readFileSync(file,'utf8'),csv);assert.equal(JSON.parse(readFileSync(result.metadata)).sceneRevision,7);assert.throws(()=>exportTable({ok:true,rows:3,csv},file));assert.equal(readFileSync(file,'utf8'),csv);
  }finally{rmSync(directory,{recursive:true,force:true});}
 });
+
+test('structure curves preserve signed energies, COM units, extrema and old replay absence',()=>{
+ const d=data();for(const s of d.samples)s.structure=[-100+s.frame,10+s.frame,80-s.frame,-3+s.frame];
+ assert.equal(sphPlot(d,'gravity').current,-98);assert.equal(sphPlot(d,'relativeKinetic').unit,'J');assert.equal(sphPlot(d,'radius').unit,'km');assert.equal(sphPlot(d,'radial').unit,'m/s');assert.equal(sphPlot(d,'radial').minTime,0);
+ const csv=sphCsv(d);assert.equal(csv.trim().split('\n')[0].split(',').length,16);assert.equal(sphPlot(data(),'gravity').available,false);assert.equal(sphCsv(data()).split('\n')[0].split(',').length,12);
+ for(const mutate of [d=>delete d.samples[0].structure,d=>d.samples[0].structure.pop(),d=>d.samples[0].structure[0]=1,d=>d.samples[0].structure[1]=-1,d=>d.samples[0].structure[2]=-1,d=>d.samples[0].structure[3]=NaN]){
+  const bad=structuredClone(d);mutate(bad);assert.equal(sphPlot(bad,'gravity').available,false);assert.throws(()=>sphCsv(bad));
+ }
+});
+test('extended CSV export checks schema and finite rows without silently dropping structure',()=>{
+ const d=data();for(const s of d.samples)s.structure=[-100,10,80,-3];const csv=sphCsv(d),directory=mkdtempSync(tmpdir()+'/sph-structure-export-');
+ try{const table={ok:true,rows:3,csv},file=directory+'/result.csv';exportTable(table,file);assert.equal(readFileSync(file,'utf8'),csv);
+  for(const bad of [csv.replace('gravity_J','potential'),csv.replace('-100','NaN'),csv.replace('-100,10','-100,'),csv.replace('-100,10,80,-3','-100,10,80')])assert.throws(()=>exportTable({...table,csv:bad},directory+'/invalid.csv'));
+ }finally{rmSync(directory,{recursive:true,force:true});}
+});

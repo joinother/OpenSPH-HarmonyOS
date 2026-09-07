@@ -1,6 +1,6 @@
 # 星体实验室 GitHub 检查点
 
-记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.34.0。
+记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.35.0。
 
 ## 恢复开发
 
@@ -17,6 +17,8 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 构建需要 DevEco Studio 与 HarmonyOS SDK；安装请遵循工程 README，当前任务只操作模拟器 127.0.0.1:5555。签名配置、依赖缓存、构建目录和发布二进制不纳入源码检查点。
 
 ## 保存范围与验证
+
+- 0.35.0 增加四条 SPH 结构与能量曲线、16 列导出及 v7/v8 回放，兼容旧数据缺失。解析与原生测试、应用数据往返及三布局按钮命中通过；较新实验作为原始回放保留，原保存回放和 10 个用户项目恢复。静力平衡和完整能量预算仍待完成。见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.35.0.md)。
 
 - 0.34.0 接入可选 SPH 材料自引力，保留实验与回放模型身份。独立球壳积分、九组短时岩球桌面／鸿蒙对照、应用碰撞／回放和三布局验收通过；恢复原慢撞实验与用户回放。静力平衡、完整能量和再聚合待下一批。见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.34.0.md)。
 

@@ -1,0 +1,31 @@
+{
+  "verificationDate": "2026-09-08",
+  "timezone": "Asia/Shanghai",
+  "findings": [
+    {
+      "topic": "snapshot provenance",
+      "finding": "Initial state JSON describes a 600-budget, 90-second gravity-off scene; subsequent pre-installation v6 replay describes a 1200-budget, 120-second gravity-on scene. Their diagnostics must not be compared as the same experiment. Cause of the snapshot change was not established. Both local backups retained."
+    },
+    {
+      "topic": "recalculation is not exact restoration",
+      "finding": "An attempted recalculation of the first snapshot reached the same time but did not meet an assumed 1e-8 diagnostic tolerance. No deterministic-reproduction claim is made. Restored the later recorded history directly and checked exact decoded values instead. Numerical difference cause remains uninvestigated.",
+      "normalizedDifferences": {
+        "pressureMinGPa": 3.5672374102402316e-06,
+        "pressureMaxGPa": 1.3004189058812403e-16,
+        "pressureMeanGPa": 1.0651835730124404e-07,
+        "internalMinMJkg": 2.7755575615628914e-17,
+        "internalMaxMJkg": 1.6186439819235245e-16,
+        "internalMeanMJkg": 9.76055058855435e-10,
+        "damageMean": 1.7764449500301538e-07,
+        "damageMax": 0.0,
+        "kineticJ": 2.1166284598519548e-10,
+        "internalJ": 9.760550352509463e-10
+      }
+    },
+    {
+      "topic": "coverage limits",
+      "finding": "Gravity on/off UI cases use different particle budgets and provide functional coverage only. stepMs includes solver and snapshot wall time, not isolated potential cost or FPS. No hydrostatic equilibrium or full energy conservation claim."
+    }
+  ],
+  "finalRestoration": "See structure-0.35.0-restoration.json; active scene is later v6 recorded history, original saved replay slot restored byte-for-byte."
+}

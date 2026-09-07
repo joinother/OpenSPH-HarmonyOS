@@ -829,3 +829,10 @@ test('gravity changes theme identity and restores the original material model on
  await app.execute('uiAction',{action:'scene.gravity'});assert.equal(app.themeState().modified,true);assert.match(app.themeState().limit,/已开启/);
  app.chooseTheme('rock-slow');assert.equal(app.config().selfGravity,undefined);assert.equal(app.themeState().modified,false);
 });
+
+test('structure commands reject missing old-replay data without changing the current metric',async()=>{
+ const {page:app,state}=page();app.choose(0);state.state='paused';
+ for(const metric of ['gravity','relativeKinetic','radius','radial']){
+  const before=app.sphMetric;await assert.rejects(app.execute('uiAction',{action:'sph.metric.'+metric}));assert.equal(app.sphMetric,before);
+ }
+});

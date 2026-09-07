@@ -61,7 +61,7 @@ struct OrbitObservation {
     std::string name;
     std::vector<ObservationSample> samples;
 };
-struct SphObservationSample {int frame;double time;std::array<double,10> values;};
+struct SphObservationSample {int frame;double time;std::array<double,10> values;SphStructure structure;};
 struct SphObservation {uint64_t sceneRevision=0;int selected=-1;std::vector<SphObservationSample> samples;};
 class Engine {
   public:
