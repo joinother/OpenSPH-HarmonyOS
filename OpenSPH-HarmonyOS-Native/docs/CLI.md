@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.40.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.41.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -110,17 +110,22 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 ```sh
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"orbit.add"}'
-node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setPlacementPoint --payload-json '{"x":0.7,"y":0.35}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setViewportPlacementPoint --payload-json '{"x":0.7,"y":0.55}'
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getPlacementPreview
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"placement.confirm"}' --wait-state paused
 ```
 
-`orbit.add` 仅打开草稿。`placement.confirm` 才加入天体并从初始条件重建；`placement.cancel`、返回或关闭面板取消候选，保留原场景、历史与旧编辑草稿。放置期间部分实验操作禁用，应查询 enabled。确认会清空旧轨迹，保留已有天体的编辑草稿，并记入一步天体编辑历史。
+`orbit.add` 打开主星图初始时刻预览：原有天体和候选都按初始位置显示，求解器历史不替换。先等待 `getProjectedBodies.projection.ready/placement` 为 true，再发送视口点位。`placement.confirm` 才加入天体并从初始条件重建；`placement.cancel`、返回或关闭面板取消候选，保留原场景、历史与旧编辑草稿。放置期间部分实验操作禁用，应查询 enabled。确认会清空旧轨迹，保留已有天体的编辑草稿，并记入一步天体编辑历史。
 
 - `placement.name` 与 `placement.value.0..4` 为字符串；五个值依次为地球质量倍数、距离 AU、方位角度、倾角角度、圆轨道速度倍数。
 - `placement.circular`、`placement.still`、`placement.escape`、`placement.reverse` 设置圆轨道、相对恒星静止、1.45 倍圆轨道速度及反向；`placement.surface.1..5` 设置表面。
-- `setPlacementPoint {x,y}` 使用预览图内 0–1 坐标，与轻点／拖动共用转换，不会自动确认。
+- `setViewportPlacementPoint {x,y}` 使用整个主视口内 0–1 坐标（左上原点），与主星图轻点／单指拖动共用原生投影逆变换。未呈现放置帧、屏幕尺寸正变化、轨道面接近侧视或距离越界时拒绝，不确认或改写实验。
+- `placement.options` 显示／收起数值抽屉，保留候选；`placement.align` 正对当前倾斜轨道面。双指缩放保持候选位置；放置时单指不旋转镜头。
+- `placement.target.N` 将相对恒星速度指向第 N 个天体的初始位置；目标可以是恒星 0。速度模长仍由速度倍数设置，反向切换指向外侧。不是预测拦截，不保证命中。圆轨道／静止／掠过动作退出瞄准。
+- `setPlacementPoint {x,y}` 保留辅助小图内 0–1 坐标，与小图轻点／拖动共用转换，不会自动确认。主视口与辅助小图坐标不能混用。
 - `getPlacementPreview` 返回 valid、error、完整候选初值、相对速度、圆轨道／逃逸速度、最近距离和解析引导路径；无效输入不能确认。
+
+`getProjectedBodies.projection` 增加 `placement` 和 `candidate`，表示最近呈现帧是否为放置预览、候选 ID（无有效候选为 −1）；time 为预览初始时刻 0，不能代替 `getState.simulation.time`。放置期间 `pickBody` 拒绝普通天体选择。
 
 圆轨道速度包含恒星与候选质量，候选速度叠加恒星原速度。紫线是二体解析引导，灰点是其他天体初始位置的平面投影。工具不在当前时刻注入天体。自定义系统限制为 2–8 天体、坐标 ±10 AU、速度模长不超过 100 km/s、初始间距至少 0.05 AU。
 
@@ -137,7 +142,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 副本名称在 48 字符内避免重名，不拆开 Unicode 代理对。新轨道从相对恒星的 XY 平面圆轨道开始，优先采用原始相对距离（初始建议限制在 0.1–8 AU）、错开方位；若越界或占位则尝试其他角度／距离，所有候选仍执行原有速度、坐标、质量与间距校验。未找到可用位置时保留无效预览供修改，不能确认。
 
-`getState.placement` 增加 `sourceIndex` 与 `sourceName`，表示当前复制草稿的来源；普通添加或退出放置后为 −1／空字符串。这是会话提示，不是持久化的天体关联。确认后的新天体独立编辑，使用原有撤销／重做和命名实验保存路径。主系统正在运行时预览不暂停主时钟；进入放置仍按既有规则退出局部示踪模式。
+`getState.placement` 增加 `sourceIndex` 与 `sourceName`，表示当前复制草稿的来源；普通添加或退出放置后为 −1／空字符串。这是会话提示，不是持久化的天体关联。确认后的新天体独立编辑，使用原有撤销／重做和命名实验保存路径。主系统正在运行时进入放置会暂停主时钟，回放播放也暂停；取消恢复原有运行／播放状态，确认生成新初值。进入放置仍按既有规则退出局部示踪模式。`getState.placement.target` 为瞄准索引，−1 表示通常的切向模式。
 
 ## 轨道观察曲线
 

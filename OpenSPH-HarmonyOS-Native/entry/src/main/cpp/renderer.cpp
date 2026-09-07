@@ -33,6 +33,8 @@ class Renderer {
     std::shared_ptr<const SkyPanorama> skyPanorama;
     RenderStatus stats;
     ProjectedScene projected;
+    std::shared_ptr<const Frame> placementFrame;
+    int placementCandidate=-1;uint64_t placementRevision=0;
     uint64_t projectedRevision=0;
     std::atomic<bool> active{true};
     void error(const std::string &message){std::lock_guard<std::mutex> lock(mutex);stats.error=message;OH_LOG_Print(LOG_APP,LOG_ERROR,0x0200,"SPHLab","render: %{public}s",message.c_str());}
@@ -197,6 +199,10 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             const auto snapshot=Engine::instance().fragmentFrame();
             const auto revision=snapshot.sceneRevision;
             auto frame=snapshot.frame;
+            bool placing=false;int candidate=-1;
+            {std::lock_guard<std::mutex> lock(mutex);
+             if(placementFrame&&placementRevision==revision){frame=placementFrame;placing=true;candidate=placementCandidate;}}
+
             int pending=0,generatedCount=0;std::string generatedError;
             for(int i=0;i<8;i++){
                 SurfaceKey key{};if(frame&&frame->orbital&&size_t(i)<frame->surfaces.size()){key=seeds[i];key.style=frame->surfaces[i];}
@@ -232,7 +238,8 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             {std::lock_guard<std::mutex> lock(mutex);
              navigation.step(revision,float(dt));c=navigation.displayed();journey=navigation.journey();cameraRequest=navigation.status().requestId;
             }
-            float blend=journey.totalDetail();
+            float blend=placing?0:journey.totalDetail();
+            shown.placement=placing;shown.candidate=candidate;shown.camera=c;
             framing.step(compositionTarget,float(dt));const auto compositionNow=framing.current();
             if(detail&&a.autoSpin)previewTime+=dt;
             const float dim=1-.65f*blend;
@@ -250,6 +257,8 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 cx=cy=cz=0;
                 for(size_t i=0;i<frame->particles.size()&&i<8;++i){const auto &p=frame->particles[i];float weight=journey.tracking(int(i));cx+=p.x*weight;cy+=p.y*weight;cz+=p.z*weight;}
             }
+            if(placing){cx=frame->particles[0].x;cy=frame->particles[0].y;cz=frame->particles[0].z;}
+            shown.composition=compositionNow;
             FragmentFollowStatus followed;
             {std::lock_guard<std::mutex> lock(mutex);
              auto center=fragmentFollower.step(revision,Engine::instance().sceneRevision(),frame?&frame->fragments:nullptr,frame?frame->time:0,{cx,cy,cz},dt);
@@ -267,7 +276,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             glUniform1iv(glGetUniformLocation(program,"surfaces"),8,styles);
             glUniform1i(glGetUniformLocation(program,"orbital"),frame&&frame->orbital?1:0);
             glUniform1i(glGetUniformLocation(program,"trail"),0);
-            glUniform1f(glGetUniformLocation(program,"trailOpacity"),a.trails?.4f*(1-blend):0.f);
+            glUniform1f(glGetUniformLocation(program,"trailOpacity"),(placing||a.trails)?.65f*(1-blend):0.f);
             glUniform1f(glGetUniformLocation(program, "size"), 2);
             if (frame) {
                 float size = std::clamp(float(h) / projectionZoom / std::cbrt(float(frame->particles.size())) * ((c.color==0||c.color==6)?0.9f:0.32f),
@@ -284,15 +293,16 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                     auto rotate=[&](float x,float y,float z){return rotateView(c,x,y,z);};
                     shown.ready=true;
                     std::vector<size_t> order;for(size_t i=0;i<frame->particles.size();++i)order.push_back(i);
-                    auto drawDepth=[&](size_t i){const auto &p=frame->particles[i];return projectBody(c,int(i),rotate(p.x-cx,p.y-cy,p.z-cz),w,h,blend,journey.detail(int(i))).depth;};
+                    auto drawDepth=[&](size_t i){const auto &p=frame->particles[i];return projectBody(c,int(i),rotate(p.x-cx,p.y-cy,p.z-cz),w,h,blend,placing?0:journey.detail(int(i))).depth;};
                     std::stable_sort(order.begin(),order.end(),[&](size_t i,size_t j){return drawDepth(i)<drawDepth(j);});
                     glDisable(GL_DEPTH_TEST);
                     for(size_t i:order){const auto &p=frame->particles[i];auto v=rotate(p.x-cx,p.y-cy,p.z-cz);
                         const auto &star=frame->particles[0];auto light=rotate(star.x-p.x,star.y-p.y,star.z-p.z);
                         float len=std::sqrt(light[0]*light[0]+light[1]*light[1]+light[2]*light[2]);if(len<1.e-6f)light={-.4f,.5f,1.f};else for(auto &x:light)x/=len;
-                        auto projectedBody=projectBody(c,int(i),v,w,h,blend,journey.detail(int(i)));
+                        auto projectedBody=projectBody(c,int(i),v,w,h,blend,placing?0:journey.detail(int(i)));
+                        if(placing&&int(i)==candidate){projectedBody.opacity=.82f;projectedBody.radius=std::max(projectedBody.radius*1.4f,float(std::min(w,h))*.025f/h);}
                         // Reserve the ring envelope through the existing continuous detail transition.
-                        if(frame->surfaces[i]==4)projectedBody.radius/=1.f+1.26f*journey.detail(int(i));
+                        if(frame->surfaces[i]==4&&!placing)projectedBody.radius/=1.f+1.26f*journey.detail(int(i));
                         projectedBody.x=compositionNow[0]+(projectedBody.x-.5f)*compositionNow[2];projectedBody.y=compositionNow[1]+(projectedBody.y-.5f)*compositionNow[2];projectedBody.radius*=compositionNow[2];shown.bodies.push_back(projectedBody);
                         float phase=float(std::fmod(frame->time*.75+previewTime*.012,1.0));
                         SurfaceView view{projectedBody.x*2-1,1-projectedBody.y*2,-projectedBody.depth/100,
@@ -354,6 +364,37 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         running = false;
         if (thread.joinable())
             thread.join();
+    }
+    void placement(const std::vector<OrbitSpec>& bodies,int candidate) {
+        std::shared_ptr<Frame> preview;
+        if(!bodies.empty()){
+            preview=std::make_shared<Frame>();preview->orbital=true;
+            for(size_t i=0;i<bodies.size();++i){const auto& b=bodies[i];
+                Particle p{float(b.xAU),float(b.yAU),float(b.zAU),float(std::hypot(b.vxKmS,std::hypot(b.vyKmS,b.vzKmS))),float(b.massSolar),float(i)};
+                preview->particles.push_back(p);preview->surfaces.push_back(b.surface);
+                // A direction arrow in simulation coordinates, relative to the parent.
+                auto tip=p,wing1=p,wing2=p;
+                if(int(i)==candidate){auto& star=bodies[0];double vx=b.vxKmS-star.vxKmS,vy=b.vyKmS-star.vyKmS,vz=b.vzKmS-star.vzKmS;
+                    double speed=std::hypot(vx,std::hypot(vy,vz));
+                    if(speed>1.e-9){double length=std::clamp(std::hypot(b.xAU-star.xAU,std::hypot(b.yAU-star.yAU,b.zAU-star.zAU))*.25,.08,1.);
+                        vx*=length/speed;vy*=length/speed;vz*=length/speed;
+                        tip.x+=vx;tip.y+=vy;tip.z+=vz;
+                        wing1=wing2=tip;wing1.x-=vx*.25-vy*.14;wing1.y-=vy*.25+vx*.14;wing1.z-=vz*.25;
+                        wing2.x-=vx*.25+vy*.14;wing2.y-=vy*.25-vx*.14;wing2.z-=vz*.25;
+                    }
+                }
+                for(auto q:{p,tip,wing1,tip,wing2})preview->trails.push_back(q);
+            }
+        }
+        std::lock_guard<std::mutex> lock(mutex);placementFrame=std::move(preview);placementCandidate=candidate;placementRevision=Engine::instance().sceneRevision();
+        if(!placementFrame)projected.ready=false;
+    }
+    std::array<double,2> placementPoint(double x,double y,double tilt){
+        std::lock_guard<std::mutex> lock(mutex);
+        if(!placementFrame||!projected.placement||!projected.ready||!active||!running||
+           projectedRevision!=Engine::instance().sceneRevision()||placementRevision!=projectedRevision||projected.width!=width||projected.height!=height)
+            throw std::runtime_error("放置星图尚未就绪，请稍后重试");
+        return placementOnPlane(projected.camera,projected.width,projected.height,projected.composition,x,y,tilt);
     }
     void configureTrace(bool on,bool play,int target,double mass){std::lock_guard<std::mutex> lock(mutex);ringClock.configure(on,play,target,mass);ringRevision=Engine::instance().sceneRevision();}
     void traceDisturbance(double kick,bool grains){std::lock_guard<std::mutex> lock(mutex);ringClock.disturbance(kick,grains);}
@@ -434,6 +475,8 @@ RenderStatus renderStatus(){return renderer().status();}
 uint64_t navigateCamera(Camera c,bool close,float duration,bool animatePose,bool force){return renderer().navigate(c,close,duration,animatePose,force);}
 CameraMotion cameraMotion(uint64_t id){return renderer().motion(id);}
 CameraMotion cancelCameraMotion(uint64_t id){return renderer().cancelMotion(id);}
+void setOrbitPlacement(const std::vector<OrbitSpec>& bodies,int candidate){renderer().placement(bodies,candidate);}
+std::array<double,2> placeOrbitAt(double x,double y,double tilt){return renderer().placementPoint(x,y,tilt);}
 ProjectedScene projectedScene(){return renderer().projection();}
 void bindSurface(OH_NativeXComponent *c) { OH_NativeXComponent_RegisterCallback(c, &callbacks); }
 void setCamera(float yaw, float pitch, float zoom, int focus, int color) {

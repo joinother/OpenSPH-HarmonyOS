@@ -196,9 +196,27 @@ napi_value renderStatus(napi_env e,napi_callback_info){auto s=lab::renderStatus(
     boolean("ready",s.ready);boolean("texturesReady",s.texturesReady);boolean("active",s.active);
     num(e,o,"frames",s.frames);num(e,o,"submitMs",s.submitMs);num(e,o,"previewSeconds",s.previewSeconds);str(e,o,"error",s.error);return o;
 }
+napi_value placement(napi_env e,napi_callback_info i){try{
+    auto a=args(e,i,2);bool array=false;napi_is_array(e,a[0],&array);uint32_t n=0;
+    if(!array||napi_get_array_length(e,a[0],&n)!=napi_ok||n>8||(n>0&&n<2))throw std::invalid_argument("Invalid preview bodies");
+    int candidate=integer(e,a[1]);if(candidate< -1||candidate>=int(n)||candidate==0)throw std::invalid_argument("Invalid preview candidate");
+    std::vector<lab::OrbitSpec> bodies;
+    for(uint32_t k=0;k<n;++k){napi_value b;napi_get_element(e,a[0],k,&b);
+        auto f=[&](const char* key){napi_value v;napi_get_named_property(e,b,key,&v);return number(e,v);};
+        double style=f("surface");lab::OrbitSpec s{"preview",f("massSolar"),f("xAU"),f("yAU"),f("zAU"),f("vxKmS"),f("vyKmS"),f("vzKmS"),int(style)};
+        if(s.massSolar<=0||s.massSolar>10||std::abs(s.xAU)>10||std::abs(s.yAU)>10||std::abs(s.zAU)>10||std::hypot(s.vxKmS,std::hypot(s.vyKmS,s.vzKmS))>100||style<0||style>5||std::trunc(style)!=style)throw std::invalid_argument("Invalid preview body");
+        bodies.push_back(s);
+    }
+    lab::setOrbitPlacement(bodies,candidate);return undef(e);
+    }catch(const std::exception& ex){return fail(e,ex);}}
+napi_value placementAt(napi_env e,napi_callback_info i){try{
+    auto a=args(e,i,3);auto p=lab::placeOrbitAt(number(e,a[0]),number(e,a[1]),number(e,a[2]));napi_value o;napi_create_array_with_length(e,2,&o);
+    for(int k=0;k<2;++k){napi_value v;napi_create_double(e,p[k],&v);napi_set_element(e,o,k,v);}return o;
+    }catch(const std::exception& ex){return fail(e,ex);}}
 napi_value projection(napi_env e,napi_callback_info){
     auto s=lab::projectedScene();napi_value o,list,v;napi_create_object(e,&o);
     napi_get_boolean(e,s.ready,&v);napi_set_named_property(e,o,"ready",v);
+    napi_get_boolean(e,s.placement,&v);napi_set_named_property(e,o,"placement",v);num(e,o,"candidate",s.candidate);
     num(e,o,"widthPx",s.width);num(e,o,"heightPx",s.height);num(e,o,"time",s.time);
     napi_create_array_with_length(e,s.bodies.size(),&list);
     for(size_t i=0;i<s.bodies.size();++i){const auto &b=s.bodies[i];napi_value v;napi_create_object(e,&v);
@@ -374,6 +392,8 @@ napi_value Init(napi_env e, napi_value exports) {
         {"ringTraceStatus",nullptr,traceStatus,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setSkyPanorama",nullptr,panorama,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setSky",nullptr,sky,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"setOrbitPlacement",nullptr,placement,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"placeOrbitAt",nullptr,placementAt,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"projectedScene",nullptr,projection,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"pickBody",nullptr,pick,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setComposition",nullptr,composition,nullptr,nullptr,nullptr,napi_default,nullptr},

@@ -34,7 +34,7 @@ interface ProjectSummary { id: string; title: string; savedAt: number; hasRecipe
 interface ProjectList { ok: boolean; projects: ProjectSummary[]; }
 interface AppearanceState { clouds:boolean; atmosphere:boolean; trails:boolean; closeup:boolean; autoSpin:boolean; rings:boolean; }
 interface SkyState {mode:number;brightness:number;reference:string;}
-interface PlacementState { sourceIndex:number; sourceName:string; active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
+interface PlacementState { target:number; sourceIndex:number; sourceName:string; active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
 interface ComparisonReply {ok:boolean;visible:boolean;reference?:ReferenceSummary;currentName:string;currentCount:number;currentConfig?:SimulationConfig;chart:ComparisonPlot;error:string;}
 interface ObservationTableReply {ok:boolean;csv:string;rows:number;timeAlignment:string;reference?:ReferenceSummary;currentName:string;currentConfig?:SimulationConfig;}
 interface SphCurveData {sceneRevision:number;selected:number;samples:SphCurveSample[];}
@@ -157,10 +157,14 @@ struct Index {
   @State placementFields:string[]=['1','2.5','45','0','1'];
   @State placementSurface:number=1;
   @State placementDirection:number=1;
+  @State placementTarget:number=-1;
   private placementPlotSize():number {return this.layout().compact||!this.layout().sidePanel?160:220;}
   private placementPath(path:string):string {return this.pathPixels(path.replace(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/g,(v:string):string=>String(Number(v)*this.placementPlotSize()/240)));}
   @State placementScale:number=5;
   private placementView:CameraState|undefined=undefined;
+  private placementSurfaceRecipe:SurfaceRecipe={version:1,seed:1,cloudSeed:2};
+  private placementWasRunning:boolean=false;
+  private placementWasPlaying:boolean=false;
   private placementWasClose:boolean=false;
   private placementWasSpin:boolean=false;
   private placementWasPanel:boolean=false;
@@ -352,7 +356,7 @@ struct Index {
   private surfaceTarget():number {return this.focus>0?this.focus:this.orbitEdit;}
   private canGenerateSurface():boolean {const i=this.surfaceTarget();return this.preset===5&&!this.placing&&i>0&&i<this.orbitBodies.length&&this.orbitBodies[i].surface!==5;}
   private syncSurfaces():void {
-    const pairs:number[]=[];for(let i=0;i<8;i++){const v=this.surfaces[i];pairs.push(v?v.seed:0,v?v.cloudSeed:0);}simulation.setSurfaceSeeds(pairs);
+    const pairs:number[]=[];for(let i=0;i<8;i++){const v=this.placing&&i===this.orbitBodies.length?this.placementSurfaceRecipe:this.surfaces[i];pairs.push(v?v.seed:0,v?v.cloudSeed:0);}simulation.setSurfaceSeeds(pairs);
   }
   private resetSurfaces(fresh:boolean=false):void {
     this.surfaces=legacySurfaces(this.preset===5?this.orbitBodies.length:0);
@@ -499,7 +503,7 @@ struct Index {
     this.cameraFlight=m.state;
   }
   private ensureMoonTexture(retry:boolean=false):void {
-    if(this.moonRequested||!(this.info.bodies??[]).some((b:OrbitBodyStatus):boolean=>b.surface===5))return;
+    if(this.moonRequested||(!(this.placing&&this.placementSurface===5)&&!(this.info.bodies??[]).some((b:OrbitBodyStatus):boolean=>b.surface===5)))return;
     this.moonRequested=true;this.moonLoadError='';
     loadMoonTexture(this.getUIContext().getHostContext() as common.UIAbilityContext,retry).catch((error:Error)=>{this.moonLoadError=error.message;});
   }
@@ -649,7 +653,7 @@ struct Index {
       .map((d:OrbitDraftState):OrbitDraftState=>({index:removed>=0&&d.index>removed?d.index-1:d.index,name:d.name,fields:d.fields.slice(),surface:d.surface}));
     let surfaces=copySurfaces(before.surfaces);
     if(removed>=0)surfaces.splice(removed,1);
-    while(surfaces.length<bodies.length){const source=this.placementSource;surfaces.push(this.placing&&source>0?copySurfaces([before.surfaces[source]])[0]:{version:1,seed:Date.now()%1000000+1,cloudSeed:(Date.now()+193939)%1000000+1});}
+    while(surfaces.length<bodies.length){const source=this.placementSource;surfaces.push(this.placing?copySurfaces([this.placementSurfaceRecipe])[0]:{version:1,seed:Date.now()%1000000+1,cloudSeed:(Date.now()+193939)%1000000+1});}
     surfaces=surfaces.map((v:SurfaceRecipe,i:number):SurfaceRecipe=>bodies[i].surface===5?{version:1,seed:0,cloudSeed:0}:v);
     this.installOrbitWorkspace({surfaces:surfaces,bodies:bodies,selected:selected,drafts:drafts});
     this.orbitUndo=this.orbitUndo.concat([{label:label,workspace:before}]).slice(-20);this.orbitRedo=[];
@@ -664,34 +668,53 @@ struct Index {
       this.replaceOrbits(bodies,this.orbitEdit,'修改 · '+b.name,this.orbitEdit);
     }catch(e){this.notice=String(e);if(strict)throw new Error(String(e));}
   }
-  private placementPreview():PlacementPreview {return planPlanet(this.orbitBodies,this.placementName,this.placementFields,this.placementSurface,this.placementDirection,this.placementScale);}
+  private placementPreview():PlacementPreview {return planPlanet(this.orbitBodies,this.placementName,this.placementFields,this.placementSurface,this.placementDirection,this.placementScale,this.placementTarget);}
   private beginPlacement(sourceIndex:number=-1):void {
     if(this.placing)return;
     const copied=sourceIndex>=0?copiedPlanetDraft(this.orbitBodies,sourceIndex):undefined;
     this.stopTrace();this.stopCameraMotion();this.placementView={yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode};
+    this.placementWasRunning=simulation.status().state==='running';this.placementWasPlaying=this.playing;this.playing=false;if(this.placementWasRunning)simulation.pause(true);
     this.placementWasClose=this.closeup;this.placementWasSpin=this.autoSpin;this.placementWasPanel=this.panelOpen;this.placementWasTab=this.tab;
     this.placementSource=sourceIndex;
+    this.placementSurfaceRecipe=sourceIndex>0?copySurfaces([this.surfaces[sourceIndex]])[0]:{version:1,seed:Date.now()%1000000+1,cloudSeed:(Date.now()+193939)%1000000+1};
     this.placementName=copied?copied.name:'新行星 '+this.orbitBodies.length;
     this.placementFields=copied?copied.fields:['1',String(2+this.orbitBodies.length*.35),'45','0','1'];
-    this.placementSurface=copied?copied.surface:1;this.placementDirection=1;
+    this.placementSurface=copied?copied.surface:1;this.placementDirection=1;this.placementTarget=-1;
     this.placementScale=planPlanet(this.orbitBodies,this.placementName,this.placementFields,this.placementSurface,this.placementDirection).plotScale;
-    this.placing=true;this.setPanel(0);this.notice=copied?'已复制已应用的质量与外观 · 请设置新轨道':'放置预览 · 确认前不会改变模拟';
+    this.placing=true;this.closeup=false;this.autoSpin=false;this.focus=0;this.yaw=0;this.pitch=0;this.zoom=Math.min(15,Math.max(2.7,this.placementScale));this.camera();this.setPanel(-1);this.updatePlacementPreview();this.notice='在星图轻点或拖动放置 · 箭头表示相对恒星速度 · 初始时刻预览';
+  }
+  private updatePlacementPreview():void {
+    if(!this.placing)return;
+    const p=this.placementPreview();this.syncSurfaces();
+    simulation.setOrbitPlacement(p.valid&&p.body?copyOrbitBodies(this.orbitBodies).concat([p.body]):copyOrbitBodies(this.orbitBodies),p.valid?this.orbitBodies.length:-1);
+  }
+  private moveViewportPlacement(x:number,y:number):void {
+    if(!this.placing||this.ioBusy)throw new Error('当前未在放置行星');
+    const p=simulation.placeOrbitAt(x,y,Number(this.placementFields[3]));
+    this.placementFields=this.placementFields.map((v:string,i:number):string=>i===1?p[0].toFixed(6):i===2?p[1].toFixed(6):v);
+    this.updatePlacementPreview();
+  }
+  private dragViewportPlacement(e:GestureEvent):void {
+    const f=e.fingerList[0];if(e.fingerList.length!==1||!f||this.viewportWidth<=0||this.viewportHeight<=0)return;
+    try{this.moveViewportPlacement(f.localX/this.viewportWidth,f.localY/this.viewportHeight);}catch(error){this.notice=String(error);}
   }
   private cancelPlacement():void {
-    this.placing=false;const view=this.placementView;this.placementView=undefined;
+    simulation.setOrbitPlacement([],-1);
+    this.placing=false;this.syncSurfaces();const view=this.placementView;this.placementView=undefined;
     if(view){this.stopCameraMotion();this.yaw=view.yaw;this.pitch=view.pitch;this.zoom=view.zoom;this.focus=view.focus;this.colorMode=view.color;this.closeup=this.placementWasClose;this.autoSpin=this.placementWasSpin;this.camera();}
+    if(this.placementWasRunning)simulation.pause(false);this.playing=this.placementWasPlaying;
     this.setPanel(this.placementWasPanel?this.placementWasTab:-1);this.notice='已取消放置 · 原模拟与编辑草稿保留';
   }
   private confirmPlacement():void {
     const preview=this.placementPreview();if(!preview.valid||!preview.body)throw new Error(preview.error);
     const bodies=copyOrbitBodies(this.orbitBodies).concat([preview.body]);
-    this.replaceOrbits(bodies,bodies.length-1,'添加 · '+preview.body.name);this.placing=false;this.placementView=undefined;this.setPanel(0);
+    this.replaceOrbits(bodies,bodies.length-1,'添加 · '+preview.body.name);simulation.setOrbitPlacement([],-1);this.placing=false;this.placementView=undefined;this.setPanel(0);
     this.notice='新行星已加入 · 可撤销，其他草稿保留，从零重新计算';
   }
   private movePlacement(x:number,y:number):void {
     if(!this.placing||this.ioBusy)throw new Error('当前未在放置行星');
     const point=placementPoint(x,y,this.placementPreview().plotScale);
-    this.placementFields=this.placementFields.map((v:string,i:number):string=>i===1?point[0].toFixed(3):i===2?point[1].toFixed(2):v);
+    this.placementFields=this.placementFields.map((v:string,i:number):string=>i===1?point[0].toFixed(3):i===2?point[1].toFixed(2):v);this.updatePlacementPreview();
   }
   private placementGesture(e:GestureEvent):void {
     const finger=e.fingerList[0];if(!finger)return;
@@ -815,7 +838,7 @@ struct Index {
   }
   private snapshot(): string {
     this.info=simulation.status();
-    const snapshot: AppSnapshot = {surfaces:copySurfaces(this.surfaces),surfaceUndoCount:this.surfaceUndo.length,surfaceRedoCount:this.surfaceRedo.length,ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{sourceIndex:this.placing?this.placementSource:-1,sourceName:this.placing&&this.placementSource>0?this.orbitBodies[this.placementSource].name:'',active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
+    const snapshot: AppSnapshot = {surfaces:copySurfaces(this.surfaces),surfaceUndoCount:this.surfaceUndo.length,surfaceRedoCount:this.surfaceRedo.length,ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{target:this.placementTarget,sourceIndex:this.placing?this.placementSource:-1,sourceName:this.placing&&this.placementSource>0?this.orbitBodies[this.placementSource].name:'',active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
       material:this.materialState(),appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},rendering:simulation.renderStatus(),
       simulation:this.info,
       scene:{preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,dirty:this.dirty},
@@ -886,6 +909,8 @@ struct Index {
     add('scene.stationary','设为静止初态',this.preset===2,this.speed===0&&this.targetSpin===0);
     add('scene.gravity','材料自引力',this.preset<3&&this.count<=1200,this.selfGravity);
     add('body.primary','主天体',this.preset<3,this.editedBody===0);add('body.impactor','撞击体',this.preset<2,this.editedBody===1);
+    add('placement.options','放置参数',this.placing,this.panelOpen);add('placement.align','正对轨道面',this.placing&&Number.isFinite(Number(this.placementFields[3])));
+    for(let i=0;i<this.orbitBodies.length;i++)add('placement.target.'+i,'瞄准 '+this.orbitBodies[i].name,this.placing,this.placementTarget===i);
     add('placement.cancel','取消放置',this.placing);add('placement.confirm','确认加入 · 重新计算',this.placing&&this.placementPreview().valid);
     add('placement.circular','圆轨道',this.placing);add('placement.still','相对静止',this.placing);add('placement.escape','掠过',this.placing);add('placement.reverse','反向',this.placing,this.placementDirection===-1);
     for(let i=1;i<=5;i++)add('placement.surface.'+i,['海洋','厚云','荒漠','带环','月面'][i-1],this.placing,this.placementSurface===i);
@@ -924,7 +949,7 @@ struct Index {
     if(field.startsWith('placement.')){
       if(typeof value!=='string'||value.length>48)throw new Error('Expected bounded text');
       if(field==='placement.name')this.placementName=value;else{const index=Number(field.slice(16));this.placementFields=this.placementFields.map((v:string,i:number):string=>i===index?value:v);if(index===1&&Number.isFinite(Number(value)))this.placementScale=Math.max(this.placementScale,Math.min(13,Number(value)*1.3));}
-      return;
+      this.updatePlacementPreview();return;
     }
     if(field==='scene.title'||field==='body.name'||field==='orbit.name'||field.startsWith('orbit.value.')){
       if(typeof value!=='string'||value.length>(field.startsWith('orbit.value.')?64:48))throw new Error('Expected bounded text');
@@ -1042,9 +1067,12 @@ struct Index {
     else if(action==='orbit.copy')this.beginPlacement(this.orbitEdit);
     else if(action==='placement.cancel')this.cancelPlacement();
     else if(action==='placement.confirm')this.confirmPlacement();
+    else if(action==='placement.options')this.setPanel(this.panelOpen?-1:0);
+    else if(action==='placement.align'){this.yaw=0;this.pitch=Math.max(-1.5,Math.min(1.5,-Number(this.placementFields[3])*Math.PI/180));this.camera();}
+    else if(action.startsWith('placement.target.'))this.placementTarget=Number(action.slice(17));
     else if(action==='placement.reverse')this.placementDirection=-this.placementDirection;
     else if(action.startsWith('placement.surface.'))this.placementSurface=Number(action.slice(18));
-    else if(action.startsWith('placement.')){const speed=action==='placement.still'?'0':action==='placement.escape'?'1.45':'1';this.placementFields=this.placementFields.map((v:string,i:number):string=>i===4?speed:v);}
+    else if(action.startsWith('placement.')){this.placementTarget=-1;const speed=action==='placement.still'?'0':action==='placement.escape'?'1.45':'1';this.placementFields=this.placementFields.map((v:string,i:number):string=>i===4?speed:v);}
     else if(action==='orbit.undo'||action==='orbit.redo')this.travelOrbitHistory(action==='orbit.redo');
     else if(action==='orbit.discard')this.discardOrbitDraft();
     else if(action==='orbit.remove')this.removeOrbit();
@@ -1053,12 +1081,13 @@ struct Index {
     else if(action.startsWith('orbit.select.'))this.focusBody(Number(action.slice(13)));
     else if(action.startsWith('orbit.surface.')){const surface=Number(action.slice(14));if(surface!==this.orbitSurface){this.orbitSurface=surface;this.orbitDraft=true;}}
     else throw new Error('Unimplemented action: '+action);
+    if(this.placing)this.updatePlacementPreview();
     this.info=simulation.status();
   }
   private pathPixels(path:string):string {return path.replace(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/g,(v:string):string=>String(this.getUIContext().vp2px(Number(v))));}
   private orbitPreview():OrbitPreview {return previewOrbit(this.orbitFields,this.vectorPlane);}
   private async pickViewport(x:number,y:number):Promise<number> {
-    if(this.preset<3||this.ioBusy||simulation.status().state==='preparing')throw new Error('当前视口暂不可点选');
+    if(this.placing||this.preset<3||this.ioBusy||simulation.status().state==='preparing')throw new Error('当前视口暂不可点选');
     this.checked(x,0,1);this.checked(y,0,1);
     const id=simulation.pickBody(x,y,Math.min(.05,12/Math.max(1,this.viewportHeight)));
     if(id>=0){await this.performUiAction('focus.'+id);this.notice='已选中 '+this.surfaceName()+' · 可打开参数编辑或近看';}
@@ -1066,6 +1095,7 @@ struct Index {
   }
   private tapViewport(e:GestureEvent):void {
     const finger=e.fingerList[0];if(!finger||this.viewportWidth<=0||this.viewportHeight<=0||this.preset<3)return;
+    if(this.placing){this.dragViewportPlacement(e);return;}
     this.pickViewport(finger.localX/this.viewportWidth,finger.localY/this.viewportHeight).catch((error:Error)=>{this.notice=String(error);});
   }
   private materialState():RecipeMaterial {return {exposure:this.exposure,ocean:this.ocean,cloudShadows:this.cloudShadows};}
@@ -1111,6 +1141,7 @@ struct Index {
       {name:'getObservationTable',payload:'{} - CSV rows for current and saved reference; no interpolation'},
       {name:'getOrbitObservation',payload:'{} - current planet (or first planet), retained-frame distance/speed curve; read-only'},
       {name:'getPlacementPreview',payload:'{} - candidate initial conditions, two-body guide; no mutation'},
+      {name:'setViewportPlacementPoint',payload:'{x:0..1,y:0..1} main viewport tap/drag; exact presented plane projection; requires active placement'},
       {name:'setPlacementPoint',payload:'{x:0..1,y:0..1} in the placement plot; same handler as tap/drag'},
       {name:'getOrbitPreview',payload:'{} - initial editor vector drafts, input coordinates, XY/XZ; does not change physics'},
       {name:'listExperiments',payload:'{} - built-in theme initial conditions, observation goals and default cameras'},
@@ -1165,6 +1196,7 @@ struct Index {
     if(command==='getOrbitObservation'){this.refreshObservation();const reply:ObservationReply={ok:true,metric:this.observationMetric,data:this.observed,plot:observationPlot(this.observed,this.observationMetric)};return JSON.stringify(reply);}
     if(command==='setSurfaceSeed'){const body=this.checked(p.body,1,this.orbitBodies.length-1);if(!Number.isInteger(body))throw new Error('天体编号必须为整数');const old=this.surfaces[body];if(!old)throw new Error('需要自定义系统');this.changeSurface(body,p.surfaceSeed===undefined?old.seed:p.surfaceSeed,p.cloudSeed===undefined?old.cloudSeed:p.cloudSeed);return this.snapshot();}
     if(command==='getPlacementPreview')return JSON.stringify({ok:true,active:this.placing,preview:this.placementPreview()});
+    if(command==='setViewportPlacementPoint'){this.moveViewportPlacement(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,active:this.placing,preview:this.placementPreview()});}
     if(command==='setPlacementPoint'){this.movePlacement(this.checked(p.x,0,1),this.checked(p.y,0,1));return this.snapshot();}
     if(command==='getOrbitPreview'){if(this.preset!==5)throw new Error('需要自定义系统');return JSON.stringify({ok:true,body:this.orbitEdit,draft:this.orbitDraft,reference:'initial-input',preview:this.orbitPreview()});}
     if(command==='getUiState'||command==='listUiActions'){this.info=simulation.status();return JSON.stringify({ok:true,actions:this.uiActions(),fields:this.uiFields(),editor:this.editorState(),theme:this.themeState(),librarySection:this.librarySection});}
@@ -1507,12 +1539,13 @@ struct Index {
         .width('100%').height('100%')
         .gesture(GestureGroup(GestureMode.Parallel,
           TapGesture({count:1,fingers:1}).onAction((e:GestureEvent)=>{this.tapViewport(e);}),
-          PanGesture({fingers:1}).onActionStart(() => {this.stopCameraMotion();this.dragYaw=this.yaw;this.dragPitch=this.pitch;})
-            .onActionUpdate((e:GestureEvent) => {this.yaw=Math.max(-100,Math.min(100,this.dragYaw+e.offsetX*0.006));this.pitch=Math.max(-1.5,Math.min(1.5,this.dragPitch+e.offsetY*0.006));this.camera();}),
+          PanGesture({fingers:1}).onActionStart(() => {if(this.placing)return;this.stopCameraMotion();this.dragYaw=this.yaw;this.dragPitch=this.pitch;})
+            .onActionUpdate((e:GestureEvent) => {if(this.placing){this.dragViewportPlacement(e);return;}this.yaw=Math.max(-100,Math.min(100,this.dragYaw+e.offsetX*0.006));this.pitch=Math.max(-1.5,Math.min(1.5,this.dragPitch+e.offsetY*0.006));this.camera();}),
           PinchGesture({fingers:2}).onActionStart(() => {this.stopCameraMotion();this.pinchZoom=this.zoom;})
             .onActionUpdate((e:GestureEvent) => {this.zoom=Math.max(0.5,Math.min(15,this.pinchZoom/e.scale));this.camera();})
         ))
-      if(this.toolsVisible&&!(this.closeup&&this.panelOpen)) {
+      if(this.placing&&!this.panelOpen) {this.placementDock()}
+      if(this.toolsVisible&&!this.placing&&!(this.closeup&&this.panelOpen)) {
         Column({space:5}) {
           Text(this.closeup?this.surfaceName()+' · 近看':this.title).fontColor('#F1EDFC').fontSize(14).fontWeight(FontWeight.Medium).maxLines(1)
           Text(this.stateLabel()+' · '+(this.trace.enabled?this.trace.count+' 个环粒子':this.info.count+(this.preset>=3?' 个天体':' 粒子'))).fontSize(11).fontColor('#A5A0B7')
@@ -1696,6 +1729,19 @@ struct Index {
     }.width('100%')
   }
   @Builder
+  placementDock() {
+    Column({space:8}) {
+      Text(this.placementName+' · '+Number(this.placementFields[1]).toFixed(2)+' AU').maxLines(1).fontSize(14).fontColor('#E5E7FF')
+      Text(this.placementPreview().valid?'初始时刻预览 · 轻点 / 拖动放置 · 双指缩放':this.placementPreview().error).fontSize(11).fontColor(this.placementPreview().valid?'#BCBDD8':'#F4A993')
+      Row({space:6}) {
+        ChoiceChip({label:'取消',onPress:()=>{this.press('placement.cancel');}})
+        ChoiceChip({label:'参数',onPress:()=>{this.press('placement.options');}})
+        ChoiceChip({label:'确认加入',enabledAction:this.placementPreview().valid,onPress:()=>{this.press('placement.confirm');}})
+      }
+    }.id('placement-dock').padding(12).borderRadius(22).backgroundColor('#8820283A')
+      .position({x:this.layout().scene.x+Math.max(0,(this.layout().scene.width-282)/2),y:this.layout().safe.y+12}).width(282)
+  }
+  @Builder
   placementControls() {
     Column({space:10}) {
       Text(this.placementSource>0?'来自 '+this.orbitBodies[this.placementSource].name+' · 已应用的质量与外观':'放置新行星').fontSize(13).fontColor('#D1C1F0').width('100%')
@@ -1705,6 +1751,8 @@ struct Index {
         Button('确认加入 · 重算').height(38).fontSize(12).backgroundColor('#D9CEFF').fontColor('#241B36').layoutWeight(1)
           .enabled(this.placementPreview().valid&&!this.ioBusy).onClick(()=>{this.press('placement.confirm');})
       }.width('100%')
+      ChoiceChip({label:'返回星图放置',onPress:()=>{this.press('placement.options');}})
+      ChoiceChip({label:'正对轨道面',onPress:()=>{this.press('placement.align');}})
       Stack() {
         Path().width(this.placementPlotSize()).height(this.placementPlotSize()).commands(this.placementPath('M20 120 L220 120 M120 20 L120 220')).stroke('#49415F').strokeWidth(1).fillOpacity(0)
         Path().width(this.placementPlotSize()).height(this.placementPlotSize()).commands(this.placementPath(this.placementPreview().orbitPath)).stroke('#AA91E0').strokeWidth(1.5).fillOpacity(0)
@@ -1718,13 +1766,17 @@ struct Index {
           TapGesture().onAction((e:GestureEvent)=>{this.placementGesture(e);}),
           PanGesture({distance:3}).onActionUpdate((e:GestureEvent)=>{this.placementGesture(e);})
         ))
-      Text('轨道平面俯视 · 轻点或拖动放置\n紫线为二体估计，灰点为已有天体初始位置投影').fontSize(10).fontColor('#ACA5C0').textAlign(TextAlign.Center)
+      Text('辅助俯视图 · 主星图同样可以轻点或拖动放置\n紫线为二体估计，灰点为已有天体初始位置投影').fontSize(10).fontColor('#ACA5C0').textAlign(TextAlign.Center)
       Row({space:6}) {
         ChoiceChip({label:'圆轨道',active:this.placementFields[4]==='1',onPress:()=>{this.press('placement.circular');}})
         ChoiceChip({label:'静止',active:this.placementFields[4]==='0',onPress:()=>{this.press('placement.still');}})
         ChoiceChip({label:'掠过',active:this.placementFields[4]==='1.45',onPress:()=>{this.press('placement.escape');}})
         ChoiceChip({label:'反向',active:this.placementDirection===-1,onPress:()=>{this.press('placement.reverse');}})
       }
+      Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(6)}}) {
+        ForEach(this.orbitBodies,(b:OrbitBodyConfig,i:number)=>{ChoiceChip({label:'瞄准 '+b.name,active:this.placementTarget===i,onPress:()=>{this.press('placement.target.'+i);}})})
+      }
+      Text(this.placementTarget>=0?'按目标初始位置定向发射 · 引力会改变路径；实体碰撞尚未接通':'' ).fontSize(10).fontColor('#D1BB9A')
       Text(this.placementPreview().valid?'相对恒星 '+this.placementPreview().speedKmS.toFixed(2)+' km/s · '+(this.placementFields[4]==='0'?'径向落向恒星':this.placementPreview().bound?'二体束缚轨道':'二体非束缚轨道'):this.placementPreview().error)
         .fontSize(11).fontColor(this.placementPreview().valid?'#AECFD9':'#F4A993').width('100%')
       TextInput({text:this.placementName,placeholder:'新行星名称'}).height(38).fontColor('#EBE7F8').backgroundColor('#4533334D').borderRadius(14)
@@ -2075,10 +2127,10 @@ struct Index {
     Stack({alignContent:Alignment.TopStart}) {
       this.viewport()
       if(this.toolsVisible) {
-        this.header()
-        if(this.preset>=3&&!this.panelOpen) {this.surfaceBar()}
+        if(!this.placing){this.header()}
+        if(this.preset>=3&&!this.panelOpen&&!this.placing) {this.surfaceBar()}
         if(this.panelOpen) {this.drawer()}
-        this.transport()
+        if(!this.placing){this.transport()}
       } else {
         Button('显示工具',{type:ButtonType.Normal}).id('restore-tools').fontSize(12).fontColor('#E2D7FC')
           .backgroundColor('#A6222438').backgroundBlurStyle(BlurStyle.COMPONENT_ULTRA_THIN,{colorMode:ThemeColorMode.DARK}).height(42).borderRadius(24).padding({left:14,right:14})
@@ -2087,7 +2139,7 @@ struct Index {
       }
       if(this.rendering.panoramaReady&&this.rendering.skyGalaxy>0.001) {
         Text('ESO/S. Brunier · CC BY 4.0').id('sky-photo-credit').fontSize(10).fontColor('#C1BDCA')
-          .position({x:this.layout().safe.x+16,y:this.layout().safe.y+(this.toolsVisible?this.layout().headerHeight+2:20)}).hitTestBehavior(HitTestMode.None)
+          .position({x:this.layout().safe.x+16,y:this.placing?this.layout().safe.y+this.layout().safe.height-24:this.layout().safe.y+(this.toolsVisible?this.layout().headerHeight+2:20)}).hitTestBehavior(HitTestMode.None)
       }
     }.width('100%').height('100%').backgroundColor('#080B15')
       .onAreaChange((_:Area,area:Area) => {this.windowWidth=Number(area.width);this.windowHeight=Number(area.height);})

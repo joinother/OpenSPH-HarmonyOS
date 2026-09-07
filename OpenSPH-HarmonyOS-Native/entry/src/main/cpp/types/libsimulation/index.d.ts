@@ -42,7 +42,9 @@ export const followSphFragment:(particle:number,sceneRevision:number)=>void;
 export const clearSphFragmentFollow:()=>void;
 
 export interface ProjectedBody { id:number; x:number; y:number; radius:number; depth:number; opacity:number; }
-export interface ProjectedScene { ready:boolean; widthPx:number; heightPx:number; time:number; bodies:ProjectedBody[]; }
+export const setOrbitPlacement:(bodies:OrbitBodyConfig[],candidate:number)=>void;
+export const placeOrbitAt:(x:number,y:number,tilt:number)=>number[];
+export interface ProjectedScene { placement:boolean; candidate:number; ready:boolean; widthPx:number; heightPx:number; time:number; bodies:ProjectedBody[]; }
 export const projectedScene:()=>ProjectedScene;
 export const pickBody:(x:number,y:number,padding:number)=>number;
 

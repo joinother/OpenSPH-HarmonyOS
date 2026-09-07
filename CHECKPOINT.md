@@ -1,6 +1,6 @@
 # 星体实验室 GitHub 检查点
 
-记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.40.0。
+记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.41.0。
 
 ## 恢复开发
 
@@ -17,6 +17,8 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 构建需要 DevEco Studio 与 HarmonyOS SDK；安装请遵循工程 README，当前任务只操作模拟器 127.0.0.1:5555。签名配置、依赖缓存、构建目录和发布二进制不纳入源码检查点。
 
 ## 保存范围与验证
+
+- 0.41.0 接入主星图直接点击／拖动放置、候选外观和速度方向、瞄准目标及可取消初始条件事务。124 项主机检查、264 组主机／ARM64 投影检查、三布局真实手势及旧 UI 回归通过，原实验历史和 10 个项目恢复。轨道实体碰撞尚未接通。见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.41.0.md)。
 
 - 0.40.0 接入逐团／最大团块的连续质心跟随、停止与返回、共享 CLI，保持材料点选择贯穿倒放和屏幕变化。122 项主机检查、跟随内存检查、相机回归、实际 v10 独立解码及三布局点击通过；原回放和 10 个项目恢复。不是持久碎片谱系或再聚合。见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.40.0.md)。
 

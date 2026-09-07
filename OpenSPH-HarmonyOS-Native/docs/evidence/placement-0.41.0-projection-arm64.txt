@@ -1,0 +1,2 @@
+FileTransfer finish, Size:4691280, File count = 1, time:32ms rate:146602.50kB/s
+PASS 264 placement projection roundtrips, inclination, aspect, composition, singular-plane and invalid-input rejection

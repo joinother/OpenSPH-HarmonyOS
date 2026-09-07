@@ -158,7 +158,7 @@ export interface PlacementPreview {
   candidateX:number; candidateY:number; markerPath:string; velocityPath:string;
 }
 // Original two-body initial-condition construction. No competitor implementation.
-export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],surface:number,direction:number,plotExtent:number=0):PlacementPreview {
+export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],surface:number,direction:number,plotExtent:number=0,target:number=-1):PlacementPreview {
   const result:PlacementPreview={valid:false,error:'填写有效的放置参数',body:undefined,speedKmS:0,circularKmS:0,escapeKmS:0,nearestAU:0,bound:false,plotScale:1,orbitPath:'',candidateX:120,candidateY:120,markerPath:'',velocityPath:''};
   try {
     if(fields.length!==5||fields.some((v:string):boolean=>v.trim()===''))throw new Error('请填写全部放置参数');
@@ -172,6 +172,12 @@ export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],
     const b:OrbitBodyConfig={name:validName(name),massSolar:mass,surface:surface,
       xAU:star.xAU+r*cs,yAU:star.yAU+r*sn*ci,zAU:star.zAU+r*sn*si,
       vxKmS:star.vxKmS-speed*sn*direction,vyKmS:star.vyKmS+speed*cs*ci*direction,vzKmS:star.vzKmS+speed*cs*si*direction};
+    if(target!==-1){
+      check(target,0,bodies.length-1,true);const aim=bodies[target];
+      const dx=aim.xAU-b.xAU,dy=aim.yAU-b.yAU,dz=aim.zAU-b.zAU,d=Math.hypot(dx,dy,dz);
+      if(d<.02)throw new Error('瞄准对象距离过近，请移动待放天体');
+      b.vxKmS=star.vxKmS+speed*dx/d*direction;b.vyKmS=star.vyKmS+speed*dy/d*direction;b.vzKmS=star.vzKmS+speed*dz/d*direction;
+    }
     result.body=b;result.circularKmS=circular;result.speedKmS=speed;result.escapeKmS=circular*Math.SQRT2;result.bound=v[4]<Math.SQRT2;
     result.nearestAU=Math.min(...bodies.map((a:OrbitBodyConfig):number=>Math.hypot(b.xAU-a.xAU,b.yAU-a.yAU,b.zAU-a.zAU)));
     let extent=r*1.3;for(const a of bodies)extent=Math.max(extent,Math.hypot(a.xAU-star.xAU,(a.yAU-star.yAU)*ci+(a.zAU-star.zAU)*si)*1.15);
@@ -189,6 +195,11 @@ export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],
     }}
     const length=Math.min(34,v[4]*24),dx=-sn*direction,dy=-cs*direction,x=result.candidateX,y=result.candidateY;
     if(length>0)result.velocityPath='M'+x+' '+y+' L'+(x+dx*length)+' '+(y+dy*length)+' M'+(x+dx*(length-6)-dy*3)+' '+(y+dy*(length-6)+dx*3)+' L'+(x+dx*length)+' '+(y+dy*length)+' L'+(x+dx*(length-6)+dy*3)+' '+(y+dy*(length-6)-dx*3);
+    if(target>=0){
+      result.orbitPath='';const vx=b.vxKmS-star.vxKmS,vy=(b.vyKmS-star.vyKmS)*ci+(b.vzKmS-star.vzKmS)*si;
+      const n=Math.hypot(vx,vy),length=Math.min(34,v[4]*24);
+      result.velocityPath=n>0?'M'+result.candidateX+' '+result.candidateY+' L'+(result.candidateX+vx/n*length)+' '+(result.candidateY-vy/n*length):'';
+    }
     validateOrbitBodies(bodies.concat([b]));result.valid=true;result.error='';
   }catch(e){result.error=String(e);}
   return result;

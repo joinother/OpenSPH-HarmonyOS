@@ -1,12 +1,14 @@
 # 星体实验室 · OpenSPH HarmonyOS Native
 
-> 类型：当前项目概览；源码版本：0.40.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前项目概览；源码版本：0.41.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 鸿蒙原生科学探索应用，使用 ArkTS/ArkUI 构建交互界面，以 OpenSPH C++ 计算岩质碰撞，以独立的 C++ 多体引力模型计算行星轨道，通过 XComponent/OpenGL ES 显示。包名为 `com.opensph.lab`。
 
 从 [文档目录](docs/README.md) 查找指南和记录；操作应用见 [CLI 指南](docs/CLI.md)，继续开发前阅读 [开发约定](AGENTS.md) 和 [文档流程](docs/WORKFLOW.md)。
 
 ## 当前能力
+
+- 自定义系统可直接在主星图轻点或拖动放置天体，双指缩放；候选带外观与相对速度箭头，可设置瞄准已有天体、取消或确认。确认仍重建初始条件，尚未接通轨道行星实体碰撞，见 [放置与碰撞接入](docs/reference/VIEWPORT-PLACEMENT.md)。
 
 - SPH 两次实验可保存参照、叠加九种指标曲线、查看参数差异与范围内插值差值；参照跨切换／重启保留，原始采样和来源可导出，见 [SPH 实验对照](docs/reference/SPH-COMPARISON.md)。
 

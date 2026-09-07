@@ -1,0 +1,1 @@
+PASS projection: portrait/landscape scale, depth, touch tolerance, invisible bodies, boundaries, closeup retains Sun/companions and depth occlusion

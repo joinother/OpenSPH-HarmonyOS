@@ -1,15 +1,16 @@
 # 文档目录
 
-> 类型：当前文档索引；源码版本：0.40.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前文档索引；源码版本：0.41.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 先阅读 [项目概览](../README.md)，操作应用使用 [CLI 指南](CLI.md)，维护资料遵循 [文档流程](WORKFLOW.md) 和 [开发约定](../AGENTS.md)。本目录区分当前说明与历史记录；归档内容不覆盖当前规则。
 
-最新版本：[0.40.0 团块连续跟随](releases/RELEASE-0.40.0.md)。
+最新版本：[0.41.0 主星图放置与定向发射](releases/RELEASE-0.41.0.md)。
 
 ## 当前参考
 
 | 文档 | 用途 |
 | --- | --- |
+| [主星图放置与碰撞接入](reference/VIEWPORT-PLACEMENT.md) | 屏幕坐标、倾斜平面、取消事务、定向发射及实体接触缺口 |
 | [预研实施核对](reference/RESEARCH-IMPLEMENTATION.md) | 预研建议与已交付能力、部分实现和未完成主线的对应 |
 | [材料团块跟随](reference/FRAGMENT-FOLLOW.md) | 材料点身份、实时质心镜头、切换／停止与回放连续性 |
 | [SPH 材料团块](reference/SPH-FRAGMENTS.md) | 对称几何连接、质量与质心统计、团块着色及 v10 回放 |
@@ -47,6 +48,7 @@
 
 | 版本 | 主题 |
 | --- | --- |
+| [0.40.0](releases/RELEASE-0.40.0.md) | 材料团块连续跟随 |
 | [0.39.0](releases/RELEASE-0.39.0.md) | SPH 几何团块、质量统计与 v10 回放 |
 | [0.38.0](releases/RELEASE-0.38.0.md) | SPH 跨实验参照、共轴曲线与原始导出 |
 | [0.37.0](releases/RELEASE-0.37.0.md) | 静止岩球释放、记录窗口统计与完整导出 |

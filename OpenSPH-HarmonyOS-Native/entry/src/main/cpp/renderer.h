@@ -8,6 +8,8 @@
 #include "surface_generator.h"
 namespace lab {void setMoonMap(std::shared_ptr<const MoonMap> map);}
 #include "projection.h"
+#include "engine.h"
+#include "placement_projection.h"
 #include "camera_navigation.h"
 #include "fragment_follow.h"
 #include <ace/xcomponent/native_interface_xcomponent.h>
@@ -21,7 +23,9 @@ void setMaterial(float exposure,bool ocean,bool cloudShadows);
 struct Appearance { bool clouds=true, atmosphere=true, trails=true, closeup=false, autoSpin=false,rings=true; };
 void setSurfaceSeeds(const std::array<SurfaceKey,8> &keys);
 struct RenderStatus { FragmentFollowStatus fragmentFollow; int surfacePending=0,surfaceGenerated=0;std::string surfaceError; bool moonReady=false; int moonUploads=0; float moonBlend=0; std::string moonError; float materialExposure=0; bool materialOcean=true,materialCloudShadows=true; uint64_t sceneRevision=0; int surfaceStarts=0; bool cameraMoving=false; float centerX=0,centerY=0,centerZ=0; float compositionX=.5f,compositionY=.5f,compositionScale=1; bool panoramaReady=false; float panoramaBlend=0; bool skyReady=false; float skyStars=0,skyGalaxy=0; bool ready=false, texturesReady=false, active=true; int frames=0; double submitMs=0, previewSeconds=0; std::string error; };
-struct ProjectedScene { bool ready=false; int width=0,height=0; double time=0; std::vector<ProjectedBody> bodies; };
+void setOrbitPlacement(const std::vector<OrbitSpec>& bodies,int candidate);
+std::array<double,2> placeOrbitAt(double x,double y,double tilt);
+struct ProjectedScene { bool placement=false;int candidate=-1; Camera camera;std::array<float,3> composition{.5f,.5f,1}; bool ready=false; int width=0,height=0; double time=0; std::vector<ProjectedBody> bodies; };
 ProjectedScene projectedScene();
 void configureRingTrace(bool enabled,bool running,int target,double mass);
 void seekRingTrace(double seconds);
