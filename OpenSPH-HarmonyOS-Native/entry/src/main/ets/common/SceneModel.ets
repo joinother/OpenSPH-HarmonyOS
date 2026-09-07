@@ -182,3 +182,30 @@ export function placementPoint(x:number,y:number,scale:number):number[] {
   const radius=Math.hypot(dx,dy);check(radius,.05,10);
   return [radius,(Math.atan2(dy,dx)*180/Math.PI+360)%360];
 }
+
+export interface CopiedPlanetDraft { name:string; fields:string[]; surface:number; }
+// Reuse applied mass and appearance only. Build a fresh circular XY orbit, not a live-state clone.
+export function copiedPlanetDraft(bodies:OrbitBodyConfig[],index:number):CopiedPlanetDraft {
+  validateOrbitBodies(bodies);check(index,1,bodies.length-1,true);
+  if(bodies.length>=8)throw new Error('最多支持 8 个天体');
+  const source=bodies[index],star=bodies[0];
+  let name='';
+  for(let n=1;n<=9;n++){
+    const suffix=' · 副本'+(n===1?'':' '+n);
+    let prefix=source.name.slice(0,48-suffix.length);
+    const last=prefix.charCodeAt(prefix.length-1);
+    if(last>=0xd800&&last<=0xdbff)prefix=prefix.slice(0,-1);
+    name=prefix+suffix;
+    if(!bodies.some((b:OrbitBodyConfig):boolean=>b.name===name))break;
+  }
+  const radius=Math.max(.1,Math.min(8,Math.hypot(source.xAU-star.xAU,source.yAU-star.yAU,source.zAU-star.zAU)));
+  const phase=(Math.atan2(source.yAU-star.yAU,source.xAU-star.xAU)*180/Math.PI+405)%360;
+  const draft:CopiedPlanetDraft={name:name,fields:[String(source.massSolar/EARTH_MASS_SOLAR),String(radius),String(phase),'0','1'],surface:source.surface};
+  // Prefer a displaced position at the same distance; use validated alternatives near boundaries.
+  for(const r of [radius,.5,1,2,4,6,8])for(let step=0;step<16;step++){
+    const fields=[draft.fields[0],String(r),String((phase+step*22.5)%360),'0','1'];
+    if(planPlanet(bodies,name,fields,source.surface,1).valid){draft.fields=fields;return draft;}
+  }
+  // An editable invalid preview is preferable to silently changing mass or relaxing limits.
+  return draft;
+}

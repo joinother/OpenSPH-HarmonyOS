@@ -606,3 +606,58 @@ test('Moon atlas is an explicit teaching scene and moon styles survive editing a
  const saved=app.saveProject('月海');app.chooseTheme('three-worlds');app.openProject(saved.id);assert.equal(app.orbitBodies[1].surface,5);
  await app.execute('uiAction',{action:'orbit.add'});await app.execute('uiAction',{action:'placement.surface.5'});assert.equal(app.placementPreview().body.surface,5);assert.equal(app.placementPreview().valid,true);
 });
+
+test('copy uses applied mass and skin, preserves drafts and timeline, commits once and supports undo/redo',async()=>{
+ const {page:app,calls,state}=page();app.choose(5);state.state='completed';state.selected=3;
+ app.orbitBodies[1].surface=5;app.orbitBodies[1].massSolar*=7;app.selectOrbit(1,true);
+ await app.execute('setUiValue',{field:'orbit.name',value:'未应用名称'});
+ await app.execute('setUiValue',{field:'orbit.value.0',value:''});
+ await app.execute('uiAction',{action:'orbit.surface.4'});
+ const before=JSON.parse(app.snapshot()),starts=calls.filter(c=>c[0]==='start').length;
+ await app.execute('uiAction',{action:'orbit.copy'});
+ let s=JSON.parse(app.snapshot()),p=s.placement.preview;
+ assert.equal(s.placement.sourceIndex,1);assert.equal(s.placement.sourceName,'蔚蓝');
+ assert.equal(p.valid,true);assert.equal(p.body.surface,5);assert.equal(p.body.massSolar,app.orbitBodies[1].massSolar);
+ assert.match(p.body.name,/蔚蓝 · 副本/);assert.equal(s.placement.fields[3],'0');assert.equal(s.placement.fields[4],'1');
+ assert.deepEqual(s.definition,before.definition);assert.deepEqual(s.editor,before.editor);assert.equal(state.selected,3);
+ assert.equal(calls.filter(c=>c[0]==='start').length,starts);assert.equal(app.editHistory().undoCount,0);
+ await assert.rejects(app.execute('uiAction',{action:'orbit.copy'}));
+ await app.execute('uiAction',{action:'placement.cancel'});assert.deepEqual(JSON.parse(app.snapshot()).camera,before.camera);
+ assert.equal(app.orbitName,'未应用名称');assert.equal(app.editHistory().undoCount,0);
+ await app.execute('uiAction',{action:'orbit.copy'});await app.execute('setUiValue',{field:'placement.value.4',value:'1.2'});
+ p=JSON.parse(app.snapshot()).placement.preview;assert.equal(p.valid,true);
+ await app.execute('uiAction',{action:'placement.confirm'});state.state='paused';
+ assert.deepEqual(JSON.parse(JSON.stringify(app.orbitBodies.at(-1))),p.body);assert.equal(app.editHistory().undoCount,1);
+ assert.equal(calls.filter(c=>c[0]==='start').length,starts+1);
+ await app.execute('uiAction',{action:'orbit.undo'});state.state='paused';
+ assert.deepEqual(JSON.parse(app.snapshot()).definition,before.definition);assert.equal(app.orbitName,'未应用名称');assert.equal(app.orbitFields[0],'');
+ await app.execute('uiAction',{action:'orbit.redo'});state.state='paused';assert.deepEqual(JSON.parse(JSON.stringify(app.orbitBodies.at(-1))),p.body);
+ await app.execute('uiAction',{action:'orbit.add'});assert.equal(JSON.parse(app.snapshot()).placement.sourceIndex,-1);assert.equal(app.placementSurface,1);
+});
+
+test('copy rejects stars, full systems, I/O and other models without partial mutations',async()=>{
+ const {page:app,state}=page();app.choose(5);state.state='paused';
+ for(const setup of [()=>app.selectOrbit(0),()=>{app.selectOrbit(1);app.ioBusy=true;},()=>{app.ioBusy=false;app.preset=0;}]){
+  setup();const before=app.snapshot();await assert.rejects(app.execute('uiAction',{action:'orbit.copy'}));assert.equal(app.snapshot(),before);
+ }
+ app.choose(5);state.state='paused';while(app.orbitBodies.length<8){app.beginPlacement();app.confirmPlacement();state.state='paused';}
+ const before=app.snapshot();await assert.rejects(app.execute('uiAction',{action:'orbit.copy'}));assert.equal(app.snapshot(),before);
+});
+
+test('copy avoids occupied positions and preserves Unicode names, all skins, mass bounds and stellar frame',()=>{
+ const {page:app}=page();app.choose(5);app.orbitBodies[0].xAU=.3;app.orbitBodies[0].vxKmS=4;app.orbitBodies[0].vyKmS=-2;
+ for(let surface=1;surface<=5;surface++){
+  app.orbitBodies[1].surface=surface;app.orbitBodies[1].name='🌙'.repeat(24);app.beginPlacement(1);
+  const p=app.placementPreview();assert.equal(p.valid,true);assert.equal(p.body.surface,surface);assert.ok(p.body.name.length<=48);assert.ok(p.nearestAU>=.05);
+  const star=app.orbitBodies[0],r=[p.body.xAU-star.xAU,p.body.yAU-star.yAU,p.body.zAU-star.zAU],v=[p.body.vxKmS-star.vxKmS,p.body.vyKmS-star.vyKmS,p.body.vzKmS-star.vzKmS];
+  assert.ok(Math.abs(r.reduce((sum,x,i)=>sum+x*v[i],0))<1e-10);assert.ok(Math.abs(Math.hypot(...v)-p.circularKmS)<1e-10);app.cancelPlacement();
+ }
+ app.beginPlacement(1);const first=app.placementPreview().body;app.confirmPlacement();app.beginPlacement(1);
+ assert.notEqual(app.placementName,first.name);assert.equal(app.placementPreview().valid,true);app.cancelPlacement();
+ for(const mass of [1e-8,.01]){app.orbitBodies[1].massSolar=mass;app.beginPlacement(1);assert.equal(app.placementPreview().valid,true);assert.ok(Math.abs(app.placementPreview().body.massSolar-mass)<1e-18);app.cancelPlacement();}
+});
+
+test('native copy commit rejection leaves candidate, source, drafts and history intact',async()=>{
+ const {page:app,state}=page();app.choose(5);state.state='paused';app.beginPlacement(1);
+ state.rejectStart=true;const before=app.snapshot();await assert.rejects(app.execute('uiAction',{action:'placement.confirm'}),/native rejected/);assert.equal(app.snapshot(),before);
+});

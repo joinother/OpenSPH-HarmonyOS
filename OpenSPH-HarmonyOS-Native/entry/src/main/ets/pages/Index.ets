@@ -1,6 +1,6 @@
 import simulation, { SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
-import { PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
+import { copiedPlanetDraft, PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
 import { themeExperiments, themeConfigMatches, ThemeExperiment } from '../common/ExperimentCatalog';
 import { ProjectStore } from '../common/ProjectStore';
 import { curves, LengthMetrics } from '@kit.ArkUI';
@@ -28,7 +28,7 @@ interface ProjectSummary { id: string; title: string; savedAt: number; hasRecipe
 interface ProjectList { ok: boolean; projects: ProjectSummary[]; }
 interface AppearanceState { clouds:boolean; atmosphere:boolean; trails:boolean; closeup:boolean; autoSpin:boolean; rings:boolean; }
 interface SkyState {mode:number;brightness:number;reference:string;}
-interface PlacementState { active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
+interface PlacementState { sourceIndex:number; sourceName:string; active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
 interface ThemeState { id:string; title:string; goal:string; limit:string; modified:boolean; compareId:string; }
 interface MoonAssetInfo {source:string;asset:string;credit:string;width:number;height:number;requested:boolean;ready:boolean;uploads:number;blend:number;error:string;decodedBudgetBytes:number;gpuBudgetBytes:number;}
 interface MoonAssetReply {ok:boolean;moon:MoonAssetInfo;}
@@ -138,6 +138,7 @@ struct Index {
   @State orbitSurface: number = 1;
   @State orbitDraft: boolean = false;
   @State placing:boolean=false;
+  @State placementSource:number=-1;
   @State placementName:string='新行星';
   @State placementFields:string[]=['1','2.5','45','0','1'];
   @State placementSurface:number=1;
@@ -502,13 +503,17 @@ struct Index {
     }catch(e){this.notice=String(e);if(strict)throw new Error(String(e));}
   }
   private placementPreview():PlacementPreview {return planPlanet(this.orbitBodies,this.placementName,this.placementFields,this.placementSurface,this.placementDirection,this.placementScale);}
-  private beginPlacement():void {
+  private beginPlacement(sourceIndex:number=-1):void {
     if(this.placing)return;
+    const copied=sourceIndex>=0?copiedPlanetDraft(this.orbitBodies,sourceIndex):undefined;
     this.stopTrace();this.stopCameraMotion();this.placementView={yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode};
     this.placementWasClose=this.closeup;this.placementWasSpin=this.autoSpin;this.placementWasPanel=this.panelOpen;this.placementWasTab=this.tab;
-    this.placementName='新行星 '+this.orbitBodies.length;this.placementFields=['1',String(2+this.orbitBodies.length*.35),'45','0','1'];this.placementSurface=1;this.placementDirection=1;
+    this.placementSource=sourceIndex;
+    this.placementName=copied?copied.name:'新行星 '+this.orbitBodies.length;
+    this.placementFields=copied?copied.fields:['1',String(2+this.orbitBodies.length*.35),'45','0','1'];
+    this.placementSurface=copied?copied.surface:1;this.placementDirection=1;
     this.placementScale=planPlanet(this.orbitBodies,this.placementName,this.placementFields,this.placementSurface,this.placementDirection).plotScale;
-    this.placing=true;this.setPanel(0);this.notice='放置预览 · 确认前不会改变模拟';
+    this.placing=true;this.setPanel(0);this.notice=copied?'已复制已应用的质量与外观 · 请设置新轨道':'放置预览 · 确认前不会改变模拟';
   }
   private cancelPlacement():void {
     this.placing=false;const view=this.placementView;this.placementView=undefined;
@@ -645,7 +650,7 @@ struct Index {
   }
   private snapshot(): string {
     this.info=simulation.status();
-    const snapshot: AppSnapshot = {ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
+    const snapshot: AppSnapshot = {ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{sourceIndex:this.placing?this.placementSource:-1,sourceName:this.placing&&this.placementSource>0?this.orbitBodies[this.placementSource].name:'',active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
       material:this.materialState(),appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},rendering:simulation.renderStatus(),
       simulation:this.info,
       scene:{preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,dirty:this.dirty},
@@ -694,6 +699,7 @@ struct Index {
     add('placement.cancel','取消放置',this.placing);add('placement.confirm','确认加入 · 重新计算',this.placing&&this.placementPreview().valid);
     add('placement.circular','圆轨道',this.placing);add('placement.still','相对静止',this.placing);add('placement.escape','掠过',this.placing);add('placement.reverse','反向',this.placing,this.placementDirection===-1);
     for(let i=1;i<=5;i++)add('placement.surface.'+i,['海洋','厚云','荒漠','带环','月面'][i-1],this.placing,this.placementSurface===i);
+    add('orbit.copy','复制并放置',this.preset===5&&this.orbitEdit>0&&this.orbitBodies.length<8);
     add('orbit.add','添加行星',this.preset===5&&this.orbitBodies.length<8);add('orbit.remove','删除天体',this.preset===5&&this.orbitEdit>0&&this.orbitBodies.length>2);
     add('orbit.undo','撤销天体编辑',this.preset===5&&this.orbitUndo.length>0);add('orbit.redo','重做天体编辑',this.preset===5&&this.orbitRedo.length>0);
     add('orbit.discard','还原当前输入',this.preset===5&&this.orbitDraft);
@@ -813,6 +819,7 @@ struct Index {
     else if(action==='orbit.plane.xy')this.vectorPlane='XY';
     else if(action==='orbit.plane.xz')this.vectorPlane='XZ';
     else if(action==='orbit.add')this.beginPlacement();
+    else if(action==='orbit.copy')this.beginPlacement(this.orbitEdit);
     else if(action==='placement.cancel')this.cancelPlacement();
     else if(action==='placement.confirm')this.confirmPlacement();
     else if(action==='placement.reverse')this.placementDirection=-this.placementDirection;
@@ -1179,6 +1186,11 @@ struct Index {
           ChoiceChip({label:b.name.slice(0,10)+(this.hasBodyDraft(i)?' · 草稿':''),active:this.orbitEdit===i,onPress:()=>{this.press('orbit.select.'+i);}}).margin({right:6,bottom:6})
         })
       }.width('100%')
+      if(this.orbitEdit>0) {
+        Button('复制并放置',{type:ButtonType.Normal}).id('orbit-copy').width('100%').height(38).borderRadius(19).fontSize(12).backgroundColor('#334F416E').fontColor('#D9CCF5')
+          .enabled(this.orbitBodies.length<8&&!this.ioBusy).onClick(()=>{this.press('orbit.copy');})
+        Text(this.orbitBodies.length>=8?'已达 8 个天体上限':this.orbitDraft?'复制已应用的质量与外观；当前草稿会保留':'沿用质量与外观，为新行星设置轨道').fontSize(10).fontColor('#ACA5C0').lineHeight(16)
+      }
       TextInput({text:this.orbitName,placeholder:'天体名称'}).id('orbit-name').maxLength(48).height(40).borderRadius(16).fontColor('#EBE7F8').backgroundColor('#5533334D')
         .onChange((v:string)=>{this.input('orbit.name',v);})
       if(this.orbitEdit>0) {
@@ -1214,7 +1226,8 @@ struct Index {
   @Builder
   placementControls() {
     Column({space:10}) {
-      Text('初始条件预览 · 确认后从零重新计算').fontSize(11).fontColor('#D1C1F0')
+      Text(this.placementSource>0?'来自 '+this.orbitBodies[this.placementSource].name+' · 已应用的质量与外观':'放置新行星').fontSize(13).fontColor('#D1C1F0').width('100%')
+      Text(this.placementSource>0?'新轨道从 XY 平面圆轨道开始；不复制原速度或当前时刻。确认后从零重新计算。':'初始条件预览 · 确认后从零重新计算').fontSize(11).fontColor('#ACA5C0').lineHeight(16)
       Row({space:8}) {
         ChoiceChip({label:'取消',onPress:()=>{this.press('placement.cancel');}})
         Button('确认加入 · 重算').height(38).fontSize(12).backgroundColor('#D9CEFF').fontColor('#241B36').layoutWeight(1)
@@ -1258,7 +1271,7 @@ struct Index {
             .onChange((v:string)=>{this.input('placement.value.'+i,v);})
         }.width('100%')
       })
-      Text('相对恒星设置；静止为相对恒星零速度。速度上限、初始间距和坐标越界会阻止确认。倾角围绕 X 轴，反向改变速度方向。已有编辑草稿在取消后保留；确认会清空旧轨迹和草稿。').fontSize(10).fontColor('#ACA5C0').lineHeight(16)
+      Text('相对恒星设置；静止为相对恒星零速度。速度上限、初始间距和坐标越界会阻止确认。倾角围绕 X 轴，反向改变速度方向。取消保留原模拟与草稿；确认会清空旧轨迹，保留其他天体草稿。').fontSize(10).fontColor('#ACA5C0').lineHeight(16)
     }.width('100%')
   }
   @Builder
