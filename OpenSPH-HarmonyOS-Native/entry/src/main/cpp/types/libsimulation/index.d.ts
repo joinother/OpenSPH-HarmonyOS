@@ -9,6 +9,7 @@ export const startScene: (config: SimulationConfig, initiallyPaused?: boolean) =
 export interface OrbitBodyStatus { id:number; name:string; surface?:number; xAU:number; yAU:number; zAU:number; speedKmS:number; massSolar:number; }
 export interface SphDiagnostics {available:boolean;pressureMinGPa?:number;pressureMaxGPa?:number;pressureMeanGPa?:number;internalMinMJkg?:number;internalMaxMJkg?:number;internalMeanMJkg?:number;damageMean?:number;damageMax?:number;kineticJ?:number;internalJ?:number;}
 export interface SimulationStatus {
+  preparation?:PreparationStatus;
   sph?:SphDiagnostics;
   model?:string; timeUnit?:string; energyError?:number; angularError?:number; bodies?:OrbitBodyStatus[];
   config?: SimulationConfig; totalMass?: number;
@@ -21,6 +22,8 @@ export const cancel: () => void;
 export const seek: (frame: number) => void;
 export const setCamera: (yaw: number, pitch: number, zoom: number, focus: number, color: number) => void;
 export const status: () => SimulationStatus;
+export interface PreparationEvent {stage:string;elapsedMs:number;}
+export interface PreparationStatus {requestId:number;stage:string;elapsedMs:number;stageMs:number;slow:boolean;previousRequestId:number;previousStage:string;events:PreparationEvent[];}
 export const saveReplay: (directory: string) => Promise<boolean>;
 export const loadReplay: (directory: string) => Promise<boolean>;
 

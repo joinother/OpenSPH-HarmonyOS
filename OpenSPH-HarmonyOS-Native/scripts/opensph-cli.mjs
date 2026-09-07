@@ -79,16 +79,28 @@ async function requestAndWait(o) {
     }
   }
   if(!o['wait-state']||result.ok!==true)return result;
-  const deadline=Date.now()+o.timeout;
-  while(Date.now()<deadline){
-    const state=await request({...o,command:'getState',payload:'%7B%7D'});
-    if(state.ok!==true)return state;
-    if(state.simulation?.state===o['wait-state'])return state;
-    if(state.simulation?.state==='failed')return {ok:false,error:state.simulation.error,state};
-    await delay(150);
-  }
-  return {ok:false,error:'Timed out waiting for state '+o['wait-state']};
+  return waitForSimulation(o,result);
 }
+export async function waitForSimulation(o,result,io={request,now:Date.now,delay}) {
+  const expected=result.simulation?.preparation?.requestId??result.preparation?.requestId;
+  const deadline=io.now()+o.timeout;let state=result;
+  const failure=error=>({ok:false,error,state,preparation:state.simulation?.preparation??state.preparation});
+  while(io.now()<deadline){
+    let next;
+    try{next=await io.request({...o,timeout:Math.max(1,Math.min(o.timeout,deadline-io.now())),command:'getState',payload:'%7B%7D'});}
+    catch(error){return failure(String(error.message??error));}
+    if(next.ok!==true)return {...next,state,preparation:state.simulation?.preparation??state.preparation};
+    state=next;
+    const actual=state.simulation?.preparation?.requestId;
+    if(expected>0&&actual!==undefined&&actual!==expected)return failure('Simulation request was replaced while waiting');
+    if(state.simulation?.state===o['wait-state'])return state;
+    if(state.simulation?.state==='failed')return failure(state.simulation.error);
+    if(state.simulation?.state==='cancelled')return failure('Simulation was cancelled while waiting');
+    await io.delay(150);
+  }
+  return failure('Timed out waiting for state '+o['wait-state']);
+}
+
 export async function run(argv) {
   const o=options(argv);
   if(o.help){console.log('node scripts/opensph-cli.mjs --device <HDC ID> --command getUiState\n--command uiAction --payload-json \'{"action":"orbit.add"}\'\n--payload-file config.json | --batch commands.json\n--wait-state paused waits for a solver state. --wait-camera waits for the returned camera request; cancellation is a failure. Batch: waitForCamera:true. --list lists commands.');return;}

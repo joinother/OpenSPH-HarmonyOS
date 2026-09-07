@@ -41,6 +41,20 @@ int main(int argc, char **argv) {
             throw std::runtime_error("invalid config accepted");
         } catch (const std::invalid_argument &) {
         }
+        // Cancellation at preparation boundaries must never publish into a newer request.
+        e.start({0,2400,5,0,16},true);const auto cancelledRequest=e.sceneRevision();e.cancel();
+        require(e.status().state=="cancelled","cancel preparation state");
+        require(e.status().preparation.requestId==cancelledRequest,"cancel lost request identity");
+        e.start({0,200,5,0,16},true);awaitState(e,"paused");
+        const auto ready=e.status().preparation;
+        require(ready.requestId==e.sceneRevision()&&ready.stage=="ready"&&!ready.slow,"ready preparation identity");
+        const char* stages[]={"queued","starting","target","impactor","solver","snapshot","ready"};
+        require(ready.events.size()==7,"SPH preparation stages missing");
+        double elapsed=-1;for(size_t i=0;i<ready.events.size();++i){require(ready.events[i].stage==stages[i],"SPH preparation order");require(ready.events[i].elapsedMs>=elapsed,"preparation time not monotonic");elapsed=ready.events[i].elapsedMs;}
+        require(!e.preparationStage(cancelledRequest,"failed"),"stale preparation update accepted");
+        std::this_thread::sleep_for(std::chrono::milliseconds(40));
+        require(e.status().preparation.elapsedMs==ready.elapsedMs&&e.status().time==0,"ready timing or paused scene changed");
+        std::cout<<"PASS preparation stages, cancellation, stale isolation and frozen timing"<<std::endl;
         // Exercise changed resolution after completed and paused runs, then
         // replacement while running and a burst where only the latest may publish.
         for(int count:{200,1200,200,1200}) {
@@ -96,6 +110,7 @@ int main(int argc, char **argv) {
             e.seek(-1);
             require(e.saveReplay(dir), "save failed");
             require(e.loadReplay(dir), "load failed");
+            require(e.status().preparation.requestId==0&&e.status().preparation.stage=="idle","replay inherited preparation");
             e.seek(-1);
             auto restored = e.frame();
             require(e.sphObservation().samples.back().values==curve.samples.back().values,"v5 curve changed");

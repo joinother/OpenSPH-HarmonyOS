@@ -223,6 +223,14 @@ napi_value status(napi_env e, napi_callback_info) {
     napi_create_object(e, &o);
     str(e, o, "state", s.state);
     str(e, o, "error", s.error);
+    napi_value prep,slow,events;napi_create_object(e,&prep);
+    num(e,prep,"requestId",s.preparation.requestId);str(e,prep,"stage",s.preparation.stage);
+    num(e,prep,"elapsedMs",s.preparation.elapsedMs);num(e,prep,"stageMs",s.preparation.stageMs);
+    num(e,prep,"previousRequestId",s.preparation.previousRequestId);str(e,prep,"previousStage",s.preparation.previousStage);
+    napi_get_boolean(e,s.preparation.slow,&slow);napi_set_named_property(e,prep,"slow",slow);
+    napi_create_array_with_length(e,s.preparation.events.size(),&events);
+    for(size_t k=0;k<s.preparation.events.size();++k){napi_value event;napi_create_object(e,&event);str(e,event,"stage",s.preparation.events[k].stage);num(e,event,"elapsedMs",s.preparation.events[k].elapsedMs);napi_set_element(e,events,k,event);}
+    napi_set_named_property(e,prep,"events",events);napi_set_named_property(e,o,"preparation",prep);
     num(e, o, "count", s.count);
     num(e, o, "frames", s.frames);
     num(e, o, "selected", s.selected);

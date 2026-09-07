@@ -215,7 +215,7 @@ struct Index {
   ];
   private stateLabel(): string {
     if(this.trace.enabled)return this.trace.running?'局部环运行中':'局部环已暂停';
-    if (this.info.state === 'preparing') return '正在构建场景';
+    if (this.info.state === 'preparing') return this.preparationLabel();
     if (this.info.state === 'running') return '正在计算';
     if (this.info.state === 'paused') return '已暂停';
     if (this.info.state === 'completed') return '计算完成';
@@ -225,6 +225,26 @@ struct Index {
     return '准备实验';
   }
   private sphView():ObservationPlot {return sphPlot(this.sphObserved,this.sphMetric);}
+  private preparationLabel():string {
+    const p=this.info.preparation;
+    if(!p)return '正在构建场景';
+    if(p.previousRequestId>0)return '等待上一轮结束';
+    if(p.stage==='queued'||p.stage==='starting')return '正在准备实验';
+    if(p.stage==='target')return '正在生成主天体';
+    if(p.stage==='impactor')return '正在生成撞击体';
+    if(p.stage==='solver')return '正在设置运动与材料';
+    if(p.stage==='orbits')return '正在准备行星轨道';
+    if(p.stage==='snapshot')return '正在生成初始画面';
+    return '正在构建场景';
+  }
+  private preparationHint():string {
+    const p=this.info.preparation;
+    return this.preparationLabel()+(p?' · '+(p.elapsedMs/1000).toFixed(1)+' s':'')+(p&&p.slow?' · 此阶段耗时较长，可取消后重试':'');
+  }
+  private cancelSimulation():void {
+    simulation.cancel();this.stopTrace();this.playing=false;this.info=simulation.status();
+    this.notice='已取消本次请求 · 可重新开始；正在生成的天体会在阶段结束后释放';
+  }
   private sphLabel():string {return sphMetricLabel(this.sphMetric);}
   private seekSphExtreme(maximum:boolean):void {
     const data=this.sphObserved,p=this.sphView();if(!p.available)throw new Error('暂无 SPH 曲线');
@@ -745,6 +765,7 @@ struct Index {
     add('presets.show','切换实验',this.preset===5);
     for(let i=0;i<this.experiments.length;i++)add('preset.'+i,this.experiments[i].title,true,this.preset===i);
     add('simulation.toggle',this.info.state==='running'?'暂停实验':'开始实验',this.info.state!=='preparing');add('simulation.apply','应用参数 · 重新生成');
+    add('simulation.cancel','停止实验',['preparing','running','paused'].includes(this.info.state));
     add('replay.toggle',this.playing?'暂停回放':'播放回放',this.info.frames>1,this.playing);add('replay.latest','最新',this.info.frames>0);
     add('replay.save','保存回放',this.info.frames>0);add('replay.load','载入回放');
     add('project.save','另存实验');add('project.open','打开实验库');
@@ -856,6 +877,7 @@ struct Index {
     else if(action.startsWith('preset.'))this.choose(Number(action.slice(7)));
     else if(action==='simulation.toggle'){this.run();this.setPanel(-1);}
     else if(action==='simulation.apply'){if(!this.prepare(false))throw new Error(this.notice);this.setPanel(-1);}
+    else if(action==='simulation.cancel'){this.cancelSimulation();}
     else if(action==='replay.toggle'){this.stopTrace();if(this.playing)this.playing=false;else {simulation.pause(true);if(this.info.selected<0||this.info.selected>=this.info.frames-1)simulation.seek(0);this.playing=true;}}
     else if(action==='replay.latest'){this.stopTrace();this.playing=false;simulation.seek(-1);}
     else if(action==='replay.save'||action==='replay.load'){await this.replayIO(action==='replay.load');if(!this.lastIOOk)throw new Error(this.notice);}
@@ -978,6 +1000,7 @@ struct Index {
       {name:'setUiValue',payload:'{field:string,value:string|number} - edit a catalog field; orbital inputs stay draft until orbit.apply'},
       {name:'setScene',payload:'{preset:0..5,count:200..2400,speed:0.5..10,angle:0..70,duration:1..120; custom preset 5 requires orbitBodies (2..8), speed=1; orbit preset 3/4: speed 0.75..1.25 circular-velocity factor, duration 1..10 Julian years; count/rock fields ignored; optional targetRadiusKm:40..200,impactorRadiusKm:20..120,targetDensity:2400..3000,impactorDensity:2400..3000,targetSpin:-0.01..0.01,seed:1..1000000}'},
       {name:'start',payload:'{}'}, {name:'pause',payload:'{}'}, {name:'reset',payload:'{}'},
+      {name:'getPreparation',payload:'{}; monotonic phase timings, request ID, previous worker phase and bounded history; no mutation'},
       {name:'seek',payload:'{frame:-1 or retained frame index}'},
       {name:'setCamera',payload:'{yaw:-100..100,pitch:-1.5..1.5,zoom:0.5..15,focus:-1..1 (orbit preset 4: -1..3; custom: -1..bodyCount-1),color:0..5 (0 original,1 speed,2 density,3 pressure,4 specific internal energy,5 damage; orbit 0..1)}'},
       {name:'getSurfaceInfo',payload:'{}; Moon source, loading state, upload count and bounded memory'},
@@ -1004,6 +1027,7 @@ struct Index {
     if(command==='getSurfaceInfo'){const response:MoonAssetReply={ok:true,moon:{source:'https://svs.gsfc.nasa.gov/4720/',asset:'lroc_color_2k.jpg',credit:"NASA's Scientific Visualization Studio",width:2048,height:1024,requested:this.moonRequested,ready:simulation.renderStatus().moonReady,uploads:simulation.renderStatus().moonUploads,blend:simulation.renderStatus().moonBlend,error:this.moonLoadError||simulation.renderStatus().moonError,decodedBudgetBytes:8388608,gpuBudgetBytes:11184812}};return JSON.stringify(response);}
     if(command==='getProjectedBodies')return JSON.stringify({ok:true,projection:simulation.projectedScene()});
     if(command==='pickBody'){const hit=await this.pickViewport(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,hit:hit});}
+    if(command==='getPreparation'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,state:state.state,error:state.error,config:state.config,preparation:state.preparation});}
     if(command==='getSphObservation'){this.refreshObservation();const reply:SphCurveReply={ok:true,metric:this.sphMetric,label:this.sphLabel(),data:{sceneRevision:this.sphObserved.sceneRevision,selected:this.sphObserved.selected,samples:this.sphObserved.samples.map((s:SphObservationSample):SphCurveSample=>({frame:s.frame,time:s.time,value:s.values[sphMetricIndex(this.sphMetric)]}))},plot:this.sphView()};return JSON.stringify(reply);}
     if(command==='getSphTable'){const data:SphObservation=simulation.sphObservation(),config:SimulationConfig|undefined=simulation.status().config;if(simulation.sphObservation().sceneRevision!==data.sceneRevision)throw new Error('场景已变化，请重试导出');return JSON.stringify({ok:true,rows:data.samples.length,timeUnit:'s',sceneRevision:data.sceneRevision,config,csv:sphCsv(data)});}
     if(command==='getSphDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,time:state.time,timeUnit:state.config&&state.config.preset>=3?'year':'s',selected:state.selected,frameCount:state.frames,model:state.model,config:state.config,diagnostics:state.sph??{available:false},source:'OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted'});}
@@ -1334,7 +1358,7 @@ struct Index {
               if(mode===SliderChangeMode.Moving||mode===SliderChangeMode.Click||mode===SliderChangeMode.End){this.input('time.frame',Math.round(v));}
             })
           FloatingButton({label:this.playing?'停播':'回放',compact:true,enabledAction:this.info.frames>1&&!this.ioBusy,onPress:()=>{this.press('replay.toggle');}})
-          FloatingButton({label:this.info.state==='running'?'暂停':'开始',compact:true,primary:true,enabledAction:this.info.state!=='preparing'&&!this.ioBusy,onPress:()=>{this.press('simulation.toggle');}})
+          FloatingButton({label:this.info.state==='preparing'?'取消':this.info.state==='running'?'暂停':'开始',compact:true,primary:true,enabledAction:!this.ioBusy,onPress:()=>{this.press(this.info.state==='preparing'?'simulation.cancel':'simulation.toggle');}}).id('simulation-main-compact')
           FloatingButton({label:'最新',compact:true,onPress:()=>{this.press('replay.latest');}})
         }.width('100%').height(50)
       } else {
@@ -1354,14 +1378,14 @@ struct Index {
         FloatingButton({label:this.playing?'暂停回放':'播放回放',icon:$r('app.media.ic_replay'),enabledAction:this.info.frames>1&&!this.ioBusy,compact:this.viewportWidth<380,onPress:() => {
           this.press('replay.toggle');
         }})
-        FloatingButton({label:this.info.state==='running'?'暂停实验':(this.dirty?'应用并开始':'开始实验'),primary:true,
-          icon:this.info.state==='running'?$r('app.media.ic_pause'):$r('app.media.ic_play'),enabledAction:this.info.state!=='preparing'&&!this.ioBusy,
-          onPress:() => {this.press('simulation.toggle');}})
+        FloatingButton({label:this.info.state==='preparing'?'取消准备':this.info.state==='running'?'暂停实验':(this.dirty?'应用并开始':'开始实验'),primary:true,
+          icon:this.info.state==='running'?$r('app.media.ic_pause'):$r('app.media.ic_play'),enabledAction:!this.ioBusy,
+          onPress:() => {this.press(this.info.state==='preparing'?'simulation.cancel':'simulation.toggle');}}).id('simulation-main')
         FloatingButton({label:'最新',icon:$r('app.media.ic_latest'),compact:this.viewportWidth<380,onPress:() => {this.press('replay.latest');}})
       }.justifyContent(FlexAlign.Center).width('100%')
       }
       if(!this.trace.enabled||!this.layout().compact) {
-      Text(this.rendering.error.length>0?'渲染异常：'+this.rendering.error:this.info.error.length>0?this.info.error:(this.preset>=3&&!this.rendering.texturesReady?'正在准备行星表面…':this.ioBusy?'正在读写回放…':this.notice)).width('100%').textAlign(TextAlign.Center)
+      Text(this.rendering.error.length>0?'渲染异常：'+this.rendering.error:this.info.error.length>0?this.info.error:this.info.state==='preparing'?this.preparationHint():(this.preset>=3&&!this.rendering.texturesReady?'正在准备行星表面…':this.ioBusy?'正在读写回放…':this.notice)).width('100%').textAlign(TextAlign.Center)
         .fontSize(10).fontColor(this.info.error.length>0||this.rendering.error.length>0?'#F8AD95':'#9996AE').maxLines(1).textOverflow({overflow:TextOverflow.Ellipsis})
       }
     }.id('workspace-transport').enabled(!this.placing).position({x:this.layout().dock.x,y:this.layout().dock.y})
@@ -1721,6 +1745,7 @@ struct Index {
         if(this.trace.enabled){this.traceControls()}
         if(this.preset>=3){this.observationControls();this.materialControls()}else{this.sphControls()}
         this.themeGuide()
+        ChoiceChip({label:'停止实验',onPress:()=>{this.press('simulation.cancel');},enabledAction:['preparing','running','paused'].includes(this.info.state)}).id('simulation-stop')
         this.skyControls()
         if(this.preset>=3) {
           Text('行星外观').fontSize(13).fontColor('#AEBDCD').width('100%')

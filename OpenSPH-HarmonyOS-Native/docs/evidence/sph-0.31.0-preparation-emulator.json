@@ -1,0 +1,1169 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "six SPH/orbit preparation traces including maximum budget",
+    "monotonic request IDs and stage timings",
+    "read-only diagnostics and frozen ready timers",
+    "shared cancel action preserves initial conditions; repeated cancel rejected",
+    "restart after cancel completes",
+    "actual CLI timeout preserves last device snapshot",
+    "user projects and reference untouched"
+  ],
+  "limits": [
+    "15-second warning threshold tested with deterministic native clock, not a forced application stall",
+    "physical touch during transient preparation not asserted",
+    "old 0.30 preparation stall root cause remains unknown"
+  ],
+  "timeout": {
+    "ok": false,
+    "error": "Timed out waiting for device response 33cbff93-42bc-46b0-9ca0-322db3f2bb59; received 12 chunks. Check application logs.",
+    "state": {
+      "ringTrace": {
+        "enabled": false,
+        "running": false,
+        "target": -1,
+        "timeHours": 0,
+        "massSolar": 0.0002857,
+        "radiusKm": 60000,
+        "count": 192,
+        "speedScale": 1,
+        "rateHours": 1,
+        "eccentricity": 0,
+        "innerApoapsisKm": 76800,
+        "outerApoapsisKm": 133200,
+        "referenceXKm": 76800,
+        "referenceYKm": 0,
+        "referenceRadiusKm": 76800,
+        "referenceSpeedKmS": 22.219297672514575,
+        "innerPeriodHours": 6.032651820447706,
+        "outerPeriodHours": 13.779160777118495,
+        "model": "restricted-elliptic-kepler-v2"
+      },
+      "theme": {
+        "id": "resolution-coarse",
+        "title": "碰撞放大镜 · 速览",
+        "goal": "先运行，再看压力与内能曲线。切换对照只改变粒子预算；比较实际秒数相近的帧，留意峰值是否变化。",
+        "limit": "百公里岩质 SPH，无自引力。粒子预算不等于实际数量；更多粒子不代表已经验证准确度，采样时刻也可能不同。",
+        "modified": false,
+        "compareId": "resolution-fine"
+      },
+      "placement": {
+        "sourceIndex": -1,
+        "sourceName": "",
+        "active": false,
+        "name": "新行星",
+        "fields": [
+          "1",
+          "2.5",
+          "45",
+          "0",
+          "1"
+        ],
+        "surface": 1,
+        "direction": 1,
+        "preview": {
+          "valid": true,
+          "error": "",
+          "body": {
+            "name": "新行星",
+            "massSolar": 0.0000030034896154649684,
+            "surface": 1,
+            "xAU": 1.7677669529663689,
+            "yAU": 1.7677669529663687,
+            "zAU": 0,
+            "vxKmS": -13.320139129484328,
+            "vyKmS": 13.32013912948433,
+            "vzKmS": 0
+          },
+          "speedKmS": 18.83752140961329,
+          "circularKmS": 18.83752140961329,
+          "escapeKmS": 26.64027825896866,
+          "nearestAU": 1.9272950199871481,
+          "bound": true,
+          "plotScale": 5,
+          "orbitPath": " M84.64466094067262 155.35533905932738 L85.90008199687509 156.56768508095854 L87.19704855047465 157.7354790111386 L88.53398044750813 158.85729807284855 L89.9092488423976 159.93177550236464 L91.3211781824477 160.9576022144496 L92.76804824924865 161.9335283972712 L94.24809625449728 162.85836503510563 L95.75951898768315 163.7309853569698 L97.30047501302266 164.5503262094184 L98.86908691296503 165.3153893518325 L100.46344357553632 166.02524267262203 L102.081602522735 166.6790213248601 L103.72159227714218 167.27592877996585 L105.38141476386316 167.81523779815177 L107.05904774487396 168.2962913144534 L108.75244728280674 168.71850323926176 L110.45955023117276 169.0813591723832 L112.17827674798846 169.3844170297569 L113.90653282974263 169.62730758206612 L115.6422128626171 169.8097349045873 L117.38320218785282 169.9314767377287 L119.12737967813584 169.99238475781956 L120.87262032186418 169.99238475781956 L122.61679781214718 169.9314767377287 L124.3577871373829 169.8097349045873 L126.09346717025737 169.6273075820661 L127.82172325201155 169.3844170297569 L129.54044976882724 169.0813591723832 L131.24755271719326 168.71850323926176 L132.94095225512604 168.2962913144534 L134.61858523613685 167.81523779815177 L136.27840772285782 167.27592877996585 L137.91839747726502 166.6790213248601 L139.5365564244637 166.02524267262203 L141.13091308703497 165.3153893518325 L142.69952498697734 164.5503262094184 L144.24048101231685 163.7309853569698 L145.75190374550272 162.85836503510563 L147.23195175075136 161.9335283972712 L148.67882181755232 160.9576022144496 L150.0907511576024 159.93177550236464 L151.46601955249187 158.85729807284855 L152.80295144952538 157.7354790111386 L154.0999180031249 156.5676850809585 L155.35533905932738 155.35533905932738 L156.5676850809585 154.0999180031249 L157.7354790111386 152.80295144952535 L158.85729807284855 151.46601955249187 L159.93177550236464 150.09075115760243 L160.9576022144496 148.67882181755232 L161.9335283972712 147.23195175075136 L162.85836503510563 145.75190374550272 L163.7309853569698 144.24048101231685 L164.5503262094184 142.69952498697734 L165.3153893518325 141.13091308703497 L166.02524267262203 139.5365564244637 L166.6790213248601 137.91839747726502 L167.27592877996585 136.27840772285782 L167.81523779815177 134.61858523613685 L168.2962913144534 132.94095225512604 L168.71850323926176 131.24755271719326 L169.0813591723832 129.54044976882724 L169.3844170297569 127.82172325201154 L169.62730758206612 126.09346717025737 L169.8097349045873 124.3577871373829 L169.9314767377287 122.61679781214718 L169.99238475781956 120.87262032186419 L169.99238475781956 119.12737967813581 L169.9314767377287 117.38320218785282 L169.8097349045873 115.6422128626171 L169.62730758206612 113.90653282974263 L169.3844170297569 112.17827674798846 L169.0813591723832 110.45955023117276 L168.71850323926176 108.75244728280674 L168.2962913144534 107.05904774487395 L167.81523779815177 105.38141476386318 L167.27592877996585 103.72159227714215 L166.6790213248601 102.081602522735 L166.02524267262203 100.46344357553632 L165.3153893518325 98.86908691296503 L164.5503262094184 97.30047501302266 L163.7309853569698 95.75951898768317 L162.8583650351056 94.24809625449728 L161.9335283972712 92.76804824924864 L160.9576022144496 91.32117818244768 L159.93177550236464 89.9092488423976 L158.85729807284855 88.53398044750813 L157.7354790111386 87.19704855047465 L156.5676850809585 85.90008199687506 L155.35533905932738 84.64466094067262 L154.0999180031249 83.43231491904149 L152.80295144952538 82.26452098886142 L151.4660195524919 81.14270192715146 L150.0907511576024 80.06822449763536 L148.6788218175523 79.0423977855504 L147.23195175075136 78.0664716027288 L145.75190374550272 77.1416349648944 L144.24048101231685 76.2690146430302 L142.6995249869773 75.4496737905816 L141.13091308703497 74.6846106481675 L139.5365564244637 73.97475732737799 L137.91839747726502 73.32097867513993 L136.27840772285785 72.72407122003416 L134.61858523613682 72.18476220184823 L132.94095225512604 71.70370868554659 L131.24755271719326 71.28149676073824 L129.54044976882724 70.9186408276168 L127.82172325201155 70.61558297024311 L126.0934671702574 70.3726924179339 L124.3577871373829 70.19026509541273 L122.61679781214718 70.06852326227131 L120.87262032186418 70.00761524218044 L119.12737967813584 70.00761524218044 L117.38320218785282 70.06852326227131 L115.6422128626171 70.19026509541273 L113.90653282974262 70.3726924179339 L112.17827674798846 70.61558297024311 L110.45955023117278 70.9186408276168 L108.75244728280674 71.28149676073824 L107.05904774487398 71.70370868554657 L105.38141476386316 72.18476220184823 L103.72159227714218 72.72407122003415 L102.08160252273498 73.32097867513993 L100.46344357553632 73.97475732737799 L98.86908691296506 74.68461064816749 L97.30047501302266 75.44967379058161 L95.75951898768312 76.26901464303022 L94.24809625449728 77.14163496489438 L92.76804824924866 78.06647160272878 L91.3211781824477 79.0423977855504 L89.90924884239757 80.06822449763538 L88.53398044750811 81.14270192715145 L87.19704855047465 82.26452098886139 L85.90008199687509 83.43231491904146 L84.64466094067262 84.64466094067262 L83.43231491904146 85.90008199687509 L82.26452098886139 87.19704855047463 L81.14270192715146 88.53398044750811 L80.06822449763536 89.9092488423976 L79.04239778555042 91.32117818244768 L78.06647160272883 92.76804824924862 L77.1416349648944 94.24809625449728 L76.2690146430302 95.75951898768317 L75.44967379058161 97.30047501302266 L74.6846106481675 98.869086912965 L73.97475732737799 100.4634435755363 L73.32097867513991 102.08160252273501 L72.72407122003415 103.72159227714218 L72.18476220184823 105.38141476386315 L71.70370868554659 107.05904774487396 L71.28149676073824 108.75244728280674 L70.9186408276168 110.45955023117273 L70.61558297024311 112.17827674798845 L70.37269241793389 113.90653282974264 L70.19026509541273 115.64221286261709 L70.06852326227131 117.38320218785279 L70.00761524218044 119.12737967813578 L70.00761524218044 120.87262032186416 L70.06852326227131 122.6167978121472 L70.19026509541273 124.3577871373829 L70.37269241793389 126.09346717025734 L70.61558297024311 127.82172325201154 L70.9186408276168 129.54044976882722 L71.28149676073822 131.2475527171932 L71.70370868554657 132.940952255126 L72.18476220184823 134.61858523613682 L72.72407122003416 136.27840772285785 L73.32097867513991 137.91839747726502 L73.97475732737799 139.53655642446367 L74.6846106481675 141.13091308703497 L75.44967379058161 142.69952498697734 L76.26901464303019 144.24048101231682 L77.14163496489438 145.75190374550272 L78.06647160272878 147.23195175075134 L79.04239778555038 148.67882181755226 L80.06822449763534 150.0907511576024 L81.14270192715145 151.46601955249187 L82.26452098886142 152.80295144952538 L83.43231491904149 154.09991800312494 L84.64466094067262 155.35533905932738",
+          "candidateX": 155.35533905932738,
+          "candidateY": 84.64466094067262,
+          "markerPath": "M118 120 L122 120 M120 118 L120 122 M138 120 L142 120 M140 118 L140 122 M110.73021609376205 107.56978512025621 L114.73021609376205 107.56978512025621 M112.73021609376205 105.56978512025621 L112.73021609376205 109.56978512025621 M103.09607103124273 146.4959034813731 L107.09607103124273 146.4959034813731 M105.09607103124273 144.4959034813731 L105.09607103124273 148.4959034813731 ",
+          "velocityPath": "M155.35533905932738 84.64466094067262 L138.38477631085024 67.67409819219549 M144.74873734152916 69.79541853575512 L138.38477631085024 67.67409819219549 L140.5060966544099 74.03805922287441"
+        }
+      },
+      "sky": {
+        "mode": 2,
+        "brightness": 0.65,
+        "reference": "photographic-panorama"
+      },
+      "ok": true,
+      "protocol": 1,
+      "definition": {
+        "schemaVersion": 1,
+        "model": "sph-rock-v1",
+        "title": "碰撞放大镜 · 速览",
+        "config": {
+          "preset": 0,
+          "count": 200,
+          "speed": 5,
+          "angle": 0,
+          "duration": 16,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "bodies": [
+          {
+            "id": "primary",
+            "name": "玄岩",
+            "kind": "rock",
+            "radiusKm": 100,
+            "density": 2700
+          },
+          {
+            "id": "impactor",
+            "name": "赭岩",
+            "kind": "rock",
+            "radiusKm": 60,
+            "density": 2700
+          }
+        ]
+      },
+      "editor": {
+        "drafts": [],
+        "history": {
+          "undoCount": 0,
+          "redoCount": 0,
+          "undoLabel": "",
+          "redoLabel": "",
+          "limit": 20,
+          "scope": "custom-body-initial-conditions"
+        },
+        "vectorPlane": "XY",
+        "orbitIndex": 1,
+        "orbitName": "蔚蓝",
+        "orbitFields": [
+          "1",
+          "1",
+          "0",
+          "0",
+          "0",
+          "29.78474",
+          "0"
+        ],
+        "orbitSurface": 1,
+        "orbitDraft": false,
+        "editedBody": 0,
+        "targetName": "玄岩",
+        "impactorName": "赭岩",
+        "title": "碰撞放大镜 · 速览",
+        "selectingPreset": false
+      },
+      "material": {
+        "exposure": 0,
+        "ocean": true,
+        "cloudShadows": true
+      },
+      "appearance": {
+        "clouds": true,
+        "atmosphere": true,
+        "trails": true,
+        "closeup": false,
+        "autoSpin": false,
+        "rings": true
+      },
+      "rendering": {
+        "moonReady": false,
+        "moonUploads": 0,
+        "moonBlend": 0,
+        "moonError": "",
+        "materialExposure": 0,
+        "materialOcean": true,
+        "materialCloudShadows": true,
+        "compositionX": 0.5,
+        "compositionY": 0.5,
+        "compositionScale": 1,
+        "sceneRevision": 20,
+        "surfaceStarts": 1,
+        "cameraMoving": false,
+        "centerX": 0.5,
+        "centerY": 0,
+        "centerZ": 0,
+        "panoramaReady": true,
+        "panoramaBlend": 1,
+        "skyReady": true,
+        "skyStars": 0.6499999761581421,
+        "skyGalaxy": 0.6499999761581421,
+        "ready": true,
+        "texturesReady": true,
+        "active": true,
+        "frames": 1220,
+        "submitMs": 1.09725,
+        "previewSeconds": 0,
+        "error": ""
+      },
+      "simulation": {
+        "state": "paused",
+        "error": "",
+        "preparation": {
+          "requestId": 20,
+          "stage": "ready",
+          "elapsedMs": 13.722417000681162,
+          "stageMs": 0,
+          "previousRequestId": 0,
+          "previousStage": "",
+          "slow": false,
+          "events": [
+            {
+              "stage": "queued",
+              "elapsedMs": 0
+            },
+            {
+              "stage": "starting",
+              "elapsedMs": 0.032625000923871994
+            },
+            {
+              "stage": "target",
+              "elapsedMs": 1.5940000005066395
+            },
+            {
+              "stage": "impactor",
+              "elapsedMs": 6.399916999042034
+            },
+            {
+              "stage": "solver",
+              "elapsedMs": 6.710625000298023
+            },
+            {
+              "stage": "snapshot",
+              "elapsedMs": 13.626209001988173
+            },
+            {
+              "stage": "ready",
+              "elapsedMs": 13.722417000681162
+            }
+          ]
+        },
+        "count": 212,
+        "frames": 1,
+        "selected": -1,
+        "time": 0,
+        "duration": 16,
+        "stepMs": 13.392042,
+        "steps": 1,
+        "maxSpeed": 5,
+        "meanDensity": 2700,
+        "totalMass": 13752636000354738000,
+        "sph": {
+          "available": true,
+          "pressureMinGPa": 0,
+          "pressureMaxGPa": 0,
+          "pressureMeanGPa": 0,
+          "internalMinMJkg": 0,
+          "internalMaxMJkg": 0,
+          "internalMeanMJkg": 0,
+          "damageMean": 0,
+          "damageMax": 0,
+          "kineticJ": 3.053628059289282e+25,
+          "internalJ": 0
+        },
+        "energyError": 0,
+        "angularError": 0,
+        "model": "sph-rock-v1",
+        "timeUnit": "s",
+        "bodies": [],
+        "config": {
+          "preset": 0,
+          "count": 200,
+          "speed": 5,
+          "angle": 0,
+          "duration": 16,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        }
+      },
+      "scene": {
+        "preset": 0,
+        "count": 200,
+        "speed": 5,
+        "angle": 0,
+        "duration": 16,
+        "dirty": false
+      },
+      "camera": {
+        "yaw": 0.15,
+        "pitch": 0.25,
+        "zoom": 2.7,
+        "focus": -1,
+        "color": 0
+      },
+      "cameraMotion": {
+        "requestId": 0,
+        "sceneRevision": 0,
+        "targetFocus": -1,
+        "progress": 1,
+        "state": "idle",
+        "reason": "",
+        "targetCloseup": false,
+        "yaw": 0.15000000596046448,
+        "pitch": 0.25,
+        "zoom": 2.700000047683716
+      },
+      "ui": {
+        "panelOpen": false,
+        "toolsVisible": true,
+        "panel": 0,
+        "playing": false,
+        "ioBusy": false,
+        "foreground": true,
+        "notice": "同样的碰撞，换一组粒子会看见什么？ · 点击开始实验"
+      },
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 22.4,
+            "y": 0,
+            "width": 750.72,
+            "height": 707.2
+          },
+          "compact": false,
+          "sidePanel": true,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 449.12,
+            "y": 76,
+            "width": 308,
+            "height": 473.20000000000005
+          },
+          "dock": {
+            "x": 187.76000000000002,
+            "y": 569.2,
+            "width": 420,
+            "height": 130
+          },
+          "scene": {
+            "x": 34.4,
+            "y": 76,
+            "width": 726.72,
+            "height": 481.20000000000005
+          }
+        },
+        "geometry": {
+          "widthPx": 2416,
+          "heightPx": 2210,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 70,
+          "rightPx": 0,
+          "revision": 7
+        },
+        "viewportWidthVp": 773.12,
+        "viewportHeightVp": 707.2,
+        "widthVp": 773.12,
+        "heightVp": 707.2,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 70,
+          "right": 0
+        }
+      }
+    },
+    "preparation": {
+      "requestId": 20,
+      "stage": "ready",
+      "elapsedMs": 13.722417000681162,
+      "stageMs": 0,
+      "previousRequestId": 0,
+      "previousStage": "",
+      "slow": false,
+      "events": [
+        {
+          "stage": "queued",
+          "elapsedMs": 0
+        },
+        {
+          "stage": "starting",
+          "elapsedMs": 0.032625000923871994
+        },
+        {
+          "stage": "target",
+          "elapsedMs": 1.5940000005066395
+        },
+        {
+          "stage": "impactor",
+          "elapsedMs": 6.399916999042034
+        },
+        {
+          "stage": "solver",
+          "elapsedMs": 6.710625000298023
+        },
+        {
+          "stage": "snapshot",
+          "elapsedMs": 13.626209001988173
+        },
+        {
+          "stage": "ready",
+          "elapsedMs": 13.722417000681162
+        }
+      ]
+    }
+  },
+  "results": [
+    {
+      "preset": 0,
+      "count": 2400,
+      "preparation": {
+        "requestId": 2,
+        "stage": "ready",
+        "elapsedMs": 47.91908399760723,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 38.33579199761152
+          },
+          {
+            "stage": "target",
+            "elapsedMs": 39.56929199770093
+          },
+          {
+            "stage": "impactor",
+            "elapsedMs": 43.21391699835658
+          },
+          {
+            "stage": "solver",
+            "elapsedMs": 43.93658399954438
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 47.42366699874401
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 47.91908399760723
+          }
+        ]
+      },
+      "restarted": {
+        "state": "completed",
+        "error": "",
+        "preparation": {
+          "requestId": 4,
+          "stage": "ready",
+          "elapsedMs": 39.27762499824166,
+          "stageMs": 0,
+          "previousRequestId": 0,
+          "previousStage": "",
+          "slow": false,
+          "events": [
+            {
+              "stage": "queued",
+              "elapsedMs": 0
+            },
+            {
+              "stage": "starting",
+              "elapsedMs": 0.08979199826717377
+            },
+            {
+              "stage": "target",
+              "elapsedMs": 15.516874998807907
+            },
+            {
+              "stage": "impactor",
+              "elapsedMs": 23.9822500012815
+            },
+            {
+              "stage": "solver",
+              "elapsedMs": 24.983208999037743
+            },
+            {
+              "stage": "snapshot",
+              "elapsedMs": 38.51429200172424
+            },
+            {
+              "stage": "ready",
+              "elapsedMs": 39.27762499824166
+            }
+          ]
+        },
+        "count": 2559,
+        "frames": 9,
+        "selected": -1,
+        "time": 1.07,
+        "duration": 1,
+        "stepMs": 125.534917,
+        "steps": 9,
+        "maxSpeed": 4.99999999999989,
+        "meanDensity": 2700.069479092366,
+        "totalMass": 13752636000354759000,
+        "sph": {
+          "available": true,
+          "pressureMinGPa": 0,
+          "pressureMaxGPa": 0.8187933207422448,
+          "pressureMeanGPa": 0.002383133997246188,
+          "internalMinMJkg": 1.475344524346315e-43,
+          "internalMaxMJkg": 0.12231827712646519,
+          "internalMeanMJkg": 0.0003504506911782102,
+          "damageMean": 1.6373685855802363e-7,
+          "damageMax": 0.00022725643193264585,
+          "kineticJ": 3.053146164792657e+25,
+          "internalJ": 4.819620791846661e+21
+        },
+        "energyError": 0,
+        "angularError": 0,
+        "model": "sph-rock-v1",
+        "timeUnit": "s",
+        "bodies": [],
+        "config": {
+          "preset": 0,
+          "count": 2400,
+          "speed": 5,
+          "angle": 0,
+          "duration": 1,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        }
+      }
+    },
+    {
+      "preset": 1,
+      "count": 1200,
+      "preparation": {
+        "requestId": 5,
+        "stage": "ready",
+        "elapsedMs": 19.133124999701977,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 0.0651249997317791
+          },
+          {
+            "stage": "target",
+            "elapsedMs": 8.705041002482176
+          },
+          {
+            "stage": "impactor",
+            "elapsedMs": 12.536958001554012
+          },
+          {
+            "stage": "solver",
+            "elapsedMs": 13.440250001847744
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 18.91058300063014
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 19.133124999701977
+          }
+        ]
+      },
+      "restarted": {
+        "state": "completed",
+        "error": "",
+        "preparation": {
+          "requestId": 7,
+          "stage": "ready",
+          "elapsedMs": 21.844624999910593,
+          "stageMs": 0,
+          "previousRequestId": 0,
+          "previousStage": "",
+          "slow": false,
+          "events": [
+            {
+              "stage": "queued",
+              "elapsedMs": 0
+            },
+            {
+              "stage": "starting",
+              "elapsedMs": 0.04058399796485901
+            },
+            {
+              "stage": "target",
+              "elapsedMs": 13.528999999165535
+            },
+            {
+              "stage": "impactor",
+              "elapsedMs": 16.9239999987185
+            },
+            {
+              "stage": "solver",
+              "elapsedMs": 17.637249998748302
+            },
+            {
+              "stage": "snapshot",
+              "elapsedMs": 21.603959001600742
+            },
+            {
+              "stage": "ready",
+              "elapsedMs": 21.844624999910593
+            }
+          ]
+        },
+        "count": 1276,
+        "frames": 9,
+        "selected": -1,
+        "time": 1.07,
+        "duration": 1,
+        "stepMs": 55.540541,
+        "steps": 9,
+        "maxSpeed": 5.000004619703115,
+        "meanDensity": 2700.029364339919,
+        "totalMass": 13752636000354593000,
+        "sph": {
+          "available": true,
+          "pressureMinGPa": 9.369905645192947e-36,
+          "pressureMaxGPa": 0.9730749909314966,
+          "pressureMeanGPa": 0.0011078522680980296,
+          "internalMinMJkg": 1.0481792515928446e-34,
+          "internalMaxMJkg": 0.1455665366619824,
+          "internalMeanMJkg": 0.0001632718424186182,
+          "damageMean": 1.5592300879156369e-7,
+          "damageMax": 0.00006607931119834275,
+          "kineticJ": 3.053403539501883e+25,
+          "internalJ": 2.245418217890512e+21
+        },
+        "energyError": 0,
+        "angularError": 0,
+        "model": "sph-rock-v1",
+        "timeUnit": "s",
+        "bodies": [],
+        "config": {
+          "preset": 1,
+          "count": 1200,
+          "speed": 5,
+          "angle": 45,
+          "duration": 1,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        }
+      }
+    },
+    {
+      "preset": 2,
+      "count": 200,
+      "preparation": {
+        "requestId": 8,
+        "stage": "ready",
+        "elapsedMs": 11.10037499666214,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 0.041874997317790985
+          },
+          {
+            "stage": "target",
+            "elapsedMs": 1.3910829983651638
+          },
+          {
+            "stage": "solver",
+            "elapsedMs": 4.31699999794364
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 11.027916997671127
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 11.10037499666214
+          }
+        ]
+      },
+      "restarted": {
+        "state": "completed",
+        "error": "",
+        "preparation": {
+          "requestId": 10,
+          "stage": "ready",
+          "elapsedMs": 9.890832997858524,
+          "stageMs": 0,
+          "previousRequestId": 0,
+          "previousStage": "",
+          "slow": false,
+          "events": [
+            {
+              "stage": "queued",
+              "elapsedMs": 0
+            },
+            {
+              "stage": "starting",
+              "elapsedMs": 0.016332998871803284
+            },
+            {
+              "stage": "target",
+              "elapsedMs": 2.317375000566244
+            },
+            {
+              "stage": "solver",
+              "elapsedMs": 4.983457997441292
+            },
+            {
+              "stage": "snapshot",
+              "elapsedMs": 9.818166997283697
+            },
+            {
+              "stage": "ready",
+              "elapsedMs": 9.890832997858524
+            }
+          ]
+        },
+        "count": 210,
+        "frames": 9,
+        "selected": -1,
+        "time": 1.07,
+        "duration": 1,
+        "stepMs": 8.277458,
+        "steps": 9,
+        "maxSpeed": 1.4867811568165132,
+        "meanDensity": 2699.5102933096196,
+        "totalMass": 11309733552923247000,
+        "sph": {
+          "available": true,
+          "pressureMinGPa": -0.0069096026872936655,
+          "pressureMaxGPa": -0.0023944913793710245,
+          "pressureMeanGPa": -0.0046720770435220455,
+          "internalMinMJkg": 4.3383708053251735e-7,
+          "internalMaxMJkg": 0.00006492743391246455,
+          "internalMeanMJkg": 0.000014090862933825486,
+          "damageMean": 0.00009223210389661181,
+          "damageMax": 0.00021863957020870818,
+          "kineticJ": 5.017536413251201e+24,
+          "internalJ": 159363905312328450000
+        },
+        "energyError": 0,
+        "angularError": 0,
+        "model": "sph-rock-v1",
+        "timeUnit": "s",
+        "bodies": [],
+        "config": {
+          "preset": 2,
+          "count": 200,
+          "speed": 5,
+          "angle": 0,
+          "duration": 1,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        }
+      }
+    },
+    {
+      "preset": 3,
+      "count": 600,
+      "preparation": {
+        "requestId": 11,
+        "stage": "ready",
+        "elapsedMs": 0.1570420004427433,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 0.12341700121760368
+          },
+          {
+            "stage": "orbits",
+            "elapsedMs": 0.12654200196266174
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 0.14320800080895424
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 0.1570420004427433
+          }
+        ]
+      },
+      "restarted": {
+        "state": "completed",
+        "error": "",
+        "preparation": {
+          "requestId": 13,
+          "stage": "ready",
+          "elapsedMs": 0.09258399903774261,
+          "stageMs": 0,
+          "previousRequestId": 0,
+          "previousStage": "",
+          "slow": false,
+          "events": [
+            {
+              "stage": "queued",
+              "elapsedMs": 0
+            },
+            {
+              "stage": "starting",
+              "elapsedMs": 0.04491699859499931
+            },
+            {
+              "stage": "orbits",
+              "elapsedMs": 0.06520900130271912
+            },
+            {
+              "stage": "snapshot",
+              "elapsedMs": 0.07866699993610382
+            },
+            {
+              "stage": "ready",
+              "elapsedMs": 0.09258399903774261
+            }
+          ]
+        },
+        "count": 2,
+        "frames": 240,
+        "selected": -1,
+        "time": 1,
+        "duration": 1,
+        "stepMs": 0.025458,
+        "steps": 257,
+        "maxSpeed": 29.78464698791504,
+        "meanDensity": 0,
+        "totalMass": 1.9884158434849337e+30,
+        "sph": {
+          "available": false
+        },
+        "energyError": -1.5316361836138933e-14,
+        "angularError": -7.72025422669568e-15,
+        "model": "nbody-v1",
+        "timeUnit": "year",
+        "bodies": [
+          {
+            "name": "恒星",
+            "surface": 0,
+            "id": 0,
+            "xAU": -0.0000030034805149625754,
+            "yAU": 3.428723416298851e-10,
+            "zAU": 0,
+            "speedKmS": 0.00008945787703851238,
+            "massSolar": 1
+          },
+          {
+            "name": "蓝色行星",
+            "surface": 1,
+            "id": 1,
+            "xAU": 0.9999970197677612,
+            "yAU": -0.00011415799235692248,
+            "zAU": 0,
+            "speedKmS": 29.78464698791504,
+            "massSolar": 0.000003003489609909593
+          }
+        ],
+        "config": {
+          "preset": 3,
+          "count": 600,
+          "speed": 1,
+          "angle": 0,
+          "duration": 1,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        }
+      }
+    },
+    {
+      "preset": 0,
+      "count": 200,
+      "preparation": {
+        "requestId": 14,
+        "stage": "ready",
+        "elapsedMs": 9.047000002115965,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 0.04966599866747856
+          },
+          {
+            "stage": "target",
+            "elapsedMs": 1.165582999587059
+          },
+          {
+            "stage": "impactor",
+            "elapsedMs": 4.086750000715256
+          },
+          {
+            "stage": "solver",
+            "elapsedMs": 4.375415999442339
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 9.001832999289036
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 9.047000002115965
+          }
+        ]
+      },
+      "restarted": {
+        "state": "completed",
+        "error": "",
+        "preparation": {
+          "requestId": 16,
+          "stage": "ready",
+          "elapsedMs": 20.994708999991417,
+          "stageMs": 0,
+          "previousRequestId": 0,
+          "previousStage": "",
+          "slow": false,
+          "events": [
+            {
+              "stage": "queued",
+              "elapsedMs": 0
+            },
+            {
+              "stage": "starting",
+              "elapsedMs": 0.05008399859070778
+            },
+            {
+              "stage": "target",
+              "elapsedMs": 8.290583997964859
+            },
+            {
+              "stage": "impactor",
+              "elapsedMs": 16.096916999667883
+            },
+            {
+              "stage": "solver",
+              "elapsedMs": 16.59604199975729
+            },
+            {
+              "stage": "snapshot",
+              "elapsedMs": 20.92408400028944
+            },
+            {
+              "stage": "ready",
+              "elapsedMs": 20.994708999991417
+            }
+          ]
+        },
+        "count": 212,
+        "frames": 9,
+        "selected": -1,
+        "time": 1.07,
+        "duration": 1,
+        "stepMs": 14.473541,
+        "steps": 9,
+        "maxSpeed": 4.999996574351153,
+        "meanDensity": 2701.5413501219564,
+        "totalMass": 13752636000354738000,
+        "sph": {
+          "available": true,
+          "pressureMinGPa": 1.0793487343721954e-8,
+          "pressureMaxGPa": 2.719248360683126,
+          "pressureMeanGPa": 0.06264581073726172,
+          "internalMinMJkg": 4.020241308951076e-16,
+          "internalMaxMJkg": 0.40446878145841025,
+          "internalMeanMJkg": 0.00911614551750136,
+          "damageMean": 1.0446511760342614e-7,
+          "damageMax": 0.000015666220695268367,
+          "kineticJ": 3.0410921002761485e+25,
+          "internalJ": 1.2537103102846166e+23
+        },
+        "energyError": 0,
+        "angularError": 0,
+        "model": "sph-rock-v1",
+        "timeUnit": "s",
+        "bodies": [],
+        "config": {
+          "preset": 0,
+          "count": 200,
+          "speed": 5,
+          "angle": 0,
+          "duration": 1,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        }
+      }
+    },
+    {
+      "preset": 0,
+      "count": 1200,
+      "preparation": {
+        "requestId": 17,
+        "stage": "ready",
+        "elapsedMs": 14.812084000557661,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 0.05295899882912636
+          },
+          {
+            "stage": "target",
+            "elapsedMs": 3.308499999344349
+          },
+          {
+            "stage": "impactor",
+            "elapsedMs": 7.065083999186754
+          },
+          {
+            "stage": "solver",
+            "elapsedMs": 8.652874998748302
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 14.359958998858929
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 14.812084000557661
+          }
+        ]
+      },
+      "restarted": {
+        "state": "completed",
+        "error": "",
+        "preparation": {
+          "requestId": 19,
+          "stage": "ready",
+          "elapsedMs": 23.477207999676466,
+          "stageMs": 0,
+          "previousRequestId": 0,
+          "previousStage": "",
+          "slow": false,
+          "events": [
+            {
+              "stage": "queued",
+              "elapsedMs": 0
+            },
+            {
+              "stage": "starting",
+              "elapsedMs": 0.8103329986333847
+            },
+            {
+              "stage": "target",
+              "elapsedMs": 6.483291998505592
+            },
+            {
+              "stage": "impactor",
+              "elapsedMs": 11.228666998445988
+            },
+            {
+              "stage": "solver",
+              "elapsedMs": 11.709249999374151
+            },
+            {
+              "stage": "snapshot",
+              "elapsedMs": 22.938582997769117
+            },
+            {
+              "stage": "ready",
+              "elapsedMs": 23.477207999676466
+            }
+          ]
+        },
+        "count": 1276,
+        "frames": 9,
+        "selected": -1,
+        "time": 1.07,
+        "duration": 1,
+        "stepMs": 78.543959,
+        "steps": 9,
+        "maxSpeed": 4.999999999931462,
+        "meanDensity": 2700.274517118211,
+        "totalMass": 13752636000354593000,
+        "sph": {
+          "available": true,
+          "pressureMinGPa": 3.1390211192333147e-31,
+          "pressureMaxGPa": 1.1297065025194135,
+          "pressureMeanGPa": 0.010318315021627989,
+          "internalMinMJkg": 1.1628935152858414e-30,
+          "internalMaxMJkg": 0.16771193291244546,
+          "internalMeanMJkg": 0.0015137107537187935,
+          "damageMean": 3.2836036223526944e-7,
+          "damageMax": 0.00008530056708838345,
+          "kineticJ": 3.051546554503998e+25,
+          "internalJ": 2.081751300571703e+22
+        },
+        "energyError": 0,
+        "angularError": 0,
+        "model": "sph-rock-v1",
+        "timeUnit": "s",
+        "bodies": [],
+        "config": {
+          "preset": 0,
+          "count": 1200,
+          "speed": 5,
+          "angle": 0,
+          "duration": 1,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        }
+      }
+    }
+  ]
+}

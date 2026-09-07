@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.30.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.31.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -20,6 +20,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 | 命令 | 用途与参数 |
 | --- | --- |
 | `listCommands` | 查询命令和参数目录；`--list` 是它的快捷方式 |
+| `getPreparation` | 只读准备阶段、单调计时、当前请求 ID、阶段事件和上一轮阻塞阶段 |
 | `getState` | 读取场景初值、模拟、相机、外观、窗口、编辑与放置状态 |
 | `getUiState` / `listUiActions` | 查询动作的 enabled／selected、输入字段和草稿 |
 | `uiAction` | `{ "action": "动作名" }`，执行与按钮共用的操作 |
@@ -27,6 +28,20 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 | `setPanel` | `{ "panel": -1 }` 关闭，0 参数、1 观察、2 实验库 |
 
 常用动作包括 `panel.parameters`、`panel.observe`、`panel.library`、`panel.close`、`ui.back`、`ui.focus`、`ui.restore`、`camera.in`、`camera.out`、`camera.reset`。命令返回表示处理完成，不保证界面动画已结束。
+
+## 准备、取消与等待
+
+准备期间主按钮显示“取消准备”（紧凑窗口为“取消”）；观察面板提供“停止实验”。共用动作 `simulation.cancel` 在 preparing／running／paused 有效，停止本次求解并保留已产生的画面和初始条件。之后点击开始会从初始条件重新计算，不从取消帧续算。重复取消会按不可用动作拒绝。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getPreparation
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"simulation.cancel"}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command start --wait-state completed
+```
+
+`getState.simulation.preparation` 与 `getPreparation.preparation` 同源，后者响应较小。显示实际阶段和秒数；当前阶段 15 秒无推进时 `slow=true`，表示耗时较长，不是已经判定失败。取消是阶段间协作退出；未返回的上游构建函数不会被强制终止。字段和阶段定义见 [准备诊断指南](reference/PREPARATION.md)。
+
+`--wait-state` 关联最初响应中的准备请求 ID，检测到另一个请求时立即失败。等待中取消／求解失败会提前返回；显式等待 cancelled 则可成功。超时或后续状态读取失败时返回 `ok:false`、`error`、最近的 `state` 与 `preparation`，保留最后配置、阶段和耗时，退出码为 2。首次请求尚未获得有效响应的传输错误仍为退出码 1。超时不自动取消、不重复执行，也不重启应用；旧版本没有请求 ID 时保留按状态等待的兼容行为。
 
 ## 主题实验库
 

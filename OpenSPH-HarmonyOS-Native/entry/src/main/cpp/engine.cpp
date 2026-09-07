@@ -13,6 +13,10 @@
 namespace lab {
 using namespace Sph;
 using Clock = std::chrono::steady_clock;
+static double monotonicMs(){return std::chrono::duration<double,std::milli>(Clock::now().time_since_epoch()).count();}
+static void preparationPoint(Engine& engine,uint64_t generation,const char* stage){
+    if(!engine.preparationStage(generation,stage))throw std::runtime_error("Preparation superseded or cancelled");
+}
 class Experiment : public IRun, public IRunCallbacks {
     Engine &engine;
     Config cfg;
@@ -34,6 +38,7 @@ class Experiment : public IRun, public IRunCallbacks {
         logWriter = makeAuto<NullLogWriter>();
     }
     void setUp(SharedPtr<Storage> storage) override {
+        preparationPoint(engine,generation,"target");
         InitialConditions ic(settings);
         BodySettings body;
         body.set(BodySettingsId::PARTICLE_COUNT, cfg.preset == 2 ? cfg.count : cfg.count * 3 / 4);
@@ -41,6 +46,7 @@ class Experiment : public IRun, public IRunCallbacks {
         auto target = ic.addMonolithicBody(*storage, SphericalDomain(Vector(0._f), Float(cfg.targetRadiusKm * 1000)), body);
         target.addRotation(Vector(0._f, 0._f, Float(cfg.targetSpin)), Vector(0._f));
         split = storage->getParticleCnt();
+        preparationPoint(engine,generation,cfg.preset==2?"solver":"impactor");
         if (cfg.preset == 2) {
             target.addRotation(Vector(0._f, 0._f, Float(cfg.speed * 0.003)), Vector(0._f));
         } else {
@@ -53,6 +59,7 @@ class Experiment : public IRun, public IRunCallbacks {
                 *storage, SphericalDomain(Vector(Float(distance), Float(offset), 0._f), Float(cfg.impactorRadiusKm * 1000)), body);
             impactor.addVelocity(Vector(Float(-cfg.speed * 1000), 0._f, 0._f));
         }
+        preparationPoint(engine,generation,"solver");
     }
     void tearDown(const Storage &, const Statistics &) override {}
     void snapshot(const Storage &storage, double time) {
@@ -96,6 +103,7 @@ class Experiment : public IRun, public IRunCallbacks {
         last = now;
     }
     void onSetUp(const Storage &storage, Statistics &) override {
+        preparationPoint(engine,generation,"snapshot");
         snapshot(storage, 0);
         engine.waitUntilRunning(generation);
         last = Clock::now();
@@ -119,6 +127,7 @@ class Experiment : public IRun, public IRunCallbacks {
     bool shouldAbortRun() const override { return engine.stopped(generation); }
 };
 static void runOrbit(Engine &engine, Config cfg, uint64_t generation) {
+    preparationPoint(engine,generation,"orbits");
     std::vector<OrbitBody> initial;
     for(const auto &b:cfg.orbitBodies)initial.push_back({b.massSolar,{b.xAU,b.yAU,b.zAU},{b.vxKmS*1000*YEAR/AU,b.vyKmS*1000*YEAR/AU,b.vzKmS*1000*YEAR/AU}});
     OrbitSystem system=cfg.preset==5?OrbitSystem(initial):OrbitSystem(cfg.preset,cfg.speed);
@@ -145,7 +154,7 @@ static void runOrbit(Engine &engine, Config cfg, uint64_t generation) {
         }
         engine.publish(f,generation,ms);
     };
-    publish(0);
+    preparationPoint(engine,generation,"snapshot");publish(0);
     while(time<cfg.duration&&!engine.stopped(generation)){
         if(!engine.waitUntilRunning(generation))return;
         auto begin=Clock::now();
@@ -210,6 +219,7 @@ void Engine::start(Config c, bool initiallyPaused) {
     current = Status{};
     current.state = "preparing";
     current.duration = c.duration;
+    preparation.begin(generation.load(),monotonicMs());
     cv.notify_all();
 }
 void Engine::pause(bool value) {
@@ -225,6 +235,7 @@ void Engine::pause(bool value) {
 }
 void Engine::cancel() {
     std::lock_guard<std::mutex> lock(mutex);
+    preparation.finish(generation.load(),"cancelled",monotonicMs());
     ++generation;
     pending = false;
     paused = false;
@@ -250,10 +261,17 @@ bool Engine::waitUntilRunning(uint64_t g) {
     cv.wait(lock, [&] { return !paused || stopped(g); });
     return !stopped(g);
 }
+bool Engine::preparationStage(uint64_t g,const std::string& stage) {
+    std::lock_guard<std::mutex> lock(mutex);
+    if(workerRequestId==g)workerStage=stage;
+    if(stopped(g))return false;
+    preparation.advance(g,stage,monotonicMs());return true;
+}
 void Engine::publish(std::shared_ptr<Frame> f, uint64_t g, double ms) {
     std::lock_guard<std::mutex> lock(mutex);
     if (stopped(g))
         return;
+    if(history.empty()){preparation.finish(g,"ready",monotonicMs());workerStage="simulation";}
     history.push_back(f);
     if (history.size() > maxFrames) {
         history.pop_front();
@@ -269,6 +287,7 @@ void Engine::publish(std::shared_ptr<Frame> f, uint64_t g, double ms) {
 Status Engine::status() {
     std::lock_guard<std::mutex> lock(mutex);
     Status s = current;
+    s.preparation=preparation.snapshot(monotonicMs(),workerRequestId,workerStage);
     s.config = config;
     s.frames = history.size();
     if (!history.empty()) {
@@ -344,10 +363,12 @@ void Engine::loop() {
             c = config;
             g = generation;
             pending = false;
+            workerRequestId=g;workerStage="starting";
+            preparation.advance(g,"starting",monotonicMs());
         }
         try {
             if(c.preset>=3) runOrbit(*this,c,g);
-            else {Experiment run(*this, c, g);Storage storage;run.run(storage, run);}
+            else {preparationPoint(*this,g,"starting");Experiment run(*this, c, g);Storage storage;run.run(storage, run);preparationStage(g,"cleanup");}
             std::lock_guard<std::mutex> lock(mutex);
             if (!stopped(g))
                 current.state = "completed";
@@ -356,14 +377,17 @@ void Engine::loop() {
             if (!stopped(g)) {
                 current.state = "failed";
                 current.error = e.what();
+                preparation.finish(g,"failed",monotonicMs());
             }
         } catch (const std::exception &e) {
             std::lock_guard<std::mutex> lock(mutex);
             if (!stopped(g)) {
                 current.state = "failed";
                 current.error = e.what();
+                preparation.finish(g,"failed",monotonicMs());
             }
         }
+        {std::lock_guard<std::mutex> lock(mutex);if(workerRequestId==g){workerRequestId=0;workerStage="idle";}}
     }
 }
 // Versioned, bounded playback format. This is visualization history, not a solver checkpoint.
@@ -502,6 +526,7 @@ bool Engine::loadReplay(const std::string &dir) {
     history = std::move(frames);
     current = Status{};
     current.state = "replay";
+    preparation=PreparationTracker{};
     current.configKnown = version >= 2;
     if (current.configKnown) config = saved;else config=Config{};
     current.duration = duration;

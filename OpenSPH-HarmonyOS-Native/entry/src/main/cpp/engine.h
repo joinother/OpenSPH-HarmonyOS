@@ -1,5 +1,6 @@
 #pragma once
 #include "sph_diagnostics.h"
+#include "preparation.h"
 #include <atomic>
 #include <condition_variable>
 #include <deque>
@@ -40,6 +41,7 @@ struct Frame {
     double centers[6] = {};
 };
 struct Status {
+    PreparationStatus preparation;
     SphDiagnostics sph;
     std::string state = "empty", error;
     int count = 0, frames = 0, selected = -1;
@@ -81,6 +83,8 @@ class Engine {
     // Solver-thread only callbacks. No ArkTS objects cross this boundary.
     bool stopped(uint64_t generation) const;
     bool waitUntilRunning(uint64_t generation);
+    // Cooperative cancellation points between expensive construction phases.
+    bool preparationStage(uint64_t generation,const std::string& stage);
     void publish(std::shared_ptr<Frame> frame, uint64_t generation, double stepMs);
 
   private:
@@ -90,6 +94,9 @@ class Engine {
     std::atomic<uint64_t> generation{0};
     std::atomic<bool> quit{false};
     bool pending = false, paused = false;
+    PreparationTracker preparation;
+    uint64_t workerRequestId=0;
+    std::string workerStage="idle";
     Config config;
     Status current;
     std::deque<std::shared_ptr<Frame>> history;

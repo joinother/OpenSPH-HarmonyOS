@@ -1,0 +1,351 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "actual stop and restart button hits in three window shapes",
+    "cancel preserves initial conditions and camera",
+    "restart uses a new preparation request",
+    "immersive and no rendering error"
+  ],
+  "results": [
+    {
+      "name": "wide",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 22.4,
+            "width": 707.2,
+            "height": 750.72
+          },
+          "compact": false,
+          "sidePanel": true,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 383.20000000000005,
+            "y": 98.4,
+            "width": 308,
+            "height": 516.72
+          },
+          "dock": {
+            "x": 143.60000000000002,
+            "y": 635.12,
+            "width": 420,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 98.4,
+            "width": 359.20000000000005,
+            "height": 524.72
+          }
+        },
+        "geometry": {
+          "widthPx": 2210,
+          "heightPx": 2416,
+          "topPx": 70,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 22
+        },
+        "viewportWidthVp": 707.2,
+        "viewportHeightVp": 773.12,
+        "widthVp": 707.2,
+        "heightVp": 773.12,
+        "immersive": true,
+        "safePx": {
+          "top": 70,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "taps": [
+        {
+          "id": "simulation-stop",
+          "bounds": [
+            1566,
+            1748,
+            1792,
+            1861
+          ]
+        },
+        {
+          "id": "simulation-main",
+          "bounds": [
+            947,
+            2148,
+            1338,
+            2304
+          ]
+        }
+      ],
+      "preparation": {
+        "requestId": 38,
+        "stage": "ready",
+        "elapsedMs": 22.657999999821186,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 0.25495800003409386
+          },
+          {
+            "stage": "target",
+            "elapsedMs": 2.0166659988462925
+          },
+          {
+            "stage": "impactor",
+            "elapsedMs": 7.281791001558304
+          },
+          {
+            "stage": "solver",
+            "elapsedMs": 7.747375000268221
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 22.594750002026558
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 22.657999999821186
+          }
+        ]
+      }
+    },
+    {
+      "name": "phone",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 20.48,
+            "width": 345.6,
+            "height": 761.6
+          },
+          "compact": false,
+          "sidePanel": false,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 12,
+            "y": 243.28,
+            "width": 321.6,
+            "height": 380.8
+          },
+          "dock": {
+            "x": 16,
+            "y": 644.08,
+            "width": 313.6,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 96.48,
+            "width": 321.6,
+            "height": 134.8
+          }
+        },
+        "geometry": {
+          "widthPx": 1080,
+          "heightPx": 2444,
+          "topPx": 64,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 25
+        },
+        "viewportWidthVp": 345.6,
+        "viewportHeightVp": 782.08,
+        "widthVp": 345.6,
+        "heightVp": 782.08,
+        "immersive": true,
+        "safePx": {
+          "top": 64,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "taps": [
+        {
+          "id": "simulation-stop",
+          "bounds": [
+            428,
+            1413,
+            654,
+            1526
+          ]
+        },
+        {
+          "id": "simulation-main",
+          "bounds": [
+            382,
+            2176,
+            773,
+            2332
+          ]
+        }
+      ],
+      "preparation": {
+        "requestId": 42,
+        "stage": "ready",
+        "elapsedMs": 10.185624998062849,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 0.0125419981777668
+          },
+          {
+            "stage": "target",
+            "elapsedMs": 1.1708339974284172
+          },
+          {
+            "stage": "impactor",
+            "elapsedMs": 4.444458998739719
+          },
+          {
+            "stage": "solver",
+            "elapsedMs": 4.746583998203278
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 10.11804199963808
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 10.185624998062849
+          }
+        ]
+      }
+    },
+    {
+      "name": "landscape",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 20.48,
+            "y": 0,
+            "width": 761.6,
+            "height": 345.6
+          },
+          "compact": true,
+          "sidePanel": true,
+          "headerHeight": 54,
+          "drawer": {
+            "x": 458.08000000000004,
+            "y": 64,
+            "width": 308,
+            "height": 269.6
+          },
+          "dock": {
+            "x": 36.480000000000004,
+            "y": 271.6,
+            "width": 393.6,
+            "height": 66
+          },
+          "scene": {
+            "x": 32.480000000000004,
+            "y": 64,
+            "width": 413.6,
+            "height": 195.60000000000002
+          }
+        },
+        "geometry": {
+          "widthPx": 2444,
+          "heightPx": 1080,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 64,
+          "rightPx": 0,
+          "revision": 28
+        },
+        "viewportWidthVp": 782.08,
+        "viewportHeightVp": 345.6,
+        "widthVp": 782.08,
+        "heightVp": 345.6,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 64,
+          "right": 0
+        }
+      },
+      "taps": [
+        {
+          "id": "simulation-stop",
+          "bounds": [
+            1800,
+            913,
+            2026,
+            1026
+          ]
+        },
+        {
+          "id": "simulation-main-compact",
+          "bounds": [
+            1735,
+            849,
+            1963,
+            1005
+          ]
+        }
+      ],
+      "preparation": {
+        "requestId": 46,
+        "stage": "ready",
+        "elapsedMs": 7.939917001873255,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 0.025875002145767212
+          },
+          {
+            "stage": "target",
+            "elapsedMs": 1.4322919994592667
+          },
+          {
+            "stage": "impactor",
+            "elapsedMs": 3.2380839996039867
+          },
+          {
+            "stage": "solver",
+            "elapsedMs": 3.4068749994039536
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 7.872250001877546
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 7.939917001873255
+          }
+        ]
+      }
+    }
+  ]
+}
