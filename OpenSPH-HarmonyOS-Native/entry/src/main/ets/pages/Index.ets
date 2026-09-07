@@ -1,3 +1,5 @@
+import { SphReference, SphReferenceSummary, SphComparisonPlot, sphComparisonPlot, sphReferenceSummary, sphParameterDifferences, sphComparisonCsv } from '../common/SphComparison';
+import { SphComparisonStore } from '../common/SphComparisonStore';
 import { sphPlot, sphCsv, sphMetricLabel, sphMetricIndex, sphMetricValue, sphWindowSummary, SphWindowSummary } from '../common/SphObservationModel';
 import { ObservationReference, ReferenceSummary, ComparisonPlot, comparisonPlot, referenceSummary, observationCsv } from '../common/ObservationComparison';
 import { ObservationStore } from '../common/ObservationStore';
@@ -185,6 +187,9 @@ struct Index {
   @State comparisonShown:boolean=true;
   @State comparisonError:string='';
   @State sphMetric:string='pressure';
+  @State sphReference:SphReference|undefined=undefined;
+  @State sphReferenceShown:boolean=true;
+  @State sphReferenceError:string='';
   @State sphObserved:SphObservation={sceneRevision:0,selected:-1,samples:[]};
   @State observationMetric:string='distance';
   @State observed:OrbitObservation={sceneRevision:0,body:1,name:'',selected:-1,samples:[]};
@@ -225,6 +230,24 @@ struct Index {
     if (this.info.state === 'failed') return '计算异常';
     if (this.info.state === 'replay') return '已载入回放';
     return '准备实验';
+  }
+  private sphComparisonView():SphComparisonPlot {return sphComparisonPlot(this.sphObserved,this.sphMetric,this.sphReferenceShown?this.sphReference?.data:undefined);}
+  private sphChart():ObservationPlot {return this.sphComparisonView().plot;}
+  private sphDifferences():string[] {return this.sphReference?sphParameterDifferences(this.info.config,this.sphReference.config):[];}
+  private reloadSphReference():void {
+    try{this.sphReference=SphComparisonStore.load(this.directory());this.sphReferenceError='';}
+    catch(e){this.sphReference=undefined;this.sphReferenceError='无法读取 SPH 参照 · '+String(e);}
+  }
+  private captureSphReference():void {
+    const captured=simulation.sphObservation(),source=simulation.status();
+    if(!source.config||source.config.preset>=3||!source.model||captured.samples.length<2||simulation.sphObservation().sceneRevision!==captured.sceneRevision)throw new Error('需要同一场景的至少两帧 SPH 记录');
+    const value:SphReference={schemaVersion:1,capturedAt:Date.now(),title:this.title,model:source.model,particleCount:source.count,config:source.config,data:captured};
+    try{this.sphReference=SphComparisonStore.save(this.directory(),value);this.sphReferenceShown=true;this.sphReferenceError='';this.notice='已保留本次结果 · 切换实验后可叠加比较';}
+    catch(e){this.sphReferenceError='保存 SPH 参照失败 · '+String(e);throw new Error(this.sphReferenceError);}
+  }
+  private clearSphReference():void {
+    try{SphComparisonStore.clear(this.directory());this.sphReference=undefined;this.sphReferenceError='';this.notice='已移除 SPH 参照 · 当前实验保留';}
+    catch(e){this.sphReferenceError='移除 SPH 参照失败 · '+String(e);throw new Error(this.sphReferenceError);}
   }
   private sphSummary():SphWindowSummary {return sphWindowSummary(this.sphObserved);}
   private sphView():ObservationPlot {return sphPlot(this.sphObserved,this.sphMetric);}
@@ -298,7 +321,7 @@ struct Index {
   }
   private directory(): string { return (this.getUIContext().getHostContext() as common.UIAbilityContext).filesDir; }
   aboutToAppear(): void {
-    this.refreshProjects();this.reloadReference();
+    this.refreshProjects();this.reloadReference();this.reloadSphReference();
     loadSkyPanorama(this.getUIContext().getHostContext() as common.UIAbilityContext).catch((error:Error) => {this.skyLoadError=error.message;});
     this.prepare(false);
     CliBridge.bind((command: string, payload: CommandPayload) => this.execute(command,payload));
@@ -836,6 +859,9 @@ struct Index {
     for(const metric of ['pressure','internal','damage','kinetic','energy','gravity','relativeKinetic','radius','radial'])add('sph.metric.'+metric,sphMetricLabel(metric),this.preset<3&&(sphMetricIndex(metric)<10||this.info.sph?.structure!==undefined),this.sphMetric===metric);
     add('sph.minimum','SPH 记录最小',this.preset<3&&this.sphView().available);add('sph.maximum','SPH 记录最大',this.preset<3&&this.sphView().available);
     add('color.3','压力',this.preset<3&&this.info.sph?.available===true,this.colorMode===3);add('color.4','比内能',this.preset<3&&this.info.sph?.available===true,this.colorMode===4);add('color.5','材料损伤',this.preset<3&&this.info.sph?.available===true,this.colorMode===5);
+    add('sph.reference.capture',this.sphReference?'替换 SPH 参照':'保存 SPH 参照',this.info.config!==undefined&&this.info.config.preset<3&&this.sphObserved.samples.length>=2);
+    add('sph.reference.toggle',this.sphReferenceShown?'隐藏 SPH 参照':'显示 SPH 参照',this.sphReference!==undefined,this.sphReferenceShown);
+    add('sph.reference.clear','移除 SPH 参照',this.sphReference!==undefined||this.sphReferenceError!=='');add('sph.reference.reload','重读 SPH 参照',true);
     add('comparison.capture',this.comparisonReference?'替换参照':'保存作参照',this.preset>=3&&this.observed.samples.length>=2);
     add('comparison.toggle',this.comparisonShown?'隐藏参照':'显示参照',this.comparisonReference!==undefined,this.comparisonShown);
     add('comparison.clear','移除参照',this.comparisonReference!==undefined||this.comparisonError!=='');add('comparison.reload','重试读取',this.comparisonError!=='');
@@ -987,6 +1013,10 @@ struct Index {
     else if(action==='orbit.plane.xz')this.vectorPlane='XZ';
     else if(action.startsWith('sph.metric.')){this.sphMetric=action.slice(11);this.refreshObservation();}
     else if(action==='sph.minimum'||action==='sph.maximum')this.seekSphExtreme(action==='sph.maximum');
+    else if(action==='sph.reference.capture')this.captureSphReference();
+    else if(action==='sph.reference.toggle')this.sphReferenceShown=!this.sphReferenceShown;
+    else if(action==='sph.reference.clear')this.clearSphReference();
+    else if(action==='sph.reference.reload'){this.reloadSphReference();if(this.sphReferenceError!=='')throw new Error(this.sphReferenceError);}
     else if(action==='comparison.capture')this.captureReference();
     else if(action==='comparison.toggle')this.comparisonShown=!this.comparisonShown;
     else if(action==='comparison.clear')this.clearReference();
@@ -1051,6 +1081,9 @@ struct Index {
       {name:'getSkyInfo',payload:'{} - provenance and sky rendering status'},
       {name:'getProjectedBodies',payload:'{} - last presented orbital frame; normalized top-left x/y, radius in viewport-height units; ignores UI occlusion'},
       {name:'pickBody',payload:'{x:0..1,y:0..1} - viewport hit test, shared focus action; hit=-1 leaves selection unchanged'},
+      {name:'getSphComparison',payload:'{} - shared axes, parameter differences, saved SPH provenance and interpolated cursor delta'},
+      {name:'getSphReference',payload:'{} - full saved SPH reference or null; independent from orbital reference'},
+      {name:'getSphComparisonTable',payload:'{} - selected metric raw current/reference CSV, seconds, no interpolated rows'},
       {name:'getSphWindowSummary',payload:'{} - read-only retained-window radius/kinetic/radial statistics; no equilibrium verdict'},
       {name:'getSphObservation',payload:'{} - retained double-precision SPH curve, metric, units, extrema and frame identity; read-only'},
       {name:'getSphTable',payload:'{} - raw SPH CSV and applied source configuration; no interpolation'},
@@ -1098,6 +1131,9 @@ struct Index {
     if(command==='getProjectedBodies')return JSON.stringify({ok:true,projection:simulation.projectedScene()});
     if(command==='pickBody'){const hit=await this.pickViewport(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,hit:hit});}
     if(command==='getPreparation'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,state:state.state,error:state.error,config:state.config,preparation:state.preparation});}
+    if(command==='getSphReference')return JSON.stringify({ok:true,reference:this.sphReference??null,error:this.sphReferenceError});
+    if(command==='getSphComparison'){this.refreshObservation();const source=simulation.status();return JSON.stringify({ok:true,metric:this.sphMetric,visible:this.sphReferenceShown,reference:this.sphReference?sphReferenceSummary(this.sphReference):undefined,currentConfig:source.config,currentModel:source.model,currentSceneRevision:this.sphObserved.sceneRevision,differences:this.sphReference?sphParameterDifferences(source.config,this.sphReference.config):[],chart:this.sphComparisonView(),error:this.sphReferenceError});}
+    if(command==='getSphComparisonTable'){this.refreshObservation();const source=simulation.status(),csv=sphComparisonCsv(this.sphObserved,this.sphMetric,this.sphReference?.data);return JSON.stringify({ok:true,metric:this.sphMetric,unit:this.sphView().unit,timeAlignment:'simulation-start',timeUnit:'s',csv,rows:csv.trim().split('\n').length-1,currentConfig:source.config,currentModel:source.model,currentSceneRevision:this.sphObserved.sceneRevision,currentAvailable:this.sphView().available,referenceAvailable:this.sphReference!==undefined&&sphPlot(this.sphReference.data,this.sphMetric).available,reference:this.sphReference?sphReferenceSummary(this.sphReference):undefined});}
     if(command==='getSphWindowSummary'){this.refreshObservation();return JSON.stringify({ok:true,config:simulation.status().config,summary:this.sphSummary()});}
     if(command==='getSphObservation'){this.refreshObservation();const reply:SphCurveReply={ok:true,metric:this.sphMetric,label:this.sphLabel(),data:{sceneRevision:this.sphObserved.sceneRevision,selected:this.sphObserved.selected,samples:(this.sphView().available?this.sphObserved.samples.map((s:SphObservationSample):SphCurveSample=>({frame:s.frame,time:s.time,value:sphMetricValue(s,sphMetricIndex(this.sphMetric))})):[])},plot:this.sphView()};return JSON.stringify(reply);}
     if(command==='getSphTable'){const data:SphObservation=simulation.sphObservation(),config:SimulationConfig|undefined=simulation.status().config;if(simulation.sphObservation().sceneRevision!==data.sceneRevision)throw new Error('场景已变化，请重试导出');return JSON.stringify({ok:true,rows:data.samples.length,timeUnit:'s',sceneRevision:data.sceneRevision,config,csv:sphCsv(data)});}
@@ -1230,21 +1266,53 @@ struct Index {
           ChoiceChip({label:'径向速度',active:this.sphMetric==='radial',onPress:()=>{this.press('sph.metric.radial');}}).id('sph-curve-radial')
         }
       }.width('100%')
-      if(this.sphView().available) {
-        Text(this.sphView().current.toPrecision(5)+' '+this.sphView().unit+' · '+this.sphView().currentTime.toFixed(2)+' s').id('sph-curve-current').fontSize(12).fontColor('#BDE9FF').width('100%')
-        Text(this.sphView().high.toPrecision(4)+' '+this.sphView().unit).fontSize(10).fontColor('#ABA6C0').width('100%')
+      if(this.sphChart().available) {
+        Text(this.sphChart().current.toPrecision(5)+' '+this.sphChart().unit+' · '+this.sphChart().currentTime.toFixed(2)+' s').id('sph-curve-current').fontSize(12).fontColor('#BDE9FF').width('100%')
+        if(this.sphComparisonView().referenceVisible){Text('青色 · 当前　金色 · 参照').id('sph-comparison-legend').fontSize(10).fontColor('#EBC08B').width('100%')}
+        Text(this.sphChart().high.toPrecision(4)+' '+this.sphChart().unit).fontSize(10).fontColor('#ABA6C0').width('100%')
         Stack({alignContent:Alignment.TopStart}) {
           Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath('M0 0 L240 0 M0 50 L240 50 M0 100 L240 100')).stroke('#414055').strokeWidth(1).fillOpacity(0)
-          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.sphView().path)).stroke('#A9E1EF').strokeWidth(2).fillOpacity(0)
-          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.sphView().cursorPath)).stroke('#CDB9F0').strokeWidth(1).fillOpacity(0)
+          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.sphChart().path)).stroke('#A9E1EF').strokeWidth(2).fillOpacity(0)
+          if(this.sphComparisonView().referenceVisible){Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.sphComparisonView().referencePath)).stroke('#EBC08B').strokeWidth(2).fillOpacity(0)}
+          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.sphChart().cursorPath)).stroke('#CDB9F0').strokeWidth(1).fillOpacity(0)
         }.id('sph-curve-plot').width(this.observationWidth()).height(this.observationWidth()*100/240).clip(true)
-        Text(this.sphView().low.toPrecision(4)+' '+this.sphView().unit+' · '+this.sphView().firstTime.toFixed(2)+'–'+this.sphView().lastTime.toFixed(2)+' s').fontSize(10).fontColor('#ABA6C0').width('100%')
+        Text(this.sphChart().low.toPrecision(4)+' '+this.sphChart().unit+' · '+this.sphChart().firstTime.toFixed(2)+'–'+this.sphChart().lastTime.toFixed(2)+' s').fontSize(10).fontColor('#ABA6C0').width('100%')
         Row({space:6}) {
           ChoiceChip({label:'记录最小',onPress:()=>{this.press('sph.minimum');}}).id('sph-curve-minimum')
           ChoiceChip({label:'记录最大',onPress:()=>{this.press('sph.maximum');}}).id('sph-curve-maximum')
         }.width('100%')
         Text('最近 '+this.sphObserved.samples.length+' / 240 帧；极值只代表保留的采样，不等于接触或破碎事件。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
       } else {Text(sphMetricIndex(this.sphMetric)>=10?'此回放缺少结构记录，重新计算后可查看':'等待完整 SPH 诊断记录').fontSize(12).fontColor('#B7C5D5')}
+      this.sphReferenceControls()
+    }.width('100%')
+  }
+  @Builder
+  sphReferenceControls() {
+    Column({space:7}) {
+      Button(this.sphReference?'替换为本次结果':'保存本次作参照',{type:ButtonType.Normal}).id('sph-reference-capture').width('100%').height(36).borderRadius(18).fontSize(12).backgroundColor('#334F416E').fontColor('#D9CCF5')
+        .enabled(this.sphObserved.samples.length>=2&&!this.ioBusy).onClick(()=>{this.press('sph.reference.capture');})
+      if(this.sphReference){
+        Text('参照 · '+this.sphReference.title).id('sph-reference-title').fontSize(12).fontColor('#EBC08B').width('100%')
+        Text(this.sphReference.particleCount+' 粒子 · '+this.sphReference.data.samples.length+' 帧 · '+this.sphReference.data.samples[0].time.toFixed(2)+'–'+this.sphReference.data.samples[this.sphReference.data.samples.length-1].time.toFixed(2)+' s').fontSize(10).fontColor('#B8AFA7').width('100%')
+        Text('参数差异 · 参照 → 当前').fontSize(11).fontColor('#DCCEF3').width('100%')
+        if(this.sphDifferences().length===0){Text('已记录的初始参数相同').fontSize(10).fontColor('#ABA6C0').width('100%')}
+        ForEach(this.sphDifferences(),(difference:string)=>{Text(difference).fontSize(10).fontColor('#B8AFA7').lineHeight(16).width('100%')},(difference:string):string=>difference)
+        Row({space:6}){
+          ChoiceChip({label:this.sphReferenceShown?'隐藏参照':'显示参照',active:this.sphReferenceShown,onPress:()=>{this.press('sph.reference.toggle');}}).id('sph-reference-toggle')
+          ChoiceChip({label:'移除参照',onPress:()=>{this.press('sph.reference.clear');}}).id('sph-reference-clear')
+        }.width('100%')
+        if(this.sphReferenceShown){
+          Text(this.sphComparisonView().deltaReady?'当前 − 参照 '+this.sphComparisonView().delta!.toPrecision(5)+' '+this.sphChart().unit+' · 参照按当前时刻线性插值':this.sphComparisonView().reason).id('sph-comparison-delta').fontSize(10).fontColor('#B7C5D5').lineHeight(16).width('100%')
+        }
+        Text('按各自开始后的秒数对齐；只比较保留记录，曲线差异不自动解释原因。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+      }
+      if(this.sphReferenceError!==''){
+        Text(this.sphReferenceError).fontSize(10).fontColor('#F4A993').width('100%')
+        Row({space:6}){
+          ChoiceChip({label:'重试读取',onPress:()=>{this.press('sph.reference.reload');}})
+          ChoiceChip({label:'移除参照',onPress:()=>{this.press('sph.reference.clear');}})
+        }.width('100%')
+      }
     }.width('100%')
   }
   @Builder

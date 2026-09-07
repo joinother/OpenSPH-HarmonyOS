@@ -1,8 +1,8 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.37.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.38.0；更新日期：2026-09-08（Asia/Shanghai）。
 
-在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
+在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
 ## 开始使用
 
@@ -452,6 +452,30 @@ CLI 验证覆盖状态和共享动作；实际触摸、键盘焦点、动画观�
 实验库动作 `theme.direct-impact` 与 `theme.prepared-impact` 提供两组相同基础参数的对照，可用 `theme.compare` 切换并重新准备。模型身份为 `sph-rock-prepared-v1`，命名实验必须与正的准备时长、自引力设置相符。v9 回放在原 108 字节配置头之后增加准备时长 double，再写原 v8 帧内容；旧 v1–v8 仍按原物理身份读取，未保存的准备参数不会补造。旧应用应拒绝新模型／版本。
 
 预松弛期间的耗散不属于碰撞历史，准备完才施加自转／撞击速度，首帧从 0 秒开始。16／64 秒为计算时长而非设备等待时长，也不是平衡或长时稳定保证。详见 [物理流程与对照](reference/SPH-RELAXATION.md)。
+
+## SPH 两次实验对照
+
+在观察面板保存本次结果后，可切换主题或修改参数重新运行。SPH 参照与轨道参照分别保存；替换和移除只影响对应参照，不改当前模拟。参照是最多 240 帧的诊断记录，不能从其中恢复物理求解。
+
+| 动作／命令 | 行为 |
+| --- | --- |
+| `uiAction` → `sph.reference.capture` | 保存或替换本次 SPH 结果，使用已应用的模型、参数和实际粒子数；至少两帧 |
+| `uiAction` → `sph.reference.toggle` | 显示／隐藏金色参照；不改变导出数据 |
+| `uiAction` → `sph.reference.clear` | 移除本地 SPH 参照 |
+| `uiAction` → `sph.reference.reload` | 重新读取本地参照，损坏时报告错误并保留原文件 |
+| `getSphComparison` | 九种指标之一的共用坐标、原始模型参数、差异清单、重叠状态、游标插值差值和参照摘要 |
+| `getSphReference` | 完整已保存参照或 null，以及读取错误 |
+| `getSphComparisonTable` | 当前指标的两组原始 CSV，最多 480 行，附单位、参数、窗口范围和可用标记 |
+
+指标由已有 `sph.metric.pressure/internal/damage/kinetic/energy/gravity/relativeKinetic/radius/radial` 动作选择。青色当前、金色参照，按各自模拟开始后的秒数对齐；不平移窗口首帧、不在范围外外推。差值仅为当前游标时刻的线性插值显示，CSV 保留实际采样；两组记录长度可不同。旧回放缺少结构指标时不填零，返回不可用状态；导出不包含缺失的系列。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"sph.reference.capture"}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getSphComparison
+node scripts/export-sph-comparison.mjs --device 127.0.0.1:5555 --output /tmp/sph-comparison.csv
+```
+
+导出同时写同名 `.metadata.json`，已有文件不会覆盖；仅导出当前选中指标，完整十／十四项诊断仍使用 `getSphTable`，已保存参照的全部诊断在 `getSphReference` 中。详细定义见 [SPH 对照](reference/SPH-COMPARISON.md)。
 
 ## 静止岩球与记录窗口
 

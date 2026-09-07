@@ -1,15 +1,17 @@
 # 文档目录
 
-> 类型：当前文档索引；源码版本：0.37.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前文档索引；源码版本：0.38.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 先阅读 [项目概览](../README.md)，操作应用使用 [CLI 指南](CLI.md)，维护资料遵循 [文档流程](WORKFLOW.md) 和 [开发约定](../AGENTS.md)。本目录区分当前说明与历史记录；归档内容不覆盖当前规则。
 
-最新版本：[0.37.0 静止岩球释放](releases/RELEASE-0.37.0.md)。
+最新版本：[0.38.0 SPH 实验对照](releases/RELEASE-0.38.0.md)。
 
 ## 当前参考
 
 | 文档 | 用途 |
 | --- | --- |
+| [预研实施核对](reference/RESEARCH-IMPLEMENTATION.md) | 预研建议与已交付能力、部分实现和未完成主线的对应 |
+| [SPH 实验对照](reference/SPH-COMPARISON.md) | 本地参照、共用坐标、参数差异与原始数据导出 |
 | [环与完整碰撞主线](reference/RING-AND-COLLISION.md) | 同源密度环、受控扰动的边界，以及行星结构／自引力／再聚合优先级 |
 | [天体程序化生成专题](research/PROCEDURAL-CELESTIAL-GENERATION-2026-09-07.md) | Baopinsui 视频索引与 NPGS 10 份文件选读、9 个开源候选、逐天体种子／地貌／大气路线与 8 个预设；未播放视频或接入新代码 |
 | [行星独立外观](reference/SURFACE-GENERATION.md) | 地表／云层种子、后台生成、独立历史、v3 存档与设备预算 |
@@ -43,6 +45,10 @@
 
 | 版本 | 主题 |
 | --- | --- |
+| [0.37.0](releases/RELEASE-0.37.0.md) | 静止岩球释放、记录窗口统计与完整导出 |
+| [0.36.0](releases/RELEASE-0.36.0.md) | 岩体独立预松弛与准备后组装碰撞 |
+| [0.35.0](releases/RELEASE-0.35.0.md) | SPH 结构与能量诊断 |
+| [0.34.0](releases/RELEASE-0.34.0.md) | SPH 材料自引力 |
 | [0.33.1](releases/RELEASE-0.33.1.md) | 近看保留太阳与其他天体、方向投影、遮挡与点选一致 |
 | [0.33.0](releases/RELEASE-0.33.0.md) | 同源密度环、局部速度扰动、版本化保存及跨场景竞态修复 |
 | [0.32.0](releases/RELEASE-0.32.0.md) | 独立地貌与云层、后台生成、外观历史及 v3 配方 |

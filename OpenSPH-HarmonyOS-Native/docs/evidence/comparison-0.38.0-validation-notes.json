@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "date": "2026-09-08",
+  "timezone": "Asia/Shanghai",
+  "notes": [
+    "First host run failed only the expected sorted filename list after creating a separately named SPH reference file; expectation corrected. Final 120 host tests pass.",
+    "Build and installed-app acceptance passed on first run; native solver unchanged, historical numerical matrices not rerun or claimed as new validation.",
+    "Initial user experiment was running; existing saveReplay pauses it and captured a consistent snapshot ending at 38.87 seconds; later paused status reached 39.02. Restoration targets that saved history as replay, not a resumable integrator checkpoint.",
+    "Reviewed local research implementation sections and current evidence, no claim of new complete website/source/video audit.",
+    "First restoration assertion incorrectly used status queried after save as the saved-file endpoint. Independently decoded v8 binary establishes actual 38.87-second endpoint. Accepted restoration verifies every diagnostic from the file and exact full replay byte roundtrip; original query/log/backup bytes retained. Existing running save can be one in-flight step earlier than later paused status; no native behavior changed."
+  ]
+}

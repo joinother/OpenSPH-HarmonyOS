@@ -1,0 +1,62 @@
+{
+  "ok": true,
+  "metric": "relativeKinetic",
+  "unit": "J",
+  "timeAlignment": "simulation-start",
+  "timeUnit": "s",
+  "rows": 432,
+  "currentConfig": {
+    "preset": 2,
+    "count": 200,
+    "speed": 0,
+    "angle": 0,
+    "duration": 32,
+    "targetRadiusKm": 100,
+    "impactorRadiusKm": 60,
+    "targetDensity": 2700,
+    "impactorDensity": 2700,
+    "selfGravity": true,
+    "targetSpin": 0,
+    "seed": 1234
+  },
+  "currentModel": "sph-rock-gravity-v1",
+  "currentSceneRevision": 3,
+  "currentAvailable": true,
+  "referenceAvailable": true,
+  "reference": {
+    "capturedAt": 1788805751372,
+    "title": "撤去阻尼之后",
+    "model": "sph-rock-prepared-v1",
+    "particleCount": 210,
+    "config": {
+      "preset": 2,
+      "count": 200,
+      "speed": 0,
+      "angle": 0,
+      "duration": 32,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "relaxationSeconds": 64,
+      "selfGravity": true,
+      "targetSpin": 0,
+      "seed": 1234
+    },
+    "count": 216,
+    "firstTime": 0,
+    "lastTime": 32.11999999999988,
+    "window": {
+      "available": true,
+      "reason": "",
+      "sceneRevision": 2,
+      "firstTime": 0,
+      "lastTime": 32.11999999999988,
+      "samples": 216,
+      "includesInitial": true,
+      "maxRadiusChangePercent": 0.0006774283994981367,
+      "meanKineticJ": 2609233915328480,
+      "peakAbsRadialMS": 0.021710432627937773
+    }
+  }
+}
