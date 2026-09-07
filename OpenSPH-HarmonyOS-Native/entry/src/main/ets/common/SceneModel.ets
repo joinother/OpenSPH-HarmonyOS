@@ -47,7 +47,7 @@ export function validateRecipe(r:ExperimentRecipe,scene:SceneDefinition):void {
 function validateRecipeCamera(c:RecipeCamera,maxFocus:number,preset:number):void {
   if(!c)throw new Error('缺少观察视角');
   check(c.yaw,-Number.MAX_VALUE,Number.MAX_VALUE);check(c.pitch,-1.5,1.5);check(c.zoom,.5,15);
-  check(c.focus,-1,maxFocus,true);check(c.color,0,preset>=3?1:2,true);
+  check(c.focus,-1,maxFocus,true);check(c.color,0,preset>=3?1:5,true);
 }
 export function validateConfig(c: SimulationConfig): void {
   if(!c || typeof c !== 'object') throw new Error('缺少场景配置');

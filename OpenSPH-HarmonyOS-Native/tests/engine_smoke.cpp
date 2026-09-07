@@ -24,6 +24,13 @@ void awaitState(Engine &e, const std::string &value) {
     }
     throw std::runtime_error("Timed out: " + value);
 }
+std::string legacySph(const std::string &data) {
+    require(data.size()>108&&data[4]==5,"expected SPH v5");
+    std::string result=data.substr(0,108);result[4]=2;size_t at=108;uint32_t n=0;std::memcpy(&n,data.data()+8,4);
+    for(uint32_t i=0;i<n;++i){uint32_t count=0;require(at+4<=data.size(),"v5 count missing");std::memcpy(&count,data.data()+at,4);
+        size_t bytes=84+size_t(count)*sizeof(Particle);require(at+bytes+80+size_t(count)*sizeof(SphScalar)<=data.size(),"v5 truncated");result+=data.substr(at,bytes);at+=bytes+80+size_t(count)*sizeof(SphScalar);}
+    require(at==data.size(),"v5 trailing data");return result;
+}
 int main(int argc, char **argv) {
     try {
         std::string dir = argc > 1 ? argv[1] : ".";
@@ -47,6 +54,12 @@ int main(int argc, char **argv) {
             e.pause(false);
             awaitState(e, "completed");
             auto end = e.frame();
+            require(initial->sph.available&&end->sph.available&&end->scalars.size()==end->particles.size(),"missing SPH diagnostics");
+            require(validSphDiagnostics(end->sph),"invalid SPH aggregate");
+            for(const auto &p:end->scalars)require(validSphScalar(p),"invalid SPH scalar");
+            require(std::abs(end->sph.values[InternalJ]/end->totalMass/1e6-end->sph.values[InternalMean])<1e-9,"internal energy weighting");
+            if(preset==0)require(end->sph.values[PressureMax]>0,"collision pressure absent");
+            std::cout<<"SPH_DIAGNOSTICS preset="<<preset<<" pressureMaxGPa="<<end->sph.values[PressureMax]<<" internalMeanMJkg="<<end->sph.values[InternalMean]<<" damageMax="<<end->sph.values[DamageMax]<<std::endl;
             require(end && end->time >= 10.0 && end->time <= 10.15, "time did not advance");
             require(std::abs(end->totalMass / initial->totalMass - 1) < 1e-12, "mass not conserved");
             bool moved = false;
@@ -64,6 +77,8 @@ int main(int argc, char **argv) {
             require(e.loadReplay(dir), "load failed");
             e.seek(-1);
             auto restored = e.frame();
+            require(restored->sph.values==end->sph.values&&restored->sph.available,"replay diagnostic summary changed");
+            require(restored->scalars.size()==end->scalars.size()&&std::memcmp(restored->scalars.data(),end->scalars.data(),end->scalars.size()*sizeof(SphScalar))==0,"replay diagnostic scalars changed");
             require(restored->particles.size() == end->particles.size(), "replay particle count changed");
             require(std::memcmp(restored->particles.data(), end->particles.data(),
                                 end->particles.size() * sizeof(Particle)) == 0,
@@ -71,6 +86,7 @@ int main(int argc, char **argv) {
             e.start(c);
             awaitState(e, "completed");
             auto repeated = e.frame();
+            for(size_t k=0;k<10;++k)require(std::abs(repeated->sph.values[k]-end->sph.values[k])<=1e-10*std::max(1.,std::abs(end->sph.values[k])),"repeat diagnostics exceeded floating-point tolerance");
             require(repeated->particles.size() == end->particles.size(), "repeat count changed");
             require(std::memcmp(repeated->particles.data(), end->particles.data(),
                                 end->particles.size() * sizeof(Particle)) == 0,
@@ -96,8 +112,20 @@ int main(int argc, char **argv) {
                 std::ifstream source(path,std::ios::binary);
                 std::string data((std::istreambuf_iterator<char>(source)),std::istreambuf_iterator<char>());
                 source.close();
+                uint32_t firstCount=0;std::memcpy(&firstCount,data.data()+108,4);
+                const size_t diagnosticsAt=108+84+size_t(firstCount)*sizeof(Particle);
+                for(int field=0;field<3;++field){std::string bad=data;
+                    if(field==0){double value=NAN;std::memcpy(&bad[diagnosticsAt+16],&value,8);}
+                    if(field==1){float value=1.5f;std::memcpy(&bad[diagnosticsAt+80+8],&value,4);}
+                    if(field==2)bad.resize(bad.size()-1);
+                    {std::ofstream out(path,std::ios::binary|std::ios::trunc);out.write(bad.data(),bad.size());}
+                    const auto old=e.frame();require(!e.loadReplay(dir),"invalid v5 diagnostics accepted");require(e.frame()==old,"invalid v5 replay changed active scene");
+                }
                 // Legacy v1 has the same frame records but no configuration block.
-                std::string legacy=data.substr(0,20)+data.substr(108);
+                std::string v2=legacySph(data);
+                {std::ofstream out(path,std::ios::binary|std::ios::trunc);out.write(v2.data(),v2.size());}
+                require(e.loadReplay(dir)&&!e.status().sph.available,"v2 diagnostic absence");
+                std::string legacy=v2.substr(0,20)+v2.substr(108);
                 legacy[4]=1;
                 {std::ofstream out(path,std::ios::binary|std::ios::trunc);out.write(legacy.data(),legacy.size());}
                 require(e.loadReplay(dir) && !e.status().configKnown,"legacy replay compatibility failed");

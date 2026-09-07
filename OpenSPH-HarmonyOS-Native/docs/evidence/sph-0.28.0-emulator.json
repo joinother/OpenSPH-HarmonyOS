@@ -1,0 +1,264 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "three actual OpenSPH experiments expose finite signed pressure/internal energy/cubed damage",
+    "mass-weighted energy identity",
+    "all three colors preserve solver, camera pose and surface",
+    "timeline selection matches initial/final diagnostics",
+    "orbital model unavailable and correct time unit",
+    "existing comparison and projects preserved"
+  ],
+  "results": [
+    {
+      "preset": 0,
+      "initial": {
+        "ok": true,
+        "time": 0,
+        "timeUnit": "s",
+        "selected": -1,
+        "frameCount": 1,
+        "model": "sph-rock-v1",
+        "config": {
+          "preset": 0,
+          "count": 200,
+          "speed": 5,
+          "angle": 0,
+          "duration": 10,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "diagnostics": {
+          "available": true,
+          "pressureMinGPa": 0,
+          "pressureMaxGPa": 0,
+          "pressureMeanGPa": 0,
+          "internalMinMJkg": 0,
+          "internalMaxMJkg": 0,
+          "internalMeanMJkg": 0,
+          "damageMean": 0,
+          "damageMax": 0,
+          "kineticJ": 3.053628059289282e+25,
+          "internalJ": 0
+        },
+        "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+      },
+      "final": {
+        "ok": true,
+        "time": 10.070000000000013,
+        "timeUnit": "s",
+        "selected": -1,
+        "frameCount": 69,
+        "model": "sph-rock-v1",
+        "config": {
+          "preset": 0,
+          "count": 200,
+          "speed": 5,
+          "angle": 0,
+          "duration": 10,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "diagnostics": {
+          "available": true,
+          "pressureMinGPa": 0.0014950528116635452,
+          "pressureMaxGPa": 77.04985223450142,
+          "pressureMeanGPa": 3.7269075221983807,
+          "internalMinMJkg": 2.961284040726037e-7,
+          "internalMaxMJkg": 8.350813737552182,
+          "internalMeanMJkg": 0.42738420346659883,
+          "damageMean": 0.00017266664605444692,
+          "damageMax": 0.01171404788459797,
+          "kineticJ": 2.465907514409691e+25,
+          "internalJ": 5.877659382577677e+24
+        },
+        "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+      },
+      "count": 212,
+      "mass": 13752636000354738000
+    },
+    {
+      "preset": 1,
+      "initial": {
+        "ok": true,
+        "time": 0,
+        "timeUnit": "s",
+        "selected": -1,
+        "frameCount": 1,
+        "model": "sph-rock-v1",
+        "config": {
+          "preset": 1,
+          "count": 200,
+          "speed": 5,
+          "angle": 45,
+          "duration": 10,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "diagnostics": {
+          "available": true,
+          "pressureMinGPa": 0,
+          "pressureMaxGPa": 0,
+          "pressureMeanGPa": 0,
+          "internalMinMJkg": 0,
+          "internalMaxMJkg": 0,
+          "internalMeanMJkg": 0,
+          "damageMean": 0,
+          "damageMax": 0,
+          "kineticJ": 3.053628059289282e+25,
+          "internalJ": 0
+        },
+        "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+      },
+      "final": {
+        "ok": true,
+        "time": 10.070000000000013,
+        "timeUnit": "s",
+        "selected": -1,
+        "frameCount": 69,
+        "model": "sph-rock-v1",
+        "config": {
+          "preset": 1,
+          "count": 200,
+          "speed": 5,
+          "angle": 45,
+          "duration": 10,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "diagnostics": {
+          "available": true,
+          "pressureMinGPa": 0.0003857321369632297,
+          "pressureMaxGPa": 62.12546567600741,
+          "pressureMeanGPa": 2.2071377575307913,
+          "internalMinMJkg": 2.0655078012486775e-8,
+          "internalMaxMJkg": 7.099612876863126,
+          "internalMeanMJkg": 0.25818381049297945,
+          "damageMean": 0.0005100376750020962,
+          "damageMax": 0.026720718228251634,
+          "kineticJ": 2.698582965811917e+25,
+          "internalJ": 3.5507079668945156e+24
+        },
+        "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+      },
+      "count": 212,
+      "mass": 13752636000354738000
+    },
+    {
+      "preset": 2,
+      "initial": {
+        "ok": true,
+        "time": 0,
+        "timeUnit": "s",
+        "selected": -1,
+        "frameCount": 1,
+        "model": "sph-rock-v1",
+        "config": {
+          "preset": 2,
+          "count": 200,
+          "speed": 2,
+          "angle": 0,
+          "duration": 10,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "diagnostics": {
+          "available": true,
+          "pressureMinGPa": 0,
+          "pressureMaxGPa": 0,
+          "pressureMeanGPa": 0,
+          "internalMinMJkg": 0,
+          "internalMaxMJkg": 0,
+          "internalMeanMJkg": 0,
+          "damageMean": 0,
+          "damageMax": 0,
+          "kineticJ": 8.02831323689769e+23,
+          "internalJ": 0
+        },
+        "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+      },
+      "final": {
+        "ok": true,
+        "time": 10.070000000000013,
+        "timeUnit": "s",
+        "selected": -1,
+        "frameCount": 69,
+        "model": "sph-rock-v1",
+        "config": {
+          "preset": 2,
+          "count": 200,
+          "speed": 2,
+          "angle": 0,
+          "duration": 10,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "diagnostics": {
+          "available": true,
+          "pressureMinGPa": -0.08848564909799062,
+          "pressureMaxGPa": -0.027063380110336134,
+          "pressureMeanGPa": -0.056600420274239026,
+          "internalMinMJkg": 0.00002753984599637008,
+          "internalMaxMJkg": 0.000845789962222534,
+          "internalMeanMJkg": 0.0002104079511677051,
+          "damageMean": 0.10045465156396122,
+          "damageMax": 0.23412814862863168,
+          "kineticJ": 8.00451726136326e+23,
+          "internalJ": 2.3796578651232314e+21
+        },
+        "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+      },
+      "count": 210,
+      "mass": 11309733552923247000
+    }
+  ],
+  "orbital": {
+    "ok": true,
+    "time": 0,
+    "timeUnit": "year",
+    "selected": -1,
+    "frameCount": 1,
+    "model": "nbody-v1",
+    "config": {
+      "preset": 3,
+      "count": 200,
+      "speed": 1,
+      "angle": 0,
+      "duration": 1,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "targetSpin": 0,
+      "seed": 1234
+    },
+    "diagnostics": {
+      "available": false
+    },
+    "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+  }
+}

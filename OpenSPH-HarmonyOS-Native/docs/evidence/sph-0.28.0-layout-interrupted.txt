@@ -1,0 +1,27 @@
+node:internal/errors:999
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /opt/homebrew/Cellar/node/26.7.0/bin/node /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command start --payload-json {} --wait-state completed
+    at genericNodeError (node:internal/errors:999:15)
+    at wrappedFn (node:internal/errors:544:14)
+    at checkExecSyncError (node:child_process:942:11)
+    at execFileSync (node:child_process:978:15)
+    at call (file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-sph-layout-emulator.mjs:11:54)
+    at file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-sph-layout-emulator.mjs:19:196
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  status: 2,
+  signal: null,
+  output: [
+    null,
+    '{\n  "ok": false,\n  "error": "Timed out waiting for state completed"\n}\n',
+    ''
+  ],
+  pid: 1093,
+  stdout: '{\n  "ok": false,\n  "error": "Timed out waiting for state completed"\n}\n',
+  stderr: ''
+}
+
+Node.js v26.7.0

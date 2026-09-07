@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.27.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.28.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -199,6 +199,26 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getRingTrace --pa
 
 验证入口：`bash scripts/test-ring-trace.sh` 为独立物理与计时基线；`node scripts/test-ring-trace-emulator.mjs 127.0.0.1:5555` 会切换场景、折叠和方向，调用方需事先保存并在结束后恢复会话。椭圆验收使用 `node scripts/test-elliptic-trace-emulator.mjs 127.0.0.1:5555`。详见 [0.20.0 验证记录](releases/RELEASE-0.20.0.md)。
 
+## SPH 碰撞诊断
+
+预设 0–2 的观察面板提供压力、比内能与材料损伤。`uiAction` 的 `color.3`、`color.4`、`color.5` 与三个界面按钮共用处理；无诊断帧时这些动作禁用。0 为原色、1 速度、2 密度。切换着色不重算、不移动时间轴；所选颜色随命名实验配方保存，切入轨道模式时 2–5 恢复为 0。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getSphDiagnostics
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"color.3"}'
+```
+
+`getSphDiagnostics` 只读取所选帧，返回 `time`、`timeUnit`、`selected`、`frameCount`、`model`、已应用 `config` 和 `diagnostics`；SPH 的时间单位为 `s`，轨道为 `year`。`getState.simulation.sph` 具有同一组诊断字段。`available:false` 时数值字段省略，不能当成零测量。
+
+| 字段 | 单位／含义 |
+| --- | --- |
+| `pressureMinGPa/MaxGPa/MeanGPa`（完整名如 `pressureMaxGPa`） | 有符号压力，GPa；Mean 为质量加权 |
+| `internalMinMJkg/MaxMJkg/MeanMJkg`（完整名如 `internalMaxMJkg`） | 比内能，MJ/kg；Mean 为质量加权 |
+| `damageMean`、`damageMax` | 上游标量 DAMAGE 的三次方，0–1；Mean 为质量加权 |
+| `kineticJ`、`internalJ` | 所有粒子的动能、内能总量，J；不包含完整弹性／引力能量预算 |
+
+压力色标为蓝 −10／白 0／红 +10 GPa，比内能为深蓝 0 至金色 10 MJ/kg，损伤为青色 0 至红色 1。色标固定且显示饱和；原始读数不裁切。比内能不换算为温度，损伤不代表碎片计数。v5 保存逐帧诊断；v1/v2 缺少此数据时提示重新运行，选择新色号时渲染回退原色。轨道仍使用 v3/v4。详情见 [诊断与复现](reference/SPH-DIAGNOSTICS.md)。
+
 ## 场景、求解与回放
 
 | 命令 | 行为 |
@@ -208,7 +228,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getRingTrace --pa
 | `reset` | 重新初始化并暂停 |
 | `seek` | `{ "frame": -1 }` 回最新帧，或指定保留帧索引；暂停求解并停止自动回放 |
 | `listProjects` / `saveProject` / `loadProject` | 列表／按 title 保存／按 id 载入命名实验配方，最多 50 个 |
-| `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v4 |
+| `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v5 |
 
 预设 0–2 为 SPH，3 为双体，4 为四体，5 为自定义。完整配置范围以命令目录和应用校验为准。`getState.definition` 是初始条件，`simulation.bodies` 为当前显示的质心参考系数据；SPH 时间单位为秒，轨道为儒略年。
 
@@ -255,7 +275,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setAppearance --p
 
 `setSky` 接受 mode（0 干净背景、1 星空、2 银河）与 brightness（0–1）；UI 字段 `sky.brightness` 使用 0–100 百分比，不能混用。`getSkyInfo` 返回当前资源来源：摄影就绪时 reference 为 `photographic-panorama`，否则为 `procedural-fallback`；同时返回 ESO/S. Brunier 署名、素材／许可链接、纹理尺寸、loadError 与 rendering。银河摄影为 2048×1024，星空模式仍使用 6500 个程序星点；`proceduralStarsVisible` 描述稳定模式下是否使用程序星点。切换动画中的混合权重另看渲染状态。这不是可定位的星表。
 
-`setCamera` 需要完整 yaw（-100–100）、pitch（-1.5–1.5）、zoom（0.5–15）、focus（-1 或有效天体索引）、color（0–2，轨道模式为 0/1）。普通导航优先使用语义动作。
+`setCamera` 需要完整 yaw（-100–100）、pitch（-1.5–1.5）、zoom（0.5–15）、focus（-1 或有效天体索引）、color（0–5，轨道模式为 0/1）。普通导航优先使用语义动作。
 
 摄影资源需等待 `rendering.panoramaReady`，载入淡入完成需 `panoramaBlend === 1`；`skyReady` 仅证明背景渲染器可用。摄影加载失败时保留程序背景，检查 loadError；GPU 上传错误见 rendering.error。
 

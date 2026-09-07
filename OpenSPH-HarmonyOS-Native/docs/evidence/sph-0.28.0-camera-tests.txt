@@ -1,0 +1,1 @@
+PASS native camera requests: cancel freeze, explicit resume, retarget continuity, stale IDs, presented completion, invalid atomicity, scene replacement, zero duration, bounded history and cadence

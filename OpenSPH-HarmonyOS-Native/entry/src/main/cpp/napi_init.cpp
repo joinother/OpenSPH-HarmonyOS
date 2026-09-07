@@ -222,6 +222,10 @@ napi_value status(napi_env e, napi_callback_info) {
     num(e, o, "maxSpeed", s.maxSpeed);
     num(e, o, "meanDensity", s.meanDensity);
     num(e,o,"totalMass",s.totalMass);
+    napi_value diag,available;napi_create_object(e,&diag);napi_get_boolean(e,s.sph.available,&available);napi_set_named_property(e,diag,"available",available);
+    const char *keys[]={"pressureMinGPa","pressureMaxGPa","pressureMeanGPa","internalMinMJkg","internalMaxMJkg","internalMeanMJkg","damageMean","damageMax","kineticJ","internalJ"};
+    if(s.sph.available)for(int k=0;k<10;++k)num(e,diag,keys[k],s.sph.values[k]);
+    napi_set_named_property(e,o,"sph",diag);
     num(e,o,"energyError",s.energyError);num(e,o,"angularError",s.angularError);
     str(e,o,"model",s.config.preset==5?"nbody-custom-v1":(s.config.preset>=3?"nbody-v1":"sph-rock-v1"));
     str(e,o,"timeUnit",s.config.preset>=3?"year":"s");

@@ -1,0 +1,73 @@
+{
+  "ok": true,
+  "platforms": [
+    "macOS arm64 Apple Clang",
+    "HarmonyOS emulator arm64 DevEco Clang"
+  ],
+  "tolerance": 1e-8,
+  "errorDefinition": "abs(device-reference)/max(1,abs(reference))",
+  "scope": "Three 200-particle-budget, 10-second application initial conditions. Independent direct Storage extraction; same fixed OpenSPH equations and initial-condition recipe. Not independent physics or resolution convergence.",
+  "desktopCompatibility": "Temporary copy only: Iterator operator[] added for recent Apple libc++; live vendored kernel unchanged.",
+  "cases": [
+    {
+      "preset": 0,
+      "count": 212,
+      "time": 10.070000000000013,
+      "timeError": 0,
+      "massError": 0,
+      "normalizedErrors": {
+        "pressureMinGPa": 0,
+        "pressureMaxGPa": 9.221857215216485e-16,
+        "pressureMeanGPa": 0,
+        "internalMinMJkg": 2.6469779601696886e-22,
+        "internalMaxMJkg": 8.508664641445798e-16,
+        "internalMeanMJkg": 2.220446049250313e-16,
+        "damageMean": 3.2526065174565133e-19,
+        "damageMax": 5.204170427930421e-17,
+        "kineticJ": 0,
+        "internalJ": 5.48045618558338e-16
+      },
+      "maxNormalizedError": 9.221857215216485e-16
+    },
+    {
+      "preset": 1,
+      "count": 212,
+      "time": 10.070000000000013,
+      "timeError": 0,
+      "massError": 0,
+      "normalizedErrors": {
+        "pressureMinGPa": 0,
+        "pressureMaxGPa": 4.574888754738198e-16,
+        "pressureMeanGPa": 1.0060296606653191e-15,
+        "internalMinMJkg": 3.970466940254533e-23,
+        "internalMaxMJkg": 6.255118660023025e-16,
+        "internalMeanMJkg": 2.220446049250313e-16,
+        "damageMean": 1.0842021724855044e-19,
+        "damageMax": 1.3877787807814457e-17,
+        "kineticJ": 3.1831278492546037e-16,
+        "internalJ": 1.0584076243495948e-15
+      },
+      "maxNormalizedError": 1.0584076243495948e-15
+    },
+    {
+      "preset": 2,
+      "count": 210,
+      "time": 10.070000000000013,
+      "timeError": 0,
+      "massError": 0,
+      "normalizedErrors": {
+        "pressureMinGPa": 0,
+        "pressureMaxGPa": 1.734723475976807e-17,
+        "pressureMeanGPa": 3.469446951953614e-17,
+        "internalMinMJkg": 1.6940658945086007e-19,
+        "internalMaxMJkg": 4.336808689942018e-19,
+        "internalMeanMJkg": 1.8973538018496328e-19,
+        "damageMean": 1.3877787807814457e-16,
+        "damageMax": 0,
+        "kineticJ": 1.1737423573748275e-15,
+        "internalJ": 1.3219244859122224e-15
+      },
+      "maxNormalizedError": 1.3219244859122224e-15
+    }
+  ]
+}

@@ -346,11 +346,11 @@ struct Index {
   }
   private composeViewport():void {
     let x:number=.5,y:number=.5,scale:number=1;
-    if(this.closeup&&this.panelOpen&&this.toolsVisible&&this.viewportWidth>0&&this.viewportHeight>0){
+    if((this.preset<3||this.closeup)&&this.panelOpen&&this.toolsVisible&&this.viewportWidth>0&&this.viewportHeight>0){
       const region=this.layout().scene;
       const radius=Math.min(Math.min(this.viewportWidth,this.viewportHeight)*.37,this.viewportHeight*.28)*Math.max(.4,Math.min(1.1,2.7/this.zoom));
       x=(region.x+region.width/2)/this.viewportWidth;y=(region.y+region.height/2)/this.viewportHeight;
-      scale=Math.min(1,Math.max(0,Math.min(region.width,region.height)/2-12)/radius);
+      scale=this.preset<3?Math.min(1,Math.min(region.width,region.height)/Math.min(this.viewportWidth,this.viewportHeight)):Math.min(1,Math.max(0,Math.min(region.width,region.height)/2-12)/radius);
     }
     simulation.setComposition(Math.max(0,Math.min(1,x)),Math.max(0,Math.min(1,y)),Math.max(.05,scale));
   }
@@ -498,7 +498,7 @@ struct Index {
     this.editedBody=0;
     if(c.preset===5){this.orbitBodies=copyOrbitBodies(c.orbitBodies!);this.selectOrbit(1,true);this.focus=-1;this.closeup=false;this.autoSpin=false;}
     if(this.focus>this.maxFocus())this.focus=-1;
-    if(c.preset>=3&&this.colorMode===2)this.colorMode=0;
+    if(c.preset>=3&&this.colorMode>=2)this.colorMode=0;
   }
   private definition(): SceneDefinition {
     if(this.preset>=3){const scene:SceneDefinition={schemaVersion:1,model:this.preset===5?'nbody-custom-v1':'nbody-v1',title:this.title,config:this.config(),bodies:[]};return scene;}
@@ -745,6 +745,7 @@ struct Index {
     add('color.0','原色',true,this.colorMode===0);add('color.1','速度',true,this.colorMode===1);add('color.2','密度',this.preset<3,this.colorMode===2);
     add('trace.controls','调整局部轨道',this.trace.enabled);add('trace.circular','圆轨道对照',this.trace.enabled);add('trace.ellipse','拉长轨道',this.trace.enabled);add('trace.apoapsis','跳到内圈远点',this.trace.enabled&&this.trace.innerPeriodHours/2<=24);
     add('trace.toggle','开普勒示踪粒子',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
+    add('color.3','压力',this.preset<3&&this.info.sph?.available===true,this.colorMode===3);add('color.4','比内能',this.preset<3&&this.info.sph?.available===true,this.colorMode===4);add('color.5','材料损伤',this.preset<3&&this.info.sph?.available===true,this.colorMode===5);
     add('comparison.capture',this.comparisonReference?'替换参照':'保存作参照',this.preset>=3&&this.observed.samples.length>=2);
     add('comparison.toggle',this.comparisonShown?'隐藏参照':'显示参照',this.comparisonReference!==undefined,this.comparisonShown);
     add('comparison.clear','移除参照',this.comparisonReference!==undefined||this.comparisonError!=='');add('comparison.reload','重试读取',this.comparisonError!=='');
@@ -940,6 +941,7 @@ struct Index {
       {name:'getSkyInfo',payload:'{} - provenance and sky rendering status'},
       {name:'getProjectedBodies',payload:'{} - last presented orbital frame; normalized top-left x/y, radius in viewport-height units; ignores UI occlusion'},
       {name:'pickBody',payload:'{x:0..1,y:0..1} - viewport hit test, shared focus action; hit=-1 leaves selection unchanged'},
+      {name:'getSphDiagnostics',payload:'{} - selected SPH frame pressure GPa, specific internal energy MJ/kg, cubed scalar damage and mass-weighted statistics; no seek'},
       {name:'getObservationComparison',payload:'{} - shared axes, overlap, interpolated difference and saved reference provenance'},
       {name:'getObservationReference',payload:'{} - complete saved local reference or null; does not seek'},
       {name:'getObservationTable',payload:'{} - CSV rows for current and saved reference; no interpolation'},
@@ -955,7 +957,7 @@ struct Index {
       {name:'setScene',payload:'{preset:0..5,count:200..2400,speed:0.5..10,angle:0..70,duration:1..120; custom preset 5 requires orbitBodies (2..8), speed=1; orbit preset 3/4: speed 0.75..1.25 circular-velocity factor, duration 1..10 Julian years; count/rock fields ignored; optional targetRadiusKm:40..200,impactorRadiusKm:20..120,targetDensity:2400..3000,impactorDensity:2400..3000,targetSpin:-0.01..0.01,seed:1..1000000}'},
       {name:'start',payload:'{}'}, {name:'pause',payload:'{}'}, {name:'reset',payload:'{}'},
       {name:'seek',payload:'{frame:-1 or retained frame index}'},
-      {name:'setCamera',payload:'{yaw:-100..100,pitch:-1.5..1.5,zoom:0.5..15,focus:-1..1 (orbit preset 4: -1..3; custom: -1..bodyCount-1),color:0..2 (orbit 0..1)}'},
+      {name:'setCamera',payload:'{yaw:-100..100,pitch:-1.5..1.5,zoom:0.5..15,focus:-1..1 (orbit preset 4: -1..3; custom: -1..bodyCount-1),color:0..5 (0 original,1 speed,2 density,3 pressure,4 specific internal energy,5 damage; orbit 0..1)}'},
       {name:'getSurfaceInfo',payload:'{}; Moon source, loading state, upload count and bounded memory'},
       {name:'setMaterial',payload:'{exposure?:-2..2 EV,ocean?:boolean,cloudShadows?:boolean}; original-color orbital surfaces only; no camera or solver reset'},
       {name:'setAppearance',payload:'{clouds?:boolean,atmosphere?:boolean,trails?:boolean,closeup?:boolean,autoSpin?:boolean,rings?:boolean} (visual settings only)'},
@@ -980,6 +982,7 @@ struct Index {
     if(command==='getSurfaceInfo'){const response:MoonAssetReply={ok:true,moon:{source:'https://svs.gsfc.nasa.gov/4720/',asset:'lroc_color_2k.jpg',credit:"NASA's Scientific Visualization Studio",width:2048,height:1024,requested:this.moonRequested,ready:simulation.renderStatus().moonReady,uploads:simulation.renderStatus().moonUploads,blend:simulation.renderStatus().moonBlend,error:this.moonLoadError||simulation.renderStatus().moonError,decodedBudgetBytes:8388608,gpuBudgetBytes:11184812}};return JSON.stringify(response);}
     if(command==='getProjectedBodies')return JSON.stringify({ok:true,projection:simulation.projectedScene()});
     if(command==='pickBody'){const hit=await this.pickViewport(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,hit:hit});}
+    if(command==='getSphDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,time:state.time,timeUnit:state.config&&state.config.preset>=3?'year':'s',selected:state.selected,frameCount:state.frames,model:state.model,config:state.config,diagnostics:state.sph??{available:false},source:'OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted'});}
     if(command==='getObservationComparison'){this.refreshObservation();const reply:ComparisonReply={ok:true,visible:this.comparisonShown,reference:this.comparisonReference?referenceSummary(this.comparisonReference):undefined,currentName:this.observed.name,currentCount:this.observed.samples.length,currentConfig:simulation.status().config,chart:this.comparisonView(),error:this.comparisonError};return JSON.stringify(reply);}
     if(command==='getObservationReference')return JSON.stringify({ok:true,reference:this.comparisonReference??null,error:this.comparisonError});
     if(command==='getObservationTable'){this.refreshObservation();const ref=this.comparisonReference;const reply:ObservationTableReply={ok:true,csv:observationCsv(this.observed,ref?.data),rows:this.observed.samples.length+(ref?.data.samples.length??0),timeAlignment:'simulation-start',reference:ref?referenceSummary(ref):undefined,currentName:this.observed.name,currentConfig:simulation.status().config};return JSON.stringify(reply);}
@@ -1050,7 +1053,7 @@ struct Index {
     } else if(command==='setCamera') {
       const yaw: number=this.checked(p.yaw,-100,100);const pitch: number=this.checked(p.pitch,-1.5,1.5);
       const zoom: number=this.checked(p.zoom,0.5,15);const focus: number=this.checked(p.focus,-1,this.maxFocus(),true);
-      const color: number=this.checked(p.color,0,this.preset>=3?1:2,true);
+      const color: number=this.checked(p.color,0,this.preset>=3?1:5,true);
       this.stopCameraMotion();if(focus>=0)this.rememberOverview();else this.overviewCamera=undefined;this.yaw=yaw;this.pitch=pitch;this.zoom=zoom;this.focus=focus;if(this.preset===5&&focus>=0)this.selectOrbit(focus);this.colorMode=color;if(focus<0){this.closeup=false;this.autoSpin=false;}this.camera();
     } else if(command==='setMaterial'){this.changeMaterial(p);
     } else if(command==='setAppearance'){this.changeAppearance(p);
@@ -1062,6 +1065,14 @@ struct Index {
       if(!this.lastIOOk) throw new Error(this.notice);
     } else throw new Error('unknown command: '+command);
     return this.snapshot();
+  }
+  private sphNumber(value:number|undefined,unit:string):string {return value===undefined?'—':value.toPrecision(5)+' '+unit;}
+  private sphLegend():string {
+    if(this.colorMode>=3&&!this.info.sph?.available)return '当前记录不含 SPH 诊断 · 暂显示原色';
+    if(this.colorMode===3)return '压力：蓝 −10 / 白 0 / 红 +10 GPa';
+    if(this.colorMode===4)return '比内能：深蓝 0 → 金色 10 MJ/kg';
+    if(this.colorMode===5)return '材料损伤：青色 0 → 红色 1';
+    return this.colorMode===0?'灰岩 · 主天体 / 赭岩 · 撞击体；颜色不代表温度':(this.colorMode===1?'速度 0 → 10 km/s':'密度 0 → 5000 kg/m³');
   }
   @Builder
   materialControls() {
@@ -1079,6 +1090,32 @@ struct Index {
     }.width('100%')
     Text(this.colorMode===0?'只调整天体画面亮度；海洋反光用于海陆外观，云影随云层开关。':'速度着色中暂不显示曝光与材质效果。').fontSize(11).fontColor('#ADA8BF').lineHeight(18).width('100%')
     Divider().color('#33B4A7D6')
+  }
+  @Builder
+  sphControls() {
+    Column({space:8}) {
+      Text('碰撞内部发生了什么').fontSize(15).fontColor('#E2EEF5').width('100%')
+      Text('SPH 诊断 · '+this.info.time.toFixed(2)+' s').fontSize(11).fontColor('#B7C5D5').width('100%')
+      if(this.info.sph?.available) {
+        Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(6)}}) {
+          ChoiceChip({label:'压力',active:this.colorMode===3,onPress:()=>{this.press('color.3');}}).id('sph-pressure')
+          ChoiceChip({label:'比内能',active:this.colorMode===4,onPress:()=>{this.press('color.4');}}).id('sph-internal')
+          ChoiceChip({label:'材料损伤',active:this.colorMode===5,onPress:()=>{this.press('color.5');}}).id('sph-damage')
+        }.width('100%')
+        Text(this.sphLegend()+'；超出色标的值仅在显示时饱和。').id('sph-legend').fontSize(11).fontColor('#D2C3E9').lineHeight(16).width('100%')
+        MetricRow({label:'压力 · 质量加权均值',value:this.sphNumber(this.info.sph?.pressureMeanGPa,'GPa')})
+        Text('范围 '+this.sphNumber(this.info.sph?.pressureMinGPa,'')+' → '+this.sphNumber(this.info.sph?.pressureMaxGPa,'GPa')).fontSize(11).fontColor('#B7C5D5').width('100%')
+        MetricRow({label:'比内能 · 质量加权均值',value:this.sphNumber(this.info.sph?.internalMeanMJkg,'MJ/kg')})
+        Text('范围 '+this.sphNumber(this.info.sph?.internalMinMJkg,'')+' → '+this.sphNumber(this.info.sph?.internalMaxMJkg,'MJ/kg')).fontSize(11).fontColor('#B7C5D5').width('100%')
+        MetricRow({label:'损伤 · 质量加权均值',value:this.sphNumber(this.info.sph?.damageMean,'')})
+        MetricRow({label:'损伤 · 最大值',value:this.sphNumber(this.info.sph?.damageMax,'')})
+        MetricRow({label:'动能',value:this.sphNumber(this.info.sph?.kineticJ,'J')})
+        MetricRow({label:'内能',value:this.sphNumber(this.info.sph?.internalJ,'J')})
+        Text('压力保留正负号；比内能不是温度。损伤是材料模型中 0–1 的强度退化量，不等于碎片数量。均值按粒子质量加权，随时间轴回看。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+        Text('当前未启用自引力；动能与内能尚未包括弹性应变能，不能当作完整守恒预算。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+      } else {Text(this.info.state==='replay'?'旧回放没有压力、内能或损伤记录；重新运行实验后可查看。':'等待 SPH 初始帧').fontSize(12).fontColor('#B7C5D5').width('100%')}
+      Divider().color('#33B4A7D6')
+    }.width('100%')
   }
   @Builder
   observationControls() {
@@ -1628,7 +1665,7 @@ struct Index {
         }.width('100%')
       } else if(this.tab===1) {
         if(this.trace.enabled){this.traceControls()}
-        if(this.preset>=3){this.observationControls();this.materialControls()}
+        if(this.preset>=3){this.observationControls();this.materialControls()}else{this.sphControls()}
         this.themeGuide()
         this.skyControls()
         if(this.preset>=3) {
@@ -1653,7 +1690,7 @@ struct Index {
           ChoiceChip({label:'速度',active:this.colorMode===1,onPress:() => {this.press('color.1');}})
           if(this.preset<3) {ChoiceChip({label:'密度',active:this.colorMode===2,onPress:() => {this.press('color.2');}})}
         }.width('100%')
-        Text(this.preset>=3?(this.colorMode===1?'速度 0 → 50 km/s':'金 · 恒星 / 蓝、金、红 · 行星'):this.colorMode===0?'灰岩 · 主天体 / 赭岩 · 撞击体；颜色不代表温度':(this.colorMode===1?'速度 0 → 10 km/s':'密度 0 → 5000 kg/m³')).fontSize(11).fontColor('#CBBDEE').width('100%')
+        Text(this.preset>=3?(this.colorMode===1?'速度 0 → 50 km/s':'金 · 恒星 / 蓝、金、红 · 行星'):this.sphLegend()).fontSize(11).fontColor('#CBBDEE').width('100%')
         Row({space:8}) {
           ChoiceChip({label:'拉远 −',active:false,onPress:() => {this.press('camera.out');}})
           ChoiceChip({label:'拉近 +',active:false,onPress:() => {this.press('camera.in');}})

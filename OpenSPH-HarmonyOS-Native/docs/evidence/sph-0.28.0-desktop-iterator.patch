@@ -1,0 +1,11 @@
+--- core/objects/utility/Iterator.h
++++ core/objects/utility/Iterator.h
+@@ -63,6 +63,8 @@
+         SPH_ASSERT_UNEVAL(data >= begin && data < end);
+         return *data;
+     }
++
++    INLINE TValue& operator[](const TCounter n) const { return *(*this + n); }
+ 
+     INLINE T* operator->() const {
+         SPH_ASSERT(data != nullptr);

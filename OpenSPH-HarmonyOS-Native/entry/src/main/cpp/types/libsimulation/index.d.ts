@@ -7,7 +7,9 @@ export interface SimulationConfig {
 }
 export const startScene: (config: SimulationConfig, initiallyPaused?: boolean) => void;
 export interface OrbitBodyStatus { id:number; name:string; surface?:number; xAU:number; yAU:number; zAU:number; speedKmS:number; massSolar:number; }
+export interface SphDiagnostics {available:boolean;pressureMinGPa?:number;pressureMaxGPa?:number;pressureMeanGPa?:number;internalMinMJkg?:number;internalMaxMJkg?:number;internalMeanMJkg?:number;damageMean?:number;damageMax?:number;kineticJ?:number;internalJ?:number;}
 export interface SimulationStatus {
+  sph?:SphDiagnostics;
   model?:string; timeUnit?:string; energyError?:number; angularError?:number; bodies?:OrbitBodyStatus[];
   config?: SimulationConfig; totalMass?: number;
   state: string; error: string; count: number; frames: number; selected: number;

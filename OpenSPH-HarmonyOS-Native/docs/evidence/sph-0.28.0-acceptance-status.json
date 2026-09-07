@@ -1,0 +1,29 @@
+{
+  "date": "2026-09-07",
+  "timezone": "Asia/Shanghai",
+  "acceptanceComplete": false,
+  "completed": [
+    "81 host tests",
+    "native scalar and camera tests",
+    "native SPH and orbital replay regression",
+    "three desktop versus HarmonyOS numerical cases",
+    "final application build and install",
+    "intermediate composition build: all three window sizes and actual new-button taps",
+    "final short-side composition build: wide and folded portrait screenshots"
+  ],
+  "pending": [
+    "final folded landscape rerun",
+    "full preexisting UI/CLI regression",
+    "agree on shared emulator control and restore chosen experiment",
+    "remove only the two temporary saved recipes after verifying restoration"
+  ],
+  "interruption": "During final layout runs the active scene and panel changed outside the scripted sequence, first to a 2400-budget 8 km/s 90-second collision and then to the ocean-world orbital theme. Further emulator mutations paused pending user coordination. Do not report restoration as completed.",
+  "screenshots": {
+    "wide-3": "final build",
+    "wide-4": "final build",
+    "wide-5": "final build",
+    "phone-5": "final short-side composition build",
+    "landscape-5": "intermediate composition build"
+  },
+  "preservation": "Initial 60-second scene backup and a later interleaved scene recipe retained locally. The later recipe captured ocean-world under a collision label; it is temporary, not a verified backup of the intervening collision. No application replay-slot writes."
+}

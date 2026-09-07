@@ -1,0 +1,399 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "three new scalar modes actually tapped in expanded, folded portrait and folded landscape",
+    "visible color legends and units",
+    "simulation, selected frame, camera pose and native surface preserved",
+    "immersive window and no rendering errors"
+  ],
+  "results": [
+    {
+      "name": "wide",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 22.4,
+            "width": 707.2,
+            "height": 750.72
+          },
+          "compact": false,
+          "sidePanel": true,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 383.20000000000005,
+            "y": 98.4,
+            "width": 308,
+            "height": 516.72
+          },
+          "dock": {
+            "x": 143.60000000000002,
+            "y": 635.12,
+            "width": 420,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 98.4,
+            "width": 359.20000000000005,
+            "height": 524.72
+          }
+        },
+        "geometry": {
+          "widthPx": 2210,
+          "heightPx": 2416,
+          "topPx": 70,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 13
+        },
+        "viewportWidthVp": 707.2,
+        "viewportHeightVp": 773.12,
+        "widthVp": 707.2,
+        "heightVp": 773.12,
+        "immersive": true,
+        "safePx": {
+          "top": 70,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "composition": {
+        "x": 0.2709276080131531,
+        "y": 0.4666287302970886,
+        "scale": 0.5079185366630554
+      },
+      "taps": [
+        {
+          "id": "sph-pressure",
+          "color": 3,
+          "bounds": [
+            1250,
+            725,
+            1401,
+            838
+          ],
+          "legend": "压力：蓝 −10 / 白 0 / 红 +10 GPa；超出色标的值仅在显示时饱和。"
+        },
+        {
+          "id": "sph-internal",
+          "color": 4,
+          "bounds": [
+            1420,
+            725,
+            1609,
+            838
+          ],
+          "legend": "比内能：深蓝 0 → 金色 10 MJ/kg；超出色标的值仅在显示时饱和。"
+        },
+        {
+          "id": "sph-damage",
+          "color": 5,
+          "bounds": [
+            1628,
+            725,
+            1854,
+            838
+          ],
+          "legend": "材料损伤：青色 0 → 红色 1；超出色标的值仅在显示时饱和。"
+        }
+      ],
+      "diagnostics": {
+        "ok": true,
+        "time": 20.119999999999987,
+        "timeUnit": "s",
+        "selected": -1,
+        "frameCount": 136,
+        "model": "sph-rock-v1",
+        "config": {
+          "preset": 0,
+          "count": 600,
+          "speed": 5,
+          "angle": 0,
+          "duration": 20,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "diagnostics": {
+          "available": true,
+          "pressureMinGPa": 0.02353231397346823,
+          "pressureMaxGPa": 76.83077644591171,
+          "pressureMeanGPa": 5.405089570024337,
+          "internalMinMJkg": 0.00003189371660493654,
+          "internalMaxMJkg": 8.912171654779733,
+          "internalMeanMJkg": 0.6490957993813438,
+          "damageMean": 0.00009127225085843844,
+          "damageMax": 0.04334547646138367,
+          "kineticJ": 2.16098784408064e+25,
+          "internalJ": 8.92677825825084e+24
+        },
+        "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+      }
+    },
+    {
+      "name": "phone",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 20.48,
+            "width": 345.6,
+            "height": 761.6
+          },
+          "compact": false,
+          "sidePanel": false,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 12,
+            "y": 243.28,
+            "width": 321.6,
+            "height": 380.8
+          },
+          "dock": {
+            "x": 16,
+            "y": 644.08,
+            "width": 313.6,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 96.48,
+            "width": 321.6,
+            "height": 134.8
+          }
+        },
+        "geometry": {
+          "widthPx": 1080,
+          "heightPx": 2444,
+          "topPx": 64,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 16
+        },
+        "viewportWidthVp": 345.6,
+        "viewportHeightVp": 782.08,
+        "widthVp": 345.6,
+        "heightVp": 782.08,
+        "immersive": true,
+        "safePx": {
+          "top": 64,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "composition": {
+        "x": 0.5,
+        "y": 0.20954376459121704,
+        "scale": 0.17236089706420898
+      },
+      "taps": [
+        {
+          "id": "sph-pressure",
+          "color": 3,
+          "bounds": [
+            90,
+            1177,
+            241,
+            1290
+          ],
+          "legend": "压力：蓝 −10 / 白 0 / 红 +10 GPa；超出色标的值仅在显示时饱和。"
+        },
+        {
+          "id": "sph-internal",
+          "color": 4,
+          "bounds": [
+            260,
+            1177,
+            449,
+            1290
+          ],
+          "legend": "比内能：深蓝 0 → 金色 10 MJ/kg；超出色标的值仅在显示时饱和。"
+        },
+        {
+          "id": "sph-damage",
+          "color": 5,
+          "bounds": [
+            468,
+            1177,
+            694,
+            1290
+          ],
+          "legend": "材料损伤：青色 0 → 红色 1；超出色标的值仅在显示时饱和。"
+        }
+      ],
+      "diagnostics": {
+        "ok": true,
+        "time": 20.119999999999987,
+        "timeUnit": "s",
+        "selected": -1,
+        "frameCount": 136,
+        "model": "sph-rock-v1",
+        "config": {
+          "preset": 0,
+          "count": 600,
+          "speed": 5,
+          "angle": 0,
+          "duration": 20,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "diagnostics": {
+          "available": true,
+          "pressureMinGPa": 0.02353231397346823,
+          "pressureMaxGPa": 76.83077644591171,
+          "pressureMeanGPa": 5.405089570024337,
+          "internalMinMJkg": 0.00003189371660493654,
+          "internalMaxMJkg": 8.912171654779733,
+          "internalMeanMJkg": 0.6490957993813438,
+          "damageMean": 0.00009127225085843844,
+          "damageMax": 0.04334547646138367,
+          "kineticJ": 2.16098784408064e+25,
+          "internalJ": 8.92677825825084e+24
+        },
+        "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+      }
+    },
+    {
+      "name": "landscape",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 20.48,
+            "y": 0,
+            "width": 761.6,
+            "height": 345.6
+          },
+          "compact": true,
+          "sidePanel": true,
+          "headerHeight": 54,
+          "drawer": {
+            "x": 458.08000000000004,
+            "y": 64,
+            "width": 308,
+            "height": 269.6
+          },
+          "dock": {
+            "x": 36.480000000000004,
+            "y": 271.6,
+            "width": 393.6,
+            "height": 66
+          },
+          "scene": {
+            "x": 32.480000000000004,
+            "y": 64,
+            "width": 413.6,
+            "height": 195.60000000000002
+          }
+        },
+        "geometry": {
+          "widthPx": 2444,
+          "heightPx": 1080,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 64,
+          "rightPx": 0,
+          "revision": 19
+        },
+        "viewportWidthVp": 782.08,
+        "viewportHeightVp": 345.6,
+        "widthVp": 782.08,
+        "heightVp": 345.6,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 64,
+          "right": 0
+        }
+      },
+      "composition": {
+        "x": 0.30595335364341736,
+        "y": 0.46817129850387573,
+        "scale": 0.5288461446762085
+      },
+      "taps": [
+        {
+          "id": "sph-pressure",
+          "color": 3,
+          "bounds": [
+            1484,
+            567,
+            1635,
+            680
+          ],
+          "legend": "压力：蓝 −10 / 白 0 / 红 +10 GPa；超出色标的值仅在显示时饱和。"
+        },
+        {
+          "id": "sph-internal",
+          "color": 4,
+          "bounds": [
+            1654,
+            567,
+            1843,
+            680
+          ],
+          "legend": "比内能：深蓝 0 → 金色 10 MJ/kg；超出色标的值仅在显示时饱和。"
+        },
+        {
+          "id": "sph-damage",
+          "color": 5,
+          "bounds": [
+            1862,
+            567,
+            2088,
+            680
+          ],
+          "legend": "材料损伤：青色 0 → 红色 1；超出色标的值仅在显示时饱和。"
+        }
+      ],
+      "diagnostics": {
+        "ok": true,
+        "time": 20.119999999999987,
+        "timeUnit": "s",
+        "selected": -1,
+        "frameCount": 136,
+        "model": "sph-rock-v1",
+        "config": {
+          "preset": 0,
+          "count": 600,
+          "speed": 5,
+          "angle": 0,
+          "duration": 20,
+          "targetRadiusKm": 100,
+          "impactorRadiusKm": 60,
+          "targetDensity": 2700,
+          "impactorDensity": 2700,
+          "targetSpin": 0,
+          "seed": 1234
+        },
+        "diagnostics": {
+          "available": true,
+          "pressureMinGPa": 0.02353231397346823,
+          "pressureMaxGPa": 76.83077644591171,
+          "pressureMeanGPa": 5.405089570024337,
+          "internalMinMJkg": 0.00003189371660493654,
+          "internalMaxMJkg": 8.912171654779733,
+          "internalMeanMJkg": 0.6490957993813438,
+          "damageMean": 0.00009127225085843844,
+          "damageMax": 0.04334547646138367,
+          "kineticJ": 2.16098784408064e+25,
+          "internalJ": 8.92677825825084e+24
+        },
+        "source": "OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted"
+      }
+    }
+  ]
+}

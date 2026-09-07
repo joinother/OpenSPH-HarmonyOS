@@ -1,4 +1,5 @@
 #pragma once
+#include "sph_diagnostics.h"
 #include <atomic>
 #include <condition_variable>
 #include <deque>
@@ -28,6 +29,8 @@ struct Particle {
     float x, y, z, speed, density, body;
 };
 struct Frame {
+    SphDiagnostics sph;
+    std::vector<SphScalar> scalars;
     std::vector<Particle> particles;
     bool orbital = false;
     std::vector<int> surfaces;
@@ -37,6 +40,7 @@ struct Frame {
     double centers[6] = {};
 };
 struct Status {
+    SphDiagnostics sph;
     std::string state = "empty", error;
     int count = 0, frames = 0, selected = -1;
     double time = 0, duration = 60, stepMs = 0, maxSpeed = 0, meanDensity = 0;

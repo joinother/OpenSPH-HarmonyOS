@@ -30,6 +30,8 @@ int main(){
  auto drag=n.request(2,b,true,2,true,true);tick(n,2,.2f);n.cancel(drag);
  for(int i=0;i<100;++i){Camera pose=b;pose.yaw=i*.01f;assert(n.request(2,pose,true,.42f,false,false)==drag);tick(n,2,.01f);}
  assert(n.status(drag).state=="cancelled"&&n.status(drag).reason=="user");
+ for(int color=3;color<=5;++color){Camera diagnostic=b;diagnostic.color=color;n.request(2,diagnostic,false,0,false,true);tick(n,2,0);assert(n.displayed().color==color);}
+ Camera invalidColor=b;invalidColor.color=6;bool colorRejected=false;try{n.request(2,invalidColor,false,0,false,true);}catch(...){colorRejected=true;}assert(colorRejected);
  // History is bounded and unknown IDs are explicit errors.
  for(int i=0;i<40;++i){n.request(2,a,true,0,false,true);tick(n,2,0);}
  bool expired=false;try{n.status(first);}catch(...){expired=true;}assert(expired);

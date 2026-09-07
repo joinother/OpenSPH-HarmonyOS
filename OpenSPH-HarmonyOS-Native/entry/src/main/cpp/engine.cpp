@@ -64,6 +64,10 @@ class Experiment : public IRun, public IRunCallbacks {
         const auto &v = storage.getDt<Vector>(QuantityId::POSITION);
         const auto &rho = storage.getValue<Float>(QuantityId::DENSITY);
         const auto &mass = storage.getValue<Float>(QuantityId::MASS);
+        const auto &pressure=storage.getValue<Float>(QuantityId::PRESSURE);
+        const auto &internal=storage.getValue<Float>(QuantityId::ENERGY);
+        const auto &damage=storage.getValue<Float>(QuantityId::DAMAGE);
+        SphAccumulator diagnostics;f->scalars.reserve(r.size());
         double weights[2] = {};
         f->particles.reserve(r.size());
         for (Size i = 0; i < r.size(); ++i) {
@@ -71,6 +75,7 @@ class Experiment : public IRun, public IRunCallbacks {
             if (!std::isfinite(speed) || !std::isfinite(double(r[i][X])) || !std::isfinite(double(r[i][Y])) ||
                 !std::isfinite(double(r[i][Z])) || !std::isfinite(double(rho[i])))
                 throw std::runtime_error("Non-finite particle state; reduce speed or increase resolution.");
+            f->scalars.push_back(diagnostics.add(pressure[i],internal[i],damage[i],mass[i],speed));
             int body = i < split ? 0 : 1;
             f->particles.push_back({float(r[i][X] / 1.e5), float(r[i][Y] / 1.e5), float(r[i][Z] / 1.e5),
                                     float(speed / 1000), float(rho[i]), float(body)});
@@ -85,7 +90,7 @@ class Experiment : public IRun, public IRunCallbacks {
             for (int j = 0; j < 3; ++j)
                 if (weights[b] > 0)
                     f->centers[b * 3 + j] /= weights[b];
-        f->meanDensity /= r.size();
+        f->meanDensity /= r.size();f->sph=diagnostics.finish();
         auto now = Clock::now();
         engine.publish(f, generation, std::chrono::duration<double, std::milli>(now - last).count());
         last = now;
@@ -269,6 +274,7 @@ Status Engine::status() {
     if (!history.empty()) {
         auto f = current.selected < 0 ? history.back()
                                       : history[std::min(size_t(current.selected), history.size() - 1)];
+        s.sph=f->sph;
         s.time = f->time;
         s.maxSpeed = f->maxSpeed;
         s.meanDensity = f->meanDensity;
@@ -361,7 +367,8 @@ bool Engine::saveReplay(const std::string &dir) {
         return false;
     std::string path = dir + "/last-replay.osphr", temp = path + ".tmp";
     std::ofstream out(temp, std::ios::binary);
-    uint32_t magic = 0x4c485053, version = known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1, n = frames.size();
+    const bool diagnostics=known&&saved.preset<3&&std::all_of(frames.begin(),frames.end(),[](const auto &f){return f->sph.available&&f->scalars.size()==f->particles.size();});
+    uint32_t magic = 0x4c485053, version = diagnostics?5:(known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1), n = frames.size();
     out.write(reinterpret_cast<char *>(&magic), 4);
     out.write(reinterpret_cast<char *>(&version), 4);
     out.write(reinterpret_cast<char *>(&n), 4);
@@ -381,7 +388,8 @@ bool Engine::saveReplay(const std::string &dir) {
         out.write(reinterpret_cast<char *>(values), sizeof(values));
         out.write(reinterpret_cast<char *>(f->centers), sizeof(f->centers));
         out.write(reinterpret_cast<char *>(f->particles.data()), count * sizeof(Particle));
-        if(version>=3){uint32_t ntrail=f->trails.size();double d[]={f->energyError,f->angularError};
+        if(version==5){out.write(reinterpret_cast<const char *>(f->sph.values.data()),sizeof(double)*10);out.write(reinterpret_cast<const char *>(f->scalars.data()),count*sizeof(SphScalar));}
+        if(version==3||version==4){uint32_t ntrail=f->trails.size();double d[]={f->energyError,f->angularError};
             out.write(reinterpret_cast<char *>(d),sizeof(d));out.write(reinterpret_cast<char *>(&ntrail),4);
             out.write(reinterpret_cast<char *>(f->trails.data()),ntrail*sizeof(Particle));}
     }
@@ -402,7 +410,7 @@ bool Engine::loadReplay(const std::string &dir) {
     in.read(reinterpret_cast<char *>(&version), 4);
     in.read(reinterpret_cast<char *>(&n), 4);
     in.read(reinterpret_cast<char *>(&duration), 8);
-    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
+    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4 && version != 5) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
         duration <= 0 || duration > 120)
         return false;
     Config saved;
@@ -418,7 +426,7 @@ bool Engine::loadReplay(const std::string &dir) {
                 for(double x:d)if(!std::isfinite(x))return false;
                 if(d[7]<0||d[7]>5||std::trunc(d[7])!=d[7])return false;
                 saved.orbitBodies.push_back({name,d[0],d[1],d[2],d[3],d[4],d[5],d[6],int(d[7])});}}
-        if (!validConfig(saved) || saved.duration != duration || (version>=3)!=(saved.preset>=3) || (version==4)!=(saved.preset==5)) return false;
+        if (!validConfig(saved) || saved.duration != duration || ((version==3||version==4)!=(saved.preset>=3)) || (version==4)!=(saved.preset==5)) return false;
     }
     std::deque<std::shared_ptr<Frame>> frames;
     for (uint32_t k = 0; k < n; ++k) {
@@ -448,9 +456,15 @@ bool Engine::loadReplay(const std::string &dir) {
             return false;
         for (const auto &p : f->particles)
             if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z) ||
-                !std::isfinite(p.speed) || !std::isfinite(p.density) || (p.body < 0 || p.body > (version>=3?7:1) || std::trunc(p.body)!=p.body))
+                !std::isfinite(p.speed) || !std::isfinite(p.density) || (p.body < 0 || p.body > ((version==3||version==4)?7:1) || std::trunc(p.body)!=p.body))
                 return false;
-        if(version>=3){
+        if(version==5){
+            f->sph.available=true;in.read(reinterpret_cast<char *>(f->sph.values.data()),sizeof(double)*10);
+            f->scalars.resize(count);in.read(reinterpret_cast<char *>(f->scalars.data()),count*sizeof(SphScalar));
+            if(!in||!validSphDiagnostics(f->sph))return false;
+            for(const auto &p:f->scalars)if(!validSphScalar(p))return false;
+        }
+        if(version==3||version==4){
             if(count!=uint32_t(saved.preset==5?saved.orbitBodies.size():(saved.preset==3?2:4)))return false;
             f->orbital=true;for(uint32_t i=0;i<count;++i)f->surfaces.push_back(saved.preset==5?saved.orbitBodies[i].surface:int(i));double d[2];uint32_t nt=0;
             in.read(reinterpret_cast<char *>(d),sizeof(d));in.read(reinterpret_cast<char *>(&nt),4);

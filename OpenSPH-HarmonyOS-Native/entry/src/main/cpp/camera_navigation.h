@@ -42,7 +42,7 @@ public:
         if(!std::isfinite(target.yaw)||!std::isfinite(target.pitch)||!std::isfinite(target.zoom)||
            target.yaw < -100 || target.yaw > 100 || target.pitch < -1.5f || target.pitch > 1.5f ||
            target.zoom < .5f || target.zoom > 15 || target.focus < -1 || target.focus > 7 ||
-           target.color < 0 || target.color > 2 || !std::isfinite(duration)||duration<0||duration>3||
+           target.color < 0 || target.color > 5 || !std::isfinite(duration)||duration<0||duration>3||
            (close&&target.focus<0))throw std::invalid_argument("Invalid camera navigation target");
         if(initialized_&&scene<revision_)throw std::invalid_argument("Stale camera scene");
         bind(scene);

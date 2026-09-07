@@ -5,6 +5,8 @@
 
 结论：没有逐行吃透、移植或验证整个 OpenSPH。当前是接通部分真实 SPH 调用链，加上独立实现的行星 N-body、ArkUI、GLES 和 CLI。不能把整库编译成功、源码存在或画面合理，当作全部功能可用与科学正确性的证据。
 
+后续更新：0.28.0 已完成本审计第 2 步的压力／内能／损伤贯通及桌面同初值对照，见 [诊断与验证](SPH-DIAGNOSTICS.md)。以下表格保留 2026-09-06 审计快照；其中“没有输出”和“尚缺对照”不再描述这三项当前能力。本次未改动导入的上游核心文件。
+
 ## 固定版本与逐文件清点
 
 上游为 [OpenSPH 仓库](https://github.com/pavelsevecek/OpenSPH) ，固定提交 `f3033faf4422a056dcb79cc6643c7c6f3d9fee19`，MIT 许可证保留在 [LICENSE](../../third_party/opensph/LICENSE)。本轮以本地原始仓库的该提交读取 Git tree，逐项对比导入文件的 Git blob SHA-1，未改动原始仓库。

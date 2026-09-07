@@ -92,6 +92,7 @@ class Renderer {
 precision highp float;
 layout(location=0) in vec3 position;
 layout(location=1) in vec3 data;
+layout(location=2) in vec3 diagnostic;
 uniform vec3 camera;
 uniform vec3 center;
 uniform float aspect;
@@ -107,13 +108,16 @@ void main(){
  p=vec3(cos(a)*p.x+sin(a)*p.z,p.y,-sin(a)*p.x+cos(a)*p.z);
  p=vec3(p.x,cos(b)*p.y-sin(b)*p.z,sin(b)*p.y+cos(b)*p.z);
  gl_Position=vec4(p.x/(camera.z*aspect),p.y/camera.z,-p.z/100.0,1.0);
- if(orbital==1) gl_Position.xy=gl_Position.xy*composition.z+vec2(composition.x*2.-1.,1.-composition.y*2.);
- gl_PointSize=size;
+ gl_Position.xy=gl_Position.xy*composition.z+vec2(composition.x*2.-1.,1.-composition.y*2.);
+ gl_PointSize=orbital==1?size:max(1.0,size*composition.z);
  // Deterministic particle grain: identity survives deformation and replay.
  float grain=fract(sin(float(gl_VertexID+1)*12.9898)*43758.5453);
  tint=(data.z<0.5?vec3(0.60,0.64,0.69):vec3(0.77,0.49,0.32))*(0.72+0.40*grain);
  if(mode==1)tint=mix(vec3(0.18,0.43,0.9),vec3(1.0,0.36,0.12),clamp(data.x/10.0,0.0,1.0));
  if(mode==2)tint=mix(vec3(0.30,0.22,0.70),vec3(0.94,0.86,0.49),clamp(data.y/5000.0,0.0,1.0));
+ if(mode==3)tint=diagnostic.x<0.?mix(vec3(.90,.92,.96),vec3(.18,.43,.9),clamp(-diagnostic.x/10.,0.,1.)):mix(vec3(.90,.92,.96),vec3(1.,.30,.16),clamp(diagnostic.x/10.,0.,1.));
+ if(mode==4)tint=mix(vec3(.18,.25,.48),vec3(1.,.74,.22),clamp(diagnostic.y/10.,0.,1.));
+ if(mode==5)tint=mix(vec3(.30,.74,.76),vec3(.96,.28,.35),clamp(diagnostic.z,0.,1.));
  if(orbital==1&&data.z>=0.0){
    float style=float(surfaces[clamp(int(data.z),0,7)]);
    tint=style<0.5?vec3(1.0,0.80,0.40):(style<1.5?vec3(0.35,0.72,1.0):(style<2.5?vec3(0.90,0.65,0.35):vec3(1.0,0.40,0.40)));
@@ -159,6 +163,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), nullptr);
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (void *)(3 * sizeof(float)));
+        GLuint diagnosticVbo;glGenBuffers(1,&diagnosticVbo);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_DEPTH_TEST);
@@ -274,7 +279,12 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 glUniform1f(glGetUniformLocation(program, "size"), size);
                 glBufferData(GL_ARRAY_BUFFER, frame->particles.size() * sizeof(Particle),
                              frame->particles.data(), GL_STREAM_DRAW);
+                if(frame->sph.available&&frame->scalars.size()==frame->particles.size()){
+                    glBindBuffer(GL_ARRAY_BUFFER,diagnosticVbo);glBufferData(GL_ARRAY_BUFFER,frame->scalars.size()*sizeof(SphScalar),frame->scalars.data(),GL_STREAM_DRAW);
+                    glEnableVertexAttribArray(2);glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,sizeof(SphScalar),nullptr);
+                }else {glDisableVertexAttribArray(2);glVertexAttrib3f(2,0,0,0);if(c.color>=3)glUniform1i(glGetUniformLocation(program,"mode"),0);}
                 glDrawArrays(GL_POINTS, 0, frame->particles.size());
+                glDisableVertexAttribArray(2);glBindBuffer(GL_ARRAY_BUFFER,vbo);
                 }
             }
             GLenum glError=glGetError();if(glError!=GL_NO_ERROR)error("OpenGL draw error "+std::to_string(glError));
@@ -285,6 +295,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         }
         sky.release();
         material.release();
+        glDeleteBuffers(1, &diagnosticVbo);
         glDeleteBuffers(1, &vbo);
         glDeleteVertexArrays(1, &vao);
         glDeleteProgram(program);
