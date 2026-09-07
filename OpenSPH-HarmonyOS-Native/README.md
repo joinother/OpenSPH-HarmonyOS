@@ -70,3 +70,5 @@ python3 scripts/check-docs.py
 ## 许可
 
 新应用代码采用 MIT；OpenSPH 许可见 [第三方许可](third_party/opensph/LICENSE)，sse2neon 保留头文件许可。银河摄影署名 ESO/S. Brunier，使用 CC BY 4.0；见 [素材来源](docs/reference/SKY-ASSETS.md)。第三方许可文本随 HAP 打包。GitHub 检查点保留原有桌面工程；本项目未引入 SpaceSim、Universe Sandbox 或 SpaceEngine 的私有实现与素材。
+
+[Steam 社区补充调研](docs/research/UNIVERSE-SANDBOX-STEAM-2026-09-07.md) 把创意工坊题材、指南中的繁琐操作与玩家反馈转为 16 项补充和 10 个原创实验方向；近期优先完整配方、整组保存放置、轨道平面与外观组件，捕获和月球形成仍依赖后续模型验证。

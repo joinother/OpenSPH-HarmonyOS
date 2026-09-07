@@ -18,6 +18,7 @@
 | [同行更新日志筛选](research/PEER-UPDATES-2026-09-06.md) | Universe Sandbox、SpaceSim 更新和 Celestia 开发提交对当前路线的补充 |
 | [宇宙沙盒博客与论坛专题](research/UNIVERSE-SANDBOX-BLOG-FORUM-2026-09-07.md) | 242 篇博客与 2585 个主题索引、36 篇博客和 23 个主题选读；32 项改进与 14 个实验方案 |
 | [宇宙沙盒 Wiki 专题](research/UNIVERSE-SANDBOX-WIKI-2026-09-07.md) | 374 页索引、66 页重点正文；18 项补充、8 个实验与 Wiki 错误／过时说明核对 |
+| [宇宙沙盒 Steam 社区专题](research/UNIVERSE-SANDBOX-STEAM-2026-09-07.md) | 161 个工坊作品、87 篇指南、146 个讨论索引；选读 8 篇指南、5 份作品说明、19 个主题，形成 16 项补充与 10 个实验方向 |
 | [文档维护流程](WORKFLOW.md) | 文件归属、日期、命名、更新和交付检查 |
 
 ## 版本记录
