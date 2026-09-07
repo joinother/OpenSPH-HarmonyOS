@@ -59,7 +59,7 @@ python3 scripts/check-docs.py
 
 内容方向按 [主题实验与碰撞创意](docs/research/THEMED-EXPERIMENTS-2026-09-06.md) 已接入首批主题卡片和速度对照，现已接入土星风格外观；局部环已建立中心引力的圆／椭圆轨道基线与独立积分对照，物理侧继续补近距扰动与环粒子相互作用、SPH 压力／内能／损伤、自引力与完整检查点。示踪环采用假定 60000 km 行星半径，忽略太阳与卫星摄动、扁率、环自引力和碰撞；其时钟和发射参数不写入实验或回放存档。草稿持久化、其他参数撤销、独立数值对照继续推进；月球形成尚未实现。参考来源与取舍见 [同行调研](docs/research/PEER-RESEARCH-2026-09-06.md)。
 
-[SpaceEngine 调研](docs/research/SPACEENGINE-2026-09-06.md) 补充了环带光照、分层外观和可编排连续镜头的实施建议与许可边界；三维薄环外观已落地，其余分层效果与镜头编排继续待办。
+[SpaceEngine 调研](docs/research/SPACEENGINE-2026-09-06.md) 已补充 2026-09-07 手册与创意工坊选读：12 项改进和 6 个原创体验提案，优先镜头状态、外观配方保存、曝光与分层控件；后续规划资源加载和三维银河。三维薄环与局部示踪环已有基础，其余提案不计入当前能力。
 
 [同行更新日志筛选](docs/research/PEER-UPDATES-2026-09-06.md) 补充复制为放置草稿、主题外观持久化、实验曲线和设备画质分档；区分已发布功能、开发分支与未来计划，不替代当前土星环外观和物理验证的优先顺序。
 
@@ -67,8 +67,8 @@ python3 scripts/check-docs.py
 
 [Wiki 补充调研](docs/research/UNIVERSE-SANDBOX-WIKI-2026-09-07.md) 进一步提出分步引导、观测曲线、参数锁定与图片配方，记录 374 页筛查和 66 页重点阅读；WoMa 可作为后续平衡行星与 SPH 初态的候选对照工具，尚未安装或接入。
 
+[Steam 社区补充调研](docs/research/UNIVERSE-SANDBOX-STEAM-2026-09-07.md) 把创意工坊题材、指南中的繁琐操作与玩家反馈转为 16 项补充和 10 个原创实验方向；近期优先完整配方、整组保存放置、轨道平面与外观组件，捕获和月球形成仍依赖后续模型验证。
+
 ## 许可
 
 新应用代码采用 MIT；OpenSPH 许可见 [第三方许可](third_party/opensph/LICENSE)，sse2neon 保留头文件许可。银河摄影署名 ESO/S. Brunier，使用 CC BY 4.0；见 [素材来源](docs/reference/SKY-ASSETS.md)。第三方许可文本随 HAP 打包。GitHub 检查点保留原有桌面工程；本项目未引入 SpaceSim、Universe Sandbox 或 SpaceEngine 的私有实现与素材。
-
-[Steam 社区补充调研](docs/research/UNIVERSE-SANDBOX-STEAM-2026-09-07.md) 把创意工坊题材、指南中的繁琐操作与玩家反馈转为 16 项补充和 10 个原创实验方向；近期优先完整配方、整组保存放置、轨道平面与外观组件，捕获和月球形成仍依赖后续模型验证。

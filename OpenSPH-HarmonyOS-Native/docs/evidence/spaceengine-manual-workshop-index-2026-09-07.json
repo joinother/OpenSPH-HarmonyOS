@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "research_date": "2026-09-07",
+  "timezone": "Asia/Shanghai",
+  "recorded_at_utc": "2026-09-07T04:45:29.723385+00:00",
+  "baseline_version": "0.20.0",
+  "scope": {
+    "official_pages_retrieved": 9,
+    "official_reading": "Selected sections for long configuration pages, full short navigation/biome/guideline pages. Retrieval is not complete reading.",
+    "workshop_descriptions_read": 6,
+    "workshop_extra_candidates_not_counted_as_read": 2,
+    "workshop_homepage_only_not_full_catalog": true,
+    "application_modified": false,
+    "downloads_or_subscriptions": false,
+    "source_code_inspected": false,
+    "spaceengine_runtime_tested": false
+  },
+  "official_sources": [
+    {
+      "key": "user-manual",
+      "url": "https://spaceengine.org/manual/user-manual/",
+      "title": "User manual - SpaceEngine",
+      "fetched_at_utc": "2026-09-07T04:35:55.386699+00:00",
+      "http_status": 200,
+      "raw_html_sha256": "420561a483774db195a7dd47b26e5954a844002bbb98da682d8911dc289fde10",
+      "raw_html_storage": "workspace scratch only, not included in repository",
+      "reading_scope": "Graphics settings including landscape budgets, exposure-related rendering options and volumetric resolution."
+    },
+    {
+      "key": "user-manual-0980",
+      "url": "https://spaceengine.org/manual/user-manual-0980/",
+      "title": "User manual 0.980 - SpaceEngine",
+      "fetched_at_utc": "2026-09-07T04:35:55.387306+00:00",
+      "http_status": 200,
+      "raw_html_sha256": "eb4ce5cfe46a9e165c2e5a7e5df9ec774a9386aad2c9f76e50ebfed92cc8d8b5",
+      "raw_html_storage": "workspace scratch only, not included in repository",
+      "reading_scope": "Quick start and navigation; explicitly historical 0.980."
+    },
+    {
+      "key": "scenarios",
+      "url": "https://spaceengine.org/manual/making-addons/scenario-scripts/",
+      "title": "Scenario scripts - SpaceEngine",
+      "fetched_at_utc": "2026-09-07T04:35:59.399302+00:00",
+      "http_status": 200,
+      "raw_html_sha256": "943bff62c6c25d76a7a9fa666aafa27e1b51508e8e99234ef4824522496e4e2b",
+      "raw_html_storage": "workspace scratch only, not included in repository",
+      "reading_scope": "Selected camera bindings, GotoLocation, waypoints, spline path entry and WaitTrigger sections; not full API audit."
+    },
+    {
+      "key": "planet",
+      "url": "https://spaceengine.org/manual/making-addons/creating-a-planet/",
+      "title": "Creating a planet - SpaceEngine",
+      "fetched_at_utc": "2026-09-07T04:35:59.812065+00:00",
+      "http_status": 200,
+      "raw_html_sha256": "8f06599cdb116d33dcd392b52e211950cb171ffc8b6114886995c11626015387",
+      "raw_html_storage": "workspace scratch only, not included in repository",
+      "reading_scope": "Selected quick start, layered surface/ocean/cloud, cloud parameters, atmosphere and ring sections."
+    },
+    {
+      "key": "textures",
+      "url": "https://spaceengine.org/manual/making-addons/planet-textures/",
+      "title": "Planet textures - SpaceEngine",
+      "fetched_at_utc": "2026-09-07T04:36:03.325232+00:00",
+      "http_status": 200,
+      "raw_html_sha256": "26c4f3d4b9fdbf3583b80ad00af5f562b6e6bb482780271ceae419f5b615de75",
+      "raw_html_storage": "workspace scratch only, not included in repository",
+      "reading_scope": "Selected cubemap hierarchy, tile borders and height precision/pole checks."
+    },
+    {
+      "key": "biomes",
+      "url": "https://spaceengine.org/manual/making-addons/planet-biome-presets/",
+      "title": "Planet biome presets - SpaceEngine",
+      "fetched_at_utc": "2026-09-07T04:36:06.769251+00:00",
+      "http_status": 200,
+      "raw_html_sha256": "52b2499af25bfad54371f5d1ab5bdd54e20f21532b525032e35820106609fd30",
+      "raw_html_storage": "workspace scratch only, not included in repository",
+      "reading_scope": "Palette base differences, material layers and preview limitations."
+    },
+    {
+      "key": "addons",
+      "url": "https://spaceengine.org/manual/making-addons/introduction/",
+      "title": "Introduction - SpaceEngine",
+      "fetched_at_utc": "2026-09-07T04:36:09.253855+00:00",
+      "http_status": 200,
+      "raw_html_sha256": "753f8ed265e9c78d75f18c6c3f1821adfae25e0e61db91fe81c8b0c29505676c",
+      "raw_html_storage": "workspace scratch only, not included in repository",
+      "reading_scope": "Selected overrides, identity/parent relationships, merging and error diagnostics."
+    },
+    {
+      "key": "workshop-guidelines",
+      "url": "https://spaceengine.org/steam-workshop-guidelines/",
+      "title": "SpaceEngine Steam Workshop Guidelines - SpaceEngine",
+      "fetched_at_utc": "2026-09-07T04:36:09.397832+00:00",
+      "http_status": 200,
+      "raw_html_sha256": "c0649c77f0eccda210b89e96b99c91efc3bb911899de68728726ac1f62699d41",
+      "raw_html_storage": "workspace scratch only, not included in repository",
+      "reading_scope": "Public reuse and creator rights rules; not an asset license grant."
+    },
+    {
+      "key": "exploration",
+      "url": "https://spaceengine.org/universe/easy-to-explore/",
+      "title": "Exploration tools - SpaceEngine",
+      "fetched_at_utc": "2026-09-07T04:36:11.147648+00:00",
+      "http_status": 200,
+      "raw_html_sha256": "05687defa7477080002c7f0c2cc6baf992ba3cbb7205736658365e2b715f2d99",
+      "raw_html_storage": "workspace scratch only, not included in repository",
+      "reading_scope": "Short public overview of navigation."
+    }
+  ],
+  "workshop_homepage": {
+    "url": "https://steamcommunity.com/app/314650/workshop/",
+    "read_scope": "Visible featured/recent/popular/dependency lists and tags; no exhaustive pagination.",
+    "source_provider": "web tool",
+    "status": "available"
+  },
+  "workshop_sources": [
+    {
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3754627390",
+      "title": "Improved Atmospheric Rendering",
+      "reading_scope": "description_and_selected_visible_comments",
+      "finding": "Night atmosphere and ringshine; author labels partial approximations and work in progress.",
+      "source_provider": "web tool",
+      "raw_html_archived": false
+    },
+    {
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3785569305",
+      "title": "3D Water",
+      "reading_scope": "description_and_selected_visible_comments",
+      "finding": "Visual water; user reports shoreline artifacts and motion shimmer, not independently reproduced.",
+      "source_provider": "web tool",
+      "raw_html_archived": false
+    },
+    {
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3759751620",
+      "title": "Temporal Noise Reduction",
+      "reading_scope": "description_known_issues_and_selected_visible_comments",
+      "finding": "Mainly accretion-disk photography; automatic flight and HUD ghosting. No-overhead claim unverified.",
+      "source_provider": "web tool",
+      "raw_html_archived": false
+    },
+    {
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3770171446",
+      "title": "Milky Way addon",
+      "reading_scope": "selected_catalog_description",
+      "finding": "Catalog additions; not read as a Milky Way panorama replacement. Candidate object data not independently verified.",
+      "source_provider": "web tool",
+      "raw_html_archived": false
+    },
+    {
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3281344606",
+      "title": "Sp_ce’s Palettes Reimagined",
+      "reading_scope": "description_and_faq",
+      "finding": "Palette families, screenshots use additional terrain dependency.",
+      "source_provider": "web tool",
+      "raw_html_archived": false
+    },
+    {
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3267339304",
+      "title": "Rodrigo’s Mod Redistributed",
+      "reading_scope": "description_and_selected_visible_comments",
+      "finding": "Terrain variation; parameter coupling and user-reported conflict/spiky terrain risks.",
+      "source_provider": "web tool",
+      "raw_html_archived": false
+    },
+    {
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3771485452",
+      "title": "Palettes Reimagined Revival",
+      "reading_scope": "detail_unavailable_rate_limit",
+      "finding": "Homepage title only. Not counted as description read; did not retry.",
+      "source_provider": "web tool",
+      "raw_html_archived": false
+    },
+    {
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3793326520",
+      "title": "V1400 Centauri [Rework]",
+      "reading_scope": "title_only_detail_not_completed",
+      "finding": "Initial detail metadata available; subsequent read failed. No feature claims from this item.",
+      "source_provider": "web tool",
+      "raw_html_archived": false
+    }
+  ],
+  "limitations": [
+    "Most Steam displayed dates omit years; publication/update years were not inferred.",
+    "Hidden subscription/removal/incompatibility templates are not evidence of account actions or verified item status.",
+    "Community claims and reported issues are not our performance or scientific validation.",
+    "No copying of full source text, shader code or asset downloads.",
+    "Current user-manual is primarily graphics settings; navigation manual is explicitly 0.980."
+  ],
+  "proposals": [
+    {
+      "id": "SE01",
+      "status": "proposal_not_implemented_in_this_turn"
+    },
+    {
+      "id": "SE02",
+      "status": "proposal_not_implemented_in_this_turn"
+    },
+    {
+      "id": "SE03",
+      "status": "proposal_not_implemented_in_this_turn"
+    },
+    {
+      "id": "SE04",
+      "status": "proposal_not_implemented_in_this_turn"
+    },
+    {
+      "id": "SE05",
+      "status": "proposal_not_implemented_in_this_turn"
+    },
+    {
+      "id": "SE06",
+      "status": "proposal_not_implemented_in_this_turn"
+    },
+    {
+      "id": "SE07",
+      "status": "proposal_not_implemented_in_this_turn"
+    },
+    {
+      "id": "SE08",
+      "status": "proposal_not_implemented_in_this_turn"
+    },
+    {
+      "id": "SE09",
+      "status": "proposal_not_implemented_in_this_turn"
+    },
+    {
+      "id": "SE10",
+      "status": "proposal_not_implemented_in_this_turn"
+    },
+    {
+      "id": "SE11",
+      "status": "proposal_not_implemented_in_this_turn"
+    },
+    {
+      "id": "SE12",
+      "status": "proposal_not_implemented_in_this_turn"
+    }
+  ]
+}
