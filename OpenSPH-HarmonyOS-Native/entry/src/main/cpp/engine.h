@@ -24,6 +24,7 @@ struct Config {
     double targetSpin = 0;
     int seed = 1234;
     std::vector<OrbitSpec> orbitBodies;
+    bool selfGravity = false;
 };
 bool validConfig(const Config &c);
 struct Particle {

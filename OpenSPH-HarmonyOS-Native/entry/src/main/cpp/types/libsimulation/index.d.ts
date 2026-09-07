@@ -3,7 +3,7 @@ export interface SimulationConfig {
   orbitBodies?: OrbitBodyConfig[];
   preset: number; count: number; speed: number; angle: number; duration: number;
   targetRadiusKm: number; impactorRadiusKm: number; targetDensity: number; impactorDensity: number;
-  targetSpin: number; seed: number;
+  targetSpin: number; seed: number; selfGravity?: boolean;
 }
 export const startScene: (config: SimulationConfig, initiallyPaused?: boolean) => void;
 export interface OrbitBodyStatus { id:number; name:string; surface?:number; xAU:number; yAU:number; zAU:number; speedKmS:number; massSolar:number; }

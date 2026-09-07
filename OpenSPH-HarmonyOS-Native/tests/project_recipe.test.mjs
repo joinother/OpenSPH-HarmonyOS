@@ -59,3 +59,13 @@ test('ring model 2 persists impulse/grain settings and rejects unknown or unvers
   for(const change of [t=>t.modelVersion=3,t=>delete t.modelVersion,t=>t.impulse=.36,t=>t.impulse=NaN,t=>delete t.impulse,t=>t.points='true',t=>delete t.points]){const bad=structuredClone(r);change(bad.ring);assert.throws(()=>ProjectStore.save(dir,s,bad));assert.deepEqual(fs.readdirSync(dir),files);}
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+test('self-gravitating rock projects retain model identity and reject mismatched legacy tags',()=>{
+ const dir=fs.mkdtempSync(join(tmpdir(),'sph-gravity-'));try{
+  const s={schemaVersion:1,model:'sph-rock-gravity-v1',title:'自引力',bodies:[{id:'primary',name:'岩石',kind:'rock',radiusKm:100,density:2700}],config:{...scene().config,preset:2,speed:1,selfGravity:true}};delete s.config.orbitBodies;
+  const saved=ProjectStore.save(dir,s);assert.equal(ProjectStore.load(dir,saved.id).scene.config.selfGravity,true);
+  for(const mutate of [s=>s.model='sph-rock-v1',s=>delete s.config.selfGravity,s=>s.config.count=1201,s=>s.config.selfGravity='true']){
+   const bad=JSON.parse(JSON.stringify(s));mutate(bad);assert.throws(()=>ProjectStore.save(dir,bad));
+  }
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

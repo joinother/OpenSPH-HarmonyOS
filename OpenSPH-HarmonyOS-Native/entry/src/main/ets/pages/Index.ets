@@ -135,6 +135,7 @@ struct Index {
   @State targetDensity: number = 2700;
   @State impactorDensity: number = 2700;
   @State targetSpin: number = 0;
+  @State selfGravity: boolean = false;
   @State seed: number = 1234;
   @State title: string = '我的碰撞实验';
   @State targetName: string = '主天体';
@@ -513,7 +514,7 @@ struct Index {
   private themeState():ThemeState {
     const t=this.themes.find((e:ThemeExperiment):boolean=>e.id===this.activeThemeId);
     if(!t)return {id:'',title:'',goal:'',limit:'',modified:false,compareId:''};
-    return {id:t.id,title:t.title,goal:t.goal,limit:t.limit,modified:!themeConfigMatches(this.config(),t.config),compareId:t.compareId};
+    return {id:t.id,title:t.title,goal:t.goal,limit:this.selfGravity&&this.preset<3?'已开启材料自引力；未建立静力平衡，不模拟月球形成。':t.limit,modified:!themeConfigMatches(this.config(),t.config),compareId:t.compareId};
   }
   private chooseTheme(id:string):void {
     const t=themeExperiments().find((e:ThemeExperiment):boolean=>e.id===id);
@@ -533,7 +534,7 @@ struct Index {
   private choose(i: number): void {
     if (this.ioBusy) return;
     this.activeThemeId='';this.clearOrbitHistory();
-    this.targetRadiusKm=100;this.impactorRadiusKm=60;this.targetDensity=2700;this.impactorDensity=2700;this.targetSpin=0;
+    this.targetRadiusKm=100;this.impactorRadiusKm=60;this.targetDensity=2700;this.impactorDensity=2700;this.targetSpin=0;this.selfGravity=false;
     this.editedBody=0;this.title=i>=3?(i===3?'双体轨道':'行星系统'):(i===2?'旋转实验':'碰撞实验');
     this.duration=i>=3?3:60;this.colorMode=0;
     this.closeup=false;this.autoSpin=false;
@@ -557,6 +558,7 @@ struct Index {
     const c: SimulationConfig={preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,
       targetRadiusKm:this.targetRadiusKm,impactorRadiusKm:this.impactorRadiusKm,targetDensity:this.targetDensity,
       impactorDensity:this.impactorDensity,targetSpin:this.targetSpin,seed:this.seed};
+    if(this.selfGravity)c.selfGravity=true;
     if(this.preset===5)c.orbitBodies=copyOrbitBodies(this.orbitBodies);
     validateConfig(c);return c;
   }
@@ -565,7 +567,7 @@ struct Index {
     if(c.preset!==this.preset){this.closeup=false;this.autoSpin=false;}
     this.preset=c.preset;this.count=c.count;this.speed=c.speed;this.angle=c.angle;this.duration=c.duration;
     this.targetRadiusKm=c.targetRadiusKm;this.impactorRadiusKm=c.impactorRadiusKm;
-    this.targetDensity=c.targetDensity;this.impactorDensity=c.impactorDensity;this.targetSpin=c.targetSpin;this.seed=c.seed;
+    this.selfGravity=c.selfGravity===true;this.targetDensity=c.targetDensity;this.impactorDensity=c.impactorDensity;this.targetSpin=c.targetSpin;this.seed=c.seed;
     this.editedBody=0;
     if(c.preset===5){this.orbitBodies=copyOrbitBodies(c.orbitBodies!);this.selectOrbit(1,true);this.focus=-1;this.closeup=false;this.autoSpin=false;}
     if(this.focus>this.maxFocus())this.focus=-1;
@@ -576,7 +578,7 @@ struct Index {
     if(this.preset>=3){const scene:SceneDefinition={schemaVersion:1,model:this.preset===5?'nbody-custom-v1':'nbody-v1',title:this.title,config:this.config(),bodies:[]};return scene;}
     const bodies: BodyDefinition[]=[{id:'primary',name:this.targetName,kind:'rock',radiusKm:this.targetRadiusKm,density:this.targetDensity}];
     if(this.preset!==2) bodies.push({id:'impactor',name:this.impactorName,kind:'rock',radiusKm:this.impactorRadiusKm,density:this.impactorDensity});
-    const scene: SceneDefinition={schemaVersion:1,model:'sph-rock-v1',title:this.title,config:this.config(),bodies:bodies};
+    const scene: SceneDefinition={schemaVersion:1,model:this.selfGravity?'sph-rock-gravity-v1':'sph-rock-v1',title:this.title,config:this.config(),bodies:bodies};
     return scene;
   }
   private maxFocus():number {return this.preset===5?this.orbitBodies.length-1:(this.preset===4?3:1);}
@@ -839,6 +841,7 @@ struct Index {
     add('terrain.new','新地貌',this.canGenerateSurface());add('terrain.clouds','换云层',this.canGenerateSurface());
     add('terrain.undo','撤销外观',this.preset===5&&!this.placing&&this.surfaceUndo.length>0);add('terrain.redo','重做外观',this.preset===5&&!this.placing&&this.surfaceRedo.length>0);
     add('appearance.rings','环带',this.preset>=3,this.rings);add('appearance.clouds','云层',this.preset>=3,this.clouds);add('appearance.atmosphere','大气',this.preset>=3,this.atmosphere);add('appearance.trails','轨迹',this.preset>=3,this.trails);add('appearance.spin','外观自转',this.preset>=3,this.autoSpin);
+    add('scene.gravity','材料自引力',this.preset<3&&this.count<=1200,this.selfGravity);
     add('body.primary','主天体',this.preset<3,this.editedBody===0);add('body.impactor','撞击体',this.preset<2,this.editedBody===1);
     add('placement.cancel','取消放置',this.placing);add('placement.confirm','确认加入 · 重新计算',this.placing&&this.placementPreview().valid);
     add('placement.circular','圆轨道',this.placing);add('placement.still','相对静止',this.placing);add('placement.escape','掠过',this.placing);add('placement.reverse','反向',this.placing,this.placementDirection===-1);
@@ -895,7 +898,7 @@ struct Index {
     if(field==='material.exposure'){this.changeMaterial({exposure:value});return;}
     if(field==='sky.brightness'){this.checked(value,0,100);this.changeSky(this.skyMode,value/100);return;}
     if(field==='time.frame'){this.checked(value,-1,this.info.frames-1,true);this.stopTrace();this.playing=false;simulation.seek(value);this.info=simulation.status();return;}
-    if(field==='scene.count'){this.checked(value,200,2400,true);this.count=value;}
+    if(field==='scene.count'){this.checked(value,200,this.selfGravity?1200:2400,true);this.count=value;}
     else if(field==='scene.speed'){this.checked(value,this.preset>=3?.75:.5,this.preset>=3?1.25:10);this.speed=value;}
     else if(field==='scene.angle'){this.checked(value,0,70);this.angle=value;}
     else if(field==='scene.duration'){this.checked(value,1,this.preset>=3?10:120);this.duration=value;}
@@ -923,6 +926,7 @@ struct Index {
     else if(action.startsWith('theme.'))this.chooseTheme(action.slice(6));
     else if(action.startsWith('library.')){this.librarySection=action.slice(8);this.scroller.scrollEdge(Edge.Top);}
     else if(action.startsWith('preset.'))this.choose(Number(action.slice(7)));
+    else if(action==='scene.gravity'){this.selfGravity=!this.selfGravity;this.dirty=true;}
     else if(action==='simulation.toggle'){this.run();this.setPanel(-1);}
     else if(action==='simulation.apply'){if(!this.prepare(false))throw new Error(this.notice);this.setPanel(-1);}
     else if(action==='simulation.cancel'){this.cancelSimulation();}
@@ -1053,7 +1057,7 @@ struct Index {
       {name:'listUiActions',payload:'{} - same semantic control catalog'},
       {name:'uiAction',payload:'{action:string} - invoke a catalog action through the same ArkUI handler'},
       {name:'setUiValue',payload:'{field:string,value:string|number} - edit a catalog field; orbital inputs stay draft until orbit.apply'},
-      {name:'setScene',payload:'{preset:0..5,count:200..2400,speed:0.5..10,angle:0..70,duration:1..120; custom preset 5 requires orbitBodies (2..8), speed=1; orbit preset 3/4: speed 0.75..1.25 circular-velocity factor, duration 1..10 Julian years; count/rock fields ignored; optional targetRadiusKm:40..200,impactorRadiusKm:20..120,targetDensity:2400..3000,impactorDensity:2400..3000,targetSpin:-0.01..0.01,seed:1..1000000}'},
+      {name:'setScene',payload:'{preset:0..5,count:200..2400,speed:0.5..10,angle:0..70,duration:1..120; custom preset 5 requires orbitBodies (2..8), speed=1; orbit preset 3/4: speed 0.75..1.25 circular-velocity factor, duration 1..10 Julian years; count/rock fields ignored; optional selfGravity:boolean (SPH only, count<=1200, defaults false); targetRadiusKm:40..200,impactorRadiusKm:20..120,targetDensity:2400..3000,impactorDensity:2400..3000,targetSpin:-0.01..0.01,seed:1..1000000}'},
       {name:'start',payload:'{}'}, {name:'pause',payload:'{}'}, {name:'reset',payload:'{}'},
       {name:'getPreparation',payload:'{}; monotonic phase timings, request ID, previous worker phase and bounded history; no mutation'},
       {name:'seek',payload:'{frame:-1 or retained frame index}'},
@@ -1120,6 +1124,7 @@ struct Index {
         targetDensity:p.targetDensity===undefined?this.targetDensity:p.targetDensity,
         impactorDensity:p.impactorDensity===undefined?this.impactorDensity:p.impactorDensity,
         targetSpin:p.targetSpin===undefined?this.targetSpin:p.targetSpin,seed:p.seed===undefined?this.seed:p.seed};
+      if(p.selfGravity!==undefined)c.selfGravity=p.selfGravity;
       if(p.orbitBodies!==undefined)c.orbitBodies=p.orbitBodies;
       validateConfig(c);this.applyConfig(c);
       this.title=preset>=3?(preset===5?'自定义系统':preset===3?'双体轨道':'行星系统'):'碰撞实验';
@@ -1246,7 +1251,7 @@ struct Index {
         MetricRow({label:'动能',value:this.sphNumber(this.info.sph?.kineticJ,'J')})
         MetricRow({label:'内能',value:this.sphNumber(this.info.sph?.internalJ,'J')})
         Text('压力保留正负号；比内能不是温度。损伤是材料模型中 0–1 的强度退化量，不等于碎片数量。均值按粒子质量加权，随时间轴回看。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
-        Text('当前未启用自引力；动能与内能尚未包括弹性应变能，不能当作完整守恒预算。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+        Text(this.info.config?.selfGravity===true?'已启用材料自引力；动能与内能未包括引力势能和弹性应变能，不能当作完整守恒预算。':'未启用自引力；动能与内能未包括弹性应变能，不能当作完整守恒预算。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
       } else {Text(this.info.state==='replay'?'旧回放没有压力、内能或损伤记录；重新运行实验后可查看。':'等待 SPH 初始帧').fontSize(12).fontColor('#B7C5D5').width('100%')}
       Divider().color('#33B4A7D6')
     }.width('100%')
@@ -1349,7 +1354,7 @@ struct Index {
           if(this.preset>=3&&!this.layout().compact) {Text(this.trace.enabled?'中心引力 · 开普勒轨道 · 不含碰撞':this.closeup?(this.selectedMoon()?'NASA SVS 月面底图 · 非实时月相':(this.autoSpin?'程序表面 · 外观自转演示':'程序表面 · 随轨道时间变化')):'牛顿引力 · AU / 年 · 天体尺寸已放大').fontSize(10).fontColor('#9E97B4')}
           if(this.preset>=3&&!this.closeup&&!this.layout().compact) {Text(this.focus>=0?'已选中 · '+this.surfaceName():'轻点天体以选中 · 拖动旋转').fontSize(11).fontColor('#C9B8F3')}
           if(this.skyMode===2&&!this.layout().compact) {Text(this.rendering.panoramaReady?'银河摄影 · 非定位星图':(this.skyLoadError?'银河示意 · 摄影全景加载失败':'银河背景 · 载入摄影全景')).fontSize(10).fontColor('#9E97B4')}
-          if(this.preset<3) {Text('岩质 SPH · 未启用自引力').fontSize(10).fontColor('#9E97B4')}
+          if(this.preset<3) {Text(this.info.config?.selfGravity===true?'岩质 SPH · 材料自引力已开启':'岩质 SPH · 未启用自引力').fontSize(10).fontColor('#9E97B4')}
           if(this.dirty) {Text('参数待应用').fontSize(11).fontColor('#F0BD82')}
         }.alignItems(HorizontalAlign.Start).padding({left:16,right:16,top:this.layout().compact?8:16,bottom:8}).width(this.layout().safe.width).margin({left:this.layout().safe.x,top:this.layout().safe.y+this.layout().headerHeight+10}).hitTestBehavior(HitTestMode.None)
           .onAreaChange((_:Area,area:Area)=>{this.hudHeight=Number(area.height);})
@@ -1781,9 +1786,11 @@ struct Index {
         } else {
         Text('岩质模型 · 初始密度可调，尚未做静力平衡。质量由半径与密度计算。')
           .fontSize(12).fontColor('#ADA8BF').lineHeight(19).width('100%')
+        ChoiceChip({label:this.selfGravity?'材料自引力 · 已开启':'材料自引力 · 关闭',active:this.selfGravity,onPress:() => {this.press('scene.gravity');}})
+        Text(this.count>1200?'开启自引力前，请将粒子预算降至 1200 以内。':'自引力逐对计算材料吸引；应用后生效。尚未建立静力平衡，不代表月球形成。').fontSize(11).fontColor('#ADA8BF').width('100%')
         this.bodyControls()
         MetricRow({label:'粒子预算',value:this.count.toString()})
-        Slider({value:this.count,min:200,max:2400,step:200}).selectedColor('#BDA5F2').trackColor('#414154').blockColor('#F0E8FF')
+        Slider({value:this.count,min:200,max:this.selfGravity?1200:2400,step:200}).selectedColor('#BDA5F2').trackColor('#414154').blockColor('#F0E8FF')
           .onChange((v:number,mode:SliderChangeMode) => {if(mode!==SliderChangeMode.Moving&&mode!==SliderChangeMode.Click&&mode!==SliderChangeMode.End)return;this.input('scene.count',Math.round(v));})
         }
         if(this.preset!==5) {

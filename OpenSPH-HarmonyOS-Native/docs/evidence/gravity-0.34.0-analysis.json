@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "force": {
+    "kind": "force-reference",
+    "cases": 36,
+    "maxForceError": 1.3024026301877711e-11,
+    "maxPotentialError": 2.219158190541748e-11,
+    "maxMomentumError": 1.44122895225708e-16
+  },
+  "runs": [
+    {
+      "budget": 200,
+      "count": 210,
+      "radialMS": -0.18912294853178518,
+      "timestepDifferenceMS": 0.00033211091496015976
+    },
+    {
+      "budget": 600,
+      "count": 641,
+      "radialMS": -0.2000926379656828,
+      "timestepDifferenceMS": 0.00035477109620210556
+    },
+    {
+      "budget": 1200,
+      "count": 1263,
+      "radialMS": -0.20679650303494243,
+      "timestepDifferenceMS": 0.00036697075688149616
+    }
+  ],
+  "maxCrossPlatformError": 5.66095081738226e-16,
+  "limits": [
+    "4-second unrelaxed single basalt sphere; not hydrostatic equilibrium",
+    "no elastic/gravity full-energy conservation or fragmentation/reaggregation validation",
+    "no ring self-gravity; no planetary-scale impact claim"
+  ]
+}

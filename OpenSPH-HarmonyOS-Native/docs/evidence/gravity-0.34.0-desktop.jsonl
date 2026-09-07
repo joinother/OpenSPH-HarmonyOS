@@ -1,0 +1,11 @@
+{"kind":"force-reference","cases":36,"maxForceError":1.3024026301877711e-11,"maxPotentialError":2.2191581905417479e-11,"maxMomentumError":1.44122895225708e-16}
+{"kind":"sphere","selfGravity":false,"budget":200,"count":210,"dt":0.03125,"steps":128,"timeSeconds":4,"radialMS":0,"rmsRadiusM":77117.337870262345,"maxMomentumError":0}
+{"kind":"sphere","selfGravity":true,"budget":200,"count":210,"dt":0.03125,"steps":128,"timeSeconds":4,"radialMS":-0.18879083761682489,"rmsRadiusM":77116.944318430527,"maxMomentumError":4.3895791673878328e-20}
+{"kind":"sphere","selfGravity":true,"budget":200,"count":210,"dt":0.015625,"steps":256,"timeSeconds":4,"radialMS":-0.18912294853178502,"rmsRadiusM":77116.942824504527,"maxMomentumError":5.9009161297200735e-20}
+{"kind":"sphere","selfGravity":false,"budget":600,"count":641,"dt":0.03125,"steps":128,"timeSeconds":4,"radialMS":0,"rmsRadiusM":77598.55340006297,"maxMomentumError":0}
+{"kind":"sphere","selfGravity":true,"budget":600,"count":641,"dt":0.03125,"steps":128,"timeSeconds":4,"radialMS":-0.19973786686948061,"rmsRadiusM":77598.136509386255,"maxMomentumError":8.2807037969736015e-20}
+{"kind":"sphere","selfGravity":true,"budget":600,"count":641,"dt":0.015625,"steps":256,"timeSeconds":4,"radialMS":-0.20009263796568269,"rmsRadiusM":77598.134922757905,"maxMomentumError":8.1341292711405664e-20}
+{"kind":"sphere","selfGravity":false,"budget":1200,"count":1263,"dt":0.03125,"steps":128,"timeSeconds":4,"radialMS":0,"rmsRadiusM":77195.160059136775,"maxMomentumError":0}
+{"kind":"sphere","selfGravity":true,"budget":1200,"count":1263,"dt":0.03125,"steps":128,"timeSeconds":4,"radialMS":-0.2064295322780608,"rmsRadiusM":77194.728624819953,"maxMomentumError":1.7388637412302703e-19}
+{"kind":"sphere","selfGravity":true,"budget":1200,"count":1263,"dt":0.015625,"steps":256,"timeSeconds":4,"radialMS":-0.20679650303494226,"rmsRadiusM":77194.726982553111,"maxMomentumError":1.2212195513250815e-19}
+{"kind":"complete","ok":true,"sphereRuns":9}

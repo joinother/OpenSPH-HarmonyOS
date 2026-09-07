@@ -1,0 +1,17 @@
+{
+  "verificationDate": "2026-09-08",
+  "timezone": "Asia/Shanghai",
+  "issuesFound": [
+    "Initial desktop run waited in upstream ThreadPool destruction while replacing the default scheduler; the test now retains a scheduler reference for the suite lifetime. No upstream runtime fix claimed.",
+    "Initial app acceptance saw a gravity model label without the config boolean; later rebuilt and force-stopped/reinstalled package passed. Root cause of stale installed behavior was not independently established.",
+    "Replay opens at the first stored frame; test corrected to select the latest before comparing final diagnostics.",
+    "Screenshots exposed two hardcoded no-gravity captions; changed them to follow the active native config.",
+    "During restoration, CLI waiting lost response chunks while the original 90-second experiment continued. A fresh read confirmed completion; restoration resumed without restarting the simulation. Transport issue is not claimed fixed.",
+    "Recalculation of the original 90-second scene is not bit-identical after rebuilding: maximum normalized diagnostic difference is about 5.6e-11, within the pre-existing 1e-8 comparison tolerance; the original saved replay is restored byte-for-byte."
+  ],
+  "scope": [
+    "Independent spherical density integration checks the softened pair force and potential.",
+    "IRun sphere tests check early inward motion, mass, center and momentum, with fixed-step sensitivity.",
+    "No hydrostatic relaxation or full energy/fragmentation convergence claim."
+  ]
+}

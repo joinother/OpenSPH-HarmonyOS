@@ -1,0 +1,10 @@
+✔ independent softened-force and short-time material response agree across platforms (3.677125ms)
+✔ gravity evidence rejects incomplete runs, wrong model/units and broken invariants (18.2995ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 157.08375

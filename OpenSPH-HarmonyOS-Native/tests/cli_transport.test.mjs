@@ -806,3 +806,26 @@ test('dense ring disturbance shares UI/CLI, preserves host simulation, toggles g
  const legacy=structuredClone(recipe);delete legacy.ring.modelVersion;delete legacy.ring.impulse;delete legacy.ring.points;app.restoreRecipe(legacy);assert.equal(app.trace.impulse,0);assert.equal(app.trace.points,false);
  await app.execute('uiAction',{action:'trace.toggle'});await assert.rejects(app.execute('setUiValue',{field:'trace.impulse',value:.25}));
 });
+
+test('SPH gravity UI drafts share native config and reject incompatible budgets atomically',async()=>{
+ const {page:app,calls}=page();app.choose(0);
+ await app.execute('uiAction',{action:'scene.gravity'});
+ assert.equal(app.config().selfGravity,true);assert.equal(app.definition().model,'sph-rock-gravity-v1');assert.equal(app.dirty,true);
+ await app.execute('uiAction',{action:'simulation.apply'});
+ assert.equal(app.config().selfGravity,true);
+ const before=app.snapshot(),n=calls.length;
+ for(const config of [{...app.config(),selfGravity:'true'},{...app.config(),count:1400},{...app.config(),preset:3,speed:1,duration:1}]){
+  await assert.rejects(app.execute('setScene',config));assert.equal(app.snapshot(),before);assert.equal(calls.length,n);
+ }
+ await assert.rejects(app.execute('setUiValue',{field:'scene.count',value:1400}));
+ const legacy=JSON.parse(JSON.stringify(app.config()));delete legacy.selfGravity;
+ await app.execute('setScene',legacy);assert.equal(app.config().selfGravity,undefined);assert.equal(app.definition().model,'sph-rock-v1');
+ app.applyConfig({...legacy,selfGravity:true});assert.equal(app.config().selfGravity,true);
+ app.choose(4);assert.equal(app.config().selfGravity,undefined);
+});
+
+test('gravity changes theme identity and restores the original material model on theme reset',async()=>{
+ const {page:app}=page();app.chooseTheme('rock-slow');assert.equal(app.themeState().modified,false);
+ await app.execute('uiAction',{action:'scene.gravity'});assert.equal(app.themeState().modified,true);assert.match(app.themeState().limit,/已开启/);
+ app.chooseTheme('rock-slow');assert.equal(app.config().selfGravity,undefined);assert.equal(app.themeState().modified,false);
+});

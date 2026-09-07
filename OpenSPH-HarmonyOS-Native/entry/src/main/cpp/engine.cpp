@@ -1,4 +1,5 @@
 #include "engine.h"
+#include "sph_gravity.h"
 #include "orbit.h"
 #include "Sph.h"
 #include "io/LogWriter.h"
@@ -28,6 +29,7 @@ class Experiment : public IRun, public IRunCallbacks {
   public:
     Experiment(Engine &e, Config c, uint64_t g) : engine(e), cfg(c), generation(g) {
         scheduler = SequentialScheduler::getGlobalInstance();
+        configureSphGravity(settings, cfg.selfGravity);
         settings.set(RunSettingsId::RUN_LOGGER, LoggerEnum::NONE);
         settings.set(RunSettingsId::RUN_OUTPUT_TYPE, IoEnum::NONE);
         settings.set(RunSettingsId::RUN_RNG_SEED, cfg.seed);
@@ -202,7 +204,7 @@ bool validConfig(const Config &c) {
             for(size_t j=0;j<i;++j){const auto &a=c.orbitBodies[j];if(norm({b.xAU-a.xAU,b.yAU-a.yAU,b.zAU-a.zAU})<.05)return false;}
         }
     }else if(!c.orbitBodies.empty())return false;
-    return c.preset >= 0 && c.preset <= 5 && c.count >= 200 && c.count <= 2400 &&
+    return (!c.selfGravity || (c.preset < 3 && c.count <= 1200)) && c.preset >= 0 && c.preset <= 5 && c.count >= 200 && c.count <= 2400 &&
         range(c.speed,c.preset>=3?0.75:0.5,c.preset>=3?1.25:10) && range(c.angle,0,70) && range(c.duration,1,c.preset>=3?10:120) &&
         range(c.targetRadiusKm,40,200) && range(c.impactorRadiusKm,20,120) &&
         range(c.targetDensity,2400,3000) && range(c.impactorDensity,2400,3000) &&
@@ -406,9 +408,10 @@ bool Engine::saveReplay(const std::string &dir) {
     if (frames.empty())
         return false;
     std::string path = dir + "/last-replay.osphr", temp = path + ".tmp";
-    std::ofstream out(temp, std::ios::binary);
     const bool diagnostics=known&&saved.preset<3&&std::all_of(frames.begin(),frames.end(),[](const auto &f){return f->sph.available&&f->scalars.size()==f->particles.size();});
-    uint32_t magic = 0x4c485053, version = diagnostics?5:(known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1), n = frames.size();
+    if (saved.selfGravity && !diagnostics) return false;
+    std::ofstream out(temp, std::ios::binary);
+    uint32_t magic = 0x4c485053, version = diagnostics?(saved.selfGravity?6:5):(known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1), n = frames.size();
     out.write(reinterpret_cast<char *>(&magic), 4);
     out.write(reinterpret_cast<char *>(&version), 4);
     out.write(reinterpret_cast<char *>(&n), 4);
@@ -428,7 +431,7 @@ bool Engine::saveReplay(const std::string &dir) {
         out.write(reinterpret_cast<char *>(values), sizeof(values));
         out.write(reinterpret_cast<char *>(f->centers), sizeof(f->centers));
         out.write(reinterpret_cast<char *>(f->particles.data()), count * sizeof(Particle));
-        if(version==5){out.write(reinterpret_cast<const char *>(f->sph.values.data()),sizeof(double)*10);out.write(reinterpret_cast<const char *>(f->scalars.data()),count*sizeof(SphScalar));}
+        if(version==5||version==6){out.write(reinterpret_cast<const char *>(f->sph.values.data()),sizeof(double)*10);out.write(reinterpret_cast<const char *>(f->scalars.data()),count*sizeof(SphScalar));}
         if(version==3||version==4){uint32_t ntrail=f->trails.size();double d[]={f->energyError,f->angularError};
             out.write(reinterpret_cast<char *>(d),sizeof(d));out.write(reinterpret_cast<char *>(&ntrail),4);
             out.write(reinterpret_cast<char *>(f->trails.data()),ntrail*sizeof(Particle));}
@@ -450,7 +453,7 @@ bool Engine::loadReplay(const std::string &dir) {
     in.read(reinterpret_cast<char *>(&version), 4);
     in.read(reinterpret_cast<char *>(&n), 4);
     in.read(reinterpret_cast<char *>(&duration), 8);
-    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4 && version != 5) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
+    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4 && version != 5 && version != 6) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
         duration <= 0 || duration > 120)
         return false;
     Config saved;
@@ -460,6 +463,7 @@ bool Engine::loadReplay(const std::string &dir) {
         for (double x : v) if (!std::isfinite(x) || std::abs(x) > 1.e7) return false;
         for (int i : {0,1,10}) if (std::trunc(v[i]) != v[i]) return false;
         saved = {int(v[0]),int(v[1]),v[2],v[3],v[4],v[5],v[6],v[7],v[8],v[9],int(v[10])};
+        saved.selfGravity = version == 6;
         if(version==4){uint32_t count=0;in.read(reinterpret_cast<char *>(&count),4);if(!in||count<2||count>8)return false;
             for(uint32_t i=0;i<count;++i){uint32_t len=0;in.read(reinterpret_cast<char *>(&len),4);if(!in||len<1||len>192)return false;
                 std::string name(len,'\0');in.read(&name[0],len);double d[8];in.read(reinterpret_cast<char *>(d),sizeof(d));if(!in)return false;
@@ -498,7 +502,7 @@ bool Engine::loadReplay(const std::string &dir) {
             if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z) ||
                 !std::isfinite(p.speed) || !std::isfinite(p.density) || (p.body < 0 || p.body > ((version==3||version==4)?7:1) || std::trunc(p.body)!=p.body))
                 return false;
-        if(version==5){
+        if(version==5||version==6){
             f->sph.available=true;in.read(reinterpret_cast<char *>(f->sph.values.data()),sizeof(double)*10);
             f->scalars.resize(count);in.read(reinterpret_cast<char *>(f->scalars.data()),count*sizeof(SphScalar));
             if(!in||!validSphDiagnostics(f->sph))return false;
