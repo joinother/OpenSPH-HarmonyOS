@@ -47,6 +47,15 @@ export function themeExperiments():ThemeExperiment[] {
       badge:prepared?'独立预松弛 16 s · 自引力':'直接初态 · 自引力',cover:'rock-oblique',compareId:prepared?'direct-impact':'prepared-impact',config,
       yaw:.15,pitch:.25,zoom:2.7,focus:-1,closeup:false});
   }
+  for(const prepared of [false,true]){
+    const config:SimulationConfig={preset:2,count:200,speed:0,angle:0,duration:32,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,selfGravity:true};
+    if(prepared)config.relaxationSeconds=64;
+    result.push({id:prepared?'sphere-release':'sphere-unprepared',title:prepared?'撤去阻尼之后':'静止岩球，会一直静止吗？',category:'collision',
+      question:'没有撞击、没有自转，岩球会怎样变化？',goal:'运行 32 秒自由演化，观察尺度、径向速度和记录窗口统计，再切换直接初态作对照。',
+      limit:'百公里玄武岩单体；撤去阻尼后使用普通材料与自引力求解，不再重置损伤。低分辨率、短时间观察不能证明平衡。',
+      badge:prepared?'预松弛 64 s → 自由演化 32 s':'直接初态 → 自由演化 32 s',cover:'rock-spin',compareId:prepared?'sphere-unprepared':'sphere-release',config,
+      yaw:.15,pitch:.25,zoom:2.7,focus:-1,closeup:false});
+  }
   return result;
 }
 export function themeConfigMatches(a:SimulationConfig,b:SimulationConfig):boolean {

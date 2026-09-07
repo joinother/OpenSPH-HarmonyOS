@@ -1,0 +1,196 @@
+{
+  "ok": true,
+  "cases": 12,
+  "preparationDt": 0.0625,
+  "releaseDt": [
+    0.0625,
+    0.03125
+  ],
+  "releaseSeconds": 32,
+  "crossPlatformNormalizedErrors": {
+    "budget": 0.0,
+    "preparationSeconds": 0.0,
+    "dt": 0.0,
+    "timeSeconds": 0.0,
+    "steps": 0.0,
+    "count": 0.0,
+    "initialRadiusKm": 7.371029710133152e-16,
+    "meanKineticJ": 1.969550728920394e-14,
+    "finalKineticJ": 6.510487450083047e-14,
+    "maxRadiusChangePercent": 6.661338147750939e-14,
+    "peakAbsRadialMS": 5.551115123125783e-16,
+    "peakRmsAccelerationMS2": 2.7755575615628914e-17,
+    "finalRmsAccelerationMS2": 5.898059818321144e-16,
+    "maxMomentumError": 2.146458767069788e-20
+  },
+  "rows": [
+    {
+      "budget": 200,
+      "preparationSeconds": 0,
+      "fine": {
+        "budget": 200,
+        "preparationSeconds": 0,
+        "dt": 0.03125,
+        "timeSeconds": 32,
+        "steps": 1024,
+        "count": 210,
+        "initialRadiusKm": 77.11733787026239,
+        "meanKineticJ": 6.56786564724627e+17,
+        "finalKineticJ": 90126111107821696,
+        "maxRadiusChangePercent": 0.013069251926423053,
+        "peakAbsRadialMS": 0.4508022388136657,
+        "peakRmsAccelerationMS2": 0.05228570669699835,
+        "finalRmsAccelerationMS2": 0.03253507594740935,
+        "maxMomentumError": 2.0259280180897893e-19
+      },
+      "stepRelativeDifferences": {
+        "meanKineticJ": 6.6793240865262e-05,
+        "finalKineticJ": 0.006792783515585162,
+        "maxRadiusChangePercent": 0.00017365576290413008,
+        "peakAbsRadialMS": 4.616058254518908e-06,
+        "finalRmsAccelerationMS2": 4.18650465196294e-05
+      }
+    },
+    {
+      "budget": 200,
+      "preparationSeconds": 16,
+      "fine": {
+        "budget": 200,
+        "preparationSeconds": 16,
+        "dt": 0.03125,
+        "timeSeconds": 32,
+        "steps": 1024,
+        "count": 210,
+        "initialRadiusKm": 77.11517746628373,
+        "meanKineticJ": 2.898434174868608e+17,
+        "finalKineticJ": 43168308142916336,
+        "maxRadiusChangePercent": 0.008671549303085335,
+        "peakAbsRadialMS": 0.2972174822238641,
+        "peakRmsAccelerationMS2": 0.03442031397597243,
+        "finalRmsAccelerationMS2": 0.02146364287963135,
+        "maxMomentumError": 1.4338642523094685e-19
+      },
+      "stepRelativeDifferences": {
+        "meanKineticJ": 7.246046615936024e-05,
+        "finalKineticJ": 0.006508456646981188,
+        "maxRadiusChangePercent": 0.00017851361762121761,
+        "peakAbsRadialMS": 4.5178995461378735e-06,
+        "finalRmsAccelerationMS2": 1.8573347409645858e-05
+      }
+    },
+    {
+      "budget": 200,
+      "preparationSeconds": 64,
+      "fine": {
+        "budget": 200,
+        "preparationSeconds": 64,
+        "dt": 0.03125,
+        "timeSeconds": 32,
+        "steps": 1024,
+        "count": 210,
+        "initialRadiusKm": 77.11124615159824,
+        "meanKineticJ": 2615311613851548.5,
+        "finalKineticJ": 1026772373511389.4,
+        "maxRadiusChangePercent": 0.0006762238506374807,
+        "peakAbsRadialMS": 0.02171101571859242,
+        "peakRmsAccelerationMS2": 0.003278813980947798,
+        "finalRmsAccelerationMS2": 0.0017099367785862627,
+        "maxMomentumError": 7.618813062381235e-21
+      },
+      "stepRelativeDifferences": {
+        "meanKineticJ": 0.0001919816631847068,
+        "finalKineticJ": 0.0028258317381950776,
+        "maxRadiusChangePercent": 0.0002320358983203766,
+        "peakAbsRadialMS": 2.0619745121041133e-06,
+        "finalRmsAccelerationMS2": 0.00017093265743948086
+      }
+    },
+    {
+      "budget": 600,
+      "preparationSeconds": 0,
+      "fine": {
+        "budget": 600,
+        "preparationSeconds": 0,
+        "dt": 0.03125,
+        "timeSeconds": 32,
+        "steps": 1024,
+        "count": 641,
+        "initialRadiusKm": 77.598553400063,
+        "meanKineticJ": 6.475480046684799e+17,
+        "finalKineticJ": 6664016367649237,
+        "maxRadiusChangePercent": 0.012532139091303574,
+        "peakAbsRadialMS": 0.4696252889855122,
+        "peakRmsAccelerationMS2": 0.05487580340343078,
+        "finalRmsAccelerationMS2": 0.03914276709455581,
+        "maxMomentumError": 3.6327990918902756e-19
+      },
+      "stepRelativeDifferences": {
+        "meanKineticJ": 2.606763902213234e-06,
+        "finalKineticJ": 0.014228157331552147,
+        "maxRadiusChangePercent": 2.626968834972086e-05,
+        "peakAbsRadialMS": 3.91867143280579e-06,
+        "finalRmsAccelerationMS2": 0.0001647734078650252
+      }
+    },
+    {
+      "budget": 600,
+      "preparationSeconds": 16,
+      "fine": {
+        "budget": 600,
+        "preparationSeconds": 16,
+        "dt": 0.03125,
+        "timeSeconds": 32,
+        "steps": 1024,
+        "count": 641,
+        "initialRadiusKm": 77.5962912628851,
+        "meanKineticJ": 2.3481233096656326e+17,
+        "finalKineticJ": 2374026820204773.5,
+        "maxRadiusChangePercent": 0.007543831683753943,
+        "peakAbsRadialMS": 0.28233489679554485,
+        "peakRmsAccelerationMS2": 0.032874896032236874,
+        "finalRmsAccelerationMS2": 0.023558821229448523,
+        "maxMomentumError": 1.9719305430710732e-19
+      },
+      "stepRelativeDifferences": {
+        "meanKineticJ": 2.541100134323721e-06,
+        "finalKineticJ": 0.015949222616943527,
+        "maxRadiusChangePercent": 2.841303361738966e-05,
+        "peakAbsRadialMS": 4.512319959686929e-06,
+        "finalRmsAccelerationMS2": 0.00015856841892349942
+      }
+    },
+    {
+      "budget": 600,
+      "preparationSeconds": 64,
+      "fine": {
+        "budget": 600,
+        "preparationSeconds": 64,
+        "dt": 0.03125,
+        "timeSeconds": 32,
+        "steps": 1024,
+        "count": 641,
+        "initialRadiusKm": 77.59287839165066,
+        "meanKineticJ": 222088521030524.72,
+        "finalKineticJ": 141489195791652.25,
+        "maxRadiusChangePercent": 4.612357735744865e-05,
+        "peakAbsRadialMS": 0.0020301124198342803,
+        "peakRmsAccelerationMS2": 0.0012063582797058293,
+        "finalRmsAccelerationMS2": 0.00041737542158791523,
+        "maxMomentumError": 2.750593218364948e-21
+      },
+      "stepRelativeDifferences": {
+        "meanKineticJ": 0.0003114138960457593,
+        "finalKineticJ": 0.0007722476769122168,
+        "maxRadiusChangePercent": 2.628030104629326e-06,
+        "peakAbsRadialMS": 1.3337316775112312e-05,
+        "finalRmsAccelerationMS2": 0.00039461360462301624
+      }
+    }
+  ],
+  "limits": [
+    "Halved step tests free evolution only; preparation step fixed",
+    "Acceleration is total solver RMS, not separated pressure/gravity balance",
+    "Two coarse budgets differ substantially for prepared residual motion; no spatial convergence or equilibrium verdict",
+    "32-second stationary basalt reference only, no rotating/layered/full planet claim"
+  ]
+}

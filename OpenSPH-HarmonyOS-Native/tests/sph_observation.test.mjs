@@ -37,3 +37,10 @@ test('extended CSV export checks schema and finite rows without silently droppin
   for(const bad of [csv.replace('gravity_J','potential'),csv.replace('-100','NaN'),csv.replace('-100,10','-100,'),csv.replace('-100,10,80,-3','-100,10,80')])assert.throws(()=>exportTable({...table,csv:bad},directory+'/invalid.csv'));
  }finally{rmSync(directory,{recursive:true,force:true});}
 });
+
+test('window summary time-weights adaptive samples and discloses missing initial frame without declaring equilibrium',()=>{
+ const d=data();for(const s of d.samples)s.structure=[-100,2*s.time,80+s.time,-s.time];const summary=context.exports.sphWindowSummary;
+ const r=summary(d);assert.equal(r.available,true);assert.equal(r.meanKineticJ,2);assert.equal(r.peakAbsRadialMS,2);assert.ok(Math.abs(r.maxRadiusChangePercent-2.5)<1e-10);assert.equal(r.includesInitial,true);assert.equal(r.stable,undefined);
+ d.selected=0;assert.equal(summary(d).meanKineticJ,2);for(const s of d.samples)s.time+=20;assert.equal(summary(d).includesInitial,false);assert.equal(summary(d).firstTime,20);
+ for(const mutate of [d=>d.samples.splice(1),d=>d.samples[0].structure[2]=0,d=>delete d.samples[1].structure,d=>d.samples[0].structure[1]=NaN]){const bad=structuredClone(d);mutate(bad);const no=summary(bad);assert.equal(no.available,false);assert.equal(no.meanKineticJ,undefined);}
+});

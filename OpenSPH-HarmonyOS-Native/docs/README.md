@@ -1,10 +1,10 @@
 # 文档目录
 
-> 类型：当前文档索引；源码版本：0.36.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前文档索引；源码版本：0.37.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 先阅读 [项目概览](../README.md)，操作应用使用 [CLI 指南](CLI.md)，维护资料遵循 [文档流程](WORKFLOW.md) 和 [开发约定](../AGENTS.md)。本目录区分当前说明与历史记录；归档内容不覆盖当前规则。
 
-最新版本：[0.36.0 碰撞前岩体准备](releases/RELEASE-0.36.0.md)。
+最新版本：[0.37.0 静止岩球释放](releases/RELEASE-0.37.0.md)。
 
 ## 当前参考
 
@@ -14,6 +14,7 @@
 | [天体程序化生成专题](research/PROCEDURAL-CELESTIAL-GENERATION-2026-09-07.md) | Baopinsui 视频索引与 NPGS 10 份文件选读、9 个开源候选、逐天体种子／地貌／大气路线与 8 个预设；未播放视频或接入新代码 |
 | [行星独立外观](reference/SURFACE-GENERATION.md) | 地表／云层种子、后台生成、独立历史、v3 存档与设备预算 |
 | [准备阶段与取消](reference/PREPARATION.md) | 请求身份、真实阶段、耗时提示与等待失败证据 |
+| [SPH 自由演化](reference/SPH-RELEASE.md) | 静止单体、释放阶段步长对照、窗口统计与完整导出 |
 | [SPH 岩体预松弛](reference/SPH-RELAXATION.md) | 分别准备静止岩体、阻尼对照、取消和 v9 模型保存 |
 | [SPH 结构与能量](reference/SPH-STRUCTURE.md) | 引力势能、质心系运动、分布尺度、径向速度与回放 v7/v8 |
 | [SPH 自引力](reference/SPH-GRAVITY.md) | 逐对软化引力、独立球壳积分、短时岩球响应、存档与回放 v6 |

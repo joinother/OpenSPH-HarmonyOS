@@ -51,7 +51,7 @@ export class CliBridge {
   private static async reply(id: string, value: string): Promise<void> {
     // Pace across requests too: HiLog is a bounded log stream, not a bulk-data socket.
     // Charge UTF-8 bytes (surrogate pairs conservatively count as six) plus line metadata.
-    if(value.length>64000)value=JSON.stringify({ok:false,error:'response exceeds CLI limit; request a smaller result'});
+    if(value.length>128000)value=JSON.stringify({ok:false,error:'response exceeds CLI limit; request a smaller result'});
     const size: number = 500;
     let chunks:string[]=[];
     for(let start=0;start<value.length;){
@@ -60,7 +60,7 @@ export class CliBridge {
       if(end<value.length&&last>=0xD800&&last<=0xDBFF&&next>=0xDC00&&next<=0xDFFF)end--;
       chunks.push(value.slice(start,end));start=end;
     }
-    if(chunks.length>128)chunks=[JSON.stringify({ok:false,error:'response exceeds CLI chunk limit'})];
+    if(chunks.length>256)chunks=[JSON.stringify({ok:false,error:'response exceeds CLI chunk limit'})];
     const total:number=chunks.length;
     for (let index = 0; index < total; index++) {
       const chunk:string=chunks[index];

@@ -241,7 +241,7 @@ bool validConfig(const Config &c) {
         }
     }else if(!c.orbitBodies.empty())return false;
     return (!c.selfGravity || (c.preset < 3 && c.count <= 1200)) && c.preset >= 0 && c.preset <= 5 && c.count >= 200 && c.count <= 2400 &&
-        range(c.speed,c.preset>=3?0.75:0.5,c.preset>=3?1.25:10) && range(c.angle,0,70) && range(c.duration,1,c.preset>=3?10:120) &&
+        range(c.speed,c.preset>=3?0.75:(c.preset==2?0:0.5),c.preset>=3?1.25:10) && range(c.angle,0,70) && range(c.duration,1,c.preset>=3?10:120) &&
         range(c.targetRadiusKm,40,200) && range(c.impactorRadiusKm,20,120) &&
         range(c.targetDensity,2400,3000) && range(c.impactorDensity,2400,3000) &&
         range(c.targetSpin,-0.01,0.01) && c.seed >= 1 && c.seed <= 1000000;

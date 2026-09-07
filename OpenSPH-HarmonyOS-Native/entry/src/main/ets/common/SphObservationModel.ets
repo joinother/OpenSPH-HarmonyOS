@@ -42,3 +42,25 @@ export function sphCsv(data:SphObservation):string {
   csv+='\n';
   for(const s of data.samples)csv+=s.frame+','+s.time+','+s.values.join(',')+(s.structure!==undefined?','+s.structure.join(','):'')+'\n';return csv;
 }
+
+export interface SphWindowSummary {
+  available:boolean; reason:string; sceneRevision:number;
+  firstTime?:number;lastTime?:number;samples?:number;includesInitial?:boolean;
+  maxRadiusChangePercent?:number;meanKineticJ?:number;peakAbsRadialMS?:number;
+}
+// Window-level statistics are independent of playback selection. Trapezoidal
+// time weighting avoids giving densely sampled adaptive steps extra weight.
+export function sphWindowSummary(data:SphObservation):SphWindowSummary {
+  const unavailable:SphWindowSummary={available:false,reason:'需要至少两帧有效结构记录',sceneRevision:data.sceneRevision};
+  if(!validSphObservation(data)||data.samples.length<2||data.samples[0].structure===undefined)return unavailable;
+  const s=data.samples,first=s[0],last=s[s.length-1],radius=first.structure![2],span=last.time-first.time;
+  if(radius<=0||!Number.isFinite(span)||span<=0)return unavailable;
+  let deviation=0,mean=0,radial=0;
+  for(let i=0;i<s.length;i++){
+    const v=s[i].structure!;
+    deviation=Math.max(deviation,Math.abs(v[2]/radius-1)*100);radial=Math.max(radial,Math.abs(v[3]));
+    if(i>0)mean+=(s[i].time-s[i-1].time)/span*(s[i-1].structure![1]/2+v[1]/2);
+  }
+  if(!Number.isFinite(deviation)||!Number.isFinite(mean)||!Number.isFinite(radial))return unavailable;
+  return {available:true,reason:'',sceneRevision:data.sceneRevision,firstTime:first.time,lastTime:last.time,samples:s.length,includesInitial:first.time===0,maxRadiusChangePercent:deviation,meanKineticJ:mean,peakAbsRadialMS:radial};
+}

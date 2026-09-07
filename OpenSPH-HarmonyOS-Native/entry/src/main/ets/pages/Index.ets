@@ -1,4 +1,4 @@
-import { sphPlot, sphCsv, sphMetricLabel, sphMetricIndex, sphMetricValue } from '../common/SphObservationModel';
+import { sphPlot, sphCsv, sphMetricLabel, sphMetricIndex, sphMetricValue, sphWindowSummary, SphWindowSummary } from '../common/SphObservationModel';
 import { ObservationReference, ReferenceSummary, ComparisonPlot, comparisonPlot, referenceSummary, observationCsv } from '../common/ObservationComparison';
 import { ObservationStore } from '../common/ObservationStore';
 import { observationPlot, ObservationPlot } from '../common/ObservationModel';
@@ -210,7 +210,7 @@ struct Index {
   private experiments: ExperimentInfo[] = [
     {title:'正面碰撞',caption:'两颗岩质天体相遇',symbol:'01'},
     {title:'掠过与碰撞',caption:'改变偏移，观察碎片',symbol:'02'},
-    {title:'旋转天体',caption:'探索旋转下的形变',symbol:'03'},
+    {title:'单体岩球',caption:'观察静止与旋转初态',symbol:'03'},
     {title:'双体轨道',caption:'引力与椭圆轨道',symbol:'04'},
     {title:'行星系统',caption:'所有天体相互吸引',symbol:'05'},
     {title:'自定义系统',caption:'亲手搭建一片星系',symbol:'06'}
@@ -226,6 +226,7 @@ struct Index {
     if (this.info.state === 'replay') return '已载入回放';
     return '准备实验';
   }
+  private sphSummary():SphWindowSummary {return sphWindowSummary(this.sphObserved);}
   private sphView():ObservationPlot {return sphPlot(this.sphObserved,this.sphMetric);}
   private preparationLabel():string {
     const p=this.info.preparation;
@@ -810,7 +811,7 @@ struct Index {
     for(const t of this.themes)add('theme.'+t.id,t.title,true,this.activeThemeId===t.id);
     add('theme.restore','恢复主题初始条件',this.activeThemeId!=='');
     add('theme.compare','切换对照实验',this.themeState().compareId!=='');
-    add('theme.observe','查看碰撞曲线',this.activeThemeId!==''&&this.preset<3);
+    add('theme.observe',this.preset===2?'查看岩球曲线':'查看碰撞曲线',this.activeThemeId!==''&&this.preset<3);
     add('library.collision','碰撞',true,this.librarySection==='collision');add('library.explore','探索',true,this.librarySection==='explore');add('library.saved','我的实验',true,this.librarySection==='saved');
     add('presets.show','切换实验',this.preset===5);
     for(let i=0;i<this.experiments.length;i++)add('preset.'+i,this.experiments[i].title,true,this.preset===i);
@@ -846,6 +847,7 @@ struct Index {
     add('terrain.undo','撤销外观',this.preset===5&&!this.placing&&this.surfaceUndo.length>0);add('terrain.redo','重做外观',this.preset===5&&!this.placing&&this.surfaceRedo.length>0);
     add('appearance.rings','环带',this.preset>=3,this.rings);add('appearance.clouds','云层',this.preset>=3,this.clouds);add('appearance.atmosphere','大气',this.preset>=3,this.atmosphere);add('appearance.trails','轨迹',this.preset>=3,this.trails);add('appearance.spin','外观自转',this.preset>=3,this.autoSpin);
     for(const seconds of [0,16,64])add('scene.relax.'+seconds,seconds===0?'直接生成':'预松弛 '+seconds+' 秒',this.preset<3&&(seconds===0||this.selfGravity),this.relaxationSeconds===seconds);
+    add('scene.stationary','设为静止初态',this.preset===2,this.speed===0&&this.targetSpin===0);
     add('scene.gravity','材料自引力',this.preset<3&&this.count<=1200,this.selfGravity);
     add('body.primary','主天体',this.preset<3,this.editedBody===0);add('body.impactor','撞击体',this.preset<2,this.editedBody===1);
     add('placement.cancel','取消放置',this.placing);add('placement.confirm','确认加入 · 重新计算',this.placing&&this.placementPreview().valid);
@@ -904,7 +906,7 @@ struct Index {
     if(field==='sky.brightness'){this.checked(value,0,100);this.changeSky(this.skyMode,value/100);return;}
     if(field==='time.frame'){this.checked(value,-1,this.info.frames-1,true);this.stopTrace();this.playing=false;simulation.seek(value);this.info=simulation.status();return;}
     if(field==='scene.count'){this.checked(value,200,this.selfGravity?1200:2400,true);this.count=value;}
-    else if(field==='scene.speed'){this.checked(value,this.preset>=3?.75:.5,this.preset>=3?1.25:10);this.speed=value;}
+    else if(field==='scene.speed'){this.checked(value,this.preset>=3?.75:(this.preset===2?0:.5),this.preset>=3?1.25:10);this.speed=value;}
     else if(field==='scene.angle'){this.checked(value,0,70);this.angle=value;}
     else if(field==='scene.duration'){this.checked(value,1,this.preset>=3?10:120);this.duration=value;}
     else if(field==='body.radius'){this.checked(value,this.editedBody===0?40:20,this.editedBody===0?200:120);if(this.editedBody===0)this.targetRadiusKm=value;else this.impactorRadiusKm=value;}
@@ -931,6 +933,7 @@ struct Index {
     else if(action.startsWith('theme.'))this.chooseTheme(action.slice(6));
     else if(action.startsWith('library.')){this.librarySection=action.slice(8);this.scroller.scrollEdge(Edge.Top);}
     else if(action.startsWith('preset.'))this.choose(Number(action.slice(7)));
+    else if(action==='scene.stationary'){this.speed=0;this.targetSpin=0;this.dirty=true;}
     else if(action==='scene.gravity'){this.selfGravity=!this.selfGravity;if(!this.selfGravity)this.relaxationSeconds=0;this.dirty=true;}
     else if(action.startsWith('scene.relax.')){this.relaxationSeconds=Number(action.slice('scene.relax.'.length));this.dirty=true;}
     else if(action==='simulation.toggle'){this.run();this.setPanel(-1);}
@@ -1048,6 +1051,7 @@ struct Index {
       {name:'getSkyInfo',payload:'{} - provenance and sky rendering status'},
       {name:'getProjectedBodies',payload:'{} - last presented orbital frame; normalized top-left x/y, radius in viewport-height units; ignores UI occlusion'},
       {name:'pickBody',payload:'{x:0..1,y:0..1} - viewport hit test, shared focus action; hit=-1 leaves selection unchanged'},
+      {name:'getSphWindowSummary',payload:'{} - read-only retained-window radius/kinetic/radial statistics; no equilibrium verdict'},
       {name:'getSphObservation',payload:'{} - retained double-precision SPH curve, metric, units, extrema and frame identity; read-only'},
       {name:'getSphTable',payload:'{} - raw SPH CSV and applied source configuration; no interpolation'},
       {name:'getSphDiagnostics',payload:'{} - selected SPH frame pressure GPa, specific internal energy MJ/kg, cubed scalar damage and mass-weighted statistics; no seek'},
@@ -1063,7 +1067,7 @@ struct Index {
       {name:'listUiActions',payload:'{} - same semantic control catalog'},
       {name:'uiAction',payload:'{action:string} - invoke a catalog action through the same ArkUI handler'},
       {name:'setUiValue',payload:'{field:string,value:string|number} - edit a catalog field; orbital inputs stay draft until orbit.apply'},
-      {name:'setScene',payload:'{preset:0..5,count:200..2400,speed:0.5..10,angle:0..70,duration:1..120; custom preset 5 requires orbitBodies (2..8), speed=1; orbit preset 3/4: speed 0.75..1.25 circular-velocity factor, duration 1..10 Julian years; count/rock fields ignored; optional selfGravity:boolean (SPH only, count<=1200, defaults false); relaxationSeconds?:0|16|64 (requires selfGravity, isolated stationary pre-relaxation); targetRadiusKm:40..200,impactorRadiusKm:20..120,targetDensity:2400..3000,impactorDensity:2400..3000,targetSpin:-0.01..0.01,seed:1..1000000}'},
+      {name:'setScene',payload:'{preset:0..5,count:200..2400,speed:0.5..10 (preset 2 allows 0; total spin = targetSpin + speed*0.003),angle:0..70,duration:1..120; custom preset 5 requires orbitBodies (2..8), speed=1; orbit preset 3/4: speed 0.75..1.25 circular-velocity factor, duration 1..10 Julian years; count/rock fields ignored; optional selfGravity:boolean (SPH only, count<=1200, defaults false); relaxationSeconds?:0|16|64 (requires selfGravity, isolated stationary pre-relaxation); targetRadiusKm:40..200,impactorRadiusKm:20..120,targetDensity:2400..3000,impactorDensity:2400..3000,targetSpin:-0.01..0.01,seed:1..1000000}'},
       {name:'start',payload:'{}'}, {name:'pause',payload:'{}'}, {name:'reset',payload:'{}'},
       {name:'getPreparation',payload:'{}; monotonic phase timings, request ID, previous worker phase and bounded history; no mutation'},
       {name:'seek',payload:'{frame:-1 or retained frame index}'},
@@ -1094,6 +1098,7 @@ struct Index {
     if(command==='getProjectedBodies')return JSON.stringify({ok:true,projection:simulation.projectedScene()});
     if(command==='pickBody'){const hit=await this.pickViewport(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,hit:hit});}
     if(command==='getPreparation'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,state:state.state,error:state.error,config:state.config,preparation:state.preparation});}
+    if(command==='getSphWindowSummary'){this.refreshObservation();return JSON.stringify({ok:true,config:simulation.status().config,summary:this.sphSummary()});}
     if(command==='getSphObservation'){this.refreshObservation();const reply:SphCurveReply={ok:true,metric:this.sphMetric,label:this.sphLabel(),data:{sceneRevision:this.sphObserved.sceneRevision,selected:this.sphObserved.selected,samples:(this.sphView().available?this.sphObserved.samples.map((s:SphObservationSample):SphCurveSample=>({frame:s.frame,time:s.time,value:sphMetricValue(s,sphMetricIndex(this.sphMetric))})):[])},plot:this.sphView()};return JSON.stringify(reply);}
     if(command==='getSphTable'){const data:SphObservation=simulation.sphObservation(),config:SimulationConfig|undefined=simulation.status().config;if(simulation.sphObservation().sceneRevision!==data.sceneRevision)throw new Error('场景已变化，请重试导出');return JSON.stringify({ok:true,rows:data.samples.length,timeUnit:'s',sceneRevision:data.sceneRevision,config,csv:sphCsv(data)});}
     if(command==='getSphDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,time:state.time,timeUnit:state.config&&state.config.preset>=3?'year':'s',selected:state.selected,frameCount:state.frames,model:state.model,config:state.config,diagnostics:state.sph??{available:false},source:'OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted'});}
@@ -1121,7 +1126,7 @@ struct Index {
       // Validate the entire transaction before changing any UI state.
       const preset: number=this.checked(p.preset,0,5,true);
       const count: number=this.checked(p.count,200,2400,true);
-      const speed: number=this.checked(p.speed,0.5,10);
+      const speed: number=this.checked(p.speed,preset===2?0:0.5,10);
       const angle: number=this.checked(p.angle,0,70);
       const duration: number=this.checked(p.duration,1,120);
       const c: SimulationConfig={preset:preset,count:count,speed:speed,angle:angle,duration:duration,
@@ -1245,7 +1250,7 @@ struct Index {
   @Builder
   sphControls() {
     Column({space:8}) {
-      Text('碰撞内部发生了什么').fontSize(15).fontColor('#E2EEF5').width('100%')
+      Text(this.info.config?.preset===2?'岩球内部发生了什么':'碰撞内部发生了什么').fontSize(15).fontColor('#E2EEF5').width('100%')
       Text('SPH 诊断 · '+this.info.time.toFixed(2)+' s').fontSize(11).fontColor('#B7C5D5').width('100%')
       if(this.info.sph?.available) {
         Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(6)}}) {
@@ -1255,6 +1260,15 @@ struct Index {
         }.width('100%')
         Text(this.sphLegend()+'；超出色标的值仅在显示时饱和。').id('sph-legend').fontSize(11).fontColor('#D2C3E9').lineHeight(16).width('100%')
         this.sphCurveControls()
+        if(this.sphSummary().available){
+          Column({space:6}){
+            Text('记录窗口 · '+this.sphSummary().firstTime!.toFixed(2)+'–'+this.sphSummary().lastTime!.toFixed(2)+' s').id('sph-window-summary').fontSize(12).fontColor('#DCCEF3').width('100%')
+            MetricRow({label:'尺度最大偏离',value:this.sphSummary().maxRadiusChangePercent!.toPrecision(4)+' %'})
+            MetricRow({label:'平均相对动能',value:this.sphSummary().meanKineticJ!.toPrecision(4)+' J'})
+            MetricRow({label:'径向速度绝对峰值',value:this.sphSummary().peakAbsRadialMS!.toPrecision(4)+' m/s'})
+            Text(this.sphSummary().includesInitial?'相对本次计算初始帧；统计不判定平衡或再聚合。':'初始帧已不在记录中；偏离量只相对窗口首帧，不代表全程。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+          }.width('100%')
+        }
         MetricRow({label:'压力 · 质量加权均值',value:this.sphNumber(this.info.sph?.pressureMeanGPa,'GPa')})
         Text('范围 '+this.sphNumber(this.info.sph?.pressureMinGPa,'')+' → '+this.sphNumber(this.info.sph?.pressureMaxGPa,'GPa')).fontSize(11).fontColor('#B7C5D5').width('100%')
         MetricRow({label:'比内能 · 质量加权均值',value:this.sphNumber(this.info.sph?.internalMeanMJkg,'MJ/kg')})
@@ -1725,7 +1739,7 @@ struct Index {
           ChoiceChip({label:'恢复主题',onPress:()=>{this.press('theme.restore');}})
           if(this.themeState().compareId!=='') {ChoiceChip({label:'切换对照实验',onPress:()=>{this.press('theme.compare');}}).id('theme-compare')}
         }.width('100%')
-        if(this.preset<3){ChoiceChip({label:'查看碰撞曲线',onPress:()=>{this.press('theme.observe');}}).id('theme-observe')}
+        if(this.preset<3){ChoiceChip({label:this.preset===2?'查看岩球曲线':'查看碰撞曲线',onPress:()=>{this.press('theme.observe');}}).id('theme-observe')}
         Text('恢复或切换会从零开始；可先另存当前参数。').fontSize(10).fontColor('#ADA8BF').width('100%')
       }.width('100%').padding({bottom:10})
     }
@@ -1823,10 +1837,11 @@ struct Index {
           .onChange((v:number,mode:SliderChangeMode) => {if(mode!==SliderChangeMode.Moving&&mode!==SliderChangeMode.Click&&mode!==SliderChangeMode.End)return;this.input('scene.count',Math.round(v));})
         }
         if(this.preset!==5) {
-        MetricRow({label:this.preset>=3?'初始轨道速度':this.preset===2?'角速度':'撞击速度',value:this.preset>=3?this.speed.toFixed(2)+' × 圆轨道初速':this.preset===2?(this.speed*0.003).toFixed(4)+' rad/s':this.speed.toFixed(1)+' km/s'})
-        Slider({value:this.speed,min:this.preset>=3?0.75:0.5,max:this.preset>=3?1.25:10,step:this.preset>=3?0.05:0.5}).selectedColor('#BDA5F2').trackColor('#414154').blockColor('#F0E8FF')
+        MetricRow({label:this.preset>=3?'初始轨道速度':this.preset===2?'总初始角速度':'撞击速度',value:this.preset>=3?this.speed.toFixed(2)+' × 圆轨道初速':this.preset===2?(this.targetSpin+this.speed*0.003).toFixed(4)+' rad/s':this.speed.toFixed(1)+' km/s'})
+        Slider({value:this.speed,min:this.preset>=3?0.75:(this.preset===2?0:0.5),max:this.preset>=3?1.25:10,step:this.preset>=3?0.05:0.5}).selectedColor('#BDA5F2').trackColor('#414154').blockColor('#F0E8FF')
           .onChange((v:number,mode:SliderChangeMode) => {if(mode!==SliderChangeMode.Moving&&mode!==SliderChangeMode.Click&&mode!==SliderChangeMode.End)return;this.input('scene.speed',v);})
         }
+        if(this.preset===2){ChoiceChip({label:'设为静止初态',active:this.speed===0&&this.targetSpin===0,onPress:()=>{this.press('scene.stationary');}}).id('sph-stationary')}
         if(this.preset<2) {
           MetricRow({label:'横向偏移',value:(Math.sin(this.angle*Math.PI/180)*0.5625*(this.targetRadiusKm+this.impactorRadiusKm)).toFixed(0)+' km'})
           Slider({value:this.angle,min:0,max:70,step:5}).selectedColor('#BDA5F2').trackColor('#414154').blockColor('#F0E8FF')

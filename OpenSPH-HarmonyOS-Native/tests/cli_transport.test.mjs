@@ -48,7 +48,7 @@ test('out-of-order, duplicate and delayed chunks remain complete; unrelated requ
   assert.equal(collect('SPHCLI a 1/2 true}\nSPHCLI b 0/1 {}','a',parts),undefined);
   const result=collect('SPHCLI a 0/2 {"ok":\nSPHCLI a 1/2 true}\nSPHCLI a 1/2 true}','a',parts);
   assert.equal(result.ok,true);
-  assert.throws(()=>collect('SPHCLI a 0/129 {}','a'));
+  assert.throws(()=>collect('SPHCLI a 0/257 {}','a'));
 });
 
 function page() {
@@ -409,7 +409,7 @@ test('immersive window policy hides status, navigation and gesture indicator ind
 
 test('theme catalog isolates conditions and collision speed comparison changes only speed',async()=>{
   const {page:app}=page();
-  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,14);
+  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,16);
   const [slow,fast]=catalog.experiments;assert.equal(slow.config.speed,2);assert.equal(fast.config.speed,8);
   assert.deepEqual({...slow.config,speed:8},fast.config);
   assert.ok(catalog.experiments.every(t=>t.goal&&t.limit&&t.question));
@@ -545,7 +545,7 @@ test('HiLog replies pace UTF-8 bytes across sequential large requests and bound 
  assert.equal(collect(lines.join('\n'),'largeone').text,text);assert.equal(collect(lines.join('\n'),'largetwo').text,text);
  assert.ok(emissions.at(-1).at>2000);
  for(let i=1;i<emissions.length;i++)assert.ok(emissions[i].at-emissions[i-1].at>=emissions[i-1].bytes/24-1,'unpaced chunk burst');
- Bridge.bind(async()=>JSON.stringify({ok:true,text:'a'.repeat(65000)}));Bridge.receive(want('oversize'));await tick();assert.equal(collect(lines.join('\n'),'oversize').ok,false);
+ Bridge.bind(async()=>JSON.stringify({ok:true,text:'a'.repeat(128001)}));Bridge.receive(want('oversize'));await tick();assert.equal(collect(lines.join('\n'),'oversize').ok,false);
 });
 
 test('named recipe restores appearance, camera, theme and ring while both clocks remain paused',async()=>{
@@ -852,4 +852,25 @@ test('prepared impact pair keeps input configuration fixed except isolated prepa
  const {page:app}=page();await app.execute('uiAction',{action:'theme.direct-impact'});const direct=app.config();assert.equal(direct.selfGravity,true);
  await app.execute('uiAction',{action:'theme.compare'});assert.equal(app.themeState().id,'prepared-impact');assert.deepEqual(JSON.parse(JSON.stringify(app.config())),{...direct,relaxationSeconds:16});assert.equal(app.themeState().modified,false);
  await app.execute('uiAction',{action:'scene.relax.64'});assert.equal(app.themeState().modified,true);await app.execute('uiAction',{action:'theme.compare'});assert.deepEqual(app.config(),direct);
+});
+
+test('stationary sphere accepts zero spin only in single-body model and exposes read-only window summary',async()=>{
+ const {page:app,state,calls}=page();await app.execute('uiAction',{action:'theme.sphere-unprepared'});assert.equal(app.config().speed,0);assert.equal(app.config().targetSpin,0);
+ const direct=app.config();await app.execute('uiAction',{action:'theme.compare'});assert.equal(app.themeState().id,'sphere-release');assert.deepEqual(JSON.parse(JSON.stringify(app.config())),{...direct,relaxationSeconds:64});
+ for(const patch of [{preset:0},{preset:1},{preset:3,duration:1},{speed:-.1}])await assert.rejects(app.execute('setScene',{...app.config(),...patch}));
+ state.sphObservation={sceneRevision:7,selected:-1,samples:[0,1,3].map((time,frame)=>({frame,time,values:[0,0,0,0,0,0,0,0,0,0],structure:[-1,2*time,80+time,-time]}))};
+ const before=calls.length;const reply=JSON.parse(await app.execute('getSphWindowSummary'));assert.equal(reply.summary.available,true);assert.equal(reply.summary.meanKineticJ,3);assert.equal(reply.summary.includesInitial,true);assert.equal(calls.length,before);
+});
+
+test('stationary shortcut clears both spin inputs without mutating the active solver',async()=>{
+ const {page:app,calls}=page();app.choose(2);app.applyConfig({...app.config(),speed:2,targetSpin:.004});const count=calls.filter(c=>c[0]==='start').length;
+ await app.execute('uiAction',{action:'scene.stationary'});assert.equal(app.config().speed,0);assert.equal(app.config().targetSpin,0);assert.equal(calls.filter(c=>c[0]==='start').length,count);assert.ok(app.dirty);
+ app.choose(0);await assert.rejects(app.execute('uiAction',{action:'scene.stationary'}));
+});
+
+test('bounded large response supports full SPH tables without dropping Unicode or pacing',async()=>{
+ const {Bridge,lines,emissions}=bridge();const csv='0123456789'.repeat(9600)+'星体🌏';Bridge.bind(async()=>JSON.stringify({ok:true,csv}));Bridge.receive(want('large'));await tick();
+ const result=collect(lines.join('\n'),'large');assert.equal(result.csv,csv);assert.ok(lines.length>128&&lines.length<=256);
+ for(let i=1;i<emissions.length;i++)assert.ok(emissions[i].at-emissions[i-1].at>=Math.ceil(emissions[i-1].bytes/24000*1000));
+ const over=bridge();over.Bridge.bind(async()=>JSON.stringify({ok:true,csv:'x'.repeat(128001)}));over.Bridge.receive(want('over'));await tick();assert.equal(collect(over.lines.join('\n'),'over').ok,false);
 });

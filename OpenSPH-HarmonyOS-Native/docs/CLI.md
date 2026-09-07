@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.36.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.37.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -452,3 +452,13 @@ CLI 验证覆盖状态和共享动作；实际触摸、键盘焦点、动画观�
 实验库动作 `theme.direct-impact` 与 `theme.prepared-impact` 提供两组相同基础参数的对照，可用 `theme.compare` 切换并重新准备。模型身份为 `sph-rock-prepared-v1`，命名实验必须与正的准备时长、自引力设置相符。v9 回放在原 108 字节配置头之后增加准备时长 double，再写原 v8 帧内容；旧 v1–v8 仍按原物理身份读取，未保存的准备参数不会补造。旧应用应拒绝新模型／版本。
 
 预松弛期间的耗散不属于碰撞历史，准备完才施加自转／撞击速度，首帧从 0 秒开始。16／64 秒为计算时长而非设备等待时长，也不是平衡或长时稳定保证。详见 [物理流程与对照](reference/SPH-RELAXATION.md)。
+
+## 静止岩球与记录窗口
+
+单体 preset 2 的 `speed` 可设为 0；其总初始角速度仍为 `targetSpin + speed*0.003`。`uiAction {"action":"scene.stationary"}` 同时清零两项草稿，不改当前求解；仅适用于单体，之后应用参数才重建。正碰／掠碰不接受零速度。UI 显示总初始角速度，零自转可通过 v8/v9 回放与命名实验保存。
+
+`theme.sphere-unprepared`／`theme.sphere-release` 分别运行直接静止初态与 64 秒预松弛后释放的岩球，正式自由演化 32 秒，可通过 `theme.compare` 切换。此时使用普通材料与自引力求解，不再使用准备阻尼。
+
+`getSphWindowSummary` 返回当前应用配置及 `summary`：`available`、`reason`、`sceneRevision`；可用时另有 `firstTime`／`lastTime`（秒）、`samples`、`includesInitial`、`maxRadiusChangePercent`、`meanKineticJ`、`peakAbsRadialMS`。统计包含全部保留记录，与回放选中帧无关；不是稳定性结论。无数据、单帧、旧回放缺失结构或非法数据时不返回数值字段。
+
+CLI 回复限制为 128000 个 UTF-16 编码单元、256 片，保留原发送节流和输入限制，支持满 240 帧的 16 列 CSV；较旧 CLI 仍可能拒绝超过 128 片的回复，请使用本版本脚本。指标定义、时间加权和初始帧淘汰说明见 [自由演化基线](reference/SPH-RELEASE.md)。

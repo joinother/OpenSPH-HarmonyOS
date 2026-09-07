@@ -1,6 +1,6 @@
 # 星体实验室 GitHub 检查点
 
-记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.36.0。
+记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.37.0。
 
 ## 恢复开发
 
@@ -17,6 +17,8 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 构建需要 DevEco Studio 与 HarmonyOS SDK；安装请遵循工程 README，当前任务只操作模拟器 127.0.0.1:5555。签名配置、依赖缓存、构建目录和发布二进制不纳入源码检查点。
 
 ## 保存范围与验证
+
+- 0.37.0 增加零自转岩球初态、撤去阻尼后的对照实验与记录窗口统计，修复满 240 帧 CSV 的 CLI 回复上限。111 项主机检查、原生回归、十二组跨平台释放实验、实际应用及三布局按钮命中通过；原回放及 10 个用户项目已恢复。32 秒释放观察不证明平衡或长期稳定。见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.37.0.md)。
 
 - 0.36.0 增加静止岩体独立预松弛、准备后组装碰撞、取消及 v9 模型保存，配套直接／预松弛主题对照。107 项主机检查、原生引擎、四组跨平台阻尼对照、应用回放和三布局按钮命中通过；原回放及 10 个用户项目恢复。定时准备不等于静力平衡。见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.36.0.md)。
 

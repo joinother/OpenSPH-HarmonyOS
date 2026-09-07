@@ -69,7 +69,7 @@ export function validateConfig(c: SimulationConfig): void {
   if((c.relaxationSeconds??0)>0&&(!c.selfGravity||c.preset>=3))throw new Error('预松弛需要岩质模型与材料自引力');
   if(c.selfGravity!==undefined&&typeof c.selfGravity!=='boolean')throw new Error('自引力必须为布尔值');
   if(c.selfGravity&&(c.preset>=3||c.count>1200))throw new Error('SPH 自引力支持岩质实验，粒子预算不超过 1200');
-  check(c.preset,0,5,true);check(c.count,200,2400,true);check(c.speed,c.preset>=3?0.75:0.5,c.preset>=3?1.25:10);check(c.angle,0,70);check(c.duration,1,c.preset>=3?10:120);
+  check(c.preset,0,5,true);check(c.count,200,2400,true);check(c.speed,c.preset>=3?0.75:(c.preset===2?0:0.5),c.preset>=3?1.25:10);check(c.angle,0,70);check(c.duration,1,c.preset>=3?10:120);
   check(c.targetRadiusKm,40,200);check(c.impactorRadiusKm,20,120);check(c.targetDensity,2400,3000);
   check(c.impactorDensity,2400,3000);check(c.targetSpin,-0.01,0.01);check(c.seed,1,1000000,true);
   if(c.preset===5){check(c.speed,1,1);validateOrbitBodies(c.orbitBodies!);}

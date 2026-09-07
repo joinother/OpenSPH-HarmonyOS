@@ -1,0 +1,22 @@
+{
+  "verificationDate": "2026-09-08",
+  "timezone": "Asia/Shanghai",
+  "findings": [
+    {
+      "topic": "full history export",
+      "detail": "The first application test failed at a 240-frame CSV: original bridge limit was 64000 UTF-16 units and 128 chunks. Raised both bridge and matching CLI bounds to 128000/256 while keeping UTF-8 pacing; full UI script then passed including 240-frame export and independent integration."
+    },
+    {
+      "topic": "transport regression expectation",
+      "detail": "Updated the original oversize fixture from 65000 to 128001 units to test the new bound; added a 96000-character plus Unicode response roundtrip and cross-chunk pacing check. Final full suite: 111 passed."
+    },
+    {
+      "topic": "scope of stability study",
+      "detail": "Twelve fixed-step release cases cover 200/600 budgets, 0/16/64-second preparation, 32-second free evolution and two release steps. Preparation step is held fixed. No spatial convergence, automatic equilibrium or long-time stability conclusion."
+    },
+    {
+      "topic": "window statistics",
+      "detail": "Mean kinetic uses trapezoidal time weighting over retained samples. All-history statistics do not follow the selected playback frame; includesInitial is false when initial frame is evicted. Missing metrics remain absent, and no stable verdict is returned."
+    }
+  ]
+}

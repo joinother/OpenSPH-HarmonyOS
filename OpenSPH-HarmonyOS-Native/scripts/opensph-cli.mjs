@@ -42,7 +42,7 @@ export function collect(log, id, parts = new Map()) {
     const m=line.slice(at).match(/^SPHCLI [\w-]+ (\d+)\/(\d+) (.*)$/);
     if(!m) continue;
     const index=Number(m[1]), count=Number(m[2]);
-    if(count<1||count>128||index>=count) throw Error('Invalid response chunk');
+    if(count<1||count>256||index>=count) throw Error('Invalid response chunk');
     if(total!==undefined&&total!==count) throw Error('Inconsistent response chunk count');
     total=count;parts.set(index,m[3]);
   }

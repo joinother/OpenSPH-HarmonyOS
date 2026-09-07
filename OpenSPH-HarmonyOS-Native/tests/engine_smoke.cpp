@@ -38,6 +38,14 @@ int main(int argc, char **argv) {
         mkdir(dir.c_str(), 0700);
         Engine e;
         {
+            Config stationary{2,200,0,0,1};stationary.selfGravity=true;stationary.relaxationSeconds=16;
+            e.start(stationary,true);awaitState(e,"paused");require(e.frame()->maxSpeed==0&&e.frame()->sph.structure.values[1]==0,"stationary sphere has artificial spin");
+            e.pause(false);awaitState(e,"completed");require(e.frame()->sph.structure.values[1]>0,"ordinary free evolution did not respond to residual forces");
+            require(e.saveReplay(dir)&&e.loadReplay(dir),"zero-spin prepared replay failed");require(e.status().config.speed==0&&e.status().config.preset==2,"replay lost stationary mode");
+            auto invalid=stationary;invalid.preset=0;require(!validConfig(invalid),"zero collision speed wrongly accepted");invalid.preset=1;require(!validConfig(invalid),"zero oblique impact speed wrongly accepted");
+            std::cout<<"PASS stationary sphere: no initial spin, undamped release response, zero-speed prepared replay, impact speed validation"<<std::endl;
+        }
+        {
             Config prepared{0,200,5,30,1};prepared.selfGravity=true;prepared.relaxationSeconds=16;
             e.start(prepared,true);awaitState(e,"paused");auto initial=e.frame();
             require(initial->time==0&&e.status().frames==1,"preparation leaked into collision clock");
