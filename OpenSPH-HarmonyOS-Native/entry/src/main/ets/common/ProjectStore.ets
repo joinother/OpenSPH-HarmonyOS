@@ -1,5 +1,5 @@
 import { fileIo as fs } from '@kit.CoreFileKit';
-import { SavedProject, SceneDefinition, validateScene } from './SceneModel';
+import { SavedProject, SceneDefinition, ExperimentRecipe, validateScene, validateRecipe } from './SceneModel';
 
 export class ProjectStore {
   static list(directory: string): SavedProject[] {
@@ -20,14 +20,17 @@ export class ProjectStore {
     const value: SavedProject=JSON.parse(fs.readTextSync(path)) as SavedProject;
     if(!value || value.id!==id || !Number.isFinite(value.savedAt)) throw new Error('实验文件已损坏');
     validateScene(value.scene);
+    if(value.recipe!==undefined)validateRecipe(value.recipe,value.scene);
     return value;
   }
-  static save(directory: string, scene: SceneDefinition): SavedProject {
+  static save(directory: string, scene: SceneDefinition, recipe?:ExperimentRecipe): SavedProject {
     validateScene(scene);
+    if(recipe!==undefined)validateRecipe(recipe,scene);
     if(ProjectStore.list(directory).length>=50) throw new Error('最多保存 50 个实验');
     const time: number=Date.now();
     const id: string='project-'+time+'-'+Math.floor(Math.random()*1000000);
     const value: SavedProject={id:id,savedAt:time,scene:scene};
+    if(recipe!==undefined)value.recipe=recipe;
     const path: string=directory+'/'+id+'.json';
     const temp: string=path+'.tmp';
     let file: fs.File | undefined=undefined;

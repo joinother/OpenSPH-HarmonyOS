@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.20.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.21.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -52,7 +52,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 进入、恢复和对照都会重建暂停的初始帧，清空旧轨迹、天体编辑草稿及撤销记录，并关闭面板；不是在当前模拟时刻改速度。`getState/getUiState.theme` 返回当前主题、观察目标和 `modified`（物理初始条件是否不同于主题）；未应用的天体草稿仍由 `editor.drafts` 单独表示。修改镜头不会标记物理条件已变。
 
-现有另存实验保存物理参数、天体名称／表面与随机种子；当前主题 ID、镜头和说明尚不随存档保存。载入存档或 `setScene` 清除当前主题身份。封面是原创概念 SVG，不是预计算结果。岩质原色为灰岩／赭岩的颗粒外观，颜色与明暗不是温度或损伤；速度／密度着色单位不变。
+另存实验保存物理参数、天体名称／表面、随机种子，并包含版本化的外观与观察配方。主题 ID 随配方保存，说明从当前内置主题目录读取；未知 ID 不绑定主题。`setScene` 清除当前主题身份。封面是原创概念 SVG，不是预计算结果。岩质原色为灰岩／赭岩的颗粒外观，颜色与明暗不是温度或损伤；速度／密度着色单位不变。
 
 `node scripts/test-themes-emulator.mjs 127.0.0.1:5555` 会依次运行全部主题并切换折叠与方向，覆盖当前会话；运行前另存初始条件并备份编辑／放置草稿。它不会写入用户实验库；结束暂停并恢复自动方向，不自动恢复原场景。
 
@@ -131,7 +131,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setUiValue --payl
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getRingTrace --payload-json '{"particles":true}'
 ```
 
-默认每秒演示约 1 小时，可在 0.1–4 小时/秒间调整；渲染暂停、后台或长卡顿不补算墙钟时间。示踪点无质量，仅使用所选行星的中心引力，位置通过开普勒方程求得；假定半径 60000 km，初始距离（近点）76800–133200 km。纯切向发射比例 f 对应 e=f²−1、a=r₀/(2−f²)，范围限定 e=0–0.44，未实现向内发射或逃逸。状态返回 `speedScale`、`rateHours`、`eccentricity`、两圈远点、`referenceXKm/YKm`、`referenceRadiusKm`、`referenceSpeedKmS`；参考点为内圈第一个粒子。粒子数组的 `radiusKm` 保持原义，为初始半径，当前距离应由 x/y 求模。青色到金色表示由内圈到外圈，不是温度。环时钟、开关、发射比例与倍率属于会话状态；现有命名实验及 v4 回放不保存这些局部参数，`theme.restore` 可重新开启该主题。重新进入局部模式恢复圆轨道和默认倍率；椭圆主题再设为 1.12 倍。主题的 modified 标记仍描述主系统初值。俯视图来自原生参考点，艺术环带保持原外观。
+默认每秒演示约 1 小时，可在 0.1–4 小时/秒间调整；渲染暂停、后台或长卡顿不补算墙钟时间。示踪点无质量，仅使用所选行星的中心引力，位置通过开普勒方程求得；假定半径 60000 km，初始距离（近点）76800–133200 km。纯切向发射比例 f 对应 e=f²−1、a=r₀/(2−f²)，范围限定 e=0–0.44，未实现向内发射或逃逸。状态返回 `speedScale`、`rateHours`、`eccentricity`、两圈远点、`referenceXKm/YKm`、`referenceRadiusKm`、`referenceSpeedKmS`；参考点为内圈第一个粒子。粒子数组的 `radiusKm` 保持原义，为初始半径，当前距离应由 x/y 求模。青色到金色表示由内圈到外圈，不是温度。环时钟、开关、目标、发射比例与倍率随新版命名实验保存；载入时恢复环时刻并保持暂停，主系统仍从初始条件开始。v4 回放不保存这些局部参数，`theme.restore` 重新开启主题默认环。重新进入局部模式恢复圆轨道和默认倍率；椭圆主题再设为 1.12 倍。主题的 modified 标记仍描述主系统初值。俯视图来自原生参考点，艺术环带保持原外观。
 
 验证入口：`bash scripts/test-ring-trace.sh` 为独立物理与计时基线；`node scripts/test-ring-trace-emulator.mjs 127.0.0.1:5555` 会切换场景、折叠和方向，调用方需事先保存并在结束后恢复会话。椭圆验收使用 `node scripts/test-elliptic-trace-emulator.mjs 127.0.0.1:5555`。详见 [0.20.0 验证记录](releases/RELEASE-0.20.0.md)。
 
@@ -143,10 +143,16 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getRingTrace --pa
 | `start` / `pause` | 启动或继续／暂停求解；重复 start 不会切换为暂停 |
 | `reset` | 重新初始化并暂停 |
 | `seek` | `{ "frame": -1 }` 回最新帧，或指定保留帧索引；暂停求解并停止自动回放 |
-| `listProjects` / `saveProject` / `loadProject` | 列表／按 title 保存／按 id 载入命名初始条件，最多 50 个 |
+| `listProjects` / `saveProject` / `loadProject` | 列表／按 title 保存／按 id 载入命名实验配方，最多 50 个 |
 | `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v4 |
 
 预设 0–2 为 SPH，3 为双体，4 为四体，5 为自定义。完整配置范围以命令目录和应用校验为准。`getState.definition` 是初始条件，`simulation.bodies` 为当前显示的质心参考系数据；SPH 时间单位为秒，轨道为儒略年。
+
+命名实验保存结构保持 `scene.schemaVersion=1`，新增可选的 `recipe`：`schemaVersion=1`、`appearanceVersion=1`、`themeId`、`camera`、可选全景返回视角 `overview`、`appearance`、`sky` 和 `ring`。`listProjects` 每条新增 `hasRecipe` 与 `themeId`。界面“保存当前实验与视角”与 `saveProject` 共用写入逻辑。
+
+保存采样当前镜头和局部环时钟，不自动暂停正在运行的实验。载入先校验整份文件，再创建暂停的初始场景；环恢复所存小时数、速度与倍率，并保持暂停。主系统时间不保存，不是中途续算；未提交的天体／放置草稿、撤销历史、回放帧、当前面板和窗口方向不在配方内。程序外观动画相位也不保存，因此恢复视角不等于逐像素复原旧帧。
+
+旧存档缺少 `recipe` 时仍可打开，采用固定默认外观、银河亮度和全景，不继承上一个实验的设置。显式损坏的配方、未知配方／外观版本或不匹配的局部环目标会被拒绝，已有场景保持；损坏条目不影响其他有效实验。详见 [0.21.0 记录](releases/RELEASE-0.21.0.md)。验收入口为 `node scripts/test-recipe-emulator.mjs 127.0.0.1:5555`；它创建并清理自己的验收实验，不覆盖既有存档，但会替换当前会话，调用者需先备份并事后恢复。
 
 回放最多保留 240 帧，不是求解器检查点。完成、载入回放或配置改变后再次开始，会重新计算；不能从任意历史快照续算。语义动作还包括 `simulation.toggle`、`simulation.apply`、`replay.toggle`、`replay.latest`、`replay.save`、`replay.load`；时间轴输入为 `time.frame`。
 
@@ -156,7 +162,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getRingTrace --pa
 
 带环外观使用行星 `surface:4`；`orbit.surface.4` 修改编辑草稿，`placement.surface.4` 修改放置预览，按原有确认流程应用。它与 1 海洋、2 厚云、3 荒漠并存；恒星只能使用 0。`rings` 默认开启，只控制带环材质的环面和环影；开关保留时间、轨迹、镜头和场景版本。环尺寸与倾斜目前固定，未提供任意环参数输入；球面仍是点选区域，环面不单独响应选中。
 
-天体材质编号随命名实验及 v4 回放保存；全局环带开关与其他外观选项仍只保留在本次会话中。包含材质 4 的文件需本版或更新版读取，旧版会拒绝；本版仍读取旧文件。
+天体材质编号随命名实验及 v4 回放保存；全局环带开关与其他外观选项现随命名实验配方保存，v4 回放仍不包含外观配方。包含材质 4 的文件需本版或更新版读取，旧版会拒绝；本版仍读取旧文件。
 
 ```sh
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"theme.ring-world"}' --wait-state paused

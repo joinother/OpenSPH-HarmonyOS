@@ -4,7 +4,44 @@ export interface BodyDefinition { id: string; name: string; kind: string; radius
 export interface SceneDefinition {
   schemaVersion: number; model: string; title: string; config: SimulationConfig; bodies: BodyDefinition[];
 }
-export interface SavedProject { id: string; savedAt: number; scene: SceneDefinition; }
+export interface RecipeCamera { yaw:number; pitch:number; zoom:number; focus:number; color:number; }
+export interface RecipeAppearance { clouds:boolean; atmosphere:boolean; trails:boolean; closeup:boolean; autoSpin:boolean; rings:boolean; }
+export interface RecipeSky { mode:number; brightness:number; }
+export interface RecipeRing { enabled:boolean; target:number; timeHours:number; speedScale:number; rateHours:number; }
+export interface ExperimentRecipe {
+  schemaVersion:number; appearanceVersion:number; themeId:string; camera:RecipeCamera;
+  overview?:RecipeCamera; appearance:RecipeAppearance; sky:RecipeSky; ring:RecipeRing;
+}
+export interface SavedProject { id: string; savedAt: number; scene: SceneDefinition; recipe?:ExperimentRecipe; }
+
+export function defaultRecipe(scene:SceneDefinition):ExperimentRecipe {
+  return {schemaVersion:1,appearanceVersion:1,themeId:'',
+    camera:{yaw:.15,pitch:.25,zoom:2.7*Math.max(1,scene.config.targetRadiusKm/100),focus:-1,color:0},
+    appearance:{clouds:true,atmosphere:true,trails:true,closeup:false,autoSpin:false,rings:true},
+    sky:{mode:2,brightness:.65},ring:{enabled:false,target:-1,timeHours:0,speedScale:1,rateHours:1}};
+}
+export function validateRecipe(r:ExperimentRecipe,scene:SceneDefinition):void {
+  if(!r||r.schemaVersion!==1||r.appearanceVersion!==1)throw new Error('不支持的实验配方版本');
+  if(typeof r.themeId!=='string'||r.themeId.length>64||!/^[a-z0-9-]*$/.test(r.themeId))throw new Error('无效主题编号');
+  const preset=scene.config.preset;
+  const maxFocus=preset===5?scene.config.orbitBodies!.length-1:(preset===4?3:1);
+  validateRecipeCamera(r.camera,maxFocus,preset);
+  if(r.overview!==undefined){validateRecipeCamera(r.overview,maxFocus,preset);if(r.overview.focus!==-1)throw new Error('返回视角必须是全景');}
+  const a=r.appearance;
+  if(!a||[a.clouds,a.atmosphere,a.trails,a.closeup,a.autoSpin,a.rings].some((v:boolean):boolean=>typeof v!=='boolean'))throw new Error('无效外观开关');
+  if(a.closeup&&(preset<3||r.camera.focus<0))throw new Error('近看视角与场景不匹配');
+  if(!r.sky)throw new Error('缺少星空配置');check(r.sky.mode,0,2,true);check(r.sky.brightness,0,1);
+  const t=r.ring;if(!t||typeof t.enabled!=='boolean')throw new Error('缺少局部环配置');
+  check(t.timeHours,0,24);check(t.speedScale,1,1.2);check(t.rateHours,.1,4);check(t.target,-1,maxFocus,true);
+  if(t.enabled){
+    if(preset!==5||t.target<1||t.target!==r.camera.focus||scene.config.orbitBodies![t.target].surface!==4)throw new Error('局部环目标与带环行星不匹配');
+  }else if(t.target!==-1||t.timeHours!==0||t.speedScale!==1||t.rateHours!==1)throw new Error('关闭的局部环必须使用默认参数');
+}
+function validateRecipeCamera(c:RecipeCamera,maxFocus:number,preset:number):void {
+  if(!c)throw new Error('缺少观察视角');
+  check(c.yaw,-Number.MAX_VALUE,Number.MAX_VALUE);check(c.pitch,-1.5,1.5);check(c.zoom,.5,15);
+  check(c.focus,-1,maxFocus,true);check(c.color,0,preset>=3?1:2,true);
+}
 export function validateConfig(c: SimulationConfig): void {
   if(!c || typeof c !== 'object') throw new Error('缺少场景配置');
   check(c.preset,0,5,true);check(c.count,200,2400,true);check(c.speed,c.preset>=3?0.75:0.5,c.preset>=3?1.25:10);check(c.angle,0,70);check(c.duration,1,c.preset>=3?10:120);

@@ -1,6 +1,6 @@
 import simulation, { SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
-import { PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
+import { PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
 import { themeExperiments, themeConfigMatches, ThemeExperiment } from '../common/ExperimentCatalog';
 import { ProjectStore } from '../common/ProjectStore';
 import { curves, LengthMetrics } from '@kit.ArkUI';
@@ -23,7 +23,7 @@ interface CameraState { yaw: number; pitch: number; zoom: number; focus: number;
 interface UiState { panelOpen: boolean; toolsVisible: boolean; panel: number; playing: boolean; ioBusy: boolean; foreground: boolean; notice: string; }
 interface SafeAreaState { top: number; bottom: number; left: number; right: number; }
 interface WindowState { layout:WorkspaceLayout; geometry:WindowGeometry; viewportWidthVp: number; viewportHeightVp: number; widthVp: number; heightVp: number; immersive: boolean; safePx: SafeAreaState; }
-interface ProjectSummary { id: string; title: string; savedAt: number; }
+interface ProjectSummary { id: string; title: string; savedAt: number; hasRecipe:boolean; themeId:string; }
 interface ProjectList { ok: boolean; projects: ProjectSummary[]; }
 interface AppearanceState { clouds:boolean; atmosphere:boolean; trails:boolean; closeup:boolean; autoSpin:boolean; rings:boolean; }
 interface SkyState {mode:number;brightness:number;reference:string;}
@@ -514,19 +514,52 @@ struct Index {
     try { this.projects=ProjectStore.list(this.directory()); }
     catch (_) { this.notice='实验库暂时无法读取'; }
   }
+  private captureRecipe():ExperimentRecipe {
+    const trace=simulation.ringTraceStatus(false);
+    const recipe:ExperimentRecipe={schemaVersion:1,appearanceVersion:1,themeId:this.activeThemeId,
+      camera:{yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode},
+      appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},
+      sky:{mode:this.skyMode,brightness:this.skyBrightness},
+      ring:trace.enabled?{enabled:true,target:trace.target,timeHours:trace.timeHours,speedScale:trace.speedScale,rateHours:trace.rateHours}:
+        {enabled:false,target:-1,timeHours:0,speedScale:1,rateHours:1}};
+    if(this.overviewCamera)recipe.overview={yaw:this.overviewCamera.yaw,pitch:this.overviewCamera.pitch,zoom:this.overviewCamera.zoom,focus:-1,color:this.overviewCamera.color};
+    return recipe;
+  }
+  private restoreRecipe(recipe:ExperimentRecipe):void {
+    const c=recipe.camera,a=recipe.appearance;
+    this.yaw=c.yaw;this.pitch=c.pitch;this.zoom=c.zoom;this.focus=c.focus;this.colorMode=c.color;
+    this.clouds=a.clouds;this.atmosphere=a.atmosphere;this.trails=a.trails;this.closeup=a.closeup;this.autoSpin=a.autoSpin;this.rings=a.rings;
+    this.skyMode=recipe.sky.mode;this.skyBrightness=recipe.sky.brightness;
+    const overview=recipe.overview;
+    this.overviewCamera=overview?{yaw:overview.yaw,pitch:overview.pitch,zoom:overview.zoom,focus:-1,color:overview.color}:undefined;
+    this.activeThemeId=this.themes.some((t:ThemeExperiment):boolean=>t.id===recipe.themeId)?recipe.themeId:'';
+    if(this.preset===5&&this.focus>=0)this.selectOrbit(this.focus);
+    this.camera();
+    if(recipe.ring.enabled){
+      const t=recipe.ring;
+      simulation.configureRingTrace(true,false,t.target,this.orbitBodies[t.target].massSolar);
+      simulation.setRingParameters(t.speedScale,t.rateHours);simulation.seekRingTrace(t.timeHours*3600);
+      this.trace=simulation.ringTraceStatus(false);
+    }
+  }
   private saveProject(title: string): SavedProject {
     const scene: SceneDefinition=this.definition();scene.title=validName(title);
-    const saved: SavedProject=ProjectStore.save(this.directory(),scene);
-    this.title=scene.title;this.refreshProjects();this.notice='已另存实验 · '+scene.title;
+    const saved: SavedProject=ProjectStore.save(this.directory(),scene,this.captureRecipe());
+    this.title=scene.title;this.refreshProjects();this.notice='已保存实验与观察设置 · '+scene.title;
     return saved;
   }
   private openProject(id: string): void {
     const p: SavedProject=ProjectStore.load(this.directory(),id);
-    validateScene(p.scene);this.applyConfig(p.scene.config);this.title=p.scene.title;
+    validateScene(p.scene);
+    const recipe:ExperimentRecipe=p.recipe??defaultRecipe(p.scene);validateRecipe(recipe,p.scene);
+    // Validate the complete document and let native accept before changing UI state.
+    simulation.startScene(p.scene.config,true);simulation.pause(true);
+    this.applyConfig(p.scene.config);this.stopCameraMotion();this.overviewCamera=undefined;
+    this.placing=false;this.placementView=undefined;this.playing=false;this.selectingPreset=false;
+    this.title=p.scene.title;
     this.targetName=p.scene.bodies.length>0?p.scene.bodies[0].name:'恒星';this.impactorName=p.scene.bodies.length>1?p.scene.bodies[1].name:'撞击体';
-    this.focus=-1;this.zoom=2.7*Math.max(1,this.targetRadiusKm/100);
-    if(!this.prepare(false)) throw new Error(this.notice);
-    this.notice='已载入参数 · 点击开始重新计算';
+    this.dirty=false;this.restoreRecipe(recipe);this.info=simulation.status();
+    this.notice=p.recipe?'已恢复实验与观察设置 · 当前暂停，主系统从初始条件开始':'旧版实验已载入 · 使用默认外观与全景，点击开始重新计算';
   }
   private saveScene(): void {
     if(this.ioBusy) return;
@@ -820,7 +853,7 @@ struct Index {
     if(command==='setUiValue'){if(typeof p.field!=='string'||p.value===undefined)throw new Error('missing field/value');this.setUiValue(p.field,p.value);return this.snapshot();}
     if(command==='listProjects') {
       this.refreshProjects();
-      const result: ProjectList={ok:true,projects:this.projects.map((p: SavedProject): ProjectSummary => {return {id:p.id,title:p.scene.title,savedAt:p.savedAt};})};
+      const result: ProjectList={ok:true,projects:this.projects.map((p: SavedProject): ProjectSummary => {return {id:p.id,title:p.scene.title,savedAt:p.savedAt,hasRecipe:p.recipe!==undefined,themeId:p.recipe?.themeId??''};})};
       return JSON.stringify(result);
     }
     if(this.ioBusy) throw new Error('replay I/O in progress');
@@ -1301,14 +1334,15 @@ struct Index {
       Text('把一次想法，留作下一次实验。').fontSize(14).fontColor('#DAEAEF').width('100%')
       TextInput({text:this.title,placeholder:'实验名称'}).maxLength(48).height(40).fontColor('#EBE7F8').backgroundColor('#5533334D')
         .onChange((v:string) => {this.input('scene.title',v);})
-      Button('将当前参数另存为实验',{type:ButtonType.Normal}).width('100%').height(40).borderRadius(10)
+      Button('保存当前实验与视角',{type:ButtonType.Normal}).width('100%').height(40).borderRadius(10)
         .fontSize(13).fontColor('#07282C').backgroundColor('#D2C2FF').enabled(!this.ioBusy).onClick(() => {this.press('project.save');})
-      Text('保存天体参数与随机种子；回放仍单独保存。载入实验会重新生成场景。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
+      Text('保存初始参数、外观、视角与局部环设置。载入后暂停；主系统重新开始，回放另存。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
       if(this.projects.length===0) {Text('还没有保存的实验').fontColor('#AAA3BF').fontSize(13).padding(16)}
       ForEach(this.projects,(p:SavedProject) => {
         Column({space:6}) {
           Text(p.scene.title).fontColor('#EBE7F8').fontSize(14).maxLines(1).width('100%')
           Text(p.scene.config.preset>=3?'多体引力 · '+p.scene.config.duration+' 年':p.scene.bodies.length+' 个岩质天体 · '+p.scene.config.count+' 粒子预算 · '+p.scene.config.duration+' s').fontColor('#ADA8BF').fontSize(11)
+          Text(p.recipe?'含外观与观察设置'+(p.recipe.ring.enabled?' · 局部环 '+p.recipe.ring.timeHours.toFixed(2)+' h':''):'旧版 · 初始参数').fontColor('#9DAFBF').fontSize(10)
           Button('载入实验',{type:ButtonType.Normal}).fontSize(12).height(32).borderRadius(8).backgroundColor('#554F416E').fontColor('#CEBEF5')
             .enabled(!this.ioBusy).onClick(() => {this.press('project.load.'+p.id);})
         }.alignItems(HorizontalAlign.Start).width('100%').padding(14).backgroundColor('#5533334D').borderRadius(20)

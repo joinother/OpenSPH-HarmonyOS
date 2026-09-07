@@ -66,11 +66,13 @@ function page() {
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/WorkspaceLayout.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
   modelContext.require=()=>modelContext.exports;
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/ExperimentCatalog.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
-  const context={exports:{},...modelContext.exports,simulation,Scroller:class {scrollEdge(){}},Edge:{Top:0},Curve:{EaseOut:0},setInterval,clearInterval,console};
+  const projects=new Map();
+  const ProjectStore={list:()=>[...projects.values()],load:(_dir,id)=>{const p=projects.get(id);if(!p)throw Error('missing project');modelContext.exports.validateScene(p.scene);if(p.recipe!==undefined)modelContext.exports.validateRecipe(p.recipe,p.scene);return structuredClone(p);},save:(_dir,scene,recipe)=>{modelContext.exports.validateScene(scene);modelContext.exports.validateRecipe(recipe,scene);const p=structuredClone({id:'project-1-'+projects.size,savedAt:1,scene,recipe});projects.set(p.id,p);return p;}};
+  const context={exports:{},...modelContext.exports,ProjectStore,simulation,Scroller:class {scrollEdge(){}},Edge:{Top:0},Curve:{EaseOut:0},setInterval,clearInterval,console};
   vm.runInNewContext(ts.transpileModule(transformed,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,context);
   const page=new context.exports.Index();
   page.getUIContext=()=>({px2vp:v=>v,getHostContext:()=>({filesDir:'/mock'}),animateTo:(opts,apply)=>{apply();opts.onFinish?.();}});
-  return {page,calls,state,initialPauses};
+  return {page,calls,state,initialPauses,projects};
 }
 test('scene and camera reject partial invalid transactions without changing prior state',async()=>{
   const {page:app,calls}=page();
@@ -526,4 +528,33 @@ test('HiLog replies pace UTF-8 bytes across sequential large requests and bound 
  assert.ok(emissions.at(-1).at>2000);
  for(let i=1;i<emissions.length;i++)assert.ok(emissions[i].at-emissions[i-1].at>=emissions[i-1].bytes/24-1,'unpaced chunk burst');
  Bridge.bind(async()=>JSON.stringify({ok:true,text:'a'.repeat(65000)}));Bridge.receive(want('oversize'));await tick();assert.equal(collect(lines.join('\n'),'oversize').ok,false);
+});
+
+test('named recipe restores appearance, camera, theme and ring while both clocks remain paused',async()=>{
+ const {page:app,state,projects}=page();app.chooseTheme('eccentric-ring');
+ app.changeAppearance({clouds:false,atmosphere:false,trails:false,autoSpin:false,rings:false});app.changeSky(1,.37);
+ app.traceParameter('trace.speed',1.17);app.traceParameter('trace.rate',.3);app.traceTime(4.75);
+ const saved=app.saveProject('环与夜色'),recipe=structuredClone(saved.recipe),config=JSON.stringify(saved.scene.config);
+ app.chooseTheme('rock-slow');app.openProject(saved.id);
+ assert.deepEqual(JSON.parse(JSON.stringify(app.captureRecipe())),recipe);assert.equal(JSON.stringify(app.config()),config);
+ assert.equal(app.trace.running,false);assert.equal(state.state,'preparing');assert.equal(app.playing,false);
+ assert.equal(JSON.parse(await app.execute('listProjects',{})).projects[0].hasRecipe,true);
+ assert.equal(projects.size,1);
+});
+test('legacy projects use deterministic defaults; invalid recipes and native rejection preserve the workspace',()=>{
+ const {page:app,projects,state,calls}=page();app.chooseTheme('eccentric-ring');
+ const saved=app.saveProject('版本兼容');const legacy=structuredClone(saved);delete legacy.recipe;legacy.id='project-2-0';projects.set(legacy.id,legacy);
+ app.openProject(legacy.id);assert.equal(app.activeThemeId,'');assert.equal(app.focus,-1);assert.equal(app.closeup,false);assert.equal(app.trace.enabled,false);assert.equal(app.skyBrightness,.65);
+ app.chooseTheme('eccentric-ring');app.traceTime(6);const before=app.snapshot(),count=calls.length;
+ const bad=structuredClone(saved);bad.recipe.ring.target=0;projects.set(bad.id,bad);
+ assert.throws(()=>app.openProject(bad.id));assert.equal(app.snapshot(),before);assert.equal(calls.length,count);
+ projects.set(saved.id,saved);state.rejectStart=true;assert.throws(()=>app.openProject(saved.id));delete state.rejectStart;
+ assert.equal(app.snapshot(),before);assert.equal(calls.length,count);
+});
+test('return-to-overview is part of a saved close-up recipe',()=>{
+ const {page:app}=page();app.chooseTheme('three-worlds');app.closeSurface();app.stopCameraMotion();
+ app.yaw=.78;app.pitch=.32;app.zoom=4.2;app.openSurface(1);app.stopCameraMotion();
+ const saved=app.saveProject('回到全景');assert.equal(saved.recipe.overview.zoom,4.2);
+ app.chooseTheme('rock-slow');app.openProject(saved.id);assert.equal(app.overviewCamera.zoom,4.2);
+ app.closeSurface();app.stopCameraMotion();assert.equal(app.focus,-1);assert.equal(app.closeup,false);
 });

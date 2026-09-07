@@ -20,7 +20,8 @@ try{
   action('orbit.near');assert.equal(call('getState').camera.focus,4);action('surface.next');assert.equal(call('getState').camera.focus,0);action('surface.previous');assert.equal(call('getState').camera.focus,4);
   action('ui.focus');assert.equal(call('getState').ui.toolsVisible,false);action('ui.restore');
   action('panel.parameters');action('ui.back');assert.equal(call('getState').ui.panelOpen,false);
-  action('appearance.clouds');assert.equal(call('getState').appearance.clouds,false);action('appearance.clouds');
+  const cloudsBefore=call('getState').appearance.clouds;
+  action('appearance.clouds');assert.equal(call('getState').appearance.clouds,!cloudsBefore);action('appearance.clouds');assert.equal(call('getState').appearance.clouds,cloudsBefore);
   action('surface.toggle');call('setUiValue',{field:'scene.duration',value:1});action('simulation.apply','paused');action('simulation.toggle','completed');
   action('replay.toggle');assert.equal(call('getState').ui.playing,true);action('replay.toggle');assert.equal(call('getState').ui.playing,false);action('replay.latest');
   action('orbit.select.0');const before=call('getState').definition;const rejected=spawnSync(process.execPath,[cli,'--device',device,'--command','uiAction','--payload-json','{"action":"orbit.remove"}'],{encoding:'utf8'});assert.equal(rejected.status,2);assert.deepEqual(call('getState').definition,before);
