@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <memory>
 #include "sky_panorama.h"
+#include "moon_map.h"
+namespace lab {void setMoonMap(std::shared_ptr<const MoonMap> map);}
 #include "projection.h"
 #include "camera_navigation.h"
 #include <ace/xcomponent/native_interface_xcomponent.h>
@@ -15,7 +17,7 @@ void setComposition(float x,float y,float scale);
 struct MaterialSettings { float exposure=0; bool ocean=true,cloudShadows=true; };
 void setMaterial(float exposure,bool ocean,bool cloudShadows);
 struct Appearance { bool clouds=true, atmosphere=true, trails=true, closeup=false, autoSpin=false,rings=true; };
-struct RenderStatus { float materialExposure=0; bool materialOcean=true,materialCloudShadows=true; uint64_t sceneRevision=0; int surfaceStarts=0; bool cameraMoving=false; float centerX=0,centerY=0,centerZ=0; float compositionX=.5f,compositionY=.5f,compositionScale=1; bool panoramaReady=false; float panoramaBlend=0; bool skyReady=false; float skyStars=0,skyGalaxy=0; bool ready=false, texturesReady=false, active=true; int frames=0; double submitMs=0, previewSeconds=0; std::string error; };
+struct RenderStatus { bool moonReady=false; int moonUploads=0; float moonBlend=0; std::string moonError; float materialExposure=0; bool materialOcean=true,materialCloudShadows=true; uint64_t sceneRevision=0; int surfaceStarts=0; bool cameraMoving=false; float centerX=0,centerY=0,centerZ=0; float compositionX=.5f,compositionY=.5f,compositionScale=1; bool panoramaReady=false; float panoramaBlend=0; bool skyReady=false; float skyStars=0,skyGalaxy=0; bool ready=false, texturesReady=false, active=true; int frames=0; double submitMs=0, previewSeconds=0; std::string error; };
 struct ProjectedScene { bool ready=false; int width=0,height=0; double time=0; std::vector<ProjectedBody> bodies; };
 ProjectedScene projectedScene();
 void configureRingTrace(bool enabled,bool running,int target,double mass);

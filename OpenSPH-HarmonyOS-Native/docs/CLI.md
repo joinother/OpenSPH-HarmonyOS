@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.23.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.24.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -30,7 +30,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 ## 主题实验库
 
-实验库的“碰撞／探索／我的实验”分类使用 `library.collision`、`library.explore`、`library.saved`；只切换内容，不重建当前场景。`listExperiments` 返回目录版本、九个主题的完整初始条件、默认镜头、问题和模型说明。
+实验库的“碰撞／探索／我的实验”分类使用 `library.collision`、`library.explore`、`library.saved`；只切换内容，不重建当前场景。`listExperiments` 返回目录版本、十个主题的完整初始条件、默认镜头、问题和模型说明。
 
 | 动作 | 内容 |
 | --- | --- |
@@ -99,7 +99,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 `orbit.add` 仅打开草稿。`placement.confirm` 才加入天体并从初始条件重建；`placement.cancel`、返回或关闭面板取消候选，保留原场景、历史与旧编辑草稿。放置期间部分实验操作禁用，应查询 enabled。确认会清空旧轨迹，保留已有天体的编辑草稿，并记入一步天体编辑历史。
 
 - `placement.name` 与 `placement.value.0..4` 为字符串；五个值依次为地球质量倍数、距离 AU、方位角度、倾角角度、圆轨道速度倍数。
-- `placement.circular`、`placement.still`、`placement.escape`、`placement.reverse` 设置圆轨道、相对恒星静止、1.45 倍圆轨道速度及反向；`placement.surface.1..4` 设置表面。
+- `placement.circular`、`placement.still`、`placement.escape`、`placement.reverse` 设置圆轨道、相对恒星静止、1.45 倍圆轨道速度及反向；`placement.surface.1..5` 设置表面。
 - `setPlacementPoint {x,y}` 使用预览图内 0–1 坐标，与轻点／拖动共用转换，不会自动确认。
 - `getPlacementPreview` 返回 valid、error、完整候选初值、相对速度、圆轨道／逃逸速度、最近距离和解析引导路径；无效输入不能确认。
 
@@ -178,7 +178,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 `setAppearance` 接受可选布尔值 clouds、atmosphere、trails、closeup、autoSpin、rings。也可用 `appearance.clouds`、`appearance.atmosphere`、`appearance.trails`、`appearance.spin`、`appearance.rings`。
 
-带环外观使用行星 `surface:4`；`orbit.surface.4` 修改编辑草稿，`placement.surface.4` 修改放置预览，按原有确认流程应用。它与 1 海洋、2 厚云、3 荒漠并存；恒星只能使用 0。`rings` 默认开启，只控制带环材质的环面和环影；开关保留时间、轨迹、镜头和场景版本。环尺寸与倾斜目前固定，未提供任意环参数输入；球面仍是点选区域，环面不单独响应选中。
+带环外观使用行星 `surface:4`；`orbit.surface.4` 修改编辑草稿，`placement.surface.4` 修改放置预览，按原有确认流程应用。它与 1 海洋、2 厚云、3 荒漠、5 月面并存；恒星只能使用 0。`rings` 默认开启，只控制带环材质的环面和环影；开关保留时间、轨迹、镜头和场景版本。环尺寸与倾斜目前固定，未提供任意环参数输入；球面仍是点选区域，环面不单独响应选中。
 
 天体材质编号随命名实验及 v4 回放保存；全局环带开关与其他外观选项现随命名实验配方保存，v4 回放仍不包含外观配方。包含材质 4 的文件需本版或更新版读取，旧版会拒绝；本版仍读取旧文件。
 
@@ -270,3 +270,15 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --batch /path/to/batch.json
 `--wait-state` 或每项 `waitForState` 可等待 paused、running、completed、replay、cancelled、failed；仅等待求解器状态，不等待动画、纹理或保存完成。`--timeout` 单位毫秒，范围 1000–120000，默认 20000。
 
 CLI 验证覆盖状态和共享动作；实际触摸、键盘焦点、动画观感与遮挡须单独验收。旧版描述见 [历史汇编](archive/CLI-HISTORY-THROUGH-0.12.0.md)，不再作为当前命令规则。
+
+## 月面素材
+
+`theme.moon-atlas` 进入“月海与高地”。`orbit.surface.5` 和 `placement.surface.5` 选择月面草稿，确认按原有规则重建初始条件；相同场景内近看、绕行与全景切换不重载。主题天体保留地球质量与 1 AU 轨道，地图仅用于外观观察，不代表真实地月系统或当前月相。
+
+`getSurfaceInfo` 返回 `moon` 的来源、署名、尺寸、requested、ready、uploads、blend、error、decodedBudgetBytes 和 gpuBudgetBytes。requested 表示当前页面已发出加载请求；ready 表示当前 EGL 上下文已上传，blend 达到 1 才完成淡入，uploads 是当前表面上下文的成功上传次数，不能视为跨进程计数。`getState.rendering` 同时提供 moonReady、moonUploads、moonBlend、moonError；解码错误看 `getSurfaceInfo.moon.error`。原有 texturesReady 不代表月面已就绪。
+
+首次当前场景包含月面时按需解码三维纹理，同进程复用 CPU 数据；失败显示灰色球体，使用 `moon.retry` 显式重试。仅有错误时该动作可用。单图 RGBA 为 8 MiB，含 mip 的 GPU 容量估算约 10.67 MiB，不是进程总内存或峰值实测。来源和边界见 [月面说明](reference/MOON-ASSETS.md)。
+
+月面不使用云、大气、海洋反光与环带，曝光仍有效；这些全局开关仍可为其他行星设置。含 surface 5 的命名实验或 v4 回放需要 0.24.0 及更新版读取，旧版拒绝，不自动替换外观。
+
+验收：`node scripts/test-moon-emulator.mjs 127.0.0.1:5555`；窗口和新按钮命中：`node scripts/test-moon-layout-emulator.mjs 127.0.0.1:5555`。脚本替换当前会话，须先备份并在结束后恢复，不能用于其他设备。

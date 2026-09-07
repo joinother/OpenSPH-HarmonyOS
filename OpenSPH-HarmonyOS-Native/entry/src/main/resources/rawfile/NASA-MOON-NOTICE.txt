@@ -1,0 +1,8 @@
+Moon base-color texture: lroc_color_2k.jpg
+Credit: NASA's Scientific Visualization Studio
+Source: https://svs.gsfc.nasa.gov/4720/
+Asset: https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_2k.jpg
+Usage: https://svs.gsfc.nasa.gov/help/
+Media guidance: https://www.nasa.gov/nasa-brand-center/images-and-media/
+SVS identifies content as public domain unless otherwise noted. This map has no separate restriction noted on its source page. Retain this credit and source. NASA does not endorse this application. No NASA logo is used.
+2025 visual color map, based on LRO data with artistic processing and polar fill. Packaged JPEG unchanged. Not scientific albedo or terrain data.

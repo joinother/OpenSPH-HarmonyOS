@@ -7,6 +7,7 @@ import { curves, LengthMetrics } from '@kit.ArkUI';
 import { common } from '@kit.AbilityKit';
 import { WindowControl } from '../common/WindowControl';
 import { workspaceLayout, WorkspaceLayout, WindowGeometry } from '../common/WorkspaceLayout';
+import { loadMoonTexture } from '../common/MoonTexture';
 import { loadSkyPanorama } from '../common/SkyPanorama';
 import { fileIo as fs } from '@kit.CoreFileKit';
 
@@ -29,6 +30,8 @@ interface AppearanceState { clouds:boolean; atmosphere:boolean; trails:boolean; 
 interface SkyState {mode:number;brightness:number;reference:string;}
 interface PlacementState { active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
 interface ThemeState { id:string; title:string; goal:string; limit:string; modified:boolean; compareId:string; }
+interface MoonAssetInfo {source:string;asset:string;credit:string;width:number;height:number;requested:boolean;ready:boolean;uploads:number;blend:number;error:string;decodedBudgetBytes:number;gpuBudgetBytes:number;}
+interface MoonAssetReply {ok:boolean;moon:MoonAssetInfo;}
 interface AppSnapshot { material:RecipeMaterial; cameraMotion:CameraMotionStatus; ringTrace:RingTraceStatus; theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
 interface CommandDescription { name: string; payload: string; }
 interface CommandCatalog { ok: boolean; commands: CommandDescription[]; }
@@ -154,6 +157,8 @@ struct Index {
   @State librarySection:string='collision';
   @State activeThemeId:string='';
   private themes:ThemeExperiment[]=themeExperiments();
+  @State moonRequested:boolean=false;
+  @State moonLoadError:string='';
   @State exposure: number = 0;
   @State ocean: boolean = true;
   @State cloudShadows: boolean = true;
@@ -165,7 +170,7 @@ struct Index {
   @State rings: boolean = true;
   @State trace:RingTraceStatus={speedScale:1,rateHours:1,eccentricity:0,innerApoapsisKm:76800,outerApoapsisKm:133200,referenceXKm:76800,referenceYKm:0,referenceRadiusKm:76800,referenceSpeedKmS:0,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-elliptic-kepler-v2'};
   @State skyLoadError:string='';
-  @State rendering: RenderStatus = {materialExposure:0,materialOcean:true,materialCloudShadows:true,panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
+  @State rendering: RenderStatus = {moonReady:false,moonUploads:0,moonBlend:0,moonError:'',materialExposure:0,materialOcean:true,materialCloudShadows:true,panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
   @State colorMode: number = 0;
   @State cameraFlight:string='idle';
   @State focus: number = -1;
@@ -210,6 +215,7 @@ struct Index {
     this.poll = setInterval(() => {
       const previousState: string = this.info.state;
       this.info = simulation.status();this.cameraFlight=simulation.getCameraMotion(0).state;this.rendering=simulation.renderStatus();this.trace=simulation.ringTraceStatus(false);
+      this.ensureMoonTexture();
       if (this.info.state === 'completed' && previousState !== 'completed' && !this.ioBusy) { this.notice = '计算完成 · 可在时间轴回看结果'; }
       if (this.playing && this.appForeground && this.info.frames > 0) {
         const next: number = this.info.selected < 0 ? 0 : this.info.selected + 1;
@@ -337,6 +343,12 @@ struct Index {
     const m:CameraMotionStatus=simulation.navigateCamera(this.yaw,this.pitch,this.zoom,this.focus,this.colorMode,this.closeup,duration,animatePose,force);
     this.cameraFlight=m.state;
   }
+  private ensureMoonTexture(retry:boolean=false):void {
+    if(this.moonRequested||!(this.info.bodies??[]).some((b:OrbitBodyStatus):boolean=>b.surface===5))return;
+    this.moonRequested=true;this.moonLoadError='';
+    loadMoonTexture(this.getUIContext().getHostContext() as common.UIAbilityContext,retry).catch((error:Error)=>{this.moonLoadError=error.message;});
+  }
+  private selectedMoon():boolean {return this.preset===5&&this.focus>0&&this.orbitBodies[this.focus]?.surface===5;}
   private surfaceName(): string {if(this.preset===5)return this.orbitBodies[Math.max(0,this.focus)]?.name??'行星';return this.focus===0?'恒星':(this.focus===2?'厚云行星':(this.focus===3?'荒漠行星':'海洋行星'));}
   private openSurface(body: number = 1): void {
     if(this.preset<3)return;
@@ -675,18 +687,19 @@ struct Index {
     add('color.0','原色',true,this.colorMode===0);add('color.1','速度',true,this.colorMode===1);add('color.2','密度',this.preset<3,this.colorMode===2);
     add('trace.controls','调整局部轨道',this.trace.enabled);add('trace.circular','圆轨道对照',this.trace.enabled);add('trace.ellipse','拉长轨道',this.trace.enabled);add('trace.apoapsis','跳到内圈远点',this.trace.enabled&&this.trace.innerPeriodHours/2<=24);
     add('trace.toggle','开普勒示踪粒子',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
+    add('moon.retry','重试月面贴图',!!(this.moonLoadError||this.rendering.moonError));
     add('material.ocean','海洋反光',this.preset>=3,this.ocean);add('material.cloudShadows','云影',this.preset>=3,this.cloudShadows);add('material.reset','还原光照',this.preset>=3);
     add('appearance.rings','环带',this.preset>=3,this.rings);add('appearance.clouds','云层',this.preset>=3,this.clouds);add('appearance.atmosphere','大气',this.preset>=3,this.atmosphere);add('appearance.trails','轨迹',this.preset>=3,this.trails);add('appearance.spin','外观自转',this.preset>=3,this.autoSpin);
     add('body.primary','主天体',this.preset<3,this.editedBody===0);add('body.impactor','撞击体',this.preset<2,this.editedBody===1);
     add('placement.cancel','取消放置',this.placing);add('placement.confirm','确认加入 · 重新计算',this.placing&&this.placementPreview().valid);
     add('placement.circular','圆轨道',this.placing);add('placement.still','相对静止',this.placing);add('placement.escape','掠过',this.placing);add('placement.reverse','反向',this.placing,this.placementDirection===-1);
-    for(let i=1;i<=4;i++)add('placement.surface.'+i,['海洋','厚云','荒漠','带环'][i-1],this.placing,this.placementSurface===i);
+    for(let i=1;i<=5;i++)add('placement.surface.'+i,['海洋','厚云','荒漠','带环','月面'][i-1],this.placing,this.placementSurface===i);
     add('orbit.add','添加行星',this.preset===5&&this.orbitBodies.length<8);add('orbit.remove','删除天体',this.preset===5&&this.orbitEdit>0&&this.orbitBodies.length>2);
     add('orbit.undo','撤销天体编辑',this.preset===5&&this.orbitUndo.length>0);add('orbit.redo','重做天体编辑',this.preset===5&&this.orbitRedo.length>0);
     add('orbit.discard','还原当前输入',this.preset===5&&this.orbitDraft);
     add('orbit.apply','应用天体 · 重新生成',this.preset===5&&this.orbitDraft);add('orbit.near','近看这颗天体',this.preset===5);
     if(this.preset===5)for(let i=0;i<this.orbitBodies.length;i++)add('orbit.select.'+i,this.orbitBodies[i].name,true,this.orbitEdit===i);
-    for(let i=1;i<=4;i++)add('orbit.surface.'+i,['海洋','厚云','荒漠','带环'][i-1],this.preset===5&&this.orbitEdit>0,this.orbitSurface===i);
+    for(let i=1;i<=5;i++)add('orbit.surface.'+i,['海洋','厚云','荒漠','带环','月面'][i-1],this.preset===5&&this.orbitEdit>0,this.orbitSurface===i);
     if(this.placing)for(const action of a)if(!action.id.startsWith('placement.')&&action.id!=='ui.back'&&action.id!=='panel.close')action.enabled=false;
     return a;
   }
@@ -785,6 +798,7 @@ struct Index {
     else if(action==='trace.toggle')this.toggleTrace();
     else if(action==='trace.play')this.playTrace();
     else if(action==='trace.reset')this.traceTime(0);
+    else if(action==='moon.retry'){this.moonRequested=false;this.ensureMoonTexture(true);}
     else if(action==='material.ocean')this.changeMaterial({ocean:!this.ocean});
     else if(action==='material.cloudShadows')this.changeMaterial({cloudShadows:!this.cloudShadows});
     else if(action==='material.reset')this.applyMaterial(defaultMaterial());
@@ -867,6 +881,7 @@ struct Index {
       {name:'start',payload:'{}'}, {name:'pause',payload:'{}'}, {name:'reset',payload:'{}'},
       {name:'seek',payload:'{frame:-1 or retained frame index}'},
       {name:'setCamera',payload:'{yaw:-100..100,pitch:-1.5..1.5,zoom:0.5..15,focus:-1..1 (orbit preset 4: -1..3; custom: -1..bodyCount-1),color:0..2 (orbit 0..1)}'},
+      {name:'getSurfaceInfo',payload:'{}; Moon source, loading state, upload count and bounded memory'},
       {name:'setMaterial',payload:'{exposure?:-2..2 EV,ocean?:boolean,cloudShadows?:boolean}; original-color orbital surfaces only; no camera or solver reset'},
       {name:'setAppearance',payload:'{clouds?:boolean,atmosphere?:boolean,trails?:boolean,closeup?:boolean,autoSpin?:boolean,rings?:boolean} (visual settings only)'},
       {name:'setPanel',payload:'{panel:-1 close,0 parameters,1 observe,2 library}'},
@@ -887,6 +902,7 @@ struct Index {
     }
     if(command==='setWindowOrientation'){if(typeof p.orientation!=='string')throw new Error('missing orientation');await WindowControl.orient(p.orientation);return this.snapshot();}
     if(command==='getSkyInfo'){const rendered:RenderStatus=simulation.renderStatus();return JSON.stringify({ok:true,reference:rendered.panoramaReady?'photographic-panorama':'procedural-fallback',catalog:'procedural-v1 (stars-only mode)',proceduralStarsVisible:this.skyMode===1||(this.skyMode===2&&!rendered.panoramaReady),seed:24190906,stars:6500,textureSize:rendered.panoramaReady?[2048,1024]:[1024,512],panorama:'eso0932a',credit:'ESO/S. Brunier',sourceUrl:'https://www.eso.org/public/images/eso0932a/',license:'CC BY 4.0',coordinateFrame:'simulation-orientation (not astrometric)',translationParallax:false,localZoomAffectsSky:false,loadError:this.skyLoadError,mode:this.skyMode,brightness:this.skyBrightness,rendering:rendered});}
+    if(command==='getSurfaceInfo'){const response:MoonAssetReply={ok:true,moon:{source:'https://svs.gsfc.nasa.gov/4720/',asset:'lroc_color_2k.jpg',credit:"NASA's Scientific Visualization Studio",width:2048,height:1024,requested:this.moonRequested,ready:simulation.renderStatus().moonReady,uploads:simulation.renderStatus().moonUploads,blend:simulation.renderStatus().moonBlend,error:this.moonLoadError||simulation.renderStatus().moonError,decodedBudgetBytes:8388608,gpuBudgetBytes:11184812}};return JSON.stringify(response);}
     if(command==='getProjectedBodies')return JSON.stringify({ok:true,projection:simulation.projectedScene()});
     if(command==='pickBody'){const hit=await this.pickViewport(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,hit:hit});}
     if(command==='getPlacementPreview')return JSON.stringify({ok:true,active:this.placing,preview:this.placementPreview()});
@@ -970,6 +986,8 @@ struct Index {
   }
   @Builder
   materialControls() {
+    if(this.selectedMoon()){Text(this.moonLoadError||this.rendering.moonError?'月面贴图暂不可用 · 显示灰色球体':(this.rendering.moonReady?"月面底图 · NASA’s Scientific Visualization Studio":'正在载入月面底图…')).fontSize(11).fontColor('#C9BEDF').width('100%')}
+    if(this.moonLoadError||this.rendering.moonError){ChoiceChip({label:'重试月面贴图',active:false,onPress:()=>{this.press('moon.retry');}})}
     Text('光与质感').fontSize(14).fontColor('#E4DCF8').width('100%')
     MetricRow({label:'曝光',value:(this.exposure>0?'+':'')+this.exposure.toFixed(1)+' EV'})
     Slider({value:this.exposure,min:-2,max:2,step:.1}).id('material.exposure').accessibilityText('行星曝光')
@@ -1020,7 +1038,7 @@ struct Index {
         Column({space:5}) {
           Text(this.closeup?this.surfaceName()+' · 近看':this.title).fontColor('#F1EDFC').fontSize(14).fontWeight(FontWeight.Medium).maxLines(1)
           Text(this.stateLabel()+' · '+(this.trace.enabled?'192 个示踪点':this.info.count+(this.preset>=3?' 个天体':' 粒子'))).fontSize(11).fontColor('#A5A0B7')
-          if(this.preset>=3&&!this.layout().compact) {Text(this.trace.enabled?'中心引力 · 开普勒轨道 · 不含碰撞':this.closeup?(this.autoSpin?'程序表面 · 外观自转演示':'程序表面 · 随轨道时间变化'):'牛顿引力 · AU / 年 · 天体尺寸已放大').fontSize(10).fontColor('#9E97B4')}
+          if(this.preset>=3&&!this.layout().compact) {Text(this.trace.enabled?'中心引力 · 开普勒轨道 · 不含碰撞':this.closeup?(this.selectedMoon()?'NASA SVS 月面底图 · 非实时月相':(this.autoSpin?'程序表面 · 外观自转演示':'程序表面 · 随轨道时间变化')):'牛顿引力 · AU / 年 · 天体尺寸已放大').fontSize(10).fontColor('#9E97B4')}
           if(this.preset>=3&&!this.closeup&&!this.layout().compact) {Text(this.focus>=0?'已选中 · '+this.surfaceName():'轻点天体以选中 · 拖动旋转').fontSize(11).fontColor('#C9B8F3')}
           if(this.skyMode===2&&!this.layout().compact) {Text(this.rendering.panoramaReady?'银河摄影 · 非定位星图':(this.skyLoadError?'银河示意 · 摄影全景加载失败':'银河背景 · 载入摄影全景')).fontSize(10).fontColor('#9E97B4')}
           if(this.preset<3) {Text('岩质 SPH · 未启用自引力').fontSize(10).fontColor('#9E97B4')}
@@ -1164,11 +1182,12 @@ struct Index {
       TextInput({text:this.orbitName,placeholder:'天体名称'}).id('orbit-name').maxLength(48).height(40).borderRadius(16).fontColor('#EBE7F8').backgroundColor('#5533334D')
         .onChange((v:string)=>{this.input('orbit.name',v);})
       if(this.orbitEdit>0) {
-        Row({space:6}) {
+        Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(8)}}) {
           ChoiceChip({label:'海洋',active:this.orbitSurface===1,onPress:()=>{this.press('orbit.surface.1');}})
           ChoiceChip({label:'厚云',active:this.orbitSurface===2,onPress:()=>{this.press('orbit.surface.2');}})
           ChoiceChip({label:'荒漠',active:this.orbitSurface===3,onPress:()=>{this.press('orbit.surface.3');}})
           ChoiceChip({label:'带环',active:this.orbitSurface===4,onPress:()=>{this.press('orbit.surface.4');}})
+          ChoiceChip({label:'月面',active:this.orbitSurface===5,onPress:()=>{this.press('orbit.surface.5');}})
         }
       }
       ForEach(this.orbitLabels,(label:string,i:number)=>{
@@ -1225,11 +1244,12 @@ struct Index {
         .fontSize(11).fontColor(this.placementPreview().valid?'#AECFD9':'#F4A993').width('100%')
       TextInput({text:this.placementName,placeholder:'新行星名称'}).height(38).fontColor('#EBE7F8').backgroundColor('#4533334D').borderRadius(14)
         .onChange((v:string)=>{this.input('placement.name',v);})
-      Row({space:6}) {
+      Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(8)}}) {
         ChoiceChip({label:'海洋',active:this.placementSurface===1,onPress:()=>{this.press('placement.surface.1');}})
         ChoiceChip({label:'厚云',active:this.placementSurface===2,onPress:()=>{this.press('placement.surface.2');}})
         ChoiceChip({label:'荒漠',active:this.placementSurface===3,onPress:()=>{this.press('placement.surface.3');}})
           ChoiceChip({label:'带环',active:this.placementSurface===4,onPress:()=>{this.press('placement.surface.4');}})
+          ChoiceChip({label:'月面',active:this.placementSurface===5,onPress:()=>{this.press('placement.surface.5');}})
       }
       ForEach(this.placementLabels,(label:string,i:number)=>{
         Row({space:8}) {
@@ -1363,6 +1383,7 @@ struct Index {
     }
   }
   private themeCover(id:string):ResourceStr {
+    if(id==='moon-atlas')return $rawfile('lroc_color_2k.jpg');
     if(id==='rock-slow')return $r('app.media.theme_rock_slow');
     if(id==='rock-fast')return $r('app.media.theme_rock_fast');
     if(id==='rock-oblique')return $r('app.media.theme_rock_oblique');
@@ -1480,7 +1501,7 @@ struct Index {
           }
           ChoiceChip({label:'显示气态行星环带',active:this.rings,onPress:()=>{this.press('appearance.rings');}})
           ChoiceChip({label:this.autoSpin?'停止外观自转':'演示外观自转',active:this.autoSpin,onPress:() => {this.press('appearance.spin');}})
-          Text('海陆、云层与环带为程序生成的外观；环带不参与引力、碰撞或流体计算。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
+          Text(this.selectedMoon()?'月面底图来自 NASA SVS；仅改变外观，不设置真实月球质量或月相。':'海陆、云层与环带为程序生成的外观；环带不参与引力、碰撞或流体计算。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
           Divider().color('#33B4A7D6')
         }
         Text(this.preset>=3?'天体着色':'粒子着色').fontSize(13).fontColor('#AEBDCD').width('100%')

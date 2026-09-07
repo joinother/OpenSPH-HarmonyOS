@@ -137,13 +137,14 @@ int main(int argc, char **argv) {
             Config c{5,600,1,0,1};c.orbitBodies.push_back({"中央恒星",1,0,0,0,0,0,0,0});
             for(int i=1;i<8;++i){double r=.6+i*.35,phase=i*.8,v=std::sqrt(SOLAR_GM*(1+3.e-6)/(r*AU))/1000;
                 c.orbitBodies.push_back({"行星 "+std::to_string(i),3.e-6,r*std::cos(phase),r*std::sin(phase),i==7?.2:0,-v*std::sin(phase),v*std::cos(phase),i==7?1.:0.,1+i%4});}
+            c.orbitBodies[7].surface=5;
             e.start(c);e.pause(true);awaitState(e,"paused");require(e.frame()->particles.size()==8,"custom count");
             e.pause(false);awaitState(e,"completed");auto end=e.frame();
             require(std::abs(end->energyError)<1.e-5&&std::isfinite(end->angularError),"custom diagnostics");
             require(e.saveReplay(dir),"v4 save");require(e.loadReplay(dir),"v4 load");e.seek(-1);
             auto restored=e.frame();require(restored->surfaces==end->surfaces,"v4 surface restoration");
-            require(restored->surfaces[3]==4,"ring style lost in replay");
-            auto invalidStyle=c;invalidStyle.orbitBodies[1].surface=5;
+            require(restored->surfaces[3]==4,"ring style lost in replay");require(restored->surfaces[7]==5,"moon style lost in replay");
+            auto invalidStyle=c;invalidStyle.orbitBodies[1].surface=6;
             try{e.start(invalidStyle);throw std::runtime_error("unknown surface accepted");}catch(const std::invalid_argument&){}
             require(e.frame()==restored,"invalid surface changed replay");
             require(e.status().config.orbitBodies[7].name=="行星 7"&&e.status().config.orbitBodies[7].vzKmS==1,"v4 configuration restoration");

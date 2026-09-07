@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "initial": {
+    "requestId": 6,
+    "sceneRevision": 7,
+    "targetFocus": 1,
+    "progress": 1,
+    "state": "completed",
+    "reason": "",
+    "targetCloseup": false,
+    "yaw": 0.4000000059604645,
+    "pitch": 0.30000001192092896,
+    "zoom": 3.0999999046325684
+  },
+  "cancelled": {
+    "requestId": 7,
+    "sceneRevision": 7,
+    "targetFocus": 1,
+    "progress": 0.3947664499282837,
+    "state": "cancelled",
+    "reason": "user",
+    "targetCloseup": false,
+    "yaw": 0.4000000059604645,
+    "pitch": 0.30000001192092896,
+    "zoom": 3.0999999046325684
+  },
+  "center": [
+    1.7999999523162842,
+    -3.4380579292490644e-18,
+    -1.672000024488136e-16
+  ]
+}

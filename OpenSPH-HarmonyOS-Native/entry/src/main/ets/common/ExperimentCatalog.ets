@@ -25,6 +25,9 @@ export function themeExperiments():ThemeExperiment[] {
       badge:badges[i],cover:ids[i],compareId:i===0?ids[1]:(i===1?ids[0]:''),config:config,
       yaw:i>=6?-.85:.15,pitch:i>=6?.42:.25,zoom:2.7,focus:(i===4||i>=6)?1:-1,closeup:i===4||i>=6});
   }
+  const lunarBodies=defaultOrbitBodies().slice(0,2);lunarBodies[1].name='月面观察体';lunarBodies[1].surface=5;lunarBodies[1].xAU=-1;lunarBodies[1].vyKmS=-lunarBodies[1].vyKmS;
+  const lunarConfig:SimulationConfig={preset:5,count:600,speed:1,angle:0,duration:1,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,orbitBodies:lunarBodies};
+  result.push({id:'moon-atlas',title:'月海与高地',category:'explore',question:'绕到另一侧，月海与高地有什么不同？',goal:'旋转观察月面底图，用曝光比较明暗，再返回全景。',limit:'NASA 月面颜色图；观察体沿用地球质量和 1 AU 演示轨道，非地月系统或实时月相，不含真实地形起伏。',badge:'NASA SVS · 月面地图',cover:'moon-atlas',compareId:'',config:lunarConfig,yaw:-Math.PI/2,pitch:.15,zoom:2.7,focus:1,closeup:true});
   return result;
 }
 export function themeConfigMatches(a:SimulationConfig,b:SimulationConfig):boolean {

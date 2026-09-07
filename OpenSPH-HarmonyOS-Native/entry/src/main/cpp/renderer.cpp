@@ -23,6 +23,7 @@ class Renderer {
     Camera camera;
     CameraNavigation navigation;
     std::array<float,3> composition{.5f,.5f,1};
+    std::shared_ptr<const MoonMap> moonMap;
     Appearance appearance;
     MaterialSettings materialSettings;
     RingClock ringClock;uint64_t ringRevision=0;
@@ -141,6 +142,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         if(!linked){char log[1024]{};glGetProgramInfoLog(program,sizeof(log),nullptr,log);error(log);}
         {std::lock_guard<std::mutex> lock(mutex);stats.ready=linked!=0;}
         PlanetMaterial material;bool materialTried=false,materialReady=false;
+        std::shared_ptr<const MoonMap> attemptedMoon;bool moonReady=false;float moonBlend=0;
         SkyRenderer sky;bool skyReady=false;std::string skyError;
         try{skyReady=sky.init(skyError);}catch(const std::exception &e){skyError=e.what();}
         if(!skyReady){sky.release();error(skyError);}else{std::lock_guard<std::mutex> lock(mutex);stats.skyReady=true;}
@@ -164,11 +166,11 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             auto begin = std::chrono::steady_clock::now();
             double dt=std::min(.1,std::chrono::duration<double>(begin-lastClock).count());lastClock=begin;
             if(!active){std::this_thread::sleep_for(std::chrono::milliseconds(100));continue;}
-            std::shared_ptr<const SkyPanorama> panorama;
+            std::shared_ptr<const SkyPanorama> panorama;std::shared_ptr<const MoonMap> moon;
             Camera c;Appearance a;MaterialSettings m;SkySettings skyConfig;std::array<float,3> compositionTarget;
             {
                 std::lock_guard<std::mutex> lock(mutex);
-                panorama=skyPanorama;c = camera;a=appearance;m=materialSettings;skyConfig=skySettings;compositionTarget=composition;
+                moon=moonMap;panorama=skyPanorama;c = camera;a=appearance;m=materialSettings;skyConfig=skySettings;compositionTarget=composition;
             }
             if(skyReady && panorama && panorama!=uploadedPanorama){
                 photoReady=sky.uploadPanorama(*panorama,skyError);uploadedPanorama=panorama;
@@ -188,6 +190,12 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 if(!materialReady)error(message);else {std::lock_guard<std::mutex> lock(mutex);stats.texturesReady=true;}
                 dt=0;lastClock=std::chrono::steady_clock::now();
             }
+            if(materialReady&&moon&&moon!=attemptedMoon&&frame&&std::find(frame->surfaces.begin(),frame->surfaces.end(),5)!=frame->surfaces.end()){
+                attemptedMoon=moon;std::string message;moonReady=material.uploadMoon(*moon,message);moonBlend=0;
+                std::lock_guard<std::mutex> lock(mutex);stats.moonReady=moonReady;stats.moonError=message;if(moonReady)stats.moonUploads++;
+            }
+            if(moonReady)moonBlend=std::min(1.f,moonBlend+float(dt)*4.f);
+            {std::lock_guard<std::mutex> lock(mutex);stats.moonBlend=moonBlend;}
             RingClock trace;
             {std::lock_guard<std::mutex> lock(mutex);
              if(ringClock.enabled&&(ringRevision!=revision||(frame&&(!frame->orbital||ringClock.target<1||size_t(ringClock.target)>=frame->surfaces.size()||frame->surfaces[ringClock.target]!=4)))){ringClock.enabled=false;ringClock.running=false;}
@@ -258,7 +266,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                         float phase=float(std::fmod(frame->time*.75+previewTime*.012,1.0));
                         SurfaceView view{projectedBody.x*2-1,1-projectedBody.y*2,-projectedBody.depth/100,
                             projectedBody.radius*2,aspect,c.yaw,c.pitch,phase,float(std::fmod(frame->time*.78+previewTime*.014+.07,1.0)),
-                            {light[0],light[1],light[2]},frame->surfaces[i],c.color,p.speed,a.clouds,a.atmosphere,a.rings,projectedBody.opacity,m.exposure,m.ocean,m.cloudShadows};
+                            {light[0],light[1],light[2]},frame->surfaces[i],c.color,p.speed,a.clouds,a.atmosphere,a.rings,projectedBody.opacity,m.exposure,m.ocean,m.cloudShadows,moonBlend};
                         if(view.opacity>.001f){material.draw(view);if(trace.enabled&&trace.target==int(i))material.drawTrace(view,sampleRing(trace.massSolar,trace.seconds,trace.speedScale));}
                     }
                     glEnable(GL_DEPTH_TEST);
@@ -284,7 +292,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         eglDestroySurface(display, surface);
         eglDestroyContext(display, context);
         eglTerminate(display);
-        {std::lock_guard<std::mutex> lock(mutex);stats.ready=false;stats.texturesReady=false;stats.skyReady=false;stats.panoramaReady=false;stats.panoramaBlend=0;}
+        {std::lock_guard<std::mutex> lock(mutex);stats.ready=false;stats.moonReady=false;stats.moonBlend=0;stats.texturesReady=false;stats.skyReady=false;stats.panoramaReady=false;stats.panoramaBlend=0;}
     }
 
   public:
@@ -313,6 +321,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
     void setComposition(float x,float y,float scale){std::lock_guard<std::mutex> lock(mutex);composition={x,y,scale};}
     void setPanorama(std::shared_ptr<const SkyPanorama> p){std::lock_guard<std::mutex> lock(mutex);skyPanorama=std::move(p);}
     void setMaterial(MaterialSettings m){if(!std::isfinite(m.exposure)||m.exposure<-2||m.exposure>2)throw std::invalid_argument("Exposure must be -2..2 EV");std::lock_guard<std::mutex> lock(mutex);materialSettings=m;}
+    void setMoon(std::shared_ptr<const MoonMap> map){std::lock_guard<std::mutex> lock(mutex);moonMap=std::move(map);}
     void setSky(SkySettings s){std::lock_guard<std::mutex> lock(mutex);skySettings=s;}
     void setAppearance(Appearance a){std::lock_guard<std::mutex> lock(mutex);appearance=a;}
     void setActive(bool value){active=value;}
@@ -360,6 +369,7 @@ RingClock ringTraceStatus(){return renderer().traceStatus();}
 void setAppearance(bool clouds,bool atmosphere,bool trails,bool closeup,bool autoSpin,bool rings){renderer().setAppearance({clouds,atmosphere,trails,closeup,autoSpin,rings});}
 void setComposition(float x,float y,float scale){renderer().setComposition(x,y,scale);}
 void setSkyPanorama(std::shared_ptr<const SkyPanorama> p){renderer().setPanorama(std::move(p));}
+void setMoonMap(std::shared_ptr<const MoonMap> map){renderer().setMoon(std::move(map));}
 void setMaterial(float exposure,bool ocean,bool cloudShadows){renderer().setMaterial({exposure,ocean,cloudShadows});}
 void setSky(int mode,float brightness){renderer().setSky({mode,brightness});}
 void setRenderActive(bool active){renderer().setActive(active);}

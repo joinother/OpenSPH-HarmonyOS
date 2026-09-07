@@ -1,0 +1,1 @@
+PASS Moon RGBA ownership, exact bounds, dimensions and null rejection

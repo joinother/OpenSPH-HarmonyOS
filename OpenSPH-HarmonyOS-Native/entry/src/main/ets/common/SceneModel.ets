@@ -90,7 +90,7 @@ export function validateOrbitBodies(bodies: OrbitBodyConfig[]): void {
     const b:OrbitBodyConfig=bodies[i];if(!b||typeof b!=='object')throw new Error('缺少天体参数');
     validName(b.name);if(/[\x00-\x1f\x7f]/.test(b.name))throw new Error('名称不能包含控制字符');
     for(let k=0;k<b.name.length;k++){const u=b.name.charCodeAt(k);if(u>=0xd800&&u<=0xdbff){const next=b.name.charCodeAt(++k);if(!(next>=0xdc00&&next<=0xdfff))throw new Error('名称包含无效字符');}else if(u>=0xdc00&&u<=0xdfff)throw new Error('名称包含无效字符');}
-    check(b.massSolar,i===0?0.1:1e-8,i===0?2:0.01);check(b.surface,i===0?0:1,i===0?0:4,true);
+    check(b.massSolar,i===0?0.1:1e-8,i===0?2:0.01);check(b.surface,i===0?0:1,i===0?0:5,true);
     check(b.xAU,-10,10);check(b.yAU,-10,10);check(b.zAU,-10,10);
     check(b.vxKmS,-100,100);check(b.vyKmS,-100,100);check(b.vzKmS,-100,100);
     check(Math.sqrt(b.vxKmS*b.vxKmS+b.vyKmS*b.vyKmS+b.vzKmS*b.vzKmS),0,100);
@@ -147,7 +147,7 @@ export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],
     validateOrbitBodies(bodies);if(bodies.length>=8)throw new Error('最多支持 8 个天体');
     const v:number[]=fields.map((s:string):number=>Number(s));
     check(v[0],1e-8/EARTH_MASS_SOLAR,.01/EARTH_MASS_SOLAR);check(v[1],.05,10);check(v[2],0,360);check(v[3],-90,90);check(v[4],0,2);
-    check(surface,1,4,true);if(direction!==1&&direction!==-1)throw new Error('方向无效');
+    check(surface,1,5,true);if(direction!==1&&direction!==-1)throw new Error('方向无效');
     const star=bodies[0],r=v[1],phase=v[2]*Math.PI/180,tilt=v[3]*Math.PI/180,mass=v[0]*EARTH_MASS_SOLAR;
     const cs=Math.cos(phase),sn=Math.sin(phase),ci=Math.cos(tilt),si=Math.sin(tilt);
     const circular=Math.sqrt(1.32712440041279419e20*(star.massSolar+mass)/(r*149597870700))/1000,speed=circular*v[4];

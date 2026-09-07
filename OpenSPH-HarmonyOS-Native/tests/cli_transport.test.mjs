@@ -405,7 +405,7 @@ test('immersive window policy hides status, navigation and gesture indicator ind
 
 test('theme catalog isolates conditions and collision speed comparison changes only speed',async()=>{
   const {page:app}=page();
-  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,9);
+  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,10);
   const [slow,fast]=catalog.experiments;assert.equal(slow.config.speed,2);assert.equal(fast.config.speed,8);
   assert.deepEqual({...slow.config,speed:8},fast.config);
   assert.ok(catalog.experiments.every(t=>t.goal&&t.limit&&t.question));
@@ -458,7 +458,7 @@ test('ring appearance shares UI and CLI, validates atomically and preserves the 
   await app.execute('uiAction',{action:'appearance.rings'});assert.equal(app.rings,false);
   await app.execute('setAppearance',{rings:true});assert.equal(app.rings,true);
   const snapshot=app.snapshot();await assert.rejects(app.execute('setAppearance',{rings:'yes',clouds:false}));assert.equal(app.snapshot(),snapshot);
-  await assert.rejects(app.execute('uiAction',{action:'orbit.surface.5'}));
+  await assert.rejects(app.execute('uiAction',{action:'orbit.surface.6'}));
   assert.deepEqual(JSON.parse(app.snapshot()).camera,before.camera);assert.deepEqual(JSON.parse(app.snapshot()).definition.config,before.definition.config);
   assert.equal(calls.filter(c=>c[0]==='start').length,starts);
 });
@@ -472,7 +472,7 @@ test('ring style survives placement, edit history and serialized scene reload',a
   await app.execute('uiAction',{action:'orbit.redo'});state.state='paused';assert.equal(app.orbitBodies[4].surface,4);
   const saved=JSON.parse(JSON.stringify(app.definition()));await app.execute('setScene',saved.config);state.state='paused';
   assert.equal(app.orbitBodies[4].surface,4);
-  const before=app.snapshot();saved.config.orbitBodies[4].surface=5;await assert.rejects(app.execute('setScene',saved.config));assert.equal(app.snapshot(),before);
+  const before=app.snapshot();saved.config.orbitBodies[4].surface=6;await assert.rejects(app.execute('setScene',saved.config));assert.equal(app.snapshot(),before);
 });
 
 test('local ring clock shares controls, preserves orbital initial conditions and rejects invalid seeks atomically',async()=>{
@@ -599,4 +599,10 @@ test('material recipes round-trip and v1 appearance resets material to defaults'
  const legacy=structuredClone(saved);legacy.id='project-3-0';legacy.recipe.appearanceVersion=1;delete legacy.recipe.material;projects.set(legacy.id,legacy);
  app.openProject(legacy.id);assert.deepEqual(JSON.parse(JSON.stringify(app.materialState())),{exposure:0,ocean:true,cloudShadows:true});
  assert.equal(projects.get(legacy.id).recipe.appearanceVersion,1,'reading legacy must not rewrite it');
+});
+
+test('Moon atlas is an explicit teaching scene and moon styles survive editing and recipes',async()=>{
+ const {page:app}=page();app.chooseTheme('moon-atlas');assert.equal(app.orbitBodies[1].surface,5);assert.equal(app.orbitBodies[1].massSolar,398600.435507e9/1.32712440041279419e20);
+ const saved=app.saveProject('月海');app.chooseTheme('three-worlds');app.openProject(saved.id);assert.equal(app.orbitBodies[1].surface,5);
+ await app.execute('uiAction',{action:'orbit.add'});await app.execute('uiAction',{action:'placement.surface.5'});assert.equal(app.placementPreview().body.surface,5);assert.equal(app.placementPreview().valid,true);
 });

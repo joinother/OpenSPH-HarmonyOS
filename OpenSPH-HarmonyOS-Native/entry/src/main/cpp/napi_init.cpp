@@ -133,6 +133,10 @@ napi_value navigateCamera(napi_env e,napi_callback_info i){try{
 }catch(const std::exception &ex){return fail(e,ex);}}
 napi_value getCameraMotion(napi_env e,napi_callback_info i){try{auto a=args(e,i,1);int id=integer(e,a[0]);if(id<0)throw std::invalid_argument("Invalid camera request ID");return motionValue(e,lab::cameraMotion(id));}catch(const std::exception &ex){return fail(e,ex);}}
 napi_value cancelCameraMotion(napi_env e,napi_callback_info i){try{auto a=args(e,i,1);int id=integer(e,a[0]);if(id<0)throw std::invalid_argument("Invalid camera request ID");return motionValue(e,lab::cancelCameraMotion(id));}catch(const std::exception &ex){return fail(e,ex);}}
+napi_value moonTexture(napi_env e,napi_callback_info i){try{auto a=args(e,i,3);void *data=nullptr;size_t length=0;
+ if(napi_get_arraybuffer_info(e,a[0],&data,&length)!=napi_ok)throw std::invalid_argument("Moon RGBA ArrayBuffer required");
+ lab::setMoonMap(std::make_shared<const lab::MoonMap>(integer(e,a[1]),integer(e,a[2]),static_cast<const uint8_t*>(data),length));
+ }catch(const std::exception &ex){return fail(e,ex);}return undef(e);}
 napi_value material(napi_env e,napi_callback_info i){
  try{auto a=args(e,i,3);double exposure=number(e,a[0]);bool ocean,shadows;if(exposure<-2||exposure>2||napi_get_value_bool(e,a[1],&ocean)!=napi_ok||napi_get_value_bool(e,a[2],&shadows)!=napi_ok)throw std::invalid_argument("Invalid material settings");lab::setMaterial(exposure,ocean,shadows);}catch(const std::exception &ex){return fail(e,ex);}return undef(e);
 }
@@ -165,6 +169,7 @@ napi_value composition(napi_env e,napi_callback_info i){try{auto a=args(e,i,3);d
 napi_value renderActive(napi_env e,napi_callback_info i){try{auto a=args(e,i,1);bool b;if(napi_get_value_bool(e,a[0],&b)!=napi_ok)throw std::invalid_argument("Boolean expected");lab::setRenderActive(b);}catch(const std::exception &ex){return fail(e,ex);}return undef(e);}
 napi_value renderStatus(napi_env e,napi_callback_info){auto s=lab::renderStatus();napi_value o;napi_create_object(e,&o);
     auto boolean=[&](const char *key,bool b){napi_value v;napi_get_boolean(e,b,&v);napi_set_named_property(e,o,key,v);};
+    boolean("moonReady",s.moonReady);num(e,o,"moonUploads",s.moonUploads);num(e,o,"moonBlend",s.moonBlend);str(e,o,"moonError",s.moonError);
     num(e,o,"materialExposure",s.materialExposure);boolean("materialOcean",s.materialOcean);boolean("materialCloudShadows",s.materialCloudShadows);
     num(e,o,"compositionX",s.compositionX);num(e,o,"compositionY",s.compositionY);num(e,o,"compositionScale",s.compositionScale);num(e,o,"sceneRevision",s.sceneRevision);num(e,o,"surfaceStarts",s.surfaceStarts);boolean("cameraMoving",s.cameraMoving);num(e,o,"centerX",s.centerX);num(e,o,"centerY",s.centerY);num(e,o,"centerZ",s.centerZ);
     boolean("panoramaReady",s.panoramaReady);num(e,o,"panoramaBlend",s.panoramaBlend);boolean("skyReady",s.skyReady);num(e,o,"skyStars",s.skyStars);num(e,o,"skyGalaxy",s.skyGalaxy);
@@ -293,6 +298,7 @@ napi_value Init(napi_env e, napi_value exports) {
         {"projectedScene",nullptr,projection,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"pickBody",nullptr,pick,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setComposition",nullptr,composition,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"setMoonTexture",nullptr,moonTexture,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setMaterial",nullptr,material,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setAppearance",nullptr,appearance,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setRenderActive",nullptr,renderActive,nullptr,nullptr,nullptr,napi_default,nullptr},
