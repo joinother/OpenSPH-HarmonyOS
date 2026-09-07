@@ -409,12 +409,25 @@ test('immersive window policy hides status, navigation and gesture indicator ind
 
 test('theme catalog isolates conditions and collision speed comparison changes only speed',async()=>{
   const {page:app}=page();
-  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,10);
+  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,12);
   const [slow,fast]=catalog.experiments;assert.equal(slow.config.speed,2);assert.equal(fast.config.speed,8);
   assert.deepEqual({...slow.config,speed:8},fast.config);
   assert.ok(catalog.experiments.every(t=>t.goal&&t.limit&&t.question));
   slow.config.seed=999;assert.equal(JSON.parse(await app.execute('listExperiments',{})).experiments[0].config.seed,1234);
   for(const t of catalog.experiments){await app.execute('uiAction',{action:'theme.'+t.id});assert.equal(app.themeState().id,t.id);assert.equal(app.themeState().modified,false);assert.equal(app.panelOpen,false);assert.equal(app.colorMode,0);}
+});
+test('resolution pair changes only particle budget; observe preserves scene and camera',async()=>{
+  const {page:app,state,calls}=page();
+  await app.execute('uiAction',{action:'theme.resolution-coarse'});state.state='paused';
+  const original=app.config(),before=app.snapshot(),starts=calls.filter(c=>c[0]==='start').length;
+  await app.execute('uiAction',{action:'theme.observe'});
+  assert.equal(app.panelOpen,true);assert.equal(app.tab,1);assert.equal(app.sphMetric,'pressure');
+  assert.deepEqual(app.config(),original);assert.deepEqual(app.snapshot().camera,before.camera);
+  assert.equal(calls.filter(c=>c[0]==='start').length,starts);
+  await app.execute('uiAction',{action:'theme.compare'});assert.deepEqual(JSON.parse(JSON.stringify(app.config())),{...original,count:1200});
+  assert.equal(app.themeState().modified,false);assert.equal(app.panelOpen,false);
+  await app.execute('uiAction',{action:'theme.compare'});assert.deepEqual(app.config(),original);
+  await app.execute('uiAction',{action:'theme.ocean-world'});await assert.rejects(app.execute('uiAction',{action:'theme.observe'}));
 });
 test('theme restore and compare discard edited initial conditions and reset physical preview exactly once',async()=>{
   const {page:app,state,calls}=page();

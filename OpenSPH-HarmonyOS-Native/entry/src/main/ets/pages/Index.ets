@@ -739,7 +739,8 @@ struct Index {
     add('panel.close','收起');add('ui.focus','专注');add('ui.restore','显示工具');add('ui.back','返回',this.panelOpen||this.closeup||this.focus>=0||!this.toolsVisible);
     for(const t of this.themes)add('theme.'+t.id,t.title,true,this.activeThemeId===t.id);
     add('theme.restore','恢复主题初始条件',this.activeThemeId!=='');
-    add('theme.compare','切换速度对照',this.themeState().compareId!=='');
+    add('theme.compare','切换对照实验',this.themeState().compareId!=='');
+    add('theme.observe','查看碰撞曲线',this.activeThemeId!==''&&this.preset<3);
     add('library.collision','碰撞',true,this.librarySection==='collision');add('library.explore','探索',true,this.librarySection==='explore');add('library.saved','我的实验',true,this.librarySection==='saved');
     add('presets.show','切换实验',this.preset===5);
     for(let i=0;i<this.experiments.length;i++)add('preset.'+i,this.experiments[i].title,true,this.preset===i);
@@ -849,6 +850,7 @@ struct Index {
     else if(action==='presets.show')this.selectingPreset=true;
     else if(action==='theme.restore')this.chooseTheme(this.activeThemeId);
     else if(action==='theme.compare')this.chooseTheme(this.themeState().compareId);
+    else if(action==='theme.observe'){this.sphMetric='pressure';this.refreshObservation();this.setPanel(1);}
     else if(action.startsWith('theme.'))this.chooseTheme(action.slice(6));
     else if(action.startsWith('library.')){this.librarySection=action.slice(8);this.scroller.scrollEdge(Edge.Top);}
     else if(action.startsWith('preset.'))this.choose(Number(action.slice(7)));
@@ -1607,8 +1609,9 @@ struct Index {
         Text(this.themeState().goal).fontSize(12).fontColor('#C7BFD7').lineHeight(19).width('100%')
         Row({space:6}) {
           ChoiceChip({label:'恢复主题',onPress:()=>{this.press('theme.restore');}})
-          if(this.themeState().compareId!=='') {ChoiceChip({label:'切换速度对照',onPress:()=>{this.press('theme.compare');}})}
+          if(this.themeState().compareId!=='') {ChoiceChip({label:'切换对照实验',onPress:()=>{this.press('theme.compare');}}).id('theme-compare')}
         }.width('100%')
+        if(this.preset<3){ChoiceChip({label:'查看碰撞曲线',onPress:()=>{this.press('theme.observe');}}).id('theme-observe')}
         Text('恢复或切换会从零开始；可先另存当前参数。').fontSize(10).fontColor('#ADA8BF').width('100%')
       }.width('100%').padding({bottom:10})
     }
@@ -1640,7 +1643,7 @@ struct Index {
           Column({space:8}) {
             Button({type:ButtonType.Normal}) {
               Stack({alignContent:Alignment.BottomEnd}) {
-                Image(this.themeCover(t.id)).width('100%').height(this.layout().compact?64:96).objectFit(ImageFit.Cover)
+                Image(this.themeCover(t.cover)).width('100%').height(this.layout().compact?64:96).objectFit(ImageFit.Cover)
                 Text('进入实验  →').fontSize(11).fontColor('#EEE6FF').padding({left:12,right:12,top:6,bottom:6}).backgroundColor('#BD342B49').borderRadius(14).margin(8)
               }.width('100%').height(this.layout().compact?64:96)
             }.id('theme-enter-'+t.id).width('100%').height(this.layout().compact?64:96).padding(0).borderRadius(16).clip(true).backgroundColor('#171927')

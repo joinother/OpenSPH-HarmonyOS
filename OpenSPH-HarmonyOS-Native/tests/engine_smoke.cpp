@@ -41,6 +41,21 @@ int main(int argc, char **argv) {
             throw std::runtime_error("invalid config accepted");
         } catch (const std::invalid_argument &) {
         }
+        // Exercise changed resolution after completed and paused runs, then
+        // replacement while running and a burst where only the latest may publish.
+        for(int count:{200,1200,200,1200}) {
+            e.start({0,count,5,0,16},true);awaitState(e,"paused");
+            require(e.status().count==(count==200?212:1276)&&e.status().time==0,"resolution initial state");
+            e.pause(false);awaitState(e,"completed");
+            require(e.status().time>=16&&e.status().time<16.2,"resolution run completion");
+        }
+        e.start({0,1200,5,0,16});awaitState(e,"running");
+        for(int i=0;i<20;++i)e.start({0,i%2?1200:200,5,0,16},true);
+        e.start({0,200,5,0,16},true);awaitState(e,"paused");
+        require(e.status().count==212&&e.status().time==0&&e.status().frames==1,"latest resolution did not win");
+        const auto revision=e.sceneRevision();std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        require(e.sceneRevision()==revision&&e.status().time==0&&e.status().frames==1,"stale run published");
+        std::cout<<"PASS resolution transitions and latest-request replacement"<<std::endl;
         for (int preset = 0; preset < 3; ++preset) {
             Config c{preset, 200, preset == 2 ? 2.0 : 5.0, preset == 1 ? 45.0 : 0.0, 10};
             e.start(c);

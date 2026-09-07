@@ -1,6 +1,6 @@
 # 文档目录
 
-> 类型：当前文档索引；源码版本：0.29.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前文档索引；源码版本：0.30.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 先阅读 [项目概览](../README.md)，操作应用使用 [CLI 指南](CLI.md)，维护资料遵循 [文档流程](WORKFLOW.md) 和 [开发约定](../AGENTS.md)。本目录区分当前说明与历史记录；归档内容不覆盖当前规则。
 
@@ -8,6 +8,7 @@
 
 | 文档 | 用途 |
 | --- | --- |
+| [SPH 材料与敏感性基线](reference/SPH-BASELINE.md) | 解析极限、固定步长与粒子预算研究、跨平台数据和未收敛项 |
 | [SPH 诊断与验证](reference/SPH-DIAGNOSTICS.md) | 压力／比内能／损伤、双精度统计、回放 v5、桌面同初值对照与后续接入路线 |
 | [资源与服务台账](reference/SERVICE-INVENTORY.md) | 运行时、开发依赖和未接入服务的分类基线 |
 | [国产替代与国内运营预研](research/CHINA-LOCALIZATION-OPERATIONS-2026-09-07.md) | Stellarium 经验、国产数据、国内镜像、插件分发、费用与运营分期 |
@@ -32,6 +33,7 @@
 
 | 版本 | 主题 |
 | --- | --- |
+| [0.30.0](releases/RELEASE-0.30.0.md) | 碰撞精度对照主题与材料／数值敏感性基线 |
 | [0.29.0](releases/RELEASE-0.29.0.md) | SPH 五指标曲线、采样极值定位与原始 CSV 导出 |
 | [0.28.0](releases/RELEASE-0.28.0.md) | 真实 SPH 诊断贯通、回放 v5、桌面对照与折叠构图 |
 | [0.27.0](releases/RELEASE-0.27.0.md) | 跨实验轨道对照、本地参照恢复、共享坐标与 CSV 导出 |

@@ -28,6 +28,16 @@ export function themeExperiments():ThemeExperiment[] {
   const lunarBodies=defaultOrbitBodies().slice(0,2);lunarBodies[1].name='月面观察体';lunarBodies[1].surface=5;lunarBodies[1].xAU=-1;lunarBodies[1].vyKmS=-lunarBodies[1].vyKmS;
   const lunarConfig:SimulationConfig={preset:5,count:600,speed:1,angle:0,duration:1,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,orbitBodies:lunarBodies};
   result.push({id:'moon-atlas',title:'月海与高地',category:'explore',question:'绕到另一侧，月海与高地有什么不同？',goal:'旋转观察月面底图，用曝光比较明暗，再返回全景。',limit:'NASA 月面颜色图；观察体沿用地球质量和 1 AU 演示轨道，非地月系统或实时月相，不含真实地形起伏。',badge:'NASA SVS · 月面地图',cover:'moon-atlas',compareId:'',config:lunarConfig,yaw:-Math.PI/2,pitch:.15,zoom:2.7,focus:1,closeup:true});
+  for(const count of [200,1200]) {
+    const fine:boolean=count===1200;
+    result.push({id:fine?'resolution-fine':'resolution-coarse',title:fine?'碰撞放大镜 · 细看':'碰撞放大镜 · 速览',category:'collision',
+      question:'同样的碰撞，换一组粒子会看见什么？',
+      goal:'先运行，再看压力与内能曲线。切换对照只改变粒子预算；比较实际秒数相近的帧，留意峰值是否变化。',
+      limit:'百公里岩质 SPH，无自引力。粒子预算不等于实际数量；更多粒子不代表已经验证准确度，采样时刻也可能不同。',
+      badge:count+' 粒子预算 · 16 s',cover:'rock-oblique',compareId:fine?'resolution-coarse':'resolution-fine',
+      config:{preset:0,count:count,speed:5,angle:0,duration:16,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234},
+      yaw:.15,pitch:.25,zoom:2.7,focus:-1,closeup:false});
+  }
   return result;
 }
 export function themeConfigMatches(a:SimulationConfig,b:SimulationConfig):boolean {

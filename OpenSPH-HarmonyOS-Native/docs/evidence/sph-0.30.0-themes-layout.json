@@ -1,0 +1,271 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "actual new theme card, observe and compare button hits in three window shapes",
+    "fine collision completed in each shape; curve and themed cover screenshots",
+    "observing preserves scene camera time and native surface",
+    "comparison changes only particle budget and starts paused",
+    "immersive, no rendering error"
+  ],
+  "results": [
+    {
+      "name": "wide",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 22.4,
+            "width": 707.2,
+            "height": 750.72
+          },
+          "compact": false,
+          "sidePanel": true,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 383.20000000000005,
+            "y": 98.4,
+            "width": 308,
+            "height": 516.72
+          },
+          "dock": {
+            "x": 143.60000000000002,
+            "y": 635.12,
+            "width": 420,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 98.4,
+            "width": 359.20000000000005,
+            "height": 524.72
+          }
+        },
+        "geometry": {
+          "widthPx": 2210,
+          "heightPx": 2416,
+          "topPx": 70,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 22
+        },
+        "viewportWidthVp": 707.2,
+        "viewportHeightVp": 773.12,
+        "widthVp": 707.2,
+        "heightVp": 773.12,
+        "immersive": true,
+        "safePx": {
+          "top": 70,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "taps": [
+        {
+          "id": "theme-enter-resolution-fine",
+          "bounds": [
+            1288,
+            1207,
+            2071,
+            1507
+          ]
+        },
+        {
+          "id": "theme-observe",
+          "bounds": [
+            1529,
+            996,
+            1830,
+            1109
+          ]
+        },
+        {
+          "id": "theme-compare",
+          "bounds": [
+            1495,
+            858,
+            1796,
+            971
+          ]
+        }
+      ],
+      "count": 1276,
+      "time": 16.070000000000025,
+      "pressure": 91.08781192673032
+    },
+    {
+      "name": "phone",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 20.48,
+            "width": 345.6,
+            "height": 761.6
+          },
+          "compact": false,
+          "sidePanel": false,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 12,
+            "y": 243.28,
+            "width": 321.6,
+            "height": 380.8
+          },
+          "dock": {
+            "x": 16,
+            "y": 644.08,
+            "width": 313.6,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 96.48,
+            "width": 321.6,
+            "height": 134.8
+          }
+        },
+        "geometry": {
+          "widthPx": 1080,
+          "heightPx": 2444,
+          "topPx": 64,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 25
+        },
+        "viewportWidthVp": 345.6,
+        "viewportHeightVp": 782.08,
+        "widthVp": 345.6,
+        "heightVp": 782.08,
+        "immersive": true,
+        "safePx": {
+          "top": 64,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "taps": [
+        {
+          "id": "theme-enter-resolution-fine",
+          "bounds": [
+            128,
+            1488,
+            953,
+            1788
+          ]
+        },
+        {
+          "id": "theme-observe",
+          "bounds": [
+            390,
+            1389,
+            691,
+            1502
+          ]
+        },
+        {
+          "id": "theme-compare",
+          "bounds": [
+            335,
+            1251,
+            636,
+            1364
+          ]
+        }
+      ],
+      "count": 1276,
+      "time": 16.070000000000025,
+      "pressure": 91.08781192673031
+    },
+    {
+      "name": "landscape",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 20.48,
+            "y": 0,
+            "width": 761.6,
+            "height": 345.6
+          },
+          "compact": true,
+          "sidePanel": true,
+          "headerHeight": 54,
+          "drawer": {
+            "x": 458.08000000000004,
+            "y": 64,
+            "width": 308,
+            "height": 269.6
+          },
+          "dock": {
+            "x": 36.480000000000004,
+            "y": 271.6,
+            "width": 393.6,
+            "height": 66
+          },
+          "scene": {
+            "x": 32.480000000000004,
+            "y": 64,
+            "width": 413.6,
+            "height": 195.60000000000002
+          }
+        },
+        "geometry": {
+          "widthPx": 2444,
+          "heightPx": 1080,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 64,
+          "rightPx": 0,
+          "revision": 28
+        },
+        "viewportWidthVp": 782.08,
+        "viewportHeightVp": 345.6,
+        "widthVp": 782.08,
+        "heightVp": 345.6,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 64,
+          "right": 0
+        }
+      },
+      "taps": [
+        {
+          "id": "theme-enter-resolution-fine",
+          "bounds": [
+            1522,
+            792,
+            2305,
+            992
+          ]
+        },
+        {
+          "id": "theme-observe",
+          "bounds": [
+            1763,
+            838,
+            2064,
+            951
+          ]
+        },
+        {
+          "id": "theme-compare",
+          "bounds": [
+            1729,
+            700,
+            2030,
+            813
+          ]
+        }
+      ],
+      "count": 1276,
+      "time": 16.070000000000025,
+      "pressure": 91.08781192673032
+    }
+  ]
+}

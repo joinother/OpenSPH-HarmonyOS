@@ -1,0 +1,54 @@
+{
+  "date": "2026-09-07",
+  "timezone": "Asia/Shanghai",
+  "device": "127.0.0.1:5555",
+  "initialFailure": "First application run timed out changing from completed coarse theme to initially-paused fine theme. A subsequent library-card attempt also remained preparing.",
+  "state": {
+    "state": "preparing",
+    "error": "",
+    "count": 0,
+    "frames": 0,
+    "selected": -1,
+    "time": 0,
+    "duration": 16,
+    "stepMs": 0,
+    "steps": 0,
+    "maxSpeed": 0,
+    "meanDensity": 0,
+    "totalMass": 0,
+    "sph": {
+      "available": false
+    },
+    "energyError": 0,
+    "angularError": 0,
+    "model": "sph-rock-v1",
+    "timeUnit": "s",
+    "bodies": [],
+    "config": {
+      "preset": 0,
+      "count": 1200,
+      "speed": 5,
+      "angle": 0,
+      "duration": 16,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "targetSpin": 0,
+      "seed": 1234
+    }
+  },
+  "diagnosticWork": [
+    "Independent native Engine 200/1200 repeated runs passed.",
+    "Temporary preparation-stage instrumentation and rebuild/restart made the application test pass.",
+    "Instrumentation removed; final source contains no diagnostic stage mutation.",
+    "Added native regression for completed, paused, running and rapid replacement across resolutions."
+  ],
+  "rootCause": "Not established. Rebuild/restart and altered timing may affect reproduction. Final-package retests are recorded separately; do not call this a proven source fix.",
+  "finalPackageRetests": {
+    "native": "sph-0.30.0-native-tests.txt",
+    "themes": "sph-0.30.0-themes-emulator.json",
+    "threeWindows": "sph-0.30.0-themes-layout.json",
+    "status": "passed without temporary native instrumentation"
+  }
+}

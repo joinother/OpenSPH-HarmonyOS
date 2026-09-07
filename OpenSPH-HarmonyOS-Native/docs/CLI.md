@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.29.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.30.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -30,7 +30,9 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 ## 主题实验库
 
-实验库的“碰撞／探索／我的实验”分类使用 `library.collision`、`library.explore`、`library.saved`；只切换内容，不重建当前场景。`listExperiments` 返回目录版本、十个主题的完整初始条件、默认镜头、问题和模型说明。
+“碰撞放大镜”用于观察离散采样差异，进入后暂停，点击开始计算。实际粒子数量与预算不同；应用仍采用自适应 Courant 步长，两组末帧时刻可能略有差异。界面不自动叠加 SPH 曲线，比较时核对实际秒数，可先通过 `getSphTable` 导出本次结果。材料与固定步长测试见 [基线说明](reference/SPH-BASELINE.md)。
+
+实验库的“碰撞／探索／我的实验”分类使用 `library.collision`、`library.explore`、`library.saved`；只切换内容，不重建当前场景。`listExperiments` 返回目录版本、十二个主题的完整初始条件、默认镜头、问题和模型说明。
 
 | 动作 | 内容 |
 | --- | --- |
@@ -42,7 +44,9 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 | `theme.ring-world` | “环影之间”：虚构带环气态行星、1 AU 轨道与 1 年探索；不是实际土星系统 |
 | `theme.kepler-ring` | “环为什么会错位”：暂停主系统，进入独立的 24 小时示踪环 |
 | `theme.restore` | 恢复当前主题的完整初始条件和默认镜头 |
-| `theme.compare` | 慢撞／快撞切换，恢复另一组完整初始条件 |
+| `theme.resolution-coarse` / `theme.resolution-fine` | 碰撞放大镜：200／1200 粒子预算，5 km/s、16 s，其余条件相同 |
+| `theme.compare` | 慢撞／快撞或速览／细看切换，恢复另一组完整初始条件 |
+| `theme.observe` | 当前 SPH 主题打开压力曲线，保留求解结果、时刻、着色与镜头 |
 
 ```sh
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command listExperiments

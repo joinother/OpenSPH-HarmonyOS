@@ -1,0 +1,155 @@
+{
+  "ok": true,
+  "config": {
+    "kind": "configuration",
+    "schemaVersion": 1,
+    "model": "basalt-impact-v1",
+    "upstream": "f3033faf4422a056dcb79cc6643c7c6f3d9fee19",
+    "seed": 1234,
+    "targetRadiusKm": 100,
+    "impactorRadiusKm": 60,
+    "densityKgM3": 2700,
+    "speedKmS": 5,
+    "separationKm": 180,
+    "angle": 0,
+    "durationSeconds": 16,
+    "selfGravity": false,
+    "timestep": "fixed"
+  },
+  "eos": {
+    "kind": "eos",
+    "ok": true,
+    "checks": 30,
+    "rho0KgM3": 2700,
+    "bulkModulusPa": 26700000000,
+    "referenceSoundSpeedMS": 3144.660377352201
+  },
+  "samples": 24,
+  "runs": 6,
+  "repeatability": {
+    "maximumRelativeError": 1.1131074799565919e-15,
+    "tolerance": 1e-12,
+    "bitwiseEqual": false
+  },
+  "crossPlatform": {
+    "maximumNormalizedError": 1.5128844630857417e-15,
+    "tolerance": 1e-8
+  },
+  "matchedTimesSeconds": [
+    4,
+    8,
+    12,
+    16
+  ],
+  "invariants": {
+    "maxMomentumError": 8.539491047168845e-16,
+    "maxCenterError": 1.3981890246872116e-15
+  },
+  "timestep": {
+    "budget": 200,
+    "actualCount": 212,
+    "coarseToMedium": {
+      "pressureMaxGPa": {
+        "absolute": 0.07204350001234161,
+        "relativeToFiner": 0.0007472144254686415
+      },
+      "internalMeanMJkg": {
+        "absolute": 0.000016831815815354645,
+        "relativeToFiner": 0.00002274691161885409
+      },
+      "damageMean": {
+        "absolute": 0.0000026139910531842038,
+        "relativeToFiner": 0.015655397782542303
+      },
+      "kineticJ": {
+        "absolute": 49418586580490125000,
+        "relativeToFiner": 0.000002427243429454866
+      },
+      "internalJ": {
+        "absolute": 231481836132888480000,
+        "relativeToFiner": 0.000022746911618785494
+      }
+    },
+    "mediumToFine": {
+      "pressureMaxGPa": {
+        "absolute": 0.03864761852727838,
+        "relativeToFiner": 0.00040068135458743267
+      },
+      "internalMeanMJkg": {
+        "absolute": 0.0000026274835032147337,
+        "relativeToFiner": 0.0000035508303715005403
+      },
+      "damageMean": {
+        "absolute": 0.0000034849860655947055,
+        "relativeToFiner": 0.020445127594950204
+      },
+      "kineticJ": {
+        "absolute": 103788854584469880000,
+        "relativeToFiner": 0.000005097719643441723
+      },
+      "internalJ": {
+        "absolute": 36134824215868080000,
+        "relativeToFiner": 0.0000035508303714237893
+      }
+    }
+  },
+  "resolution": {
+    "fixedDt": 0.03125,
+    "actualCounts": [
+      212,
+      641,
+      1276
+    ],
+    "coarseToMedium": {
+      "pressureMaxGPa": {
+        "absolute": 11.818906867598002,
+        "relativeToFiner": 0.1396442323234493
+      },
+      "internalMeanMJkg": {
+        "absolute": 0.14228808903556256,
+        "relativeToFiner": 0.23806932330859032
+      },
+      "damageMean": {
+        "absolute": 0.0000753706034771992,
+        "relativeToFiner": 0.7926657489320491
+      },
+      "kineticJ": {
+        "absolute": 1.9568369308576052e+24,
+        "relativeToFiner": 0.08768488455696062
+      },
+      "internalJ": {
+        "absolute": 1.9568362956922177e+24,
+        "relativeToFiner": 0.23806932330859934
+      }
+    },
+    "mediumToFine": {
+      "pressureMaxGPa": {
+        "absolute": 6.715534331319304,
+        "relativeToFiner": 0.07351322735493089
+      },
+      "internalMeanMJkg": {
+        "absolute": 0.0470172500915228,
+        "relativeToFiner": 0.085383793955468
+      },
+      "damageMean": {
+        "absolute": 0.00009637665857500985,
+        "relativeToFiner": 0.5033732159386634
+      },
+      "kineticJ": {
+        "absolute": 6.4661427636451e+23,
+        "relativeToFiner": 0.028158582655203743
+      },
+      "internalJ": {
+        "absolute": 6.466111262463791e+23,
+        "relativeToFiner": 0.0853837939554716
+      }
+    }
+  },
+  "limits": [
+    "Constitutive limits and continuity, not a Sod shock tube or elastic wave solution.",
+    "Sensitivity is reported, not a convergence order or accepted physical accuracy.",
+    "Resolution changes particle sampling and damage flaw assignments despite the same seed.",
+    "Fixed dt is a test-only policy; the application retains adaptive Courant stepping.",
+    "Kinetic plus internal energy omits elastic energy; no total-energy conservation claim."
+  ]
+}
