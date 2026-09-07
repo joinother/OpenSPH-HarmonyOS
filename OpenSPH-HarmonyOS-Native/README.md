@@ -63,6 +63,8 @@ python3 scripts/check-docs.py
 
 [同行更新日志筛选](docs/research/PEER-UPDATES-2026-09-06.md) 补充复制为放置草稿、主题外观持久化、实验曲线和设备画质分档；区分已发布功能、开发分支与未来计划，不替代当前土星环外观和物理验证的优先顺序。
 
+后续批次细化见 [宇宙沙盒博客与论坛专题](docs/research/UNIVERSE-SANDBOX-BLOG-FORUM-2026-09-07.md)：优先完成实验配方保存、复制放置与结果对照，再做卫星扰动和 SPH 诊断，逐步进入自引力碰撞。文中 32 项建议与 14 个实验方案均标明现有基础、依赖及验收门槛，尚未实现的部分不计入当前能力。
+
 ## 许可
 
 新应用代码采用 MIT；OpenSPH 许可见 [第三方许可](third_party/opensph/LICENSE)，sse2neon 保留头文件许可。银河摄影署名 ESO/S. Brunier，使用 CC BY 4.0；见 [素材来源](docs/reference/SKY-ASSETS.md)。第三方许可文本随 HAP 打包。GitHub 检查点保留原有桌面工程；本项目未引入 SpaceSim、Universe Sandbox 或 SpaceEngine 的私有实现与素材。

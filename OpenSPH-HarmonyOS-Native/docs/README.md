@@ -16,6 +16,7 @@
 | [SpaceEngine 调研](research/SPACEENGINE-2026-09-06.md) | 许可、连续漫游、分层行星、场景脚本与下载安装取舍 |
 | [宇宙沙盒操作记录](research/UNIVERSE-SANDBOX-SESSION-2026-09-06.md) | Steam 启动后的实际观察、操作边界与输入问题 |
 | [同行更新日志筛选](research/PEER-UPDATES-2026-09-06.md) | Universe Sandbox、SpaceSim 更新和 Celestia 开发提交对当前路线的补充 |
+| [宇宙沙盒博客与论坛专题](research/UNIVERSE-SANDBOX-BLOG-FORUM-2026-09-07.md) | 242 篇博客与 2585 个主题索引、36 篇博客和 23 个主题选读；32 项改进与 14 个实验方案 |
 | [文档维护流程](WORKFLOW.md) | 文件归属、日期、命名、更新和交付检查 |
 
 ## 版本记录
