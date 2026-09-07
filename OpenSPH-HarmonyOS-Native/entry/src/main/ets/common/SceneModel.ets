@@ -12,7 +12,7 @@ export function validateMaterial(m:RecipeMaterial):void {
  if(!m||typeof m.ocean!=='boolean'||typeof m.cloudShadows!=='boolean')throw new Error('无效材质开关');check(m.exposure,-2,2);
 }
 export interface RecipeSky { mode:number; brightness:number; }
-export interface RecipeRing { enabled:boolean; target:number; timeHours:number; speedScale:number; rateHours:number; }
+export interface RecipeRing { modelVersion?:number; impulse?:number; points?:boolean; enabled:boolean; target:number; timeHours:number; speedScale:number; rateHours:number; }
 export interface SurfaceRecipe { version:number;seed:number;cloudSeed:number; }
 export function legacySurfaces(count:number):SurfaceRecipe[] {const values:SurfaceRecipe[]=[];for(let i=0;i<count;i++)values.push({version:1,seed:0,cloudSeed:0});return values;}
 export function copySurfaces(values:SurfaceRecipe[]):SurfaceRecipe[] {return values.map((v:SurfaceRecipe):SurfaceRecipe=>({version:v.version,seed:v.seed,cloudSeed:v.cloudSeed}));}
@@ -49,6 +49,10 @@ export function validateRecipe(r:ExperimentRecipe,scene:SceneDefinition):void {
   if(a.closeup&&(preset<3||r.camera.focus<0))throw new Error('近看视角与场景不匹配');
   if(!r.sky)throw new Error('缺少星空配置');check(r.sky.mode,0,2,true);check(r.sky.brightness,0,1);
   const t=r.ring;if(!t||typeof t.enabled!=='boolean')throw new Error('缺少局部环配置');
+  if(t.modelVersion!==undefined&&t.modelVersion!==2)throw new Error('不支持的环模型版本');
+  if(t.modelVersion===2){check(t.impulse!,0,.35);if(typeof t.points!=='boolean')throw new Error('无效环颗粒开关');}
+  else if(t.impulse!==undefined||t.points!==undefined)throw new Error('扰动参数需要环模型版本 2');
+  if(!t.enabled&&((t.impulse??0)!==0||(t.points??false)))throw new Error('关闭的环必须清除扰动');
   check(t.timeHours,0,24);check(t.speedScale,1,1.2);check(t.rateHours,.1,4);check(t.target,-1,maxFocus,true);
   if(t.enabled){
     if(preset!==5||t.target<1||t.target!==r.camera.focus||scene.config.orbitBodies![t.target].surface!==4)throw new Error('局部环目标与带环行星不匹配');

@@ -1,0 +1,8 @@
+ellipse speed=1 e=0 errors km=48.5941,12.1496
+ellipse speed=1.01 e=0.0201 errors km=49.2715,12.3186
+ellipse speed=1.12 e=0.2544 errors km=52.6736,13.1685
+ellipse speed=1.2 e=0.44 errors km=43.4754,10.8688
+elliptical grid 9216 states: max force=4.22877e-07 energy=3.20935e-15 angular=7.77156e-16
+PASS 192 deterministic circular tracers; Earth reference; force relative error=8.94285e-11 energy=5.52958e-16; differential periods; independent leapfrog errors km=48.5941,12.1496; bounded/atomic clock and terminal pause
+grid initial=7.34734e-16 energy=5.56784e-15 angular=1.11022e-15 force=5.60119e-07
+PASS dense ring: 1179648 states; initial=7.34734e-16 force=5.60119e-07 energy=5.56784e-15 angular=1.11022e-15 leapfrog km=5.36127,1.34029 density difference=797863 CPU sample+map ms=8.82648

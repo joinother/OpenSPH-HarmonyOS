@@ -37,10 +37,10 @@ inline std::vector<RingPoint> sampleRing(double massSolar,double seconds,double 
  return points;
 }
 struct RingClock {
- bool enabled=false,running=false;int target=-1;double massSolar=.0002857,seconds=0,speedScale=1,rateHours=1;
+ bool enabled=false,running=false,points=false;double impulse=0;int target=-1;double massSolar=.0002857,seconds=0,speedScale=1,rateHours=1;
  void configure(bool on,bool play,int body,double mass){
   if((play&&!on)||(on&&(body<1||body>7))||!std::isfinite(mass)||mass<1e-8||mass>.01)throw std::invalid_argument("Invalid ring controls");
-  if(on&&(!enabled||target!=body||massSolar!=mass)){seconds=0;speedScale=1;rateHours=1;}
+  if(on&&(!enabled||target!=body||massSolar!=mass)){seconds=0;speedScale=1;rateHours=1;impulse=0;points=false;}
   enabled=on;running=on&&play&&seconds<RING_END_SECONDS;target=body;massSolar=mass;
  }
  // Validate the whole transaction before changing any field. Rate changes preserve time/play.
@@ -49,6 +49,10 @@ struct RingClock {
   if(!enabled||!std::isfinite(rate)||rate<.1||rate>4)throw std::invalid_argument("Local clock rate outside 0.1–4 hours/second or trace disabled");
   if(scale!=speedScale){seconds=0;running=false;}
   speedScale=scale;rateHours=rate;
+ }
+ void disturbance(double kick,bool grains){
+  if(!enabled||!std::isfinite(kick)||kick<0||kick>.35)throw std::invalid_argument("Ring disturbance outside 0–0.35 or ring disabled");
+  if(kick!=impulse){seconds=0;running=false;}impulse=kick;points=grains;
  }
  void seek(double t){if(!enabled||!std::isfinite(t)||t<0||t>RING_END_SECONDS)throw std::invalid_argument("Ring time outside 0–24 hours");seconds=t;running=false;}
  void advance(double dt){if(!std::isfinite(dt)||dt<0||dt>.100001)throw std::invalid_argument("Invalid ring clock delta");if(enabled&&running){seconds=std::min(RING_END_SECONDS,seconds+dt*RING_CLOCK_RATE*rateHours);if(seconds>=RING_END_SECONDS)running=false;}}

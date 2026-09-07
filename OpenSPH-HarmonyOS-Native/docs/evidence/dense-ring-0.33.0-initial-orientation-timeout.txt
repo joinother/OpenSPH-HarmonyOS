@@ -1,0 +1,27 @@
+{"ok":false,"error":"Timed out waiting for device response d4797366-dc47-41e6-ba6d-a52eceac2337; received 25 chunks. Check application logs."}
+node:internal/errors:999
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /opt/homebrew/Cellar/node/26.7.0/bin/node /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setWindowOrientation --payload-json {"orientation":"landscape"}
+{"ok":false,"error":"Timed out waiting for device response d4797366-dc47-41e6-ba6d-a52eceac2337; received 25 chunks. Check application logs."}
+
+    at genericNodeError (node:internal/errors:999:15)
+    at wrappedFn (node:internal/errors:544:14)
+    at checkExecSyncError (node:child_process:942:11)
+    at execFileSync (node:child_process:978:15)
+    at call (file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-dense-ring-emulator.mjs:6:54)
+    at file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-dense-ring-emulator.mjs:28:74 {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    '',
+    '{"ok":false,"error":"Timed out waiting for device response d4797366-dc47-41e6-ba6d-a52eceac2337; received 25 chunks. Check application logs."}\n'
+  ],
+  pid: 282,
+  stdout: '',
+  stderr: '{"ok":false,"error":"Timed out waiting for device response d4797366-dc47-41e6-ba6d-a52eceac2337; received 25 chunks. Check application logs."}\n'
+}
+
+Node.js v26.7.0

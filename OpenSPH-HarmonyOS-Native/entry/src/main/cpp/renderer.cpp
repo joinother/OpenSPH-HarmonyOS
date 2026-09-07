@@ -215,9 +215,13 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             {std::lock_guard<std::mutex> lock(mutex);stats.moonBlend=moonBlend;}
             RingClock trace;
             {std::lock_guard<std::mutex> lock(mutex);
-             if(ringClock.enabled&&(ringRevision!=revision||(frame&&(!frame->orbital||ringClock.target<1||size_t(ringClock.target)>=frame->surfaces.size()||frame->surfaces[ringClock.target]!=4)))){ringClock.enabled=false;ringClock.running=false;}
-             if(frame)ringClock.advance(dt);trace=ringClock;
+             // A frame sampled before a new CLI scene request must not cancel that new ring.
+             if(ringClock.enabled&&ringRevision!=Engine::instance().sceneRevision()){ringClock.enabled=false;ringClock.running=false;}
+             const bool matching=frame&&revision==ringRevision;
+             if(ringClock.enabled&&matching&&(!frame->orbital||ringClock.target<1||size_t(ringClock.target)>=frame->surfaces.size()||frame->surfaces[ringClock.target]!=4)){ringClock.enabled=false;ringClock.running=false;}
+             if(matching)ringClock.advance(dt);trace=ringClock;if(!matching)trace.enabled=false;
             }
+            if(materialReady)material.updateRing(trace);
             bool detail=frame&&frame->orbital&&a.closeup&&c.focus>=0&&size_t(c.focus)<frame->particles.size();
             CameraJourney journey;uint64_t cameraRequest=0;
             {std::lock_guard<std::mutex> lock(mutex);
@@ -284,7 +288,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                         SurfaceView view{projectedBody.x*2-1,1-projectedBody.y*2,-projectedBody.depth/100,
                             projectedBody.radius*2,aspect,c.yaw,c.pitch,phase,float(std::fmod(frame->time*.78+previewTime*.014+.07,1.0)),
                             {light[0],light[1],light[2]},frame->surfaces[i],c.color,p.speed,a.clouds,a.atmosphere,a.rings,projectedBody.opacity,m.exposure,m.ocean,m.cloudShadows,moonBlend,int(i)};
-                        if(view.opacity>.001f){material.draw(view);if(trace.enabled&&trace.target==int(i))material.drawTrace(view,sampleRing(trace.massSolar,trace.seconds,trace.speedScale));}
+                        if(view.opacity>.001f){view.activeRing=trace.enabled&&trace.target==int(i);material.draw(view);if(view.activeRing&&trace.points&&view.rings)material.drawRingGrains(view);}
                     }
                     glEnable(GL_DEPTH_TEST);
                 } else {
@@ -338,6 +342,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             thread.join();
     }
     void configureTrace(bool on,bool play,int target,double mass){std::lock_guard<std::mutex> lock(mutex);ringClock.configure(on,play,target,mass);ringRevision=Engine::instance().sceneRevision();}
+    void traceDisturbance(double kick,bool grains){std::lock_guard<std::mutex> lock(mutex);ringClock.disturbance(kick,grains);}
     void traceParameters(double scale,double rate){std::lock_guard<std::mutex> lock(mutex);ringClock.parameters(scale,rate);}
     void seekTrace(double t){std::lock_guard<std::mutex> lock(mutex);ringClock.seek(t);}
     RingClock traceStatus(){std::lock_guard<std::mutex> lock(mutex);return ringClock;}
@@ -387,6 +392,7 @@ void destroyed(OH_NativeXComponent *, void *) {
 OH_NativeXComponent_Callback callbacks = {created, changed, destroyed, nullptr};
 } // namespace
 void configureRingTrace(bool on,bool play,int target,double mass){renderer().configureTrace(on,play,target,mass);}
+void setRingDisturbance(double kick,bool grains){renderer().traceDisturbance(kick,grains);}
 void setRingParameters(double scale,double rate){renderer().traceParameters(scale,rate);}
 void seekRingTrace(double t){renderer().seekTrace(t);}
 RingClock ringTraceStatus(){return renderer().traceStatus();}

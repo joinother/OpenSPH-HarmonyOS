@@ -44,8 +44,9 @@ export const projectedScene:()=>ProjectedScene;
 export const pickBody:(x:number,y:number,padding:number)=>number;
 
 export interface RingTraceParticle {xKm:number;yKm:number;vxKmS:number;vyKmS:number;radiusKm:number;periodHours:number;}
-export interface RingTraceStatus {speedScale:number;rateHours:number;eccentricity:number;innerApoapsisKm:number;outerApoapsisKm:number;referenceXKm:number;referenceYKm:number;referenceRadiusKm:number;referenceSpeedKmS:number;particles?:RingTraceParticle[];enabled:boolean;running:boolean;target:number;timeHours:number;massSolar:number;radiusKm:number;count:number;innerPeriodHours:number;outerPeriodHours:number;model:string;}
+export interface RingTraceStatus {impulse:number;points:boolean;returnedCount?:number;sampling?:string;speedScale:number;rateHours:number;eccentricity:number;innerApoapsisKm:number;outerApoapsisKm:number;referenceXKm:number;referenceYKm:number;referenceRadiusKm:number;referenceSpeedKmS:number;particles?:RingTraceParticle[];enabled:boolean;running:boolean;target:number;timeHours:number;massSolar:number;radiusKm:number;count:number;innerPeriodHours:number;outerPeriodHours:number;model:string;}
 export const configureRingTrace:(enabled:boolean,running:boolean,target:number,massSolar:number)=>void;
+export const setRingDisturbance:(impulse:number,points:boolean)=>void;
 export const setRingParameters:(speedScale:number,rateHours:number)=>void;
 export const seekRingTrace:(seconds:number)=>void;
 export const ringTraceStatus:(particles:boolean)=>RingTraceStatus;

@@ -8,16 +8,16 @@ const char *vertex=R"(#version 300 es
 precision highp float;
 layout(location=0) in vec2 corner;
 uniform vec3 origin;
-uniform float radius,aspect;
+uniform float radius,aspect,ringExtent;
 uniform int style;
 out vec2 local;
-void main(){local=corner*(style==4?2.32:1.13);gl_Position=vec4(origin.xy+local*vec2(radius/aspect,radius),origin.z,1.0);}
+void main(){local=corner*(style==4?ringExtent:1.13);gl_Position=vec4(origin.xy+local*vec2(radius/aspect,radius),origin.z,1.0);}
 )";
 const char *fragment=R"(#version 300 es
 precision highp float;
 in vec2 local;
 out vec4 outputColor;
-uniform sampler2D surfaceMap,cloudMap,previousSurfaceMap,previousCloudMap;
+uniform sampler2D surfaceMap,cloudMap,previousSurfaceMap,previousCloudMap,ringMap;
 uniform float generationBlend;
 uniform vec3 light;
 uniform vec2 orientation;
@@ -33,13 +33,12 @@ const float PI=3.141592653589793;
 vec3 worldNormal(vec3 n){float a=orientation.x,b=orientation.y;n=vec3(n.x,cos(b)*n.y+sin(b)*n.z,-sin(b)*n.y+cos(b)*n.z);return vec3(cos(a)*n.x-sin(a)*n.z,n.y,sin(a)*n.x+cos(a)*n.z);}
 // The tilted equator and rings share a fixed world-space axis (27 degrees).
 vec3 ringNormal(){float a=orientation.x,b=orientation.y;vec3 w=vec3(.454,.891,0.0);vec3 v=vec3(cos(a)*w.x,w.y,-sin(a)*w.x);return normalize(vec3(v.x,cos(b)*v.y-sin(b)*v.z,sin(b)*v.y+cos(b)*v.z));}
-float ringDensity(float r){
- float aa=max(fwidth(r),.002);
- float envelope=smoothstep(1.24-aa,1.24+aa,r)*(1.0-smoothstep(2.26-aa,2.26+aa,r));
- float gap=smoothstep(1.89-aa,1.91+aa,r)*(1.0-smoothstep(1.99-aa,2.01+aa,r));
- // Filter the fine radial bands as their projected footprint becomes subpixel.
- float fine=.5+.5*sin(r*260.0)*exp(-aa*90.0);
- return envelope*(1.0-gap*.94)*(.45+.22*fine+.12*sin(r*23.0));
+// Both visible band and its shadow sample the exact particle deposition map.
+float ringDensity(vec3 position){
+ vec3 w=worldNormal(position);
+ vec2 p=vec2(dot(w,normalize(vec3(.891,-.454,0))),w.z)/14.0+.5;
+ if(any(lessThan(p,vec2(0)))||any(greaterThan(p,vec2(1))))return 0.0;
+ return texture(ringMap,p).r;
 }
 vec3 surfaceNormal(vec3 n){vec3 w=worldNormal(n);return style==4?vec3(.891*w.x-.454*w.y,.454*w.x+.891*w.y,w.z):w;}
 float ringShadow(vec3 position){
@@ -47,7 +46,7 @@ float ringShadow(vec3 position){
  vec3 axis=ringNormal();float denominator=dot(axis,light);
  if(abs(denominator)<.0001)return 1.0;
  float t=-dot(axis,position)/denominator;
- return t>0.0?1.0-.72*ringDensity(length(position+t*light)):1.0;
+ return t>0.0?1.0-.72*ringDensity(position+t*light):1.0;
 }
 vec2 uv(vec3 n,float spin){n=normalize(n);return vec2(atan(n.z,n.x)/(2.0*PI)+.5+spin,asin(clamp(n.y,-1.0,1.0))/PI+.5);}
 vec4 sampleMap(sampler2D map,vec2 p){vec2 dx=dFdx(p),dy=dFdy(p);dx.x-=round(dx.x);dy.x-=round(dy.x);return textureGrad(map,p,dx,dy);}
@@ -97,7 +96,7 @@ void main(){
   // Orthographic view ray vs. tilted equatorial plane. Edge-on has zero area.
   if(abs(axis.z)>.0001){
    z=-dot(axis.xy,local)/axis.z;vec3 point=vec3(local,z);float radial=length(point);
-   float density=ringDensity(radial)*smoothstep(.0001,.012,abs(axis.z));
+   float density=ringDensity(point)*smoothstep(.0001,.012,abs(axis.z));
    float facing=abs(dot(axis,light));
    float side=dot(axis,light)*axis.z>=0.0?1.0:.56;
    float toward=dot(point,light),disc=toward*toward-dot(point,point)+1.0;
@@ -122,14 +121,14 @@ precision highp float;
 layout(location=0) in vec4 point;
 uniform vec3 origin;uniform float radius,aspect;
 out vec3 position;out float band;
-void main(){position=point.xyz;band=point.w;gl_Position=vec4(origin.xy+point.xy*vec2(radius/aspect,radius),origin.z,1);gl_PointSize=6.0;}
+void main(){position=point.xyz;band=point.w;gl_Position=vec4(origin.xy+point.xy*vec2(radius/aspect,radius),origin.z,1);gl_PointSize=2.5;}
 )";
 const char *traceFragment=R"(#version 300 es
 precision highp float;
 in vec3 position;in float band;uniform float opacity;out vec4 outputColor;
 void main(){float r=dot(position.xy,position.xy);if(r<1.0&&position.z<sqrt(1.0-r))discard;
  float d=length(gl_PointCoord*2.0-1.0);if(d>1.0)discard;
- outputColor=vec4(mix(vec3(.25,.88,1),vec3(1,.73,.30),band),(1.0-smoothstep(.45,1.0,d))*opacity);}
+ outputColor=vec4(mix(vec3(.62,.53,.40),vec3(1,.90,.72),band),(1.0-smoothstep(.45,1.0,d))*opacity);}
 )";
 GLuint compile(GLenum type,const char *source,std::string &error){GLuint shader=glCreateShader(type);glShaderSource(shader,1,&source,nullptr);glCompileShader(shader);GLint ok=0;glGetShaderiv(shader,GL_COMPILE_STATUS,&ok);if(!ok){char log[2048]{};glGetShaderInfoLog(shader,sizeof(log),nullptr,log);error=log;glDeleteShader(shader);return 0;}return shader;}
 void upload(GLuint id,const PlanetTexture &t,bool cloud){glBindTexture(GL_TEXTURE_2D,id);glTexImage2D(GL_TEXTURE_2D,0,cloud?GL_R8:GL_RGBA8,t.width,t.height,0,cloud?GL_RED:GL_RGBA,GL_UNSIGNED_BYTE,cloud?t.clouds.data():t.surface.data());glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);glGenerateMipmap(GL_TEXTURE_2D);}
@@ -148,6 +147,11 @@ bool PlanetMaterial::init(std::string &error){
  glGenVertexArrays(1,&traceVao);glBindVertexArray(traceVao);glGenBuffers(1,&traceVbo);glBindBuffer(GL_ARRAY_BUFFER,traceVbo);glEnableVertexAttribArray(0);glVertexAttribPointer(0,4,GL_FLOAT,GL_FALSE,0,nullptr);
  const auto &maps=planetTextures();glGenTextures(5,surfaces);glGenTextures(5,cloudMaps);
  for(int i=0;i<5;++i){upload(surfaces[i],maps[i],false);upload(cloudMaps[i],maps[i],true);}
+ glGenTextures(2,ringMaps);
+ const auto initial=ringDensityMap(denseRing(.0002857,0));
+ for(auto id:ringMaps){glBindTexture(GL_TEXTURE_2D,id);glTexImage2D(GL_TEXTURE_2D,0,GL_R8,RING_MAP_SIZE,RING_MAP_SIZE,0,GL_RED,GL_UNSIGNED_BYTE,initial.pixels.data());
+  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);}
  GLenum e=glGetError();if(e!=GL_NO_ERROR){error="Planet texture upload GL error "+std::to_string(e);release();return false;}return true;
 }
 void PlanetMaterial::updateGenerated(int index,std::shared_ptr<const GeneratedSurface> data,float dt){
@@ -160,9 +164,19 @@ void PlanetMaterial::updateGenerated(int index,std::shared_ptr<const GeneratedSu
  if(s.previousSurface)glDeleteTextures(1,&s.previousSurface);if(s.previousCloud)glDeleteTextures(1,&s.previousCloud);
  s.previousSurface=s.surface;s.previousCloud=s.cloud;s.surface=maps[0];s.cloud=maps[1];s.data=std::move(data);s.blend=0;
 }
+void PlanetMaterial::updateRing(const RingClock &s){
+ if(!s.enabled)return;
+ if(ringCached&&s.massSolar==ringCache.massSolar&&s.seconds==ringCache.seconds&&s.speedScale==ringCache.speedScale&&s.impulse==ringCache.impulse)return;
+ ringParticles=denseRing(s.massSolar,s.seconds,s.speedScale,s.impulse);
+ ringExtent=2.4f;for(const auto &p:ringParticles)ringExtent=std::max(ringExtent,float(std::hypot(p.x,p.y)/RING_RADIUS_KM+.12));
+ const auto map=ringDensityMap(ringParticles);
+ glActiveTexture(GL_TEXTURE4);glBindTexture(GL_TEXTURE_2D,ringMaps[1]);
+ glTexSubImage2D(GL_TEXTURE_2D,0,0,0,RING_MAP_SIZE,RING_MAP_SIZE,GL_RED,GL_UNSIGNED_BYTE,map.pixels.data());glActiveTexture(GL_TEXTURE0);
+ ringCache=s;ringCached=true;
+}
 void PlanetMaterial::draw(const SurfaceView &v){
  if(v.style<0||v.style>5)return;
- glUseProgram(program);glBindVertexArray(vao);
+ glUseProgram(program);glBindVertexArray(vao);glUniform1f(glGetUniformLocation(program,"ringExtent"),v.activeRing?ringExtent:2.4f);
  glUniform1f(glGetUniformLocation(program,"moonBlend"),moonTexture?v.moonBlend:0);
  glUniform3f(glGetUniformLocation(program,"origin"),v.x,v.y,v.z);glUniform1f(glGetUniformLocation(program,"radius"),v.radius);glUniform1f(glGetUniformLocation(program,"aspect"),v.aspect);
  glUniform2f(glGetUniformLocation(program,"orientation"),v.yaw,v.pitch);glUniform3fv(glGetUniformLocation(program,"light"),1,v.light);
@@ -177,6 +191,7 @@ void PlanetMaterial::draw(const SurfaceView &v){
  const char *names[4]={"surfaceMap","cloudMap","previousSurfaceMap","previousCloudMap"};
  for(int k=0;k<4;k++){glActiveTexture(GL_TEXTURE0+k);glBindTexture(GL_TEXTURE_2D,maps[k]);glUniform1i(glGetUniformLocation(program,names[k]),k);}
  glUniform1f(glGetUniformLocation(program,"generationBlend"),custom?slot->blend:1.f);
+ glActiveTexture(GL_TEXTURE4);glBindTexture(GL_TEXTURE_2D,ringMaps[v.activeRing?1:0]);glUniform1i(glGetUniformLocation(program,"ringMap"),4);
  glDrawArrays(GL_TRIANGLES,0,6);glActiveTexture(GL_TEXTURE0);
 }
 void PlanetMaterial::drawTrace(const SurfaceView &v,const std::vector<RingPoint> &points){
@@ -196,5 +211,5 @@ bool PlanetMaterial::uploadMoon(const MoonMap &map,std::string &error){
  GLenum status=glGetError();if(status!=GL_NO_ERROR){glDeleteTextures(1,&next);error="Moon upload GL error "+std::to_string(status);return false;}
  if(moonTexture)glDeleteTextures(1,&moonTexture);moonTexture=next;return true;
 }
-void PlanetMaterial::release(){for(int i=0;i<8;i++)updateGenerated(i,nullptr,0);if(moonTexture)glDeleteTextures(1,&moonTexture);moonTexture=0;if(traceVbo)glDeleteBuffers(1,&traceVbo);if(traceVao)glDeleteVertexArrays(1,&traceVao);if(traceProgram)glDeleteProgram(traceProgram);traceVbo=traceVao=traceProgram=0;if(vbo)glDeleteBuffers(1,&vbo);if(vao)glDeleteVertexArrays(1,&vao);if(program)glDeleteProgram(program);glDeleteTextures(5,surfaces);glDeleteTextures(5,cloudMaps);vbo=vao=program=0;for(auto &v:surfaces)v=0;for(auto &v:cloudMaps)v=0;}
+void PlanetMaterial::release(){glDeleteTextures(2,ringMaps);ringMaps[0]=ringMaps[1]=0;ringCached=false;ringParticles.clear();for(int i=0;i<8;i++)updateGenerated(i,nullptr,0);if(moonTexture)glDeleteTextures(1,&moonTexture);moonTexture=0;if(traceVbo)glDeleteBuffers(1,&traceVbo);if(traceVao)glDeleteVertexArrays(1,&traceVao);if(traceProgram)glDeleteProgram(traceProgram);traceVbo=traceVao=traceProgram=0;if(vbo)glDeleteBuffers(1,&vbo);if(vao)glDeleteVertexArrays(1,&vao);if(program)glDeleteProgram(program);glDeleteTextures(5,surfaces);glDeleteTextures(5,cloudMaps);vbo=vao=program=0;for(auto &v:surfaces)v=0;for(auto &v:cloudMaps)v=0;}
 }

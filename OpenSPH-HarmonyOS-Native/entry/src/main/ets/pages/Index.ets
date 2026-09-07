@@ -186,7 +186,7 @@ struct Index {
   @State sphObserved:SphObservation={sceneRevision:0,selected:-1,samples:[]};
   @State observationMetric:string='distance';
   @State observed:OrbitObservation={sceneRevision:0,body:1,name:'',selected:-1,samples:[]};
-  @State trace:RingTraceStatus={speedScale:1,rateHours:1,eccentricity:0,innerApoapsisKm:76800,outerApoapsisKm:133200,referenceXKm:76800,referenceYKm:0,referenceRadiusKm:76800,referenceSpeedKmS:0,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-elliptic-kepler-v2'};
+  @State trace:RingTraceStatus={impulse:0,points:false,speedScale:1,rateHours:1,eccentricity:0,innerApoapsisKm:76800,outerApoapsisKm:133200,referenceXKm:76800,referenceYKm:0,referenceRadiusKm:76800,referenceSpeedKmS:0,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:8192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-impulse-ring-v3'};
   @State skyLoadError:string='';
   @State rendering: RenderStatus = {surfacePending:0,surfaceGenerated:0,surfaceError:'',moonReady:false,moonUploads:0,moonBlend:0,moonError:'',materialExposure:0,materialOcean:true,materialCloudShadows:true,panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
   @State colorMode: number = 0;
@@ -427,7 +427,7 @@ struct Index {
     if(!this.canTrace())throw new Error('请先选择带环气态行星');
     this.playing=false;simulation.pause(true);this.autoSpin=false;
     simulation.configureRingTrace(true,false,this.focus,this.orbitBodies[this.focus].massSolar);this.trace=simulation.ringTraceStatus(false);this.camera();
-    this.notice='局部示踪环 · 中心引力解析圆轨道 · 独立小时钟';
+    this.notice='8192 个环粒子生成同一条环带 · 独立小时钟';
   }
   private playTrace():void {
     if(!this.trace.enabled)throw new Error('示踪环未开启');
@@ -442,6 +442,11 @@ struct Index {
     simulation.setRingParameters(field==='trace.speed'?value:now.speedScale,field==='trace.rate'?value:now.rateHours);
     this.trace=simulation.ringTraceStatus(false);
     this.notice=field==='trace.speed'?'发射速度已调整 · 从近点重新开始，主星系保持暂停':'已调整局部播放倍率 · 当前时刻保持';
+  }
+  private ringDisturbance(value:number,points:boolean=this.trace.points):void {
+    this.checked(value,0,.35);if(!this.trace.enabled)throw new Error('局部环未开启');
+    simulation.setRingDisturbance(value,points);this.trace=simulation.ringTraceStatus(false);
+    this.notice='环带与颗粒同步 · 改扰动会归零；只开关颗粒保留时刻';
   }
   // Face-on diagnostic for the innermost reference particle; follows native x/y.
   private tracePlotPath(marker:boolean=false):string {
@@ -672,7 +677,7 @@ struct Index {
       camera:{yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode},
       appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},
       sky:{mode:this.skyMode,brightness:this.skyBrightness},
-      ring:trace.enabled?{enabled:true,target:trace.target,timeHours:trace.timeHours,speedScale:trace.speedScale,rateHours:trace.rateHours}:
+      ring:trace.enabled?{enabled:true,target:trace.target,timeHours:trace.timeHours,speedScale:trace.speedScale,rateHours:trace.rateHours,modelVersion:2,impulse:trace.impulse,points:trace.points}:
         {enabled:false,target:-1,timeHours:0,speedScale:1,rateHours:1}};
     if(this.overviewCamera)recipe.overview={yaw:this.overviewCamera.yaw,pitch:this.overviewCamera.pitch,zoom:this.overviewCamera.zoom,focus:-1,color:this.overviewCamera.color};
     return recipe;
@@ -692,7 +697,7 @@ struct Index {
     if(recipe.ring.enabled){
       const t=recipe.ring;
       simulation.configureRingTrace(true,false,t.target,this.orbitBodies[t.target].massSolar);
-      simulation.setRingParameters(t.speedScale,t.rateHours);simulation.seekRingTrace(t.timeHours*3600);
+      simulation.setRingParameters(t.speedScale,t.rateHours);simulation.setRingDisturbance(t.impulse??0,t.points??false);simulation.seekRingTrace(t.timeHours*3600);
       this.trace=simulation.ringTraceStatus(false);
     }
   }
@@ -818,8 +823,9 @@ struct Index {
     const motion:CameraMotionStatus=simulation.getCameraMotion(0);add('camera.cancel','停在这里',motion.state==='queued'||motion.state==='running');
     add('focus.all','全景');add('camera.out','拉远');add('camera.in','拉近');add('camera.reset','复位视角');
     add('color.0','原色',true,this.colorMode===0);add('color.1','速度',true,this.colorMode===1);add('color.2','密度',this.preset<3,this.colorMode===2);
+    add('trace.disturb','局部扰动',this.trace.enabled,this.trace.impulse>0);add('trace.clear','清除扰动',this.trace.enabled);add('trace.points','显示环颗粒',this.trace.enabled,this.trace.points);
     add('trace.controls','调整局部轨道',this.trace.enabled);add('trace.circular','圆轨道对照',this.trace.enabled);add('trace.ellipse','拉长轨道',this.trace.enabled);add('trace.apoapsis','跳到内圈远点',this.trace.enabled&&this.trace.innerPeriodHours/2<=24);
-    add('trace.toggle','开普勒示踪粒子',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
+    add('trace.toggle','启用动态环带',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
     for(const metric of ['pressure','internal','damage','kinetic','energy'])add('sph.metric.'+metric,sphMetricLabel(metric),this.preset<3,this.sphMetric===metric);
     add('sph.minimum','SPH 记录最小',this.preset<3&&this.sphView().available);add('sph.maximum','SPH 记录最大',this.preset<3&&this.sphView().available);
     add('color.3','压力',this.preset<3&&this.info.sph?.available===true,this.colorMode===3);add('color.4','比内能',this.preset<3&&this.info.sph?.available===true,this.colorMode===4);add('color.5','材料损伤',this.preset<3&&this.info.sph?.available===true,this.colorMode===5);
@@ -849,7 +855,7 @@ struct Index {
   }
   private uiFields():UiFieldInfo[] {
     const active:boolean=!this.ioBusy,rock:boolean=this.preset<3;
-    const fields:UiFieldInfo[]=[{field:'material.exposure',value:this.exposure,enabled:active&&!rock},{field:'trace.speed',value:this.trace.speedScale,enabled:active&&this.trace.enabled},{field:'trace.rate',value:this.trace.rateHours,enabled:active&&this.trace.enabled},{field:'trace.hours',value:this.trace.timeHours,enabled:active&&this.trace.enabled},{field:'sky.brightness',value:this.skyBrightness*100,enabled:active},{field:'scene.title',value:this.title,enabled:active},
+    const fields:UiFieldInfo[]=[{field:'trace.impulse',value:this.trace.impulse,enabled:active&&this.trace.enabled},{field:'material.exposure',value:this.exposure,enabled:active&&!rock},{field:'trace.speed',value:this.trace.speedScale,enabled:active&&this.trace.enabled},{field:'trace.rate',value:this.trace.rateHours,enabled:active&&this.trace.enabled},{field:'trace.hours',value:this.trace.timeHours,enabled:active&&this.trace.enabled},{field:'sky.brightness',value:this.skyBrightness*100,enabled:active},{field:'scene.title',value:this.title,enabled:active},
       {field:'scene.count',value:this.count,enabled:active&&rock},{field:'scene.speed',value:this.speed,enabled:active&&this.preset!==5},
       {field:'scene.angle',value:this.angle,enabled:active&&this.preset<2},{field:'scene.duration',value:this.duration,enabled:active},
       {field:'body.name',value:this.editedBody===0?this.targetName:this.impactorName,enabled:active&&rock},
@@ -883,6 +889,7 @@ struct Index {
       return;
     }
     if(typeof value!=='number')throw new Error('Expected number');
+    if(field==='trace.impulse'){this.ringDisturbance(value);return;}
     if(field==='trace.speed'||field==='trace.rate'){this.traceParameter(field,value);return;}
     if(field==='trace.hours'){this.traceTime(value);return;}
     if(field==='material.exposure'){this.changeMaterial({exposure:value});return;}
@@ -938,6 +945,9 @@ struct Index {
     else if(action==='camera.reset'){this.closeSurface();this.easeCamera(.15,.25,2.7);}
     else if(action.startsWith('color.')){this.colorMode=Number(action.slice(6));if(this.colorMode>=3){this.sphMetric=this.colorMode===3?'pressure':(this.colorMode===4?'internal':'damage');this.refreshObservation();}this.camera();}
     else if(action==='trace.controls'){this.setPanel(1);this.scroller.scrollEdge(Edge.Top);}
+    else if(action==='trace.disturb')this.ringDisturbance(.25);
+    else if(action==='trace.clear')this.ringDisturbance(0);
+    else if(action==='trace.points')this.ringDisturbance(this.trace.impulse,!this.trace.points);
     else if(action==='trace.circular')this.traceParameter('trace.speed',1);
     else if(action==='trace.ellipse')this.traceParameter('trace.speed',1.12);
     else if(action==='trace.apoapsis')this.traceTime(this.trace.innerPeriodHours/2);
@@ -1022,7 +1032,7 @@ struct Index {
       {name:'getCameraMotion',payload:'{requestId?:number}; 0/current by default, last 32 terminal requests retained'},
       {name:'cancelCameraMotion',payload:'{requestId?:number}; stops only that request; stale cancellation cannot stop a newer flight'},
       {name:'navigateCamera',payload:'{focus:number,closeup?:boolean,yaw?:number,pitch?:number,zoom?:number,durationMs?:0..3000}; explicit continuous flight, request ID in cameraMotion'},
-      {name:'getRingTrace',payload:'{particles?:boolean}; local bound Kepler test particles in km/km/s; speedScale 1–1.2, rateHours 0.1–4, independent 0–24 hour clock'},
+      {name:'getRingTrace',payload:'{particles?:boolean}; 8192 massless particles drive ring density; returns first 192 when particles=true; controlled radial impulse 0–0.35; km/km/s; speedScale 1–1.2, rateHours 0.1–4, independent 0–24 hour clock'},
       {name:'setSky',payload:'{mode?:0 clean|1 stars|2 galaxy,brightness?:0..1}; photographic galaxy / procedural stars; fixed-direction background'},
       {name:'setWindowOrientation',payload:'{orientation:auto|portrait|landscape|reverse-landscape}; main window only; auto respects system rotation lock'},
       {name:'getSkyInfo',payload:'{} - provenance and sky rendering status'},
@@ -1335,7 +1345,7 @@ struct Index {
       if(this.toolsVisible&&!(this.closeup&&this.panelOpen)) {
         Column({space:5}) {
           Text(this.closeup?this.surfaceName()+' · 近看':this.title).fontColor('#F1EDFC').fontSize(14).fontWeight(FontWeight.Medium).maxLines(1)
-          Text(this.stateLabel()+' · '+(this.trace.enabled?'192 个示踪点':this.info.count+(this.preset>=3?' 个天体':' 粒子'))).fontSize(11).fontColor('#A5A0B7')
+          Text(this.stateLabel()+' · '+(this.trace.enabled?this.trace.count+' 个环粒子':this.info.count+(this.preset>=3?' 个天体':' 粒子'))).fontSize(11).fontColor('#A5A0B7')
           if(this.preset>=3&&!this.layout().compact) {Text(this.trace.enabled?'中心引力 · 开普勒轨道 · 不含碰撞':this.closeup?(this.selectedMoon()?'NASA SVS 月面底图 · 非实时月相':(this.autoSpin?'程序表面 · 外观自转演示':'程序表面 · 随轨道时间变化')):'牛顿引力 · AU / 年 · 天体尺寸已放大').fontSize(10).fontColor('#9E97B4')}
           if(this.preset>=3&&!this.closeup&&!this.layout().compact) {Text(this.focus>=0?'已选中 · '+this.surfaceName():'轻点天体以选中 · 拖动旋转').fontSize(11).fontColor('#C9B8F3')}
           if(this.skyMode===2&&!this.layout().compact) {Text(this.rendering.panoramaReady?'银河摄影 · 非定位星图':(this.skyLoadError?'银河示意 · 摄影全景加载失败':'银河背景 · 载入摄影全景')).fontSize(10).fontColor('#9E97B4')}
@@ -1568,12 +1578,20 @@ struct Index {
   @Builder
   traceControls() {
     Column({space:8}) {
-      Text('给环一点额外速度').fontSize(16).fontColor('#E2EEF5').width('100%')
+      Text('让整条环一起运动').fontSize(16).fontColor('#E2EEF5').width('100%')
       Row({space:6}) {
         ChoiceChip({label:'圆轨道',active:this.trace.speedScale===1,onPress:()=>{this.press('trace.circular');}})
         ChoiceChip({label:'拉长轨道',active:Math.abs(this.trace.speedScale-1.12)<.00001,onPress:()=>{this.press('trace.ellipse');}})
         ChoiceChip({label:'到远点',enabledAction:this.trace.innerPeriodHours/2<=24,onPress:()=>{this.press('trace.apoapsis');}})
       }.width('100%')
+      Row({space:6}) {
+        ChoiceChip({label:'局部扰动',active:this.trace.impulse>0,onPress:()=>{this.press('trace.disturb');}})
+        ChoiceChip({label:'清除扰动',onPress:()=>{this.press('trace.clear');}})
+        ChoiceChip({label:'看颗粒',active:this.trace.points,onPress:()=>{this.press('trace.points');}})
+      }.width('100%')
+      Text('局部径向速度 +'+(this.trace.impulse*100).toFixed(0)+'% · 改变后从起点观察').fontSize(11).fontColor('#DAC6A4').width('100%')
+      Slider({value:this.trace.impulse,min:0,max:.35,step:.01}).id('ring-impulse-slider').width('100%').height(28).selectedColor('#DAC6A4').trackColor('#3C4058')
+        .onChange((v:number,mode:SliderChangeMode)=>{if(mode===SliderChangeMode.Moving||mode===SliderChangeMode.Click||mode===SliderChangeMode.End)this.input('trace.impulse',v);})
       Text('发射速度 '+this.trace.speedScale.toFixed(2)+' × 圆轨道速度').fontSize(12).fontColor('#BAE2ED').width('100%')
       Slider({value:this.trace.speedScale,min:1,max:1.2,step:.01}).id('ring-speed-slider').width('100%').height(28).selectedColor('#A5DFFF').trackColor('#3C4058')
         .onChange((v:number,mode:SliderChangeMode)=>{if(mode===SliderChangeMode.Moving||mode===SliderChangeMode.Click||mode===SliderChangeMode.End)this.input('trace.speed',v);})
@@ -1588,7 +1606,7 @@ struct Index {
           Path().width(112).height(95).commands(this.tracePlotPath(true)).stroke('#A9F0F8').strokeWidth(3).fillOpacity(0)
         }.width(112).height(95).id('ring-orbit-preview')
         Column({space:4}) {
-          Text('内圈首粒子 · 俯视').fontSize(10).fontColor('#BADCE7').width('100%')
+          Text('未扰动内缘参考轨道').fontSize(10).fontColor('#BADCE7').width('100%')
           Text('e = '+this.trace.eccentricity.toFixed(3)).id('ring-orbit-diagnostics').fontSize(11).fontColor('#BADCE7').width('100%')
           Text('近点 76,800 km').fontSize(10).fontColor('#BDB7CC').width('100%')
           Text('远点 '+this.trace.innerApoapsisKm.toFixed(0)+' km').fontSize(10).fontColor('#BDB7CC').width('100%')
@@ -1597,7 +1615,7 @@ struct Index {
         }.layoutWeight(1)
       }.width('100%')
       ChoiceChip({label:'回到起点',onPress:()=>{this.press('trace.reset');}})
-      Text('改发射速度会归零并暂停；倍率只改变播放。距离从行星中心计，半径假定 60,000 km；仅中心引力，环带外观不随示踪点变形。').fontSize(10).fontColor('#AAA5B9').lineHeight(16)
+      Text('环带和阴影由同一批 8192 个粒子生成。扰动是初始局部速度注入；仅中心引力，无颗粒互撞、自引力或撞击体。半径假定 60,000 km，缝隙预先设置。').fontSize(10).fontColor('#AAA5B9').lineHeight(16)
       Divider().color('#33B4A7D6')
     }.width('100%')
   }
@@ -1789,6 +1807,7 @@ struct Index {
           ChoiceChip({label:'打开实验库',active:false,onPress:() => {this.press('project.open');}})
         }.width('100%')
       } else if(this.tab===1) {
+          if(this.trace.enabled){this.traceControls()}
           if(this.preset===5) {
             Text(this.canGenerateSurface()?'独立外观 · '+this.orbitBodies[this.surfaceTarget()].name:'选择一颗行星可生成新外观').fontSize(12).fontColor('#D9CCF5')
             Row({space:6}) {
@@ -1801,7 +1820,6 @@ struct Index {
             }
             Text(this.rendering.surfaceError|| (this.rendering.surfacePending>0?'地貌正在生成…':'外观随实验保存 · 不改变物理参数')).fontSize(11).fontColor('#A5A0B6')
           }
-        if(this.trace.enabled){this.traceControls()}
         if(this.preset>=3){this.observationControls();this.materialControls()}else{this.sphControls()}
         this.themeGuide()
         ChoiceChip({label:'停止实验',onPress:()=>{this.press('simulation.cancel');},enabledAction:['preparing','running','paused'].includes(this.info.state)}).id('simulation-stop')
@@ -1814,12 +1832,12 @@ struct Index {
             ChoiceChip({label:'轨迹',active:this.trails,onPress:() => {this.press('appearance.trails');}})
           }.width('100%')
           if(this.canTrace()||this.trace.enabled){
-            ChoiceChip({label:'开普勒示踪粒子',active:this.trace.enabled,onPress:()=>{this.press('trace.toggle');}})
-            Text('192 个无质量示踪点 · 半径假定 60000 km · 仅中心引力，不计算碰撞。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
+            ChoiceChip({label:'启用动态环带',active:this.trace.enabled,onPress:()=>{this.press('trace.toggle');}})
+            Text('8192 个无质量环粒子 · 环带随粒子形变 · 半径假定 60000 km；仅中心引力，无互撞。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
           }
           ChoiceChip({label:'显示气态行星环带',active:this.rings,onPress:()=>{this.press('appearance.rings');}})
           ChoiceChip({label:this.autoSpin?'停止外观自转':'演示外观自转',active:this.autoSpin,onPress:() => {this.press('appearance.spin');}})
-          Text(this.selectedMoon()?'月面底图来自 NASA SVS；仅改变外观，不设置真实月球质量或月相。':'海陆、云层与环带为程序生成的外观；环带不参与引力、碰撞或流体计算。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
+          Text(this.selectedMoon()?'月面底图来自 NASA SVS；仅改变外观，不设置真实月球质量或月相。':'海陆和云层为程序外观；动态环使用中心引力，尚无环粒子互撞或流体耦合。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
           Divider().color('#33B4A7D6')
         }
         Text(this.preset>=3?'天体着色':'粒子着色').fontSize(13).fontColor('#AEBDCD').width('100%')

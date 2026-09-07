@@ -51,3 +51,11 @@ test('v3 surface recipes roundtrip; seeds and generator versions validate before
   s.config.orbitBodies[1].surface=5;assert.throws(()=>ProjectStore.save(dir,s,r));assert.equal(fs.readdirSync(dir).length,1);
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+test('ring model 2 persists impulse/grain settings and rejects unknown or unversioned dynamics atomically',()=>{
+ const dir=fs.mkdtempSync(join(tmpdir(),'sph-ring-recipe-'));try{
+  const s=scene();s.config.orbitBodies[1].surface=4;const r=model.defaultRecipe(s);r.camera.focus=1;r.ring={enabled:true,target:1,timeHours:8,speedScale:1.12,rateHours:.4,modelVersion:2,impulse:.35,points:true};
+  const saved=ProjectStore.save(dir,s,r);assert.deepEqual(JSON.parse(JSON.stringify(ProjectStore.load(dir,saved.id).recipe.ring)),r.ring);const files=fs.readdirSync(dir);
+  for(const change of [t=>t.modelVersion=3,t=>delete t.modelVersion,t=>t.impulse=.36,t=>t.impulse=NaN,t=>delete t.impulse,t=>t.points='true',t=>delete t.points]){const bad=structuredClone(r);change(bad.ring);assert.throws(()=>ProjectStore.save(dir,s,bad));assert.deepEqual(fs.readdirSync(dir),files);}
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

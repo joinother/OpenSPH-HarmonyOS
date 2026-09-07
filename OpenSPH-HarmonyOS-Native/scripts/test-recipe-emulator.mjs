@@ -34,7 +34,7 @@ try{
  assert.equal(file.recipe.ring.timeHours,4.75);assert.equal(file.recipe.appearanceVersion,3);
  action('theme.rock-slow','paused');h('shell','aa','force-stop','com.opensph.lab');
  call('loadProject',{id:saved.id},'paused');const loaded=await settled();equivalent(loaded,file.recipe);assert.deepEqual(loaded.definition,file.scene);assert.deepEqual(call('getRingTrace',{particles:true}).ringTrace.particles,particles);
- assert.equal(call('listProjects').projects.find(p=>p.id===saved.id).hasRecipe,true);checks.push('cold process restores recipe, initial conditions and all 192 ring positions');
+ assert.equal(call('listProjects').projects.find(p=>p.id===saved.id).hasRecipe,true);checks.push('cold process restores recipe, initial conditions and first 192 sampled ring positions');
  // Saving must sample the live clock, while loading always pauses it.
  action('trace.play');await delay(250);const running=call('saveProject',{title:'验收 · 运行环采样'});created.push(running.id);const runningFile=read(running.id);assert.ok(runningFile.recipe.ring.timeHours>4.75);
  call('loadProject',{id:running.id},'paused');equivalent(await settled(),runningFile.recipe);checks.push('running ring captured at save and restored paused');
