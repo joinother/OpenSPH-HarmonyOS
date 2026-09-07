@@ -181,8 +181,13 @@ napi_value panorama(napi_env e,napi_callback_info i){
 napi_value sky(napi_env e,napi_callback_info i){try{auto a=args(e,i,2);int mode=integer(e,a[0]);double brightness=number(e,a[1]);if(mode<0||mode>2||brightness<0||brightness>1)throw std::invalid_argument("Invalid sky settings");lab::setSky(mode,brightness);}catch(const std::exception &ex){return fail(e,ex);}return undef(e);}
 napi_value composition(napi_env e,napi_callback_info i){try{auto a=args(e,i,3);double x=number(e,a[0]),y=number(e,a[1]),s=number(e,a[2]);if(x<0||x>1||y<0||y>1||s<.05||s>1)throw std::invalid_argument("Invalid viewport composition");lab::setComposition(x,y,s);}catch(const std::exception &ex){return fail(e,ex);}return undef(e);}
 napi_value renderActive(napi_env e,napi_callback_info i){try{auto a=args(e,i,1);bool b;if(napi_get_value_bool(e,a[0],&b)!=napi_ok)throw std::invalid_argument("Boolean expected");lab::setRenderActive(b);}catch(const std::exception &ex){return fail(e,ex);}return undef(e);}
+napi_value followFragment(napi_env e,napi_callback_info i){try{auto a=args(e,i,2);int revision=integer(e,a[1]);if(revision<0)throw std::invalid_argument("Invalid scene revision");lab::followSphFragment(integer(e,a[0]),uint64_t(revision));}catch(const std::exception&ex){return fail(e,ex);}return undef(e);}
+napi_value clearFragmentFollow(napi_env e,napi_callback_info){lab::clearSphFragmentFollow();return undef(e);}
 napi_value renderStatus(napi_env e,napi_callback_info){auto s=lab::renderStatus();napi_value o;napi_create_object(e,&o);
     auto boolean=[&](const char *key,bool b){napi_value v;napi_get_boolean(e,b,&v);napi_set_named_property(e,o,key,v);};
+    napi_value follow,flag,center;napi_create_object(e,&follow);napi_get_boolean(e,s.fragmentFollow.active,&flag);napi_set_named_property(e,follow,"active",flag);napi_get_boolean(e,s.fragmentFollow.moving,&flag);napi_set_named_property(e,follow,"moving",flag);
+    num(e,follow,"seed",s.fragmentFollow.seed);num(e,follow,"anchor",s.fragmentFollow.anchor);num(e,follow,"rank",s.fragmentFollow.rank);num(e,follow,"count",s.fragmentFollow.count);num(e,follow,"sceneRevision",s.fragmentFollow.sceneRevision);num(e,follow,"time",s.fragmentFollow.time);
+    napi_create_array_with_length(e,3,&center);for(int k=0;k<3;k++){napi_value v;napi_create_double(e,s.fragmentFollow.centerKm[k],&v);napi_set_element(e,center,k,v);}napi_set_named_property(e,follow,"centerKm",center);napi_set_named_property(e,o,"fragmentFollow",follow);
     num(e,o,"surfacePending",s.surfacePending);num(e,o,"surfaceGenerated",s.surfaceGenerated);str(e,o,"surfaceError",s.surfaceError);
     boolean("moonReady",s.moonReady);num(e,o,"moonUploads",s.moonUploads);num(e,o,"moonBlend",s.moonBlend);str(e,o,"moonError",s.moonError);
     num(e,o,"materialExposure",s.materialExposure);boolean("materialOcean",s.materialOcean);boolean("materialCloudShadows",s.materialCloudShadows);
@@ -377,6 +382,8 @@ napi_value Init(napi_env e, napi_value exports) {
         {"setSurfaceSeeds",nullptr,surfaceSeeds,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setAppearance",nullptr,appearance,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setRenderActive",nullptr,renderActive,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"followSphFragment",nullptr,followFragment,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"clearSphFragmentFollow",nullptr,clearFragmentFollow,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"renderStatus",nullptr,renderStatus,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"startScene", nullptr, startScene, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"start", nullptr, start, nullptr, nullptr, nullptr, napi_default, nullptr},

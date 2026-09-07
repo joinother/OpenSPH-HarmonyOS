@@ -1,6 +1,6 @@
 # 星体实验室 GitHub 检查点
 
-记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.39.0。
+记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.40.0。
 
 ## 恢复开发
 
@@ -17,6 +17,8 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 构建需要 DevEco Studio 与 HarmonyOS SDK；安装请遵循工程 README，当前任务只操作模拟器 127.0.0.1:5555。签名配置、依赖缓存、构建目录和发布二进制不纳入源码检查点。
 
 ## 保存范围与验证
+
+- 0.40.0 接入逐团／最大团块的连续质心跟随、停止与返回、共享 CLI，保持材料点选择贯穿倒放和屏幕变化。122 项主机检查、跟随内存检查、相机回归、实际 v10 独立解码及三布局点击通过；原回放和 10 个项目恢复。不是持久碎片谱系或再聚合。见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.40.0.md)。
 
 - 0.39.0 接入逐帧几何材料团块、颜色与列表对应、质量／质心／速度／尺度分页以及 v10 回放。121 项主机检查、算法内存检查、原生回归、实际应用及三布局按钮命中通过；原 38.87 秒回放及 10 个用户项目恢复。几何团块不是引力束缚或再聚合判据。见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.39.0.md)。
 

@@ -1,0 +1,765 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "Follow persists across expanded portrait, folded portrait and landscape changes",
+    "Stop, specific-group and largest-group buttons physically tapped in all three layouts",
+    "Actual center follows measured COM while actions preserve simulation time, generation and camera pose",
+    "Group heading and immersive window without render errors"
+  ],
+  "results": [
+    {
+      "name": "wide",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 22.4,
+            "width": 707.2,
+            "height": 750.72
+          },
+          "compact": false,
+          "sidePanel": true,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 383.20000000000005,
+            "y": 98.4,
+            "width": 308,
+            "height": 516.72
+          },
+          "dock": {
+            "x": 143.60000000000002,
+            "y": 635.12,
+            "width": 420,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 98.4,
+            "width": 359.20000000000005,
+            "height": 524.72
+          }
+        },
+        "geometry": {
+          "widthPx": 2210,
+          "heightPx": 2416,
+          "topPx": 70,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 10
+        },
+        "viewportWidthVp": 707.2,
+        "viewportHeightVp": 773.12,
+        "widthVp": 707.2,
+        "heightVp": 773.12,
+        "immersive": true,
+        "safePx": {
+          "top": 70,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "composition": {
+        "x": 0.2709276080131531,
+        "y": 0.4666287302970886,
+        "scale": 0.5079185366630554
+      },
+      "taps": [
+        {
+          "action": "fragments.stop",
+          "bounds": [
+            1570,
+            1055,
+            1796,
+            1168
+          ]
+        },
+        {
+          "action": "fragments.follow.355",
+          "bounds": [
+            1958,
+            1605,
+            2109,
+            1718
+          ]
+        },
+        {
+          "action": "fragments.largest",
+          "bounds": [
+            1250,
+            1055,
+            1551,
+            1168
+          ]
+        }
+      ],
+      "summary": {
+        "sceneRevision": 2,
+        "selected": -1,
+        "time": 60.01999999999961,
+        "linkScale": 1.5,
+        "offset": 0,
+        "method": "symmetric-smoothing-connectivity-v1",
+        "available": true,
+        "groupCount": 76,
+        "particleCount": 641,
+        "totalMassKg": 13752636000354638000,
+        "singletonCount": 62,
+        "singletonMassKg": 1119765903113532400,
+        "largestMassFraction": 0.8666208180599617,
+        "nextOffset": 8,
+        "reason": "",
+        "groups": [
+          {
+            "rank": 1,
+            "anchor": 0,
+            "count": 543,
+            "massKg": 11918320661108216000,
+            "massFraction": 0.8666208180599617,
+            "rmsRadiusKm": 158.43990421712263,
+            "centerKm": [
+              -73.43558284472738,
+              -7.0357220951321455,
+              -2.812142694649557
+            ],
+            "velocityKmS": [
+              -1.6258649765178912,
+              -0.28231583847756997,
+              -0.04538857099028518
+            ]
+          },
+          {
+            "rank": 2,
+            "anchor": 355,
+            "count": 7,
+            "massKg": 115121801348165700,
+            "massFraction": 0.00837088986760044,
+            "rmsRadiusKm": 51.309270592135356,
+            "centerKm": [
+              -311.97400642682584,
+              327.3984635940753,
+              126.00017314574575
+            ],
+            "velocityKmS": [
+              -7.364461245320571,
+              4.862389892807234,
+              2.1815652206305294
+            ]
+          },
+          {
+            "rank": 3,
+            "anchor": 31,
+            "count": 4,
+            "massKg": 94051838277948050,
+            "massFraction": 0.006838822628296331,
+            "rmsRadiusKm": 35.279729480012755,
+            "centerKm": [
+              92.37391546950572,
+              -98.78411817080222,
+              -184.19889477439
+            ],
+            "velocityKmS": [
+              0.6971655896500055,
+              -1.9804318978945632,
+              -2.658886117411277
+            ]
+          },
+          {
+            "rank": 4,
+            "anchor": 241,
+            "count": 3,
+            "massKg": 70538878708461040,
+            "massFraction": 0.005129116971222249,
+            "rmsRadiusKm": 26.241146761020705,
+            "centerKm": [
+              159.35069222624242,
+              -161.38074417389365,
+              4.435368440579816
+            ],
+            "velocityKmS": [
+              1.5020596635243417,
+              -2.6875976824122607,
+              0.005630183955040505
+            ]
+          },
+          {
+            "rank": 5,
+            "anchor": 339,
+            "count": 3,
+            "massKg": 62294059435420460,
+            "massFraction": 0.004529608682569225,
+            "rmsRadiusKm": 30.60491075150736,
+            "centerKm": [
+              41.58728788009792,
+              21.661722598559887,
+              195.74194225441465
+            ],
+            "velocityKmS": [
+              0.0883732643726836,
+              0.16677879123227837,
+              3.2440189959699177
+            ]
+          },
+          {
+            "rank": 6,
+            "anchor": 45,
+            "count": 2,
+            "massKg": 47025919138974024,
+            "massFraction": 0.0034194113141481656,
+            "rmsRadiusKm": 10.779760198795419,
+            "centerKm": [
+              -83.11841742623177,
+              84.98520751679175,
+              -269.2214147177185
+            ],
+            "velocityKmS": [
+              -2.3283572826796277,
+              0.7581876635149798,
+              -4.516028250760784
+            ]
+          },
+          {
+            "rank": 7,
+            "anchor": 438,
+            "count": 2,
+            "massKg": 47025919138974024,
+            "massFraction": 0.0034194113141481656,
+            "rmsRadiusKm": 15.49636624630537,
+            "centerKm": [
+              41.007820290635046,
+              -57.9389467611134,
+              253.7775706807108
+            ],
+            "velocityKmS": [
+              -0.27630246127190256,
+              -1.464057450688215,
+              3.7828706342277405
+            ]
+          },
+          {
+            "rank": 8,
+            "anchor": 444,
+            "count": 2,
+            "massKg": 47025919138974024,
+            "massFraction": 0.0034194113141481656,
+            "rmsRadiusKm": 23.109264121859223,
+            "centerKm": [
+              0.6623828940627464,
+              -7.748463351987196,
+              302.97045815285736
+            ],
+            "velocityKmS": [
+              -0.836976583612939,
+              -0.8676946558572514,
+              4.889716838780144
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "phone",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 20.48,
+            "width": 345.6,
+            "height": 761.6
+          },
+          "compact": false,
+          "sidePanel": false,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 12,
+            "y": 243.28,
+            "width": 321.6,
+            "height": 380.8
+          },
+          "dock": {
+            "x": 16,
+            "y": 644.08,
+            "width": 313.6,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 96.48,
+            "width": 321.6,
+            "height": 134.8
+          }
+        },
+        "geometry": {
+          "widthPx": 1080,
+          "heightPx": 2444,
+          "topPx": 64,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 13
+        },
+        "viewportWidthVp": 345.6,
+        "viewportHeightVp": 782.08,
+        "widthVp": 345.6,
+        "heightVp": 782.08,
+        "immersive": true,
+        "safePx": {
+          "top": 64,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "composition": {
+        "x": 0.5,
+        "y": 0.20954376459121704,
+        "scale": 0.39004629850387573
+      },
+      "taps": [
+        {
+          "action": "fragments.stop",
+          "bounds": [
+            410,
+            1507,
+            636,
+            1620
+          ]
+        },
+        {
+          "action": "fragments.follow.355",
+          "bounds": [
+            840,
+            1552,
+            991,
+            1665
+          ]
+        },
+        {
+          "action": "fragments.largest",
+          "bounds": [
+            90,
+            1507,
+            391,
+            1620
+          ]
+        }
+      ],
+      "summary": {
+        "sceneRevision": 2,
+        "selected": -1,
+        "time": 60.01999999999961,
+        "linkScale": 1.5,
+        "offset": 0,
+        "method": "symmetric-smoothing-connectivity-v1",
+        "available": true,
+        "groupCount": 76,
+        "particleCount": 641,
+        "totalMassKg": 13752636000354638000,
+        "singletonCount": 62,
+        "singletonMassKg": 1119765903113532400,
+        "largestMassFraction": 0.8666208180599617,
+        "nextOffset": 8,
+        "reason": "",
+        "groups": [
+          {
+            "rank": 1,
+            "anchor": 0,
+            "count": 543,
+            "massKg": 11918320661108216000,
+            "massFraction": 0.8666208180599617,
+            "rmsRadiusKm": 158.43990421712263,
+            "centerKm": [
+              -73.43558284472738,
+              -7.0357220951321455,
+              -2.812142694649557
+            ],
+            "velocityKmS": [
+              -1.6258649765178912,
+              -0.28231583847756997,
+              -0.04538857099028518
+            ]
+          },
+          {
+            "rank": 2,
+            "anchor": 355,
+            "count": 7,
+            "massKg": 115121801348165700,
+            "massFraction": 0.00837088986760044,
+            "rmsRadiusKm": 51.309270592135356,
+            "centerKm": [
+              -311.97400642682584,
+              327.3984635940753,
+              126.00017314574575
+            ],
+            "velocityKmS": [
+              -7.364461245320571,
+              4.862389892807234,
+              2.1815652206305294
+            ]
+          },
+          {
+            "rank": 3,
+            "anchor": 31,
+            "count": 4,
+            "massKg": 94051838277948050,
+            "massFraction": 0.006838822628296331,
+            "rmsRadiusKm": 35.279729480012755,
+            "centerKm": [
+              92.37391546950572,
+              -98.78411817080222,
+              -184.19889477439
+            ],
+            "velocityKmS": [
+              0.6971655896500055,
+              -1.9804318978945632,
+              -2.658886117411277
+            ]
+          },
+          {
+            "rank": 4,
+            "anchor": 241,
+            "count": 3,
+            "massKg": 70538878708461040,
+            "massFraction": 0.005129116971222249,
+            "rmsRadiusKm": 26.241146761020705,
+            "centerKm": [
+              159.35069222624242,
+              -161.38074417389365,
+              4.435368440579816
+            ],
+            "velocityKmS": [
+              1.5020596635243417,
+              -2.6875976824122607,
+              0.005630183955040505
+            ]
+          },
+          {
+            "rank": 5,
+            "anchor": 339,
+            "count": 3,
+            "massKg": 62294059435420460,
+            "massFraction": 0.004529608682569225,
+            "rmsRadiusKm": 30.60491075150736,
+            "centerKm": [
+              41.58728788009792,
+              21.661722598559887,
+              195.74194225441465
+            ],
+            "velocityKmS": [
+              0.0883732643726836,
+              0.16677879123227837,
+              3.2440189959699177
+            ]
+          },
+          {
+            "rank": 6,
+            "anchor": 45,
+            "count": 2,
+            "massKg": 47025919138974024,
+            "massFraction": 0.0034194113141481656,
+            "rmsRadiusKm": 10.779760198795419,
+            "centerKm": [
+              -83.11841742623177,
+              84.98520751679175,
+              -269.2214147177185
+            ],
+            "velocityKmS": [
+              -2.3283572826796277,
+              0.7581876635149798,
+              -4.516028250760784
+            ]
+          },
+          {
+            "rank": 7,
+            "anchor": 438,
+            "count": 2,
+            "massKg": 47025919138974024,
+            "massFraction": 0.0034194113141481656,
+            "rmsRadiusKm": 15.49636624630537,
+            "centerKm": [
+              41.007820290635046,
+              -57.9389467611134,
+              253.7775706807108
+            ],
+            "velocityKmS": [
+              -0.27630246127190256,
+              -1.464057450688215,
+              3.7828706342277405
+            ]
+          },
+          {
+            "rank": 8,
+            "anchor": 444,
+            "count": 2,
+            "massKg": 47025919138974024,
+            "massFraction": 0.0034194113141481656,
+            "rmsRadiusKm": 23.109264121859223,
+            "centerKm": [
+              0.6623828940627464,
+              -7.748463351987196,
+              302.97045815285736
+            ],
+            "velocityKmS": [
+              -0.836976583612939,
+              -0.8676946558572514,
+              4.889716838780144
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "landscape",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 20.48,
+            "y": 0,
+            "width": 761.6,
+            "height": 345.6
+          },
+          "compact": true,
+          "sidePanel": true,
+          "headerHeight": 54,
+          "drawer": {
+            "x": 458.08000000000004,
+            "y": 64,
+            "width": 308,
+            "height": 269.6
+          },
+          "dock": {
+            "x": 36.480000000000004,
+            "y": 271.6,
+            "width": 393.6,
+            "height": 66
+          },
+          "scene": {
+            "x": 32.480000000000004,
+            "y": 64,
+            "width": 413.6,
+            "height": 195.60000000000002
+          }
+        },
+        "geometry": {
+          "widthPx": 2444,
+          "heightPx": 1080,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 64,
+          "rightPx": 0,
+          "revision": 16
+        },
+        "viewportWidthVp": 782.08,
+        "viewportHeightVp": 345.6,
+        "widthVp": 782.08,
+        "heightVp": 345.6,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 64,
+          "right": 0
+        }
+      },
+      "composition": {
+        "x": 0.30595335364341736,
+        "y": 0.46817129850387573,
+        "scale": 0.5659722089767456
+      },
+      "taps": [
+        {
+          "action": "fragments.stop",
+          "bounds": [
+            1804,
+            897,
+            2030,
+            1010
+          ]
+        },
+        {
+          "action": "fragments.follow.355",
+          "bounds": [
+            2192,
+            731,
+            2343,
+            844
+          ]
+        },
+        {
+          "action": "fragments.largest",
+          "bounds": [
+            1484,
+            897,
+            1785,
+            1010
+          ]
+        }
+      ],
+      "summary": {
+        "sceneRevision": 2,
+        "selected": -1,
+        "time": 60.01999999999961,
+        "linkScale": 1.5,
+        "offset": 0,
+        "method": "symmetric-smoothing-connectivity-v1",
+        "available": true,
+        "groupCount": 76,
+        "particleCount": 641,
+        "totalMassKg": 13752636000354638000,
+        "singletonCount": 62,
+        "singletonMassKg": 1119765903113532400,
+        "largestMassFraction": 0.8666208180599617,
+        "nextOffset": 8,
+        "reason": "",
+        "groups": [
+          {
+            "rank": 1,
+            "anchor": 0,
+            "count": 543,
+            "massKg": 11918320661108216000,
+            "massFraction": 0.8666208180599617,
+            "rmsRadiusKm": 158.43990421712263,
+            "centerKm": [
+              -73.43558284472738,
+              -7.0357220951321455,
+              -2.812142694649557
+            ],
+            "velocityKmS": [
+              -1.6258649765178912,
+              -0.28231583847756997,
+              -0.04538857099028518
+            ]
+          },
+          {
+            "rank": 2,
+            "anchor": 355,
+            "count": 7,
+            "massKg": 115121801348165700,
+            "massFraction": 0.00837088986760044,
+            "rmsRadiusKm": 51.309270592135356,
+            "centerKm": [
+              -311.97400642682584,
+              327.3984635940753,
+              126.00017314574575
+            ],
+            "velocityKmS": [
+              -7.364461245320571,
+              4.862389892807234,
+              2.1815652206305294
+            ]
+          },
+          {
+            "rank": 3,
+            "anchor": 31,
+            "count": 4,
+            "massKg": 94051838277948050,
+            "massFraction": 0.006838822628296331,
+            "rmsRadiusKm": 35.279729480012755,
+            "centerKm": [
+              92.37391546950572,
+              -98.78411817080222,
+              -184.19889477439
+            ],
+            "velocityKmS": [
+              0.6971655896500055,
+              -1.9804318978945632,
+              -2.658886117411277
+            ]
+          },
+          {
+            "rank": 4,
+            "anchor": 241,
+            "count": 3,
+            "massKg": 70538878708461040,
+            "massFraction": 0.005129116971222249,
+            "rmsRadiusKm": 26.241146761020705,
+            "centerKm": [
+              159.35069222624242,
+              -161.38074417389365,
+              4.435368440579816
+            ],
+            "velocityKmS": [
+              1.5020596635243417,
+              -2.6875976824122607,
+              0.005630183955040505
+            ]
+          },
+          {
+            "rank": 5,
+            "anchor": 339,
+            "count": 3,
+            "massKg": 62294059435420460,
+            "massFraction": 0.004529608682569225,
+            "rmsRadiusKm": 30.60491075150736,
+            "centerKm": [
+              41.58728788009792,
+              21.661722598559887,
+              195.74194225441465
+            ],
+            "velocityKmS": [
+              0.0883732643726836,
+              0.16677879123227837,
+              3.2440189959699177
+            ]
+          },
+          {
+            "rank": 6,
+            "anchor": 45,
+            "count": 2,
+            "massKg": 47025919138974024,
+            "massFraction": 0.0034194113141481656,
+            "rmsRadiusKm": 10.779760198795419,
+            "centerKm": [
+              -83.11841742623177,
+              84.98520751679175,
+              -269.2214147177185
+            ],
+            "velocityKmS": [
+              -2.3283572826796277,
+              0.7581876635149798,
+              -4.516028250760784
+            ]
+          },
+          {
+            "rank": 7,
+            "anchor": 438,
+            "count": 2,
+            "massKg": 47025919138974024,
+            "massFraction": 0.0034194113141481656,
+            "rmsRadiusKm": 15.49636624630537,
+            "centerKm": [
+              41.007820290635046,
+              -57.9389467611134,
+              253.7775706807108
+            ],
+            "velocityKmS": [
+              -0.27630246127190256,
+              -1.464057450688215,
+              3.7828706342277405
+            ]
+          },
+          {
+            "rank": 8,
+            "anchor": 444,
+            "count": 2,
+            "massKg": 47025919138974024,
+            "massFraction": 0.0034194113141481656,
+            "rmsRadiusKm": 23.109264121859223,
+            "centerKm": [
+              0.6623828940627464,
+              -7.748463351987196,
+              302.97045815285736
+            ],
+            "velocityKmS": [
+              -0.836976583612939,
+              -0.8676946558572514,
+              4.889716838780144
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

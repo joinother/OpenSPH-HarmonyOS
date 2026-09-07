@@ -22,6 +22,7 @@ class Renderer {
     std::mutex mutex;
     Camera camera;
     CameraNavigation navigation;
+    FragmentFollower fragmentFollower;
     std::array<float,3> composition{.5f,.5f,1};
     std::shared_ptr<const MoonMap> moonMap;
     Appearance appearance;
@@ -193,8 +194,9 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             glViewport(0, 0, w, h);
             glClearColor(0.027f, 0.055f, 0.09f, 1);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            const auto revision=Engine::instance().sceneRevision();
-            auto frame = Engine::instance().frame();
+            const auto snapshot=Engine::instance().fragmentFrame();
+            const auto revision=snapshot.sceneRevision;
+            auto frame=snapshot.frame;
             int pending=0,generatedCount=0;std::string generatedError;
             for(int i=0;i<8;i++){
                 SurfaceKey key{};if(frame&&frame->orbital&&size_t(i)<frame->surfaces.size()){key=seeds[i];key.style=frame->surfaces[i];}
@@ -248,6 +250,10 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 cx=cy=cz=0;
                 for(size_t i=0;i<frame->particles.size()&&i<8;++i){const auto &p=frame->particles[i];float weight=journey.tracking(int(i));cx+=p.x*weight;cy+=p.y*weight;cz+=p.z*weight;}
             }
+            FragmentFollowStatus followed;
+            {std::lock_guard<std::mutex> lock(mutex);
+             auto center=fragmentFollower.step(revision,Engine::instance().sceneRevision(),frame?&frame->fragments:nullptr,frame?frame->time:0,{cx,cy,cz},dt);
+             cx=center[0];cy=center[1];cz=center[2];followed=fragmentFollower.status();}
             // Keep the same field of view on the shorter axis when a device folds
             // or rotates; portrait windows must not crop the default experiment.
             const float aspect = float(std::max(w, 1)) / std::max(h, 1);
@@ -311,7 +317,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 }
             }
             GLenum glError=glGetError();if(glError!=GL_NO_ERROR)error("OpenGL draw error "+std::to_string(glError));
-            {std::lock_guard<std::mutex> lock(mutex);stats.sceneRevision=revision;stats.cameraMoving=navigation.moving()||framing.moving();stats.compositionX=compositionNow[0];stats.compositionY=compositionNow[1];stats.compositionScale=compositionNow[2];stats.centerX=cx;stats.centerY=cy;stats.centerZ=cz;stats.frames++;stats.skyStars=skyStars;stats.skyGalaxy=skyGalaxy;stats.previewSeconds=previewTime;stats.submitMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count();}
+            {std::lock_guard<std::mutex> lock(mutex);stats.sceneRevision=revision;stats.fragmentFollow=followed;stats.cameraMoving=navigation.moving()||framing.moving()||followed.moving;stats.compositionX=compositionNow[0];stats.compositionY=compositionNow[1];stats.compositionScale=compositionNow[2];stats.centerX=cx;stats.centerY=cy;stats.centerZ=cz;stats.frames++;stats.skyStars=skyStars;stats.skyGalaxy=skyGalaxy;stats.previewSeconds=previewTime;stats.submitMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count();}
             if (!eglSwapBuffers(display, surface)){error("EGL swap failed");break;}
             {std::lock_guard<std::mutex> lock(mutex);stats.materialExposure=m.exposure;stats.materialOcean=m.ocean;stats.materialCloudShadows=m.cloudShadows;navigation.presented(cameraRequest);projected=std::move(shown);projectedRevision=revision;}
             std::this_thread::sleep_until(begin + std::chrono::milliseconds(33));
@@ -362,18 +368,28 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
     void setSeeds(const std::array<SurfaceKey,8> &keys){std::lock_guard<std::mutex> lock(mutex);surfaceSeeds=keys;}
     void setAppearance(Appearance a){std::lock_guard<std::mutex> lock(mutex);appearance=a;}
     void setActive(bool value){active=value;}
-    RenderStatus status(){std::lock_guard<std::mutex> lock(mutex);auto s=stats;s.active=active;return s;}
+    RenderStatus status(){std::lock_guard<std::mutex> lock(mutex);auto s=stats;s.active=active;if(s.fragmentFollow.sceneRevision!=Engine::instance().sceneRevision())s.fragmentFollow={};return s;}
     ProjectedScene projection(){std::lock_guard<std::mutex> lock(mutex);
         auto p=projected;if(!running||!active||!stats.ready||projectedRevision!=Engine::instance().sceneRevision()||p.width!=width||p.height!=height){p.ready=false;p.bodies.clear();}return p;
     }
+    void followFragment(int particle,uint64_t revision){
+        const auto snapshot=Engine::instance().fragmentFrame();
+        if(snapshot.sceneRevision!=revision||!snapshot.frame||!snapshot.frame->fragments.available||particle<0||size_t(particle)>=snapshot.frame->fragments.labels.size())throw std::invalid_argument("Material selection expired or unavailable");
+        std::lock_guard<std::mutex> lock(mutex);
+        if(Engine::instance().sceneRevision()!=revision)throw std::invalid_argument("Material scene changed");
+        fragmentFollower.select(particle,revision);
+    }
+    void clearFragment(){std::lock_guard<std::mutex> lock(mutex);fragmentFollower.clear();}
     void set(Camera c) {
         std::lock_guard<std::mutex> lock(mutex);
         navigation.request(Engine::instance().sceneRevision(),c,appearance.closeup,.42f,false,false);
+        if(c.focus!=camera.focus)fragmentFollower.clear();
         camera = c;
     }
     uint64_t navigate(Camera c,bool close,float duration,bool animatePose,bool force){
         std::lock_guard<std::mutex> lock(mutex);
         auto id=navigation.request(Engine::instance().sceneRevision(),c,close,duration,animatePose,force);
+        if(c.focus!=camera.focus||close)fragmentFollower.clear();
         camera=c;appearance.closeup=close;return id;
     }
     CameraMotion motion(uint64_t id){std::lock_guard<std::mutex> lock(mutex);return navigation.status(id);}
@@ -399,6 +415,8 @@ void destroyed(OH_NativeXComponent *, void *) {
 }
 OH_NativeXComponent_Callback callbacks = {created, changed, destroyed, nullptr};
 } // namespace
+void followSphFragment(int particle,uint64_t revision){renderer().followFragment(particle,revision);}
+void clearSphFragmentFollow(){renderer().clearFragment();}
 void configureRingTrace(bool on,bool play,int target,double mass){renderer().configureTrace(on,play,target,mass);}
 void setRingDisturbance(double kick,bool grains){renderer().traceDisturbance(kick,grains);}
 void setRingParameters(double scale,double rate){renderer().traceParameters(scale,rate);}

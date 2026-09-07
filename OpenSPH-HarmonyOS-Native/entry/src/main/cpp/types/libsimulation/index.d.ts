@@ -32,11 +32,14 @@ export const setSky:(mode:number,brightness:number)=>void;
 export const setComposition:(x:number,y:number,scale:number)=>void;
 export const setMoonTexture:(pixels:ArrayBuffer,width:number,height:number)=>void;
 export const setSurfaceSeeds:(pairs:number[])=>void;
-export interface RenderStatus { surfacePending:number;surfaceGenerated:number;surfaceError:string; moonReady:boolean; moonUploads:number; moonBlend:number; moonError:string; materialExposure:number; materialOcean:boolean; materialCloudShadows:boolean; panoramaReady:boolean; panoramaBlend:number; compositionX:number; compositionY:number; compositionScale:number; sceneRevision:number; surfaceStarts:number; cameraMoving:boolean; centerX:number; centerY:number; centerZ:number; skyReady:boolean; skyStars:number; skyGalaxy:number; ready:boolean; texturesReady:boolean; active:boolean; frames:number; submitMs:number; previewSeconds:number; error:string; }
+export interface FragmentFollowStatus {active:boolean;moving:boolean;seed:number;anchor:number;rank:number;count:number;sceneRevision:number;time:number;centerKm:number[];}
+export interface RenderStatus { fragmentFollow:FragmentFollowStatus; surfacePending:number;surfaceGenerated:number;surfaceError:string; moonReady:boolean; moonUploads:number; moonBlend:number; moonError:string; materialExposure:number; materialOcean:boolean; materialCloudShadows:boolean; panoramaReady:boolean; panoramaBlend:number; compositionX:number; compositionY:number; compositionScale:number; sceneRevision:number; surfaceStarts:number; cameraMoving:boolean; centerX:number; centerY:number; centerZ:number; skyReady:boolean; skyStars:number; skyGalaxy:number; ready:boolean; texturesReady:boolean; active:boolean; frames:number; submitMs:number; previewSeconds:number; error:string; }
 export const setMaterial:(exposure:number,ocean:boolean,cloudShadows:boolean)=>void;
 export const setAppearance:(clouds:boolean,atmosphere:boolean,trails:boolean,closeup:boolean,autoSpin:boolean,rings:boolean)=>void;
 export const setRenderActive:(active:boolean)=>void;
 export const renderStatus:()=>RenderStatus;
+export const followSphFragment:(particle:number,sceneRevision:number)=>void;
+export const clearSphFragmentFollow:()=>void;
 
 export interface ProjectedBody { id:number; x:number; y:number; radius:number; depth:number; opacity:number; }
 export interface ProjectedScene { ready:boolean; widthPx:number; heightPx:number; time:number; bodies:ProjectedBody[]; }

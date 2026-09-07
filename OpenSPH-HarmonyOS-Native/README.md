@@ -1,6 +1,6 @@
 # 星体实验室 · OpenSPH HarmonyOS Native
 
-> 类型：当前项目概览；源码版本：0.39.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前项目概览；源码版本：0.40.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 鸿蒙原生科学探索应用，使用 ArkTS/ArkUI 构建交互界面，以 OpenSPH C++ 计算岩质碰撞，以独立的 C++ 多体引力模型计算行星轨道，通过 XComponent/OpenGL ES 显示。包名为 `com.opensph.lab`。
 
@@ -12,6 +12,7 @@
 
 - 单体岩球支持零自转与一键静止草稿，新增直接／预松弛后自由演化对照；观察面板提供按时间加权的记录窗口统计，满 240 帧 CSV 可由 CLI 完整导出，见 [释放实验](docs/reference/SPH-RELEASE.md)。
 
+- 可直接跟随某一材料团块或当前最大团块；镜头平滑跟随质心，回放前进／倒退和折叠旋转保留选中的材料点，停止或返回全景不重算实验。见 [团块跟随](docs/reference/FRAGMENT-FOLLOW.md)。
 - 碰撞材料支持按实际光滑长度分组、独立团块着色、逐团质量／质心／速度／尺度统计和分页，结果随 v10 回放保存。几何连接不等于引力束缚或再聚合，见 [团块定义](docs/reference/SPH-FRAGMENTS.md)。
 - 岩质自引力实验可在碰撞前分别预松弛 16／64 秒，准备后再施加自转和撞击速度；支持取消、CLI、命名实验及 v10 回放（兼容旧 v9），新增直接／预松弛对照主题。定时准备不代表静力平衡，见 [岩体准备](docs/reference/SPH-RELAXATION.md)。
 
@@ -74,6 +75,8 @@ python3 scripts/check-docs.py
 | [上游记录](third_party/opensph/UPSTREAM.md) | 固定提交、许可与本地修改 |
 
 ## 验证与下一步
+
+0.40.0 增加材料团块的连续镜头跟随、逐团／最大团快捷动作、停止与返回、CLI 及跨布局验收。见 [本轮记录](docs/releases/RELEASE-0.40.0.md)。
 
 0.39.0 接入逐帧材料团块、几何分组着色、分页统计与 v10 回放，并保留自引力／准备阶段身份。见 [本轮记录](docs/releases/RELEASE-0.39.0.md)。
 

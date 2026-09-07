@@ -1,0 +1,1 @@
+PASS fragment follow: continuous target/return, split and merge, rank-independent particle identity, replay reverse, cadence, scene expiry, late-frame isolation, legacy absence

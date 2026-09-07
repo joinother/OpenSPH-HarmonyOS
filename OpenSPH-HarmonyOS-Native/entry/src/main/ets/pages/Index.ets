@@ -197,7 +197,7 @@ struct Index {
   @State observed:OrbitObservation={sceneRevision:0,body:1,name:'',selected:-1,samples:[]};
   @State trace:RingTraceStatus={impulse:0,points:false,speedScale:1,rateHours:1,eccentricity:0,innerApoapsisKm:76800,outerApoapsisKm:133200,referenceXKm:76800,referenceYKm:0,referenceRadiusKm:76800,referenceSpeedKmS:0,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:8192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-impulse-ring-v3'};
   @State skyLoadError:string='';
-  @State rendering: RenderStatus = {surfacePending:0,surfaceGenerated:0,surfaceError:'',moonReady:false,moonUploads:0,moonBlend:0,moonError:'',materialExposure:0,materialOcean:true,materialCloudShadows:true,panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
+  @State rendering: RenderStatus = {fragmentFollow:{active:false,moving:false,seed:-1,anchor:-1,rank:0,count:0,sceneRevision:0,time:0,centerKm:[0,0,0]},surfacePending:0,surfaceGenerated:0,surfaceError:'',moonReady:false,moonUploads:0,moonBlend:0,moonError:'',materialExposure:0,materialOcean:true,materialCloudShadows:true,panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
   @State colorMode: number = 0;
   @State cameraFlight:string='idle';
   @State focus: number = -1;
@@ -416,7 +416,7 @@ struct Index {
   }
   private overviewCamera:CameraState|undefined=undefined;
   private rememberOverview():void {if(this.focus<0)this.overviewCamera={yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:-1,color:this.colorMode};}
-  private focusBody(body:number):void {this.adoptCameraPose();this.rememberOverview();this.focus=body;if(this.preset===5)this.selectOrbit(body);this.camera(.42,false,true);if(this.preset>=3)this.notice='已选中 '+this.surfaceName()+' · 可近看或编辑初始条件';}
+  private focusBody(body:number):void {simulation.clearSphFragmentFollow();this.adoptCameraPose();this.rememberOverview();this.focus=body;if(this.preset===5)this.selectOrbit(body);this.camera(.42,false,true);if(this.preset>=3)this.notice='已选中 '+this.surfaceName()+' · 可近看或编辑初始条件';}
   private adoptCameraPose():void {
     const m:CameraMotionStatus=simulation.getCameraMotion(0);
     if(m.state==='queued'||m.state==='running'){this.yaw=m.yaw;this.pitch=m.pitch;this.zoom=m.zoom;}
@@ -782,6 +782,7 @@ struct Index {
   onBackPress(): boolean {
     if(this.placing){this.cancelPlacement();return true;}
     if(this.panelOpen) {this.setPanel(-1);return true;}
+    if(simulation.renderStatus().fragmentFollow.active){simulation.clearSphFragmentFollow();return true;}
     if(this.closeup||this.focus>=0){this.closeSurface();return true;}
     if(!this.toolsVisible) {this.setTools(true);return true;}
     return false;
@@ -830,11 +831,11 @@ struct Index {
       editedBody:this.editedBody,targetName:this.targetName,impactorName:this.impactorName,title:this.title,selectingPreset:this.selectingPreset};
   }
   private uiActions():UiActionInfo[] {
-    this.refreshObservation();
+    this.refreshObservation();this.rendering=simulation.renderStatus();
     const a:UiActionInfo[]=[];
     const add=(id:string,label:string,enabled:boolean=true,selected:boolean=false):void=>{a.push({id:id,label:label,enabled:enabled&&!this.ioBusy,selected:selected});};
     add('panel.parameters','参数',true,this.panelOpen&&this.tab===0);add('panel.observe','观察',true,this.panelOpen&&this.tab===1);add('panel.library','实验库',true,this.panelOpen&&this.tab===2);
-    add('panel.close','收起');add('ui.focus','专注');add('ui.restore','显示工具');add('ui.back','返回',this.panelOpen||this.closeup||this.focus>=0||!this.toolsVisible);
+    add('panel.close','收起');add('ui.focus','专注');add('ui.restore','显示工具');add('ui.back','返回',this.panelOpen||this.closeup||this.focus>=0||!this.toolsVisible||this.rendering.fragmentFollow.active);
     for(const t of this.themes)add('theme.'+t.id,t.title,true,this.activeThemeId===t.id);
     add('theme.restore','恢复主题初始条件',this.activeThemeId!=='');
     add('theme.compare','切换对照实验',this.themeState().compareId!=='');
@@ -862,6 +863,9 @@ struct Index {
     add('trace.toggle','启用动态环带',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
     for(const metric of ['pressure','internal','damage','kinetic','energy','gravity','relativeKinetic','radius','radial'])add('sph.metric.'+metric,sphMetricLabel(metric),this.preset<3&&(sphMetricIndex(metric)<10||this.info.sph?.structure!==undefined),this.sphMetric===metric);
     add('sph.minimum','SPH 记录最小',this.preset<3&&this.sphView().available);add('sph.maximum','SPH 记录最大',this.preset<3&&this.sphView().available);
+    add('fragments.largest','跟随最大团块',this.fragments.available);
+    add('fragments.stop','停止团块跟随',this.rendering.fragmentFollow.active);
+    for(const g of this.fragments.groups)add('fragments.follow.'+g.anchor,'跟随第 '+g.rank+' 团',this.fragments.available,this.rendering.fragmentFollow.active&&this.rendering.fragmentFollow.anchor===g.anchor);
     add('color.6','材料团块',this.preset<3&&this.fragments.available,this.colorMode===6);
     add('fragments.previous','上一组团块',this.fragments.available&&this.fragmentOffset>0);add('fragments.next','下一组团块',this.fragments.available&&(this.fragments.nextOffset??-1)>=0);
     add('color.3','压力',this.preset<3&&this.info.sph?.available===true,this.colorMode===3);add('color.4','比内能',this.preset<3&&this.info.sph?.available===true,this.colorMode===4);add('color.5','材料损伤',this.preset<3&&this.info.sph?.available===true,this.colorMode===5);
@@ -981,13 +985,16 @@ struct Index {
     else if(action==='surface.previous')this.openSurface((this.focus+this.orbitBodies.length-1)%this.orbitBodies.length);
     else if(action==='surface.next')this.openSurface((this.focus+1)%this.orbitBodies.length);
     else if(action.startsWith('surface.'))this.openSurface(Number(action.slice(8)));
-    else if(action==='focus.all')this.closeSurface();
+    else if(action==='focus.all'){simulation.clearSphFragmentFollow();this.closeSurface();}
     else if(action.startsWith('focus.'))this.focusBody(Number(action.slice(6)));
     else if(action==='selection.edit'){this.selectOrbit(this.focus);this.setPanel(0);this.notice='编辑初始条件 · 关闭面板或切换天体会保留草稿';}
     else if(action==='camera.cancel'){this.stopCameraMotion();this.notice='已停止镜头过渡 · 可继续拖动或重新近看';}
     else if(action==='camera.out')this.easeCamera(this.yaw,this.pitch,Math.min(15,this.zoom*1.2));
     else if(action==='camera.in')this.easeCamera(this.yaw,this.pitch,Math.max(.5,this.zoom/1.2));
-    else if(action==='camera.reset'){this.closeSurface();this.easeCamera(.15,.25,2.7);}
+    else if(action==='camera.reset'){simulation.clearSphFragmentFollow();this.closeSurface();this.easeCamera(.15,.25,2.7);}
+    else if(action==='fragments.largest'){const first=simulation.sphFragments(0,1);if(!first.available||!first.groups.length)throw new Error('材料团块暂不可用');this.beginFragmentFollow(first.groups[0].anchor,first.sceneRevision);}
+    else if(action==='fragments.stop'){simulation.clearSphFragmentFollow();this.notice='已停止团块跟随 · 返回原观察中心';}
+    else if(action.startsWith('fragments.follow.'))this.beginFragmentFollow(Number(action.slice(17)),this.fragments.sceneRevision);
     else if(action==='fragments.previous'){this.fragmentOffset=Math.max(0,this.fragmentOffset-8);this.refreshObservation();}
     else if(action==='fragments.next'){this.fragmentOffset=this.fragments.nextOffset!;this.refreshObservation();}
     else if(action.startsWith('color.')){this.colorMode=Number(action.slice(6));if(this.colorMode>=3&&this.colorMode<=5){this.sphMetric=this.colorMode===3?'pressure':(this.colorMode===4?'internal':'damage');this.refreshObservation();}this.camera();}
@@ -1089,6 +1096,8 @@ struct Index {
       {name:'getSkyInfo',payload:'{} - provenance and sky rendering status'},
       {name:'getProjectedBodies',payload:'{} - last presented orbital frame; normalized top-left x/y, radius in viewport-height units; ignores UI occlusion'},
       {name:'pickBody',payload:'{x:0..1,y:0..1} - viewport hit test, shared focus action; hit=-1 leaves selection unchanged'},
+      {name:'followSphFragment',payload:'{particle:0..9999,sceneRevision:number} - follow the current component containing a selected material particle; no reload'},
+      {name:'getSphFragmentFollow',payload:'{} - last rendered follow state, current group identity and target center in km'},
       {name:'getSphFragments',payload:'{offset?:0..10000,limit?:1..32} - selected-frame geometric material groups, SI-derived units and frame identity; not binding/reaggregation'},
       {name:'getSphComparison',payload:'{} - shared axes, parameter differences, saved SPH provenance and interpolated cursor delta'},
       {name:'getSphReference',payload:'{} - full saved SPH reference or null; independent from orbital reference'},
@@ -1140,6 +1149,8 @@ struct Index {
     if(command==='getProjectedBodies')return JSON.stringify({ok:true,projection:simulation.projectedScene()});
     if(command==='pickBody'){const hit=await this.pickViewport(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,hit:hit});}
     if(command==='getPreparation'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,state:state.state,error:state.error,config:state.config,preparation:state.preparation});}
+    if(command==='getSphFragmentFollow')return JSON.stringify({ok:true,follow:simulation.renderStatus().fragmentFollow});
+    if(command==='followSphFragment'){this.beginFragmentFollow(this.checked(p.particle,0,9999,true),this.checked(p.sceneRevision,0,2147483647,true));return JSON.stringify({ok:true,particle:p.particle,sceneRevision:p.sceneRevision});}
     if(command==='getSphFragments')return JSON.stringify({ok:true,fragments:simulation.sphFragments(this.checked(p.offset??0,0,10000,true),this.checked(p.limit??8,1,32,true))});
     if(command==='getSphReference')return JSON.stringify({ok:true,reference:this.sphReference??null,error:this.sphReferenceError});
     if(command==='getSphComparison'){this.refreshObservation();const source=simulation.status();return JSON.stringify({ok:true,metric:this.sphMetric,visible:this.sphReferenceShown,reference:this.sphReference?sphReferenceSummary(this.sphReference):undefined,currentConfig:source.config,currentModel:source.model,currentSceneRevision:this.sphObserved.sceneRevision,differences:this.sphReference?sphParameterDifferences(source.config,this.sphReference.config):[],chart:this.sphComparisonView(),error:this.sphReferenceError});}
@@ -1222,7 +1233,7 @@ struct Index {
       const yaw: number=this.checked(p.yaw,-100,100);const pitch: number=this.checked(p.pitch,-1.5,1.5);
       const zoom: number=this.checked(p.zoom,0.5,15);const focus: number=this.checked(p.focus,-1,this.maxFocus(),true);
       const color: number=this.checked(p.color,0,this.preset>=3?1:6,true);
-      this.stopCameraMotion();if(focus>=0)this.rememberOverview();else this.overviewCamera=undefined;this.yaw=yaw;this.pitch=pitch;this.zoom=zoom;this.focus=focus;if(this.preset===5&&focus>=0)this.selectOrbit(focus);this.colorMode=color;if(focus<0){this.closeup=false;this.autoSpin=false;}this.camera();
+      simulation.clearSphFragmentFollow();this.stopCameraMotion();if(focus>=0)this.rememberOverview();else this.overviewCamera=undefined;this.yaw=yaw;this.pitch=pitch;this.zoom=zoom;this.focus=focus;if(this.preset===5&&focus>=0)this.selectOrbit(focus);this.colorMode=color;if(focus<0){this.closeup=false;this.autoSpin=false;}this.camera();
     } else if(command==='setMaterial'){this.changeMaterial(p);
     } else if(command==='setAppearance'){this.changeAppearance(p);
     } else if(command==='setPanel') { this.setPanel(this.checked(p.panel,-1,2,true));
@@ -1235,6 +1246,10 @@ struct Index {
     return this.snapshot();
   }
   private sphNumber(value:number|undefined,unit:string):string {return value===undefined?'—':value.toPrecision(5)+' '+unit;}
+  private beginFragmentFollow(particle:number,revision:number):void {
+    simulation.followSphFragment(particle,revision);
+    this.notice='正在跟随所选材料所在团块 · 拖动可旋转，缩放可拉近';
+  }
   private sphLegend():string {
     if(this.colorMode>=3&&!this.info.sph?.available)return '当前记录不含 SPH 诊断 · 暂显示原色';
     if(this.colorMode===3)return '压力：蓝 −10 / 白 0 / 红 +10 GPa';
@@ -1335,12 +1350,20 @@ struct Index {
     Column({space:6}) {
       Text('材料分成了几团').id('sph-fragments-heading').fontSize(13).fontColor('#D9CCF5').width('100%')
       if(this.fragments.available){
+        Row({space:6}){
+          ChoiceChip({label:'跟随最大团块',onPress:()=>{this.press('fragments.largest');}}).id('sph-fragments-largest')
+          if(this.rendering.fragmentFollow.active){ChoiceChip({label:'停止跟随',onPress:()=>{this.press('fragments.stop');}}).id('sph-fragments-stop')}
+        }.width('100%')
+        if(this.rendering.fragmentFollow.active){Text('正在跟随第 '+this.rendering.fragmentFollow.rank+' 团 · '+this.rendering.fragmentFollow.count+' 粒子').id('sph-follow-status').fontSize(11).fontColor(this.fragmentColor(this.rendering.fragmentFollow.anchor)).width('100%')}
         Text(this.fragments.groupCount+' 个几何团块 · '+this.fragments.time.toFixed(2)+' s').fontSize(12).fontColor('#E2EEF5').width('100%')
         MetricRow({label:'最大团块质量占比',value:(this.fragments.largestMassFraction!*100).toFixed(2)+' %'})
         Text('单粒子团块 '+this.fragments.singletonCount+' 个 · '+(this.fragments.singletonMassKg!/this.fragments.totalMassKg!*100).toFixed(2)+' % 质量').fontSize(10).fontColor('#ABA6C0').width('100%')
         ForEach(this.fragments.groups,(g:SphMaterialGroup)=>{
           Column({space:3}){
-            Text('#'+g.rank+' · '+g.count+' 粒子 · '+(g.massFraction*100).toFixed(2)+' %').fontSize(11).fontColor(this.fragmentColor(g.anchor)).width('100%')
+            Row({space:6}){
+              Text('#'+g.rank+' · '+g.count+' 粒子 · '+(g.massFraction*100).toFixed(2)+' %').fontSize(11).fontColor(this.fragmentColor(g.anchor)).layoutWeight(1).maxLines(2)
+              ChoiceChip({label:this.rendering.fragmentFollow.active&&this.rendering.fragmentFollow.anchor===g.anchor?'跟随中':'跟随',active:this.rendering.fragmentFollow.active&&this.rendering.fragmentFollow.anchor===g.anchor,onPress:()=>{this.press('fragments.follow.'+g.anchor);}}).id('sph-follow-'+g.anchor)
+            }.width('100%')
             Text(g.massKg.toPrecision(4)+' kg · 质心速度 '+Math.hypot(g.velocityKmS[0],g.velocityKmS[1],g.velocityKmS[2]).toPrecision(3)+' km/s').fontSize(10).fontColor('#B7C5D5').width('100%')
             Text('质心 km ['+g.centerKm.map((v:number):string=>v.toFixed(1)).join(', ')+'] · 尺度 '+g.rmsRadiusKm.toPrecision(3)+' km').fontSize(10).fontColor('#ABA6C0').lineHeight(15).width('100%')
           }.width('100%')
@@ -1349,7 +1372,7 @@ struct Index {
           ChoiceChip({label:'上一组',enabledAction:this.fragmentOffset>0,onPress:()=>{this.press('fragments.previous');}}).id('sph-fragments-previous')
           ChoiceChip({label:'下一组',enabledAction:(this.fragments.nextOffset??-1)>=0,onPress:()=>{this.press('fragments.next');}}).id('sph-fragments-next')
         }.width('100%')}
-        Text('以 1.5 × 平均光滑长度连接；序号按本帧质量排序，不等于永久碎片身份或再聚合结果。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+        Text('分裂或连接后，继续跟随选中材料点所在的一团。以 1.5 × 平均光滑长度连接；序号是本帧质量排名，不是永久碎片身份。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
       }else{Text(this.fragments.reason).fontSize(10).fontColor('#ABA6C0').width('100%')}
     }.width('100%')
   }
@@ -1497,6 +1520,7 @@ struct Index {
           if(this.preset>=3&&!this.closeup&&!this.layout().compact) {Text(this.focus>=0?'已选中 · '+this.surfaceName():'轻点天体以选中 · 拖动旋转').fontSize(11).fontColor('#C9B8F3')}
           if(this.skyMode===2&&!this.layout().compact) {Text(this.rendering.panoramaReady?'银河摄影 · 非定位星图':(this.skyLoadError?'银河示意 · 摄影全景加载失败':'银河背景 · 载入摄影全景')).fontSize(10).fontColor('#9E97B4')}
           if(this.preset<3) {Text((this.info.config?.relaxationSeconds??0)>0?'岩质 SPH · 预松弛 '+this.info.config?.relaxationSeconds+' s':this.info.config?.selfGravity===true?'岩质 SPH · 自引力开启':'岩质 SPH · 未启用自引力').fontSize(10).fontColor('#9E97B4')}
+          if(this.rendering.fragmentFollow.active){Text('跟随团块 #'+this.rendering.fragmentFollow.rank+' · '+this.rendering.fragmentFollow.count+' 粒子').id('sph-follow-hud').fontSize(11).fontColor(this.fragmentColor(this.rendering.fragmentFollow.anchor))}
           if(this.dirty) {Text('参数待应用').fontSize(11).fontColor('#F0BD82')}
         }.alignItems(HorizontalAlign.Start).padding({left:16,right:16,top:this.layout().compact?8:16,bottom:8}).width(this.layout().safe.width).margin({left:this.layout().safe.x,top:this.layout().safe.y+this.layout().headerHeight+10}).hitTestBehavior(HitTestMode.None)
           .onAreaChange((_:Area,area:Area)=>{this.hudHeight=Number(area.height);})
@@ -2013,14 +2037,14 @@ struct Index {
         Text('镜头跟踪').fontSize(13).fontColor('#AEBDCD').width('100%')
         if(this.preset>=3) {
           Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(8)}}) {
-            ChoiceChip({label:'全景',active:this.focus===-1,onPress:() => {this.press('focus.all');}})
+            ChoiceChip({label:'全景',active:this.focus===-1&&!this.rendering.fragmentFollow.active,onPress:() => {this.press('focus.all');}})
             ForEach(this.info.bodies??[],(b:OrbitBodyStatus) => {
               ChoiceChip({label:b.name,active:this.focus===b.id,onPress:() => {this.press('focus.'+b.id);}})
             },(b:OrbitBodyStatus) => b.id.toString())
           }.width('100%')
         } else {
         Row({space:6}) {
-          ChoiceChip({label:'全景',active:this.focus===-1,onPress:() => {this.press('focus.all');}})
+          ChoiceChip({label:'全景',active:this.focus===-1&&!this.rendering.fragmentFollow.active,onPress:() => {this.press('focus.all');}})
           ChoiceChip({label:this.preset>=3?'恒星':'主天体',active:this.focus===0,onPress:() => {this.press('focus.0');}})
           if(this.preset!==2) {ChoiceChip({label:this.preset>=3?'蓝色行星':'撞击体',active:this.focus===1,onPress:() => {this.press('focus.1');}})}
         }.width('100%')

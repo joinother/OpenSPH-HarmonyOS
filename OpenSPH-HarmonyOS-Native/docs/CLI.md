@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.39.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.40.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -501,3 +501,21 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 每团返回本帧质量排名 `rank`、最小粒子序号 `anchor`、`count`、`massKg`、`massFraction`、`centerKm[3]`、`velocityKmS[3]`、`rmsRadiusKm`。翻页期间应核对场景修订、所选帧与时间，运行中不同查询可能对应不同帧。排名和 anchor 都不是永久碎片身份。
 
 新计算的材料回放为 v10，保存各帧分组及自引力／预松弛配置。v1–v9 没有团块数据，不能仅凭绘制位置重建；再次保存仍保留旧版，不补零或捏造分组。连接规则固定为距离不超过 1.5 倍平均光滑长度，低分辨率下相邻材料可能提前连通。完整定义、上游参考和格式见 [材料团块](reference/SPH-FRAGMENTS.md)。
+
+## 连续跟随材料团块
+
+观察面板提供“跟随最大团块”“跟随”“停止跟随”，分别共用 `fragments.largest`、`fragments.follow.<anchor>` 和 `fragments.stop` 动作。按本帧最大团块选择一次后，继续跟随其中的材料点，不每帧改选质量第一名。列表动作只覆盖当前可见数据页，跨页自动化可用显式命令。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"fragments.largest"}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getSphFragmentFollow
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"fragments.stop"}'
+```
+
+`followSphFragment {particle,sceneRevision}` 接受所选场景中的材料粒子序号 0–9999 和 `getSphFragments` 返回的场景修订（必须为当前修订）。通常使用某团 anchor 作为 particle；支持非 anchor 的有效粒子序号。越界、过期场景或旧回放缺失分组时拒绝，保留当前跟随目标。
+
+`getSphFragmentFollow` 返回 `follow`，与 `getState.rendering.fragmentFollow` 相同：`active`、`moving`、`seed`、当前 `anchor/rank/count`、`sceneRevision`、`time`（秒）和目标 `centerKm[3]`。这是最近渲染帧状态，命令接受不代表过渡已经完成；静止回放应等 active=true、seed 匹配且 moving=false。持续运动时 moving 可以保持 true。`getState.rendering.centerX/Y/Z` 为实际显示中心，单位为 100 km，过渡中与目标质心不同。
+
+改变颜色、旋转、缩放、翻页、折叠与屏幕方向保留跟随。`fragments.stop` 平滑返回选择前的常规观察目标；`focus.all` 返回全景，普通天体选择／视角复位结束团块跟随。返回键先关闭面板，之后结束团块跟随，再按既有逻辑处理。显式 `setCamera`、重新加载回放或更换实验结束跟随，防止粒子序号被用于另一场景。
+
+跟随是当前观察状态，不写入实验配方或回放；回放仍为 v10，无格式变化。分裂时跟随包含种子材料点的分支，连接时跟随合并团块；这不代表完整碎片谱系、引力束缚或再聚合。见 [定义与验证](reference/FRAGMENT-FOLLOW.md)。
