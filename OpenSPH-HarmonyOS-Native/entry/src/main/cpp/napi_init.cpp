@@ -76,6 +76,8 @@ napi_value startScene(napi_env e, napi_callback_info i) {
         bool gravityPresent=false;napi_has_named_property(e,a[0],"selfGravity",&gravityPresent);
         if(gravityPresent){napi_value v;napi_get_named_property(e,a[0],"selfGravity",&v);
             if(napi_get_value_bool(e,v,&c.selfGravity)!=napi_ok)throw std::invalid_argument("Boolean selfGravity expected");}
+        bool relaxPresent=false;napi_has_named_property(e,a[0],"relaxationSeconds",&relaxPresent);
+        if(relaxPresent)c.relaxationSeconds=field("relaxationSeconds");
         napi_value list;bool has=false;napi_has_named_property(e,a[0],"orbitBodies",&has);
         if(has){napi_get_named_property(e,a[0],"orbitBodies",&list);bool array=false;napi_is_array(e,list,&array);uint32_t n=0;
             if(!array||napi_get_array_length(e,list,&n)!=napi_ok||n>8)throw std::invalid_argument("Invalid orbitBodies array");
@@ -262,7 +264,7 @@ napi_value status(napi_env e, napi_callback_info) {
     if(s.sph.structure.available){napi_value a;napi_create_array_with_length(e,4,&a);for(size_t j=0;j<4;j++){napi_value n;napi_create_double(e,s.sph.structure.values[j],&n);napi_set_element(e,a,j,n);}napi_set_named_property(e,diag,"structure",a);}
     napi_set_named_property(e,o,"sph",diag);
     num(e,o,"energyError",s.energyError);num(e,o,"angularError",s.angularError);
-    str(e,o,"model",s.config.preset==5?"nbody-custom-v1":(s.config.preset>=3?"nbody-v1":(s.config.selfGravity?"sph-rock-gravity-v1":"sph-rock-v1")));
+    str(e,o,"model",s.config.preset==5?"nbody-custom-v1":(s.config.preset>=3?"nbody-v1":(s.config.relaxationSeconds>0?"sph-rock-prepared-v1":(s.config.selfGravity?"sph-rock-gravity-v1":"sph-rock-v1"))));
     str(e,o,"timeUnit",s.config.preset>=3?"year":"s");
     napi_value bodies;napi_create_array_with_length(e,s.bodies.size(),&bodies);
     const char *names[]={"恒星","蓝色行星","金色行星","红色行星"};
@@ -276,6 +278,7 @@ napi_value status(napi_env e, napi_callback_info) {
       num(e,c,"angle",s.config.angle);num(e,c,"duration",s.config.duration);
       num(e,c,"targetRadiusKm",s.config.targetRadiusKm);num(e,c,"impactorRadiusKm",s.config.impactorRadiusKm);
       num(e,c,"targetDensity",s.config.targetDensity);num(e,c,"impactorDensity",s.config.impactorDensity);
+      if(s.config.relaxationSeconds>0)num(e,c,"relaxationSeconds",s.config.relaxationSeconds);
       if(s.config.selfGravity){napi_value g;napi_get_boolean(e,true,&g);napi_set_named_property(e,c,"selfGravity",g);}
       num(e,c,"targetSpin",s.config.targetSpin);num(e,c,"seed",s.config.seed);
       if(s.config.preset==5){napi_value list;napi_create_array_with_length(e,s.config.orbitBodies.size(),&list);

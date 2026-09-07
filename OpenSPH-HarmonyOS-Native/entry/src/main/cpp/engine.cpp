@@ -1,5 +1,6 @@
 #include "engine.h"
 #include "sph_gravity.h"
+#include "sph_relaxation.h"
 #include "orbit.h"
 #include "Sph.h"
 #include "gravity/IGravity.h"
@@ -44,6 +45,30 @@ class Experiment : public IRun, public IRunCallbacks {
         logWriter = makeAuto<NullLogWriter>();
     }
     void setUp(SharedPtr<Storage> storage) override {
+        if(cfg.relaxationSeconds>0){
+            InitialConditions ic(settings);BodySettings body;
+            body.set(BodySettingsId::PARTICLE_COUNT,cfg.preset==2?cfg.count:cfg.count*3/4);
+            body.set(BodySettingsId::DENSITY,Float(cfg.targetDensity));
+            preparationPoint(engine,generation,"target");Storage primary;
+            auto target=ic.addMonolithicBody(primary,SphericalDomain(Vector(0._f),Float(cfg.targetRadiusKm*1000)),body);
+            preparationPoint(engine,generation,"relax-target");
+            const auto stop=[this]{return engine.stopped(generation);};
+            prepareStationaryBody(primary,settings,cfg.relaxationSeconds,stop);
+            target.addRotation(Vector(0._f,0._f,Float(cfg.targetSpin)),Vector(0._f));
+            if(cfg.preset==2)target.addRotation(Vector(0._f,0._f,Float(cfg.speed*.003)),Vector(0._f));
+            split=primary.getParticleCnt();storage->merge(std::move(primary));
+            if(cfg.preset!=2){
+                preparationPoint(engine,generation,"impactor");Storage secondary;
+                body.set(BodySettingsId::PARTICLE_COUNT,cfg.count/4);body.set(BodySettingsId::DENSITY,Float(cfg.impactorDensity));
+                auto impactor=ic.addMonolithicBody(secondary,SphericalDomain(Vector(0._f),Float(cfg.impactorRadiusKm*1000)),body);
+                preparationPoint(engine,generation,"relax-impactor");
+                prepareStationaryBody(secondary,settings,cfg.relaxationSeconds,stop);
+                const double distance=1125.*(cfg.targetRadiusKm+cfg.impactorRadiusKm);
+                impactor.displace(Vector(Float(distance),Float(std::sin(cfg.angle*3.141592653589793/180.)*distance*.5),0._f));
+                impactor.addVelocity(Vector(Float(-cfg.speed*1000),0._f,0._f));storage->merge(std::move(secondary));
+            }
+            preparationPoint(engine,generation,"solver");return;
+        }
         preparationPoint(engine,generation,"target");
         InitialConditions ic(settings);
         BodySettings body;
@@ -204,6 +229,8 @@ static bool validOrbitName(const std::string &name) {
 }
 bool validConfig(const Config &c) {
     auto range = [](double x, double low, double high) { return std::isfinite(x) && x >= low && x <= high; };
+    if(c.relaxationSeconds!=0&&c.relaxationSeconds!=16&&c.relaxationSeconds!=64)return false;
+    if(c.relaxationSeconds>0&&(!c.selfGravity||c.preset>=3))return false;
     if(c.preset==5){
         if(c.orbitBodies.size()<2||c.orbitBodies.size()>8||c.speed!=1)return false;
         for(size_t i=0;i<c.orbitBodies.size();++i){const auto &b=c.orbitBodies[i];
@@ -419,9 +446,9 @@ bool Engine::saveReplay(const std::string &dir) {
     std::string path = dir + "/last-replay.osphr", temp = path + ".tmp";
     const bool diagnostics=known&&saved.preset<3&&std::all_of(frames.begin(),frames.end(),[](const auto &f){return f->sph.available&&f->scalars.size()==f->particles.size();});
     const bool structure=diagnostics&&std::all_of(frames.begin(),frames.end(),[](const auto& f){return validSphStructure(f->sph.structure);});
-    if (saved.selfGravity && !diagnostics) return false;
+    if ((saved.selfGravity && !diagnostics)||(saved.relaxationSeconds>0&&!structure)) return false;
     std::ofstream out(temp, std::ios::binary);
-    uint32_t magic = 0x4c485053, version = diagnostics?(structure?(saved.selfGravity?8:7):(saved.selfGravity?6:5)):(known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1), n = frames.size();
+    uint32_t magic = 0x4c485053, version = saved.relaxationSeconds>0?9:diagnostics?(structure?(saved.selfGravity?8:7):(saved.selfGravity?6:5)):(known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1), n = frames.size();
     out.write(reinterpret_cast<char *>(&magic), 4);
     out.write(reinterpret_cast<char *>(&version), 4);
     out.write(reinterpret_cast<char *>(&n), 4);
@@ -431,6 +458,7 @@ bool Engine::saveReplay(const std::string &dir) {
             saved.targetRadiusKm,saved.impactorRadiusKm,saved.targetDensity,saved.impactorDensity,saved.targetSpin,double(saved.seed)};
         out.write(reinterpret_cast<char *>(values),sizeof(values));
     }
+    if(version==9)out.write(reinterpret_cast<const char*>(&saved.relaxationSeconds),8);
     if(version==4){uint32_t count=saved.orbitBodies.size();out.write(reinterpret_cast<char *>(&count),4);
         for(const auto &b:saved.orbitBodies){uint32_t len=b.name.size();out.write(reinterpret_cast<char *>(&len),4);out.write(b.name.data(),len);
             double v[]={b.massSolar,b.xAU,b.yAU,b.zAU,b.vxKmS,b.vyKmS,b.vzKmS,double(b.surface)};out.write(reinterpret_cast<char *>(v),sizeof(v));}}
@@ -464,7 +492,7 @@ bool Engine::loadReplay(const std::string &dir) {
     in.read(reinterpret_cast<char *>(&version), 4);
     in.read(reinterpret_cast<char *>(&n), 4);
     in.read(reinterpret_cast<char *>(&duration), 8);
-    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4 && version != 5 && version != 6 && version != 7 && version != 8) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
+    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4 && version != 5 && version != 6 && version != 7 && version != 8 && version != 9) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
         duration <= 0 || duration > 120)
         return false;
     Config saved;
@@ -474,7 +502,8 @@ bool Engine::loadReplay(const std::string &dir) {
         for (double x : v) if (!std::isfinite(x) || std::abs(x) > 1.e7) return false;
         for (int i : {0,1,10}) if (std::trunc(v[i]) != v[i]) return false;
         saved = {int(v[0]),int(v[1]),v[2],v[3],v[4],v[5],v[6],v[7],v[8],v[9],int(v[10])};
-        saved.selfGravity = version == 6 || version == 8;
+        saved.selfGravity = version == 6 || version == 8 || version == 9;
+        if(version==9){in.read(reinterpret_cast<char*>(&saved.relaxationSeconds),8);if(!in||saved.relaxationSeconds<=0)return false;}
         if(version==4){uint32_t count=0;in.read(reinterpret_cast<char *>(&count),4);if(!in||count<2||count>8)return false;
             for(uint32_t i=0;i<count;++i){uint32_t len=0;in.read(reinterpret_cast<char *>(&len),4);if(!in||len<1||len>192)return false;
                 std::string name(len,'\0');in.read(&name[0],len);double d[8];in.read(reinterpret_cast<char *>(d),sizeof(d));if(!in)return false;

@@ -65,6 +65,8 @@ function validateRecipeCamera(c:RecipeCamera,maxFocus:number,preset:number):void
 }
 export function validateConfig(c: SimulationConfig): void {
   if(!c || typeof c !== 'object') throw new Error('缺少场景配置');
+  if(c.relaxationSeconds!==undefined&&![0,16,64].includes(c.relaxationSeconds))throw new Error('预松弛时长只支持 0、16、64 秒');
+  if((c.relaxationSeconds??0)>0&&(!c.selfGravity||c.preset>=3))throw new Error('预松弛需要岩质模型与材料自引力');
   if(c.selfGravity!==undefined&&typeof c.selfGravity!=='boolean')throw new Error('自引力必须为布尔值');
   if(c.selfGravity&&(c.preset>=3||c.count>1200))throw new Error('SPH 自引力支持岩质实验，粒子预算不超过 1200');
   check(c.preset,0,5,true);check(c.count,200,2400,true);check(c.speed,c.preset>=3?0.75:0.5,c.preset>=3?1.25:10);check(c.angle,0,70);check(c.duration,1,c.preset>=3?10:120);
@@ -81,13 +83,13 @@ export function validName(name: string): string {
   return name.trim();
 }
 export function validateScene(s: SceneDefinition): void {
-  if(!s || s.schemaVersion!==1 || (s.model!=='sph-rock-v1'&&s.model!=='sph-rock-gravity-v1'&&s.model!=='nbody-v1'&&s.model!=='nbody-custom-v1')) throw new Error('不支持的场景版本或物理模型');
+  if(!s || s.schemaVersion!==1 || (s.model!=='sph-rock-v1'&&s.model!=='sph-rock-gravity-v1'&&s.model!=='sph-rock-prepared-v1'&&s.model!=='nbody-v1'&&s.model!=='nbody-custom-v1')) throw new Error('不支持的场景版本或物理模型');
   validName(s.title);validateConfig(s.config);
   if(s.config.preset>=3){
     if(s.model!==(s.config.preset===5?'nbody-custom-v1':'nbody-v1')||!Array.isArray(s.bodies)||s.bodies.length!==0)throw new Error('引力预设由原生模型定义，不接受岩质天体配置');
     return;
   }
-  if(s.model!==(s.config.selfGravity?'sph-rock-gravity-v1':'sph-rock-v1'))throw new Error('物理模型与预设不匹配');
+  if(s.model!==((s.config.relaxationSeconds??0)>0?'sph-rock-prepared-v1':(s.config.selfGravity?'sph-rock-gravity-v1':'sph-rock-v1')))throw new Error('物理模型与预设不匹配');
   if(!Array.isArray(s.bodies)||s.bodies.length!==(s.config.preset===2?1:2)) throw new Error('天体数量不匹配');
   for(let i=0;i<s.bodies.length;i++) {
     const b: BodyDefinition=s.bodies[i];

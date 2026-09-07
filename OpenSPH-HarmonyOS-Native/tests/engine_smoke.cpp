@@ -38,6 +38,25 @@ int main(int argc, char **argv) {
         mkdir(dir.c_str(), 0700);
         Engine e;
         {
+            Config prepared{0,200,5,30,1};prepared.selfGravity=true;prepared.relaxationSeconds=16;
+            e.start(prepared,true);awaitState(e,"paused");auto initial=e.frame();
+            require(initial->time==0&&e.status().frames==1,"preparation leaked into collision clock");
+            bool primary=false,secondary=false;for(const auto&p:initial->particles){if(p.body==0){primary=true;require(p.speed==0,"primary retained preparation velocity");}else{secondary=true;require(std::abs(p.speed-5)<1e-6,"impactor velocity damped");}}
+            require(primary&&secondary,"prepared body identity lost");
+            auto events=e.status().preparation.events;bool target=false,impactor=false;for(const auto&v:events){target|=v.stage=="relax-target";impactor|=v.stage=="relax-impactor";}require(target&&impactor,"missing separate relaxation stages");
+            e.pause(false);awaitState(e,"completed");auto last=e.frame();require(last->sph.structure.available,"prepared continuation lost diagnostics");
+            require(e.saveReplay(dir),"prepared replay save");const auto path=dir+"/last-replay.osphr";std::ifstream in(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(in)),{});in.close();require(bytes[4]==9,"expected prepared v9");
+            require(e.loadReplay(dir)&&e.status().config.relaxationSeconds==16&&e.status().config.selfGravity,"prepared replay model lost");e.seek(-1);require(e.frame()->sph.structure.values==last->sph.structure.values,"prepared replay diagnostics changed");
+            for(double value:{0.,-1.,8.,std::numeric_limits<double>::quiet_NaN()}){auto bad=bytes;std::memcpy(&bad[108],&value,8);{std::ofstream out(path,std::ios::binary);out.write(bad.data(),bad.size());}auto current=e.frame();require(!e.loadReplay(dir)&&e.frame()==current,"invalid relaxation header replaced state");}
+            for(double seconds:{-1.,1.,std::numeric_limits<double>::infinity()}){auto bad=prepared;bad.relaxationSeconds=seconds;require(!validConfig(bad),"bad preparation duration accepted");}
+            auto bad=prepared;bad.selfGravity=false;require(!validConfig(bad),"preparation accepted without gravity");
+            prepared.count=600;prepared.relaxationSeconds=64;e.start(prepared,true);
+            for(int n=0;n<1000&&e.status().preparation.stage!="relax-target";++n)std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            require(e.status().preparation.stage=="relax-target","no cancellable relaxation stage");const auto revision=e.sceneRevision();e.cancel();require(e.status().state=="cancelled","relax cancel state");
+            e.start({0,200,5,0,1},true);awaitState(e,"paused");require(e.sceneRevision()>revision&&e.status().config.relaxationSeconds==0&&e.status().frames==1,"cancelled relaxation contaminated next scene");
+            std::cout<<"PASS preparation: isolated body stages, collision velocities and clock, continuation, v9 exact replay, invalid inputs and cooperative cancellation"<<std::endl;
+        }
+        {
             Config c{0,200,5,0,1};c.selfGravity=true;e.start(c,true);awaitState(e,"paused");
             auto first=e.frame();require(validSphStructure(first->sph.structure),"missing structure");
             const double targetMass=4./3.*3.141592653589793*1e15*2700,impactMass=targetMass*.216;

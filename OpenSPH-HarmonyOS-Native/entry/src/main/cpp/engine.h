@@ -25,6 +25,7 @@ struct Config {
     int seed = 1234;
     std::vector<OrbitSpec> orbitBodies;
     bool selfGravity = false;
+    double relaxationSeconds = 0;
 };
 bool validConfig(const Config &c);
 struct Particle {

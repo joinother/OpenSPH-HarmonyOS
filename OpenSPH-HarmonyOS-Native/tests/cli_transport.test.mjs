@@ -409,7 +409,7 @@ test('immersive window policy hides status, navigation and gesture indicator ind
 
 test('theme catalog isolates conditions and collision speed comparison changes only speed',async()=>{
   const {page:app}=page();
-  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,12);
+  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,14);
   const [slow,fast]=catalog.experiments;assert.equal(slow.config.speed,2);assert.equal(fast.config.speed,8);
   assert.deepEqual({...slow.config,speed:8},fast.config);
   assert.ok(catalog.experiments.every(t=>t.goal&&t.limit&&t.question));
@@ -835,4 +835,21 @@ test('structure commands reject missing old-replay data without changing the cur
  for(const metric of ['gravity','relativeKinetic','radius','radial']){
   const before=app.sphMetric;await assert.rejects(app.execute('uiAction',{action:'sph.metric.'+metric}));assert.equal(app.sphMetric,before);
  }
+});
+
+test('pre-relaxation shared controls preserve draft/applied separation, model identity and safe defaults',async()=>{
+ const {page:app,calls}=page();app.applyConfig({...app.config(),selfGravity:true});
+ const count=calls.filter(c=>c[0]==='start').length;
+ await app.execute('uiAction',{action:'scene.relax.16'});assert.equal(app.config().relaxationSeconds,16);assert.equal(app.definition().model,'sph-rock-prepared-v1');assert.equal(app.dirty,true);assert.equal(calls.filter(c=>c[0]==='start').length,count);
+ await app.execute('uiAction',{action:'scene.relax.64'});assert.equal(app.config().relaxationSeconds,64);
+ const frozen=JSON.stringify(app.config());for(const extra of [{relaxationSeconds:8},{relaxationSeconds:'16'},{relaxationSeconds:16,selfGravity:false},{relaxationSeconds:16,preset:3,speed:1,duration:1}]){await assert.rejects(app.execute('setScene',{...app.config(),...extra}));assert.equal(JSON.stringify(app.config()),frozen);}
+ await app.execute('uiAction',{action:'scene.gravity'});assert.equal(app.config().relaxationSeconds,undefined);await assert.rejects(app.execute('uiAction',{action:'scene.relax.16'}));
+ app.applyConfig({...app.config(),selfGravity:true,relaxationSeconds:16});const saved=JSON.parse(await app.execute('saveProject',{title:'预松弛'}));await app.execute('uiAction',{action:'scene.relax.0'});await app.execute('loadProject',{id:saved.id});assert.equal(app.config().relaxationSeconds,16);
+ app.choose(4);assert.equal(app.config().relaxationSeconds,undefined);assert.equal(app.definition().model,'nbody-v1');
+});
+
+test('prepared impact pair keeps input configuration fixed except isolated preparation',async()=>{
+ const {page:app}=page();await app.execute('uiAction',{action:'theme.direct-impact'});const direct=app.config();assert.equal(direct.selfGravity,true);
+ await app.execute('uiAction',{action:'theme.compare'});assert.equal(app.themeState().id,'prepared-impact');assert.deepEqual(JSON.parse(JSON.stringify(app.config())),{...direct,relaxationSeconds:16});assert.equal(app.themeState().modified,false);
+ await app.execute('uiAction',{action:'scene.relax.64'});assert.equal(app.themeState().modified,true);await app.execute('uiAction',{action:'theme.compare'});assert.deepEqual(app.config(),direct);
 });

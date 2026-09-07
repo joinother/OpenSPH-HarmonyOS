@@ -1,0 +1,22 @@
+{
+  "date": "2026-09-08",
+  "timezone": "Asia/Shanghai",
+  "findings": [
+    {
+      "finding": "600-budget 64-second endpoint is not monotonically improved",
+      "detail": "Initial test assumed damped kinetic and radial speed must be smaller at the last instant. This is false for oscillatory motion. Kept all final values and added a per-step time-average comparison. Mean kinetic falls to 0.0831 of control in this case; final kinetic is 1.4602 of control. No equilibrium or post-release stability claim."
+    },
+    {
+      "finding": "Uniform boost numerical roundoff",
+      "detail": "Exact zero COM-relative energy is inappropriate after mass-weighted floating-point averaging of a uniform 5000 m/s boost. Replaced exact-zero test with relative bound 1e-24 of boost kinetic energy; zero velocities before boost still require exact zero."
+    },
+    {
+      "finding": "Build declaration",
+      "detail": "Added missing relaxationSeconds CommandPayload type; final ArkTS build passed."
+    },
+    {
+      "finding": "Scope",
+      "detail": "Separate stationary basalt bodies only; fixed 0.0625-second step and linearly tapered damping 0.5/s. Residual velocities cleared and fracture reset as preparation operations. Requested spin and collision velocity added afterwards. No layered or hydrostatic planet, conserved preparation energy, convergence study or reaggregation."
+    }
+  ]
+}

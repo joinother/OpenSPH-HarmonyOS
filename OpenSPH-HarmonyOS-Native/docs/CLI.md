@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.35.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.36.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -274,7 +274,7 @@ node scripts/export-sph.mjs --device 127.0.0.1:5555 --output /tmp/sph-run.csv
 | `reset` | 重新初始化并暂停 |
 | `seek` | `{ "frame": -1 }` 回最新帧，或指定保留帧索引；暂停求解并停止自动回放 |
 | `listProjects` / `saveProject` / `loadProject` | 列表／按 title 保存／按 id 载入命名实验配方，最多 50 个 |
-| `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v8 |
+| `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v9 |
 
 预设 0–2 为 SPH，3 为双体，4 为四体，5 为自定义。完整配置范围以命令目录和应用校验为准。`getState.definition` 是初始条件，`simulation.bodies` 为当前显示的质心参考系数据；SPH 时间单位为秒，轨道为儒略年。
 
@@ -442,3 +442,13 @@ CLI 验证覆盖状态和共享动作；实际触摸、键盘焦点、动画观�
 `getSphTable` 的新 CSV 在原 12 列之后追加 `gravity_J,relative_kinetic_J,rms_radius_km,radial_velocity_ms`，共 16 列。旧回放仍导出 12 列。`scripts/export-sph.mjs` 校验两种表头和完整有限数值行，保存原样 CSV 及来源元数据；下游应按表头识别列。
 
 新回放 v7/v8 在每帧原材料记录之后追加四个 double；物理模型配置不变。v1–v6 按原版本读取，重新保存旧回放不会捏造结构数据。全部材料的分布尺度不是单颗行星表面半径，径向速度不是碎片数量或再聚合判据，势能也不能补齐尚缺的弹性应变能。见 [定义与验证](reference/SPH-STRUCTURE.md)。
+
+## SPH 预松弛
+
+`setScene` 可附加 `relaxationSeconds:16` 或 `64`，需要 preset 0–2、`selfGravity:true`、预算不超过 1200；省略或 0 直接生成。其他数值、字符串、null 或未开启自引力会在改变场景前被拒绝。
+
+`scene.relax.0`、`scene.relax.16`、`scene.relax.64` 与参数面板三个按钮共用动作，只修改草稿；调用 `simulation.apply` 才准备新场景。关闭自引力会清除准备草稿。`getUiState.actions` 提供选中／可用状态，`getState.definition.config` 和 `simulation.config` 分别给出草稿和当前物理配置。准备期间可用 `getPreparation` 查看 `relax-target`／`relax-impactor`，通过 `simulation.cancel` 取消；等待时可指定 `--timeout 120000`，超时不自动取消请求。
+
+实验库动作 `theme.direct-impact` 与 `theme.prepared-impact` 提供两组相同基础参数的对照，可用 `theme.compare` 切换并重新准备。模型身份为 `sph-rock-prepared-v1`，命名实验必须与正的准备时长、自引力设置相符。v9 回放在原 108 字节配置头之后增加准备时长 double，再写原 v8 帧内容；旧 v1–v8 仍按原物理身份读取，未保存的准备参数不会补造。旧应用应拒绝新模型／版本。
+
+预松弛期间的耗散不属于碰撞历史，准备完才施加自转／撞击速度，首帧从 0 秒开始。16／64 秒为计算时长而非设备等待时长，也不是平衡或长时稳定保证。详见 [物理流程与对照](reference/SPH-RELAXATION.md)。

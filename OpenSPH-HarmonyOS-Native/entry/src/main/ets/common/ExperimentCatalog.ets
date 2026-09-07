@@ -38,10 +38,19 @@ export function themeExperiments():ThemeExperiment[] {
       config:{preset:0,count:count,speed:5,angle:0,duration:16,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234},
       yaw:.15,pitch:.25,zoom:2.7,focus:-1,closeup:false});
   }
+  for(const prepared of [false,true]) {
+    const config:SimulationConfig={preset:0,count:200,speed:5,angle:30,duration:16,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,selfGravity:true};
+    if(prepared)config.relaxationSeconds=16;
+    result.push({id:prepared?'prepared-impact':'direct-impact',title:prepared?'先准备，再相撞':'直接生成，相同撞击',category:'collision',
+      question:'碰撞前的材料准备，会改变后续压缩吗？',goal:'两组保持粒子预算、速度与偏移一致。运行后查看相同时刻的压力、损伤和结构曲线，再切换对照。',
+      limit:'16 秒定时预松弛只处理静止单体，并非静力平衡；准备过程耗散能量，不属于正式碰撞。未验证分辨率收敛。',
+      badge:prepared?'独立预松弛 16 s · 自引力':'直接初态 · 自引力',cover:'rock-oblique',compareId:prepared?'direct-impact':'prepared-impact',config,
+      yaw:.15,pitch:.25,zoom:2.7,focus:-1,closeup:false});
+  }
   return result;
 }
 export function themeConfigMatches(a:SimulationConfig,b:SimulationConfig):boolean {
-  if((a.selfGravity===true)!==(b.selfGravity===true)||a.preset!==b.preset||a.count!==b.count||a.speed!==b.speed||a.angle!==b.angle||a.duration!==b.duration||
+  if((a.relaxationSeconds??0)!==(b.relaxationSeconds??0)||(a.selfGravity===true)!==(b.selfGravity===true)||a.preset!==b.preset||a.count!==b.count||a.speed!==b.speed||a.angle!==b.angle||a.duration!==b.duration||
     a.targetRadiusKm!==b.targetRadiusKm||a.impactorRadiusKm!==b.impactorRadiusKm||a.targetDensity!==b.targetDensity||
     a.impactorDensity!==b.impactorDensity||a.targetSpin!==b.targetSpin||a.seed!==b.seed)return false;
   const x=a.orbitBodies??[],y=b.orbitBodies??[];if(x.length!==y.length)return false;

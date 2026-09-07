@@ -1,0 +1,51 @@
+{
+  "ok": true,
+  "cases": 4,
+  "timeStepSeconds": 0.0625,
+  "dampingPerSecond": 0.5,
+  "rows": [
+    {
+      "budget": 200,
+      "seconds": 16,
+      "meanKineticRatio": 0.19462672736588466,
+      "finalKineticRatio": 0.3051534754540208
+    },
+    {
+      "budget": 200,
+      "seconds": 64,
+      "meanKineticRatio": 0.1026524476596972,
+      "finalKineticRatio": 0.2286858149280242
+    },
+    {
+      "budget": 600,
+      "seconds": 16,
+      "meanKineticRatio": 0.19142727261862644,
+      "finalKineticRatio": 0.30603884771470585
+    },
+    {
+      "budget": 600,
+      "seconds": 64,
+      "meanKineticRatio": 0.08308832465092507,
+      "finalKineticRatio": 1.4601986786149461
+    }
+  ],
+  "crossPlatformNormalizedErrors": {
+    "budget": 0,
+    "seconds": 0,
+    "count": 0,
+    "initialRadiusKm": 7.371029710133152e-16,
+    "undampedKineticJ": 1.6232065775112585e-14,
+    "dampedKineticJ": 2.8205640189275388e-15,
+    "undampedRadialMS": 8.291978215169138e-16,
+    "dampedRadialMS": 2.220446049250313e-16,
+    "dampedRadiusKm": 7.325855160816493e-16,
+    "meanUndampedKineticJ": 1.2172811018572538e-14,
+    "meanDampedKineticJ": 1.0760991355468715e-15
+  },
+  "limits": [
+    "Final instant can have higher damped kinetic energy: 600-budget 64-second case retained",
+    "Time-averaged motion reduction is not hydrostatic equilibrium or post-release stability",
+    "Single fixed step; no timestep or spatial convergence claim",
+    "Damping and residual velocity reset dissipate preparation energy, outside the collision clock"
+  ]
+}
