@@ -119,19 +119,32 @@ int main(int argc, char **argv) {
             require(std::abs(last->energyError)<1e-7,"orbit energy error");
             require(last->trails.size()==last->particles.size()*512,"trail cap");
             require(e.status().frames==240,"orbit history cap");
+            const auto observed=e.observation(1);const auto oldSelected=e.status().selected;
+            require(observed.samples.size()==240&&observed.samples.front().time>0,"observation history window");
+            require(e.status().selected==oldSelected,"observation read moved timeline");
+            const auto &point=observed.samples.back();const auto &bp=last->particles[1],&sp=last->particles[0];
+            require(std::abs(point.distanceAU-std::hypot(double(bp.x)-sp.x,double(bp.y)-sp.y,double(bp.z)-sp.z))<1e-12&&point.speedKmS==bp.speed,"observation snapshot units");
+            e.seekObservation(5,observed.sceneRevision,observed.samples[5].time);require(e.status().selected==5,"observation seek");
+            for(int mode=0;mode<3;++mode){try{e.seekObservation(mode==2?-1:5,observed.sceneRevision+(mode==0?1:0),observed.samples[5].time+(mode==1?1:0));throw std::runtime_error("stale observation accepted");}catch(const std::invalid_argument&){}require(e.status().selected==5,"stale observation changed selection");}
+            e.seek(-1);
             require(e.saveReplay(dir),"orbit save");e.start({0,200,5,0,1});awaitState(e,"completed");
             require(e.loadReplay(dir),"orbit replay load");e.seek(-1);auto restored=e.frame();
             require(e.status().config.preset==preset&&restored->orbital,"orbit model restoration");
+            const auto replayObservation=e.observation(1);require(replayObservation.samples.size()==observed.samples.size(),"replay observation count");
+            for(size_t i=0;i<observed.samples.size();++i)require(replayObservation.samples[i].time==observed.samples[i].time&&replayObservation.samples[i].distanceAU==observed.samples[i].distanceAU&&replayObservation.samples[i].speedKmS==observed.samples[i].speedKmS,"replay observation changed");
+            require(replayObservation.sceneRevision!=observed.sceneRevision,"replay observation revision");
             require(restored->energyError==last->energyError&&restored->trails.size()==last->trails.size(),"orbit diagnostics restoration");
             require(std::memcmp(restored->trails.data(),last->trails.data(),last->trails.size()*sizeof(Particle))==0,"orbit trails changed");
             const auto path=dir+"/last-replay.osphr";std::ifstream file(path,std::ios::binary);
             std::string bytes((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());file.close();
             {std::ofstream out(path,std::ios::binary|std::ios::trunc);out.write(bytes.data(),bytes.size()-1);}
             require(!e.loadReplay(dir)&&e.frame()==restored,"truncated orbit replay changed state");
+            const auto stale=e.observation(1);auto next=std::make_shared<Frame>(*restored);next->time+=.01;e.publish(next,e.sceneRevision(),0);
+            try{e.seekObservation(0,stale.sceneRevision,stale.samples[0].time);throw std::runtime_error("shifted history accepted");}catch(const std::invalid_argument&){}
             c.speed=2;try{e.start(c);throw std::runtime_error("invalid orbit speed accepted");}catch(const std::invalid_argument&){}
             e.start({preset,600,1,0,2});e.pause(true);awaitState(e,"paused");e.cancel();
-            e.start({0,200,5,0,1});awaitState(e,"completed");require(!e.frame()->orbital,"orbit to SPH switching failed");
-            std::cout<<"PASS orbit preset="<<preset<<" pause, 2 years, conserved energy, bounded trails/history, v3 roundtrip, truncation atomicity, cancel and SPH switching"<<std::endl;
+            e.start({0,200,5,0,1});awaitState(e,"completed");require(!e.frame()->orbital,"orbit to SPH switching failed");require(e.observation(1).samples.empty(),"SPH leaked orbital observation");
+            std::cout<<"PASS orbit preset="<<preset<<" observation units/read-only/guarded seek/history eviction/replay, pause, 2 years, conserved energy, bounded trails/history, v3 roundtrip, truncation atomicity, cancel and SPH switching"<<std::endl;
         }
         {
             Config c{5,600,1,0,1};c.orbitBodies.push_back({"中央恒星",1,0,0,0,0,0,0,0});

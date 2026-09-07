@@ -1,0 +1,216 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "three window sizes retain samples and immersion",
+    "actual speed button tap changes metric",
+    "full plot bounds fit the visible scroll viewport",
+    "actual maximum tap selects exact historical frame without camera/scene rebuild"
+  ],
+  "results": [
+    {
+      "name": "wide",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 22.4,
+            "width": 707.2,
+            "height": 750.72
+          },
+          "compact": false,
+          "sidePanel": true,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 383.20000000000005,
+            "y": 98.4,
+            "width": 308,
+            "height": 516.72
+          },
+          "dock": {
+            "x": 143.60000000000002,
+            "y": 635.12,
+            "width": 420,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 98.4,
+            "width": 359.20000000000005,
+            "height": 524.72
+          }
+        },
+        "geometry": {
+          "widthPx": 2210,
+          "heightPx": 2416,
+          "topPx": 70,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 39
+        },
+        "viewportWidthVp": 707.2,
+        "viewportHeightVp": 773.12,
+        "widthVp": 707.2,
+        "heightVp": 773.12,
+        "immersive": true,
+        "safePx": {
+          "top": 70,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "buttonBounds": [
+        1458,
+        660,
+        1609,
+        773
+      ],
+      "plotBounds": [
+        1304,
+        933,
+        2054,
+        1246
+      ],
+      "selected": 170,
+      "time": 1.73046875
+    },
+    {
+      "name": "phone",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 0,
+            "y": 20.48,
+            "width": 345.6,
+            "height": 761.6
+          },
+          "compact": false,
+          "sidePanel": false,
+          "headerHeight": 66,
+          "drawer": {
+            "x": 12,
+            "y": 243.28,
+            "width": 321.6,
+            "height": 380.8
+          },
+          "dock": {
+            "x": 16,
+            "y": 644.08,
+            "width": 313.6,
+            "height": 130
+          },
+          "scene": {
+            "x": 12,
+            "y": 96.48,
+            "width": 321.6,
+            "height": 134.8
+          }
+        },
+        "geometry": {
+          "widthPx": 1080,
+          "heightPx": 2444,
+          "topPx": 64,
+          "bottomPx": 0,
+          "leftPx": 0,
+          "rightPx": 0,
+          "revision": 42
+        },
+        "viewportWidthVp": 345.6,
+        "viewportHeightVp": 782.08,
+        "widthVp": 345.6,
+        "heightVp": 782.08,
+        "immersive": true,
+        "safePx": {
+          "top": 64,
+          "bottom": 0,
+          "left": 0,
+          "right": 0
+        }
+      },
+      "buttonBounds": [
+        298,
+        1112,
+        449,
+        1225
+      ],
+      "plotBounds": [
+        166,
+        1385,
+        916,
+        1698
+      ],
+      "selected": 170,
+      "time": 1.73046875
+    },
+    {
+      "name": "landscape",
+      "window": {
+        "layout": {
+          "safe": {
+            "x": 20.48,
+            "y": 0,
+            "width": 761.6,
+            "height": 345.6
+          },
+          "compact": true,
+          "sidePanel": true,
+          "headerHeight": 54,
+          "drawer": {
+            "x": 458.08000000000004,
+            "y": 64,
+            "width": 308,
+            "height": 269.6
+          },
+          "dock": {
+            "x": 36.480000000000004,
+            "y": 271.6,
+            "width": 393.6,
+            "height": 66
+          },
+          "scene": {
+            "x": 32.480000000000004,
+            "y": 64,
+            "width": 413.6,
+            "height": 195.60000000000002
+          }
+        },
+        "geometry": {
+          "widthPx": 2444,
+          "heightPx": 1080,
+          "topPx": 0,
+          "bottomPx": 0,
+          "leftPx": 64,
+          "rightPx": 0,
+          "revision": 45
+        },
+        "viewportWidthVp": 782.08,
+        "viewportHeightVp": 345.6,
+        "widthVp": 782.08,
+        "heightVp": 345.6,
+        "immersive": true,
+        "safePx": {
+          "top": 0,
+          "bottom": 0,
+          "left": 64,
+          "right": 0
+        }
+      },
+      "buttonBounds": [
+        1692,
+        502,
+        1843,
+        615
+      ],
+      "plotBounds": [
+        1538,
+        420,
+        2288,
+        733
+      ],
+      "selected": 170,
+      "time": 1.73046875
+    }
+  ]
+}

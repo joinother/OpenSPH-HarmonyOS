@@ -279,6 +279,30 @@ Status Engine::status() {
     }
     return s;
 }
+OrbitObservation Engine::observation(int body) {
+    if(body<1||body>7)throw std::invalid_argument("Observation requires planet index 1..7");
+    std::lock_guard<std::mutex> lock(mutex);
+    OrbitObservation result;result.sceneRevision=generation.load();result.body=body;result.selected=current.selected;
+    if(history.empty()||!history.back()->orbital||size_t(body)>=history.back()->particles.size())return result;
+    const char *names[]={"恒星","蓝色行星","金色行星","红色行星"};
+    result.name=config.preset==5?config.orbitBodies.at(body).name:(body<4?names[body]:"行星 "+std::to_string(body));
+    result.samples.reserve(history.size());
+    for(size_t i=0;i<history.size();++i){const auto &f=*history[i];
+        if(!f.orbital||size_t(body)>=f.particles.size()){result.samples.clear();return result;}
+        const auto &p=f.particles[body],&star=f.particles[0];
+        const double x=double(p.x)-star.x,y=double(p.y)-star.y,z=double(p.z)-star.z;
+        result.samples.push_back({int(i),f.time,std::sqrt(x*x+y*y+z*z),p.speed});
+    }
+    return result;
+}
+void Engine::seekObservation(int index, uint64_t revision, double time) {
+    std::lock_guard<std::mutex> lock(mutex);
+    // History indices shift at the 240-frame cap. Refuse a stale chart atomically.
+    if(revision!=generation.load()||index<0||size_t(index)>=history.size()||
+       !std::isfinite(time)||history[index]->time!=time||!history[index]->orbital)
+        throw std::invalid_argument("Observation changed; refresh the chart and try again");
+    paused=true;if(current.state=="running")current.state="paused";current.selected=index;
+}
 std::shared_ptr<const Frame> Engine::frame() {
     std::lock_guard<std::mutex> lock(mutex);
     if (history.empty())

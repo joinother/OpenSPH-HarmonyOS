@@ -1,4 +1,5 @@
-import simulation, { SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
+import { observationPlot, ObservationPlot } from '../common/ObservationModel';
+import simulation, { OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
 import { copiedPlanetDraft, PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
 import { themeExperiments, themeConfigMatches, ThemeExperiment } from '../common/ExperimentCatalog';
@@ -29,6 +30,7 @@ interface ProjectList { ok: boolean; projects: ProjectSummary[]; }
 interface AppearanceState { clouds:boolean; atmosphere:boolean; trails:boolean; closeup:boolean; autoSpin:boolean; rings:boolean; }
 interface SkyState {mode:number;brightness:number;reference:string;}
 interface PlacementState { sourceIndex:number; sourceName:string; active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
+interface ObservationReply {ok:boolean;metric:string;data:OrbitObservation;plot:ObservationPlot;}
 interface ThemeState { id:string; title:string; goal:string; limit:string; modified:boolean; compareId:string; }
 interface MoonAssetInfo {source:string;asset:string;credit:string;width:number;height:number;requested:boolean;ready:boolean;uploads:number;blend:number;error:string;decodedBudgetBytes:number;gpuBudgetBytes:number;}
 interface MoonAssetReply {ok:boolean;moon:MoonAssetInfo;}
@@ -169,6 +171,8 @@ struct Index {
   @State closeup: boolean = false;
   @State autoSpin: boolean = false;
   @State rings: boolean = true;
+  @State observationMetric:string='distance';
+  @State observed:OrbitObservation={sceneRevision:0,body:1,name:'',selected:-1,samples:[]};
   @State trace:RingTraceStatus={speedScale:1,rateHours:1,eccentricity:0,innerApoapsisKm:76800,outerApoapsisKm:133200,referenceXKm:76800,referenceYKm:0,referenceRadiusKm:76800,referenceSpeedKmS:0,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-elliptic-kepler-v2'};
   @State skyLoadError:string='';
   @State rendering: RenderStatus = {moonReady:false,moonUploads:0,moonBlend:0,moonError:'',materialExposure:0,materialOcean:true,materialCloudShadows:true,panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
@@ -207,6 +211,21 @@ struct Index {
     if (this.info.state === 'replay') return '已载入回放';
     return '准备实验';
   }
+  private refreshObservation():void {
+    this.observed=simulation.orbitObservation(this.focus>0?this.focus:1);
+  }
+  private observationView():ObservationPlot {return observationPlot(this.observed,this.observationMetric);}
+  private observationWidth():number {return Math.max(120,Math.min(240,this.layout().drawer.width-64));}
+  private observationPath(path:string):string {
+    const scale=this.observationWidth()/240;
+    return this.pathPixels(path.replace(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/g,(v:string):string=>String(Number(v)*scale)));
+  }
+  private seekObservationExtreme(maximum:boolean):void {
+    this.refreshObservation();const p=this.observationView();if(!p.available)throw new Error('暂无轨道记录');
+    simulation.seekObservation(maximum?p.maxFrame:p.minFrame,this.observed.sceneRevision,maximum?p.maxTime:p.minTime);
+    this.stopTrace();this.playing=false;this.info=simulation.status();this.refreshObservation();
+    this.notice='已定位记录中的'+(maximum?'最大值':'最小值')+' · 不代表完整轨道极值';
+  }
   private directory(): string { return (this.getUIContext().getHostContext() as common.UIAbilityContext).filesDir; }
   aboutToAppear(): void {
     this.refreshProjects();
@@ -217,6 +236,7 @@ struct Index {
       const previousState: string = this.info.state;
       this.info = simulation.status();this.cameraFlight=simulation.getCameraMotion(0).state;this.rendering=simulation.renderStatus();this.trace=simulation.ringTraceStatus(false);
       this.ensureMoonTexture();
+      if(this.panelOpen&&this.tab===1&&this.appForeground)this.refreshObservation();
       if (this.info.state === 'completed' && previousState !== 'completed' && !this.ioBusy) { this.notice = '计算完成 · 可在时间轴回看结果'; }
       if (this.playing && this.appForeground && this.info.frames > 0) {
         const next: number = this.info.selected < 0 ? 0 : this.info.selected + 1;
@@ -632,6 +652,7 @@ struct Index {
   }
   private togglePanel(value: number): void {this.setPanel(this.panelOpen&&this.tab===value?-1:value);}
   private setPanel(value: number): void {
+    if(value===1)this.refreshObservation();
     const epoch: number = ++this.panelEpoch;
     if(value===-1) {this.panelOpen=false;this.composeViewport();return;}
     this.toolsVisible=true;
@@ -666,6 +687,7 @@ struct Index {
       editedBody:this.editedBody,targetName:this.targetName,impactorName:this.impactorName,title:this.title,selectingPreset:this.selectingPreset};
   }
   private uiActions():UiActionInfo[] {
+    this.refreshObservation();
     const a:UiActionInfo[]=[];
     const add=(id:string,label:string,enabled:boolean=true,selected:boolean=false):void=>{a.push({id:id,label:label,enabled:enabled&&!this.ioBusy,selected:selected});};
     add('panel.parameters','参数',true,this.panelOpen&&this.tab===0);add('panel.observe','观察',true,this.panelOpen&&this.tab===1);add('panel.library','实验库',true,this.panelOpen&&this.tab===2);
@@ -692,6 +714,8 @@ struct Index {
     add('color.0','原色',true,this.colorMode===0);add('color.1','速度',true,this.colorMode===1);add('color.2','密度',this.preset<3,this.colorMode===2);
     add('trace.controls','调整局部轨道',this.trace.enabled);add('trace.circular','圆轨道对照',this.trace.enabled);add('trace.ellipse','拉长轨道',this.trace.enabled);add('trace.apoapsis','跳到内圈远点',this.trace.enabled&&this.trace.innerPeriodHours/2<=24);
     add('trace.toggle','开普勒示踪粒子',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
+    add('observation.distance','距恒星',this.preset>=3,this.observationMetric==='distance');add('observation.speed','速度',this.preset>=3,this.observationMetric==='speed');
+    add('observation.minimum','记录最小',this.preset>=3&&this.observationView().available);add('observation.maximum','记录最大',this.preset>=3&&this.observationView().available);
     add('moon.retry','重试月面贴图',!!(this.moonLoadError||this.rendering.moonError));
     add('material.ocean','海洋反光',this.preset>=3,this.ocean);add('material.cloudShadows','云影',this.preset>=3,this.cloudShadows);add('material.reset','还原光照',this.preset>=3);
     add('appearance.rings','环带',this.preset>=3,this.rings);add('appearance.clouds','云层',this.preset>=3,this.clouds);add('appearance.atmosphere','大气',this.preset>=3,this.atmosphere);add('appearance.trails','轨迹',this.preset>=3,this.trails);add('appearance.spin','外观自转',this.preset>=3,this.autoSpin);
@@ -818,6 +842,8 @@ struct Index {
     else if(action.startsWith('sky.mode.'))this.changeSky(Number(action.slice(9)),this.skyBrightness);
     else if(action==='orbit.plane.xy')this.vectorPlane='XY';
     else if(action==='orbit.plane.xz')this.vectorPlane='XZ';
+    else if(action==='observation.distance'||action==='observation.speed'){this.observationMetric=action==='observation.speed'?'speed':'distance';this.refreshObservation();}
+    else if(action==='observation.minimum'||action==='observation.maximum')this.seekObservationExtreme(action==='observation.maximum');
     else if(action==='orbit.add')this.beginPlacement();
     else if(action==='orbit.copy')this.beginPlacement(this.orbitEdit);
     else if(action==='placement.cancel')this.cancelPlacement();
@@ -876,6 +902,7 @@ struct Index {
       {name:'getSkyInfo',payload:'{} - provenance and sky rendering status'},
       {name:'getProjectedBodies',payload:'{} - last presented orbital frame; normalized top-left x/y, radius in viewport-height units; ignores UI occlusion'},
       {name:'pickBody',payload:'{x:0..1,y:0..1} - viewport hit test, shared focus action; hit=-1 leaves selection unchanged'},
+      {name:'getOrbitObservation',payload:'{} - current planet (or first planet), retained-frame distance/speed curve; read-only'},
       {name:'getPlacementPreview',payload:'{} - candidate initial conditions, two-body guide; no mutation'},
       {name:'setPlacementPoint',payload:'{x:0..1,y:0..1} in the placement plot; same handler as tap/drag'},
       {name:'getOrbitPreview',payload:'{} - initial editor vector drafts, input coordinates, XY/XZ; does not change physics'},
@@ -912,6 +939,7 @@ struct Index {
     if(command==='getSurfaceInfo'){const response:MoonAssetReply={ok:true,moon:{source:'https://svs.gsfc.nasa.gov/4720/',asset:'lroc_color_2k.jpg',credit:"NASA's Scientific Visualization Studio",width:2048,height:1024,requested:this.moonRequested,ready:simulation.renderStatus().moonReady,uploads:simulation.renderStatus().moonUploads,blend:simulation.renderStatus().moonBlend,error:this.moonLoadError||simulation.renderStatus().moonError,decodedBudgetBytes:8388608,gpuBudgetBytes:11184812}};return JSON.stringify(response);}
     if(command==='getProjectedBodies')return JSON.stringify({ok:true,projection:simulation.projectedScene()});
     if(command==='pickBody'){const hit=await this.pickViewport(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,hit:hit});}
+    if(command==='getOrbitObservation'){this.refreshObservation();const reply:ObservationReply={ok:true,metric:this.observationMetric,data:this.observed,plot:this.observationView()};return JSON.stringify(reply);}
     if(command==='getPlacementPreview')return JSON.stringify({ok:true,active:this.placing,preview:this.placementPreview()});
     if(command==='setPlacementPoint'){this.movePlacement(this.checked(p.x,0,1),this.checked(p.y,0,1));return this.snapshot();}
     if(command==='getOrbitPreview'){if(this.preset!==5)throw new Error('需要自定义系统');return JSON.stringify({ok:true,body:this.orbitEdit,draft:this.orbitDraft,reference:'initial-input',preview:this.orbitPreview()});}
@@ -1007,6 +1035,33 @@ struct Index {
     }.width('100%')
     Text(this.colorMode===0?'只调整天体画面亮度；海洋反光用于海陆外观，云影随云层开关。':'速度着色中暂不显示曝光与材质效果。').fontSize(11).fontColor('#ADA8BF').lineHeight(18).width('100%')
     Divider().color('#33B4A7D6')
+  }
+  @Builder
+  observationControls() {
+    Column({space:8}) {
+      Text('轨道观察 · '+(this.observed.name||'等待初始帧')).fontSize(15).fontColor('#E2EEF5').width('100%')
+      Row({space:6}) {
+        ChoiceChip({label:'距恒星',active:this.observationMetric==='distance',onPress:()=>{this.press('observation.distance');}}).id('observation-distance')
+        ChoiceChip({label:'速度',active:this.observationMetric==='speed',onPress:()=>{this.press('observation.speed');}}).id('observation-speed')
+      }.width('100%')
+      if(this.observationView().available) {
+        Text(this.observationView().current.toPrecision(5)+' '+this.observationView().unit+' · '+this.observationView().currentTime.toFixed(3)+' 年').fontSize(13).fontColor('#BDE9FF').width('100%')
+        Text(this.observationView().high.toPrecision(5)+' '+this.observationView().unit).fontSize(10).fontColor('#ABA6C0').width('100%')
+        Stack({alignContent:Alignment.TopStart}) {
+          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath('M0 0 L240 0 M0 50 L240 50 M0 100 L240 100')).stroke('#414055').strokeWidth(1).fillOpacity(0)
+          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.observationView().path)).stroke('#A9E1EF').strokeWidth(2).fillOpacity(0)
+          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.observationView().cursorPath)).stroke('#CDB9F0').strokeWidth(1).fillOpacity(0)
+        }.id('observation-plot').width(this.observationWidth()).height(this.observationWidth()*100/240).clip(true)
+        Row(){Text(this.observationView().low.toPrecision(5)+' '+this.observationView().unit).fontSize(10).fontColor('#ABA6C0');Blank();Text(this.observationView().firstTime.toFixed(3)+'–'+this.observationView().lastTime.toFixed(3)+' 年').fontSize(10).fontColor('#ABA6C0')}.width('100%')
+        Row({space:6}) {
+          ChoiceChip({label:'记录最小',onPress:()=>{this.press('observation.minimum');}}).id('observation-minimum')
+          ChoiceChip({label:'记录最大',onPress:()=>{this.press('observation.maximum');}}).id('observation-maximum')
+        }.width('100%')
+        Text('最小 '+this.observationView().minimum.toPrecision(5)+' / 最大 '+this.observationView().maximum.toPrecision(5)+' '+this.observationView().unit).fontSize(10).fontColor('#B7C5D5').width('100%')
+      } else {Text('运行轨道实验后显示曲线').fontSize(12).fontColor('#B7C5D5')}
+      Text((this.observationMetric==='distance'?'相对恒星中心的距离':'系统质心参考系中的速率')+'；最近 '+this.observed.samples.length+' / 240 帧。选择行星可切换对象，全景观察第一颗行星；采样极值不代表完整轨道近远点。').fontSize(10).fontColor('#ABA6C0').lineHeight(16)
+      Divider().color('#33B4A7D6')
+    }.width('100%')
   }
   @Builder
   header() {
@@ -1498,7 +1553,7 @@ struct Index {
         }.width('100%')
       } else if(this.tab===1) {
         if(this.trace.enabled){this.traceControls()}
-        if(this.preset>=3){this.materialControls()}
+        if(this.preset>=3){this.observationControls();this.materialControls()}
         this.themeGuide()
         this.skyControls()
         if(this.preset>=3) {

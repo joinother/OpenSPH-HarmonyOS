@@ -191,6 +191,21 @@ napi_value pick(napi_env e,napi_callback_info i){try{auto a=args(e,i,3);float x=
     napi_value v;napi_create_int32(e,lab::pickProjected(s.bodies,x,y,float(s.width)/s.height,padding),&v);return v;
     }catch(const std::exception &ex){return fail(e,ex);}
 }
+napi_value observation(napi_env e, napi_callback_info i) {
+    try {
+        auto a=args(e,i,1);const auto data=lab::Engine::instance().observation(integer(e,a[0]));
+        napi_value o,list;napi_create_object(e,&o);napi_create_array_with_length(e,data.samples.size(),&list);
+        num(e,o,"sceneRevision",data.sceneRevision);num(e,o,"body",data.body);num(e,o,"selected",data.selected);str(e,o,"name",data.name);
+        for(size_t k=0;k<data.samples.size();++k){const auto &p=data.samples[k];napi_value v;napi_create_object(e,&v);
+            num(e,v,"frame",p.frame);num(e,v,"time",p.time);num(e,v,"distanceAU",p.distanceAU);num(e,v,"speedKmS",p.speedKmS);napi_set_element(e,list,k,v);}
+        napi_set_named_property(e,o,"samples",list);return o;
+    }catch(const std::exception &ex){return fail(e,ex);}
+}
+napi_value seekObservation(napi_env e, napi_callback_info i) {
+    try {auto a=args(e,i,3);const int revision=integer(e,a[1]);if(revision<0)throw std::invalid_argument("Invalid revision");
+        lab::Engine::instance().seekObservation(integer(e,a[0]),uint64_t(revision),number(e,a[2]));
+    }catch(const std::exception &ex){return fail(e,ex);}return undef(e);
+}
 napi_value status(napi_env e, napi_callback_info) {
     auto s = lab::Engine::instance().status();
     napi_value o;
@@ -312,6 +327,8 @@ napi_value Init(napi_env e, napi_value exports) {
         {"navigateCamera", nullptr, navigateCamera, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getCameraMotion", nullptr, getCameraMotion, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"cancelCameraMotion", nullptr, cancelCameraMotion, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"orbitObservation", nullptr, observation, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"seekObservation", nullptr, seekObservation, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"status", nullptr, status, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"saveReplay", nullptr, save, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"loadReplay", nullptr, load, nullptr, nullptr, nullptr, napi_default, nullptr}};

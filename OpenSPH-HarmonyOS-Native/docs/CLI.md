@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.25.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.26.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -119,6 +119,25 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 副本名称在 48 字符内避免重名，不拆开 Unicode 代理对。新轨道从相对恒星的 XY 平面圆轨道开始，优先采用原始相对距离（初始建议限制在 0.1–8 AU）、错开方位；若越界或占位则尝试其他角度／距离，所有候选仍执行原有速度、坐标、质量与间距校验。未找到可用位置时保留无效预览供修改，不能确认。
 
 `getState.placement` 增加 `sourceIndex` 与 `sourceName`，表示当前复制草稿的来源；普通添加或退出放置后为 −1／空字符串。这是会话提示，不是持久化的天体关联。确认后的新天体独立编辑，使用原有撤销／重做和命名实验保存路径。主系统正在运行时预览不暂停主时钟；进入放置仍按既有规则退出局部示踪模式。
+
+## 轨道观察曲线
+
+观察面板顶部提供“距恒星”和“速度”。曲线目标跟随镜头选择的行星；全景或选中恒星时观察第一颗行星。`getOrbitObservation` 为只读命令，返回 `{ok,metric,data,plot}`：`data` 含场景修订号、目标名称／索引、当前帧选择和最多 240 个 `{frame,time,distanceAU,speedKmS}` 样本；`plot` 含采样范围、轴范围、当前读数和采样极值。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"panel.observe"}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getOrbitObservation
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"observation.speed"}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"observation.maximum"}'
+```
+
+- `observation.distance` / `observation.speed`：切换 AU 距离和 km/s 速率，不改变物理参数或镜头。
+- `observation.minimum` / `observation.maximum`：在当前指标的保留记录中寻找最小／最大值，暂停演算并选择相应帧；相等时选择最早保留帧。停止回放播放并退出局部示踪，沿用现有回放语义，不能从该帧恢复积分。
+- 曲线横轴按实际年数分布，紫线标记当前查看的帧；原时间轴拖动也会更新曲线读数。数据范围随 240 帧保留窗口移动，未必包含初始时刻或完整周期。
+- 距离是该行星到第 0 个天体（恒星）中心的三维距离；速度是系统质心参考系中的速率，不是相对恒星速度。数据来自已有单精度显示／回放快照，不是新增双精度科学输出。
+- 无历史帧或 SPH 模型返回空曲线；极值动作禁用。放置中或 I/O 忙碌时沿用统一动作限制。新场景不拼接旧记录，载入轨道回放后可从原快照重建曲线。
+
+原生极值跳转在同一锁内核对场景修订号、帧索引与时间；若记录已因重建或滚动过期，则拒绝跳转，刷新后可重试。曲线不是连续轨道解析，采样最小／最大值不能直接称为近星点／远星点。单次实验曲线尚不包含跨实验叠加、CSV 导出、完整历史保存或新的 SPH 热力学诊断。指标选择属于当前会话界面状态，不写入实验配方。
 
 ## 局部示踪环
 

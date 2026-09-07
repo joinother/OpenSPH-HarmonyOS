@@ -48,3 +48,8 @@ export interface CameraMotionStatus {requestId:number;sceneRevision:number;targe
 export const navigateCamera:(yaw:number,pitch:number,zoom:number,focus:number,color:number,closeup:boolean,duration:number,animatePose:boolean,force:boolean)=>CameraMotionStatus;
 export const getCameraMotion:(requestId:number)=>CameraMotionStatus;
 export const cancelCameraMotion:(requestId:number)=>CameraMotionStatus;
+
+export interface ObservationSample {frame:number;time:number;distanceAU:number;speedKmS:number;}
+export interface OrbitObservation {sceneRevision:number;body:number;name:string;selected:number;samples:ObservationSample[];}
+export const orbitObservation:(body:number)=>OrbitObservation;
+export const seekObservation:(frame:number,sceneRevision:number,time:number)=>void;

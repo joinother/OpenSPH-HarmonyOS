@@ -47,6 +47,13 @@ struct Status {
     double energyError = 0, angularError = 0;
     std::vector<Particle> bodies;
 };
+struct ObservationSample { int frame; double time, distanceAU, speedKmS; };
+struct OrbitObservation {
+    uint64_t sceneRevision=0;
+    int body=1, selected=-1;
+    std::string name;
+    std::vector<ObservationSample> samples;
+};
 class Engine {
   public:
     Engine();
@@ -56,6 +63,8 @@ class Engine {
     void cancel();
     void seek(int index);
     Status status();
+    OrbitObservation observation(int body);
+    void seekObservation(int index, uint64_t revision, double time);
     std::shared_ptr<const Frame> frame();
     uint64_t sceneRevision() const { return generation.load(); }
     bool saveReplay(const std::string &directory);
