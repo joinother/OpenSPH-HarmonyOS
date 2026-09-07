@@ -1,6 +1,6 @@
 # 星体实验室 GitHub 检查点
 
-记录日期：2026-09-07（Asia/Shanghai）；源码版本：0.33.0。
+记录日期：2026-09-07（Asia/Shanghai）；源码版本：0.33.1。
 
 ## 恢复开发
 
@@ -17,6 +17,8 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 构建需要 DevEco Studio 与 HarmonyOS SDK；安装请遵循工程 README，当前任务只操作模拟器 127.0.0.1:5555。签名配置、依赖缓存、构建目录和发布二进制不纳入源码检查点。
 
 ## 保存范围与验证
+
+- 0.33.1 修复近看统一隐藏太阳和其他天体，增加目标相对方向投影，保持遮挡与点选深度一致。原生投影／相机测试、模拟器三布局可见性与点选及相机请求回归通过；原椭圆环时刻和用户实验已恢复。见 [修复记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.33.1.md)。
 
 - 0.33.0 将环面、环影与可见颗粒统一为同一组 8192 个运动粒子，增加受控局部径向扰动和版本化保存，修复跨场景误关闭环模式。97 项主机、1,179,648 个原生轨道状态、模拟器冷恢复／三窗口／配方与 UI 回归通过；原椭圆环时刻、镜头和十个用户实验已恢复。仍无颗粒互撞或自引力，完整行星碰撞待实现。见 [0.33.0 记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.33.0.md) 与 [物理主线](OpenSPH-HarmonyOS-Native/docs/reference/RING-AND-COLLISION.md)。
 

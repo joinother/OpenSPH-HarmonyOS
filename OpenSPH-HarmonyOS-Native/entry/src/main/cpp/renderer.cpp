@@ -275,7 +275,8 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                     auto rotate=[&](float x,float y,float z){return rotateView(c,x,y,z);};
                     shown.ready=true;
                     std::vector<size_t> order;for(size_t i=0;i<frame->particles.size();++i)order.push_back(i);
-                    std::sort(order.begin(),order.end(),[&](size_t i,size_t j){const auto &p=frame->particles[i],&q=frame->particles[j];return rotate(p.x,p.y,p.z)[2]<rotate(q.x,q.y,q.z)[2];});
+                    auto drawDepth=[&](size_t i){const auto &p=frame->particles[i];return projectBody(c,int(i),rotate(p.x-cx,p.y-cy,p.z-cz),w,h,blend,journey.detail(int(i))).depth;};
+                    std::stable_sort(order.begin(),order.end(),[&](size_t i,size_t j){return drawDepth(i)<drawDepth(j);});
                     glDisable(GL_DEPTH_TEST);
                     for(size_t i:order){const auto &p=frame->particles[i];auto v=rotate(p.x-cx,p.y-cy,p.z-cz);
                         const auto &star=frame->particles[0];auto light=rotate(star.x-p.x,star.y-p.y,star.z-p.z);

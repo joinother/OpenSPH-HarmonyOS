@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.33.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.33.1；更新日期：2026-09-07（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -305,6 +305,8 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 验收：`node scripts/test-material-lighting-emulator.mjs 127.0.0.1:5555` 比较真实渲染像素；`node scripts/test-material-controls-emulator.mjs 127.0.0.1:5555` 检查三个窗口中的触摸与滑块。两者替换会话，须先备份并恢复；测试截图不表示真机性能。见 [0.23.0 记录](releases/RELEASE-0.23.0.md)。
 
 ## 外观与相机
+
+近看不再统一隐藏其他天体：目标保持居中放大，其他天体按相对于目标的视线方向投影。旋转镜头会改变可见天体；视野背面、屏幕外或被目标遮住的天体不可见。投影后的深度同时用于绘制和 `pickBody`，被目标挡住的太阳不会抢占点选。过渡仍由原相机请求驱动，不重新加载场景。当前太阳／行星的标记为可读性放大，近看方向投影不是完整自由飞行相机，也不代表真实角直径。
 
 `setAppearance` 接受可选布尔值 clouds、atmosphere、trails、closeup、autoSpin、rings。也可用 `appearance.clouds`、`appearance.atmosphere`、`appearance.trails`、`appearance.spin`、`appearance.rings`。
 

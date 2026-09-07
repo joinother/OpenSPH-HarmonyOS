@@ -17,8 +17,24 @@ inline ProjectedBody projectBody(const Camera &c,int id,std::array<float,3> view
     bool selected=id==c.focus;float amount=bodyDetail<0?(selected?blend:0):bodyDetail;
     float overview=std::max(float(std::min(w,h))*.011f,6.f)*(id==0?1.8f:1.f)/h*std::clamp(2.7f/c.zoom,.6f,3.f);
     float close=std::min(float(std::min(w,h))*.37f,float(h)*.28f)*std::clamp(2.7f/c.zoom,.4f,1.1f)*2/h;
-    return {id,(view[0]/(zoom*aspect)*(1-amount)+1)*.5f,(1-view[1]/zoom*(1-amount))*.5f,
-        (overview+(close-overview)*amount)*.5f,view[2],bodyDetail<0?(selected?1.f:1-blend):std::clamp(1-blend+amount,0.f,1.f)};
+    ProjectedBody result{id,(view[0]/(zoom*aspect)*(1-amount)+1)*.5f,(1-view[1]/zoom*(1-amount))*.5f,
+        (overview+(close-overview)*amount)*.5f,view[2],1.f};
+    // Near the selected body, companions occupy their actual sky directions.
+    // Keep readable marker sizes: these are not calibrated angular diameters.
+    const float distant=std::clamp(blend-amount,0.f,1.f);
+    if(distant>0){
+        const float distance=std::hypot(view[0],view[1],view[2]);
+        const float forward=-view[2],tanHalf=.85f*std::clamp(c.zoom/2.7f,.5f,3.f);
+        const float denominator=std::max(forward,distance*.0001f+1.e-8f)*tanHalf/std::min(aspect,1.f);
+        const float sx=std::clamp(view[0]/(denominator*aspect),-4.f,4.f),sy=std::clamp(view[1]/denominator,-4.f,4.f);
+        result.x+=(.5f+sx*.5f-result.x)*distant;
+        result.y+=(.5f-sy*.5f-result.y)*distant;
+        result.opacity=1-distant+(forward>0?distant:0);
+        // The enlarged target is in front of the distant sky; picking uses this
+        // same depth, and renderer sorting must use the projected depth as well.
+        result.depth+=(-1-distance-result.depth)*distant;
+    }
+    return result;
 }
 inline int pickProjected(const std::vector<ProjectedBody>& bodies,float x,float y,float aspect,float padding) {
     if(!std::isfinite(x)||!std::isfinite(y)||x<0||x>1||y<0||y>1||aspect<=0)return -1;
