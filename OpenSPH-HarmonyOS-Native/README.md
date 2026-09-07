@@ -64,6 +64,8 @@ python3 scripts/check-docs.py
 
 ## 验证与下一步
 
+[天体程序化生成调研](docs/research/PROCEDURAL-CELESTIAL-GENERATION-2026-09-07.md) 已核对 Baopinsui 关联的 NPGS 公开源码、9 个开源候选和华为渲染 MCP 文档，形成逐天体种子与外观配方、陨坑／云层、大气、系统初值和黑洞专项的分批路线。近期优先解决同类行星地貌重复、编辑与存档保持外观；SPH 收敛和自引力继续走独立物理路线。Shadertoy 目录与 Bilibili 空间访问受限，视频仅阅读可见索引，尚未播放；本次研究未接入新功能。
+
 准备阶段跟踪、协作取消及等待诊断见 [0.31.0 记录](docs/releases/RELEASE-0.31.0.md) 和 [准备诊断指南](docs/reference/PREPARATION.md)。这提供定位证据与阶段间退出能力，未确定 0.30 首次卡顿的根因。
 
 新增粒子预算对照、材料方程极限与数值敏感性检查见 [0.30.0 记录](docs/releases/RELEASE-0.30.0.md) 和 [基线说明](docs/reference/SPH-BASELINE.md)。当前损伤与分辨率仍未通过收敛判定。

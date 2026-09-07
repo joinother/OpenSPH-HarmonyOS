@@ -8,6 +8,7 @@
 
 | 文档 | 用途 |
 | --- | --- |
+| [天体程序化生成专题](research/PROCEDURAL-CELESTIAL-GENERATION-2026-09-07.md) | Baopinsui 视频索引与 NPGS 10 份文件选读、9 个开源候选、逐天体种子／地貌／大气路线与 8 个预设；未播放视频或接入新代码 |
 | [准备阶段与取消](reference/PREPARATION.md) | 请求身份、真实阶段、耗时提示与等待失败证据 |
 | [SPH 材料与敏感性基线](reference/SPH-BASELINE.md) | 解析极限、固定步长与粒子预算研究、跨平台数据和未收敛项 |
 | [SPH 诊断与验证](reference/SPH-DIAGNOSTICS.md) | 压力／比内能／损伤、双精度统计、回放 v5、桌面同初值对照与后续接入路线 |

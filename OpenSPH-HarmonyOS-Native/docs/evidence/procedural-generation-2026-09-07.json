@@ -1,0 +1,315 @@
+{
+  "type": "research-evidence",
+  "researchDate": "2026-09-07",
+  "timezone": "Asia/Shanghai",
+  "applicationBaseline": "0.31.0",
+  "scope": "Research/documentation only. No new renderer integration, build, emulator test, video playback or subtitle analysis.",
+  "access": [
+    {
+      "url": "https://www.shadertoy.com/user/baopinsui",
+      "status": null,
+      "error": "HTTP Error 403: Forbidden",
+      "outcome": "403; catalogue and per-work licenses unavailable"
+    },
+    {
+      "url": "https://space.bilibili.com/95332087",
+      "status": 200,
+      "error": null,
+      "outcome": "captcha HTML, not profile contents"
+    },
+    {
+      "url": "https://api.bilibili.com/x/space/acc/info?mid=95332087",
+      "status": 200,
+      "error": null,
+      "outcome": "rate-limited API response code -799"
+    },
+    {
+      "url": "https://api.bilibili.com/x/space/arc/search?mid=95332087&pn=1&ps=30",
+      "status": 200,
+      "error": null,
+      "outcome": "rate-limited API response code -799"
+    }
+  ],
+  "videos": [
+    {
+      "url": "https://www.bilibili.com/video/BV1LS6KByEqz/",
+      "title": "沉浸式坠入kerr黑洞",
+      "indexedPublicationDate": "2026-01-27",
+      "sourceTimezone": "not independently confirmed",
+      "scope": "Indexed author description and chapter list; described as demonstration without explanation.",
+      "watched": false
+    },
+    {
+      "url": "https://www.bilibili.com/video/BV1JuzmBFEcN/",
+      "title": "富有教学意义的坐标网格（并不",
+      "indexedPublicationDate": "2026-01-25",
+      "sourceTimezone": "not independently confirmed",
+      "scope": "Indexed description mentions disabling horizon culling and lower frame rate.",
+      "watched": false
+    },
+    {
+      "url": "https://www.bilibili.com/video/BV1hg5Z6QEoy/",
+      "title": "不同角度的极端kerr黑洞吸积盘内侧成像",
+      "indexedPublicationDate": "2026-05-18",
+      "sourceTimezone": "not independently confirmed",
+      "scope": "Indexed title, author and tags; algorithm explanation unavailable.",
+      "watched": false
+    }
+  ],
+  "titleOnlyLeads": [
+    "中子星、致密星、坍缩星演示",
+    "偏振观察黑洞",
+    "白洞",
+    "光子环",
+    "双黑洞并合"
+  ],
+  "titleOnlyScope": "Search-index leads; full dates, content, implementation and scientific accuracy not verified.",
+  "npgs": {
+    "repo": "baopinshui/NPGS",
+    "commit": "91305ca1661f18b60d6d33ed4616e4cd5b977b9f",
+    "treeFiles": 1362,
+    "files": [
+      {
+        "path": "LICENSE",
+        "url": "https://raw.githubusercontent.com/baopinshui/NPGS/91305ca1661f18b60d6d33ed4616e4cd5b977b9f/LICENSE",
+        "bytes": 35149,
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+        "lines": 674
+      },
+      {
+        "path": "README.md",
+        "url": "https://raw.githubusercontent.com/baopinshui/NPGS/91305ca1661f18b60d6d33ed4616e4cd5b977b9f/README.md",
+        "bytes": 2327,
+        "sha256": "c29eec4a940872ac7f8d5e557f1dc5fccc30120ef28ceac1e36a80e847f5c813",
+        "lines": 39
+      },
+      {
+        "path": "NPGS/Sources/Engine/Shaders/BlackHole_common.glsl",
+        "url": "https://raw.githubusercontent.com/baopinshui/NPGS/91305ca1661f18b60d6d33ed4616e4cd5b977b9f/NPGS/Sources/Engine/Shaders/BlackHole_common.glsl",
+        "bytes": 246293,
+        "sha256": "37dada2bd40ae4432d371f31c1942a70077498a46a9ba0bcbba539ecfff5322e",
+        "lines": 5301
+      },
+      {
+        "path": "NPGS/Sources/Engine/Shaders/BlackHole.comp.glsl",
+        "url": "https://raw.githubusercontent.com/baopinshui/NPGS/91305ca1661f18b60d6d33ed4616e4cd5b977b9f/NPGS/Sources/Engine/Shaders/BlackHole.comp.glsl",
+        "bytes": 24152,
+        "sha256": "366416cf0cd82c2d0960cef9f8bf2adc5f01936686bee70cfed17201412c03b9",
+        "lines": 488
+      },
+      {
+        "path": "NPGS/Sources/Engine/Shaders/BlackHole_prepass.frag.glsl",
+        "url": "https://raw.githubusercontent.com/baopinshui/NPGS/91305ca1661f18b60d6d33ed4616e4cd5b977b9f/NPGS/Sources/Engine/Shaders/BlackHole_prepass.frag.glsl",
+        "bytes": 736,
+        "sha256": "de2b7d842aa8745345bb115dfdc6a0d99a4e8dbda90fb8a1da7c55cb7c9ffec7",
+        "lines": 29
+      },
+      {
+        "path": "NPGS/Sources/Engine/Shaders/BlackHole_composite.frag.glsl",
+        "url": "https://raw.githubusercontent.com/baopinshui/NPGS/91305ca1661f18b60d6d33ed4616e4cd5b977b9f/NPGS/Sources/Engine/Shaders/BlackHole_composite.frag.glsl",
+        "bytes": 8513,
+        "sha256": "8a96ecffa50dbd79e5f9dfa178f331e6588e252bf9b249d11147463a9ceb457c",
+        "lines": 201
+      },
+      {
+        "path": "NPGS/Sources/Engine/Core/System/Generators/StellarGenerator.h",
+        "url": "https://raw.githubusercontent.com/baopinshui/NPGS/91305ca1661f18b60d6d33ed4616e4cd5b977b9f/NPGS/Sources/Engine/Core/System/Generators/StellarGenerator.h",
+        "bytes": 12504,
+        "sha256": "f2093ff83a54a1d1d63b87c347aebf5ee3213054071ed5bc2463642f7a304255",
+        "lines": 267
+      },
+      {
+        "path": "NPGS/Sources/Engine/Core/System/Generators/StellarGenerator.cpp",
+        "url": "https://raw.githubusercontent.com/baopinshui/NPGS/91305ca1661f18b60d6d33ed4616e4cd5b977b9f/NPGS/Sources/Engine/Core/System/Generators/StellarGenerator.cpp",
+        "bytes": 98034,
+        "sha256": "96d0db9f619856d2474f6846bdaeace9a226e879606dceb8676aff81c270f354",
+        "lines": 2451
+      },
+      {
+        "path": "NPGS/Sources/Engine/Core/System/Generators/OrbitalGenerator.h",
+        "url": "https://raw.githubusercontent.com/baopinshui/NPGS/91305ca1661f18b60d6d33ed4616e4cd5b977b9f/NPGS/Sources/Engine/Core/System/Generators/OrbitalGenerator.h",
+        "bytes": 5773,
+        "sha256": "1d9b72677fbdcbaac40a584c8ba081b182b66d5bc09a3f6a0d1fb88465ffc061",
+        "lines": 125
+      },
+      {
+        "path": "NPGS/Sources/Engine/Core/System/Generators/OrbitalGenerator.cpp",
+        "url": "https://raw.githubusercontent.com/baopinshui/NPGS/91305ca1661f18b60d6d33ed4616e4cd5b977b9f/NPGS/Sources/Engine/Core/System/Generators/OrbitalGenerator.cpp",
+        "bytes": 117445,
+        "sha256": "6cdcaf92028c1f240b863f97551bc989915132f74c09a993be7d8fa7138508ef",
+        "lines": 2635
+      }
+    ],
+    "scope": "Selected source passages inspected; downloaded files are not a complete code or scientific audit; no program executed.",
+    "treeScope": "1362 file paths, including assets and other non-source files; not 1362 audited source files."
+  },
+  "solarSystem": {
+    "repo": "SebLague/Solar-System",
+    "commit": "0c60882be69b8e96d6660c28405b9d19caee76d5",
+    "files": [
+      {
+        "path": "Assets/Scripts/Celestial/NoiseSettings/CraterSettings.cs",
+        "url": "https://raw.githubusercontent.com/SebLague/Solar-System/0c60882be69b8e96d6660c28405b9d19caee76d5/Assets/Scripts/Celestial/NoiseSettings/CraterSettings.cs",
+        "bytes": 2516,
+        "sha256": "cc45a0248d6af981ecef3de6dfbed0e8ec8e35c6ecd4510a575b30c5fdeb892f"
+      },
+      {
+        "path": "Assets/Scripts/Celestial/Shaders/Includes/Craters.cginc",
+        "url": "https://raw.githubusercontent.com/SebLague/Solar-System/0c60882be69b8e96d6660c28405b9d19caee76d5/Assets/Scripts/Celestial/Shaders/Includes/Craters.cginc",
+        "bytes": 810,
+        "sha256": "17f615de61020ad397e4d4c23761792ac9a3a5b36ab742049bbbfccd1146fd75"
+      },
+      {
+        "path": "Assets/Scripts/Celestial/Shape/MoonShape.cs",
+        "url": "https://raw.githubusercontent.com/SebLague/Solar-System/0c60882be69b8e96d6660c28405b9d19caee76d5/Assets/Scripts/Celestial/Shape/MoonShape.cs",
+        "bytes": 3535,
+        "sha256": "0f9b31db7d13b86bc225918703602ba59d41af5227cc15eec78c5c56b2bca764"
+      }
+    ],
+    "scope": "Selected source passages inspected; downloaded files are not a complete code or scientific audit; no program executed."
+  },
+  "otherCandidateFiles": [
+    {
+      "repo": "Auburn/FastNoiseLite",
+      "path": "Cpp/FastNoiseLite.h",
+      "url": "https://raw.githubusercontent.com/Auburn/FastNoiseLite/HEAD/Cpp/FastNoiseLite.h",
+      "sha256": "47a29750dfe13d15651febd235f3c26b1cc57af7c6e26583b838fd7ab5215dc2",
+      "bytes": 107699,
+      "file": "Auburn--FastNoiseLite--Cpp--FastNoiseLite.h"
+    },
+    {
+      "repo": "Auburn/FastNoiseLite",
+      "path": "GLSL/FastNoiseLite.glsl",
+      "url": "https://raw.githubusercontent.com/Auburn/FastNoiseLite/HEAD/GLSL/FastNoiseLite.glsl",
+      "sha256": "0088aebbfb34b5827e1128bc1d28e9d445fa5eb90a43d12648e1cbe167038f1c",
+      "bytes": 98037,
+      "file": "Auburn--FastNoiseLite--GLSL--FastNoiseLite.glsl"
+    },
+    {
+      "repo": "stegu/webgl-noise",
+      "path": "src/noise3D.glsl",
+      "url": "https://raw.githubusercontent.com/stegu/webgl-noise/HEAD/src/noise3D.glsl",
+      "sha256": "bf18982b8edd25218b5096cba6f7838a0508416be51acd1fd88d0ba8acb5169e",
+      "bytes": 2915,
+      "file": "stegu--webgl-noise--src--noise3D.glsl"
+    },
+    {
+      "repo": "RodZill4/material-maker",
+      "path": "LICENSE.md",
+      "url": "https://raw.githubusercontent.com/RodZill4/material-maker/HEAD/LICENSE.md",
+      "sha256": "db17817a68e6c06c3aba6242d50ec34285c02f1ada4fbd8cd7382110f95c09de",
+      "bytes": 1100,
+      "file": "RodZill4--material-maker--LICENSE.md"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/pioneerspacesim/pioneer/HEAD/licenses/README.md",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "repo": "pioneerspacesim/pioneer",
+      "path": "src/terrain/Terrain.cpp",
+      "url": "https://raw.githubusercontent.com/pioneerspacesim/pioneer/HEAD/src/terrain/Terrain.cpp",
+      "sha256": "b57e343dac82abfb114670a9327cbe5eba7b9ba1d33532a0fd2303c9af4bf8b9",
+      "bytes": 26812,
+      "file": "pioneerspacesim--pioneer--src--terrain--Terrain.cpp"
+    },
+    {
+      "repo": "ebruneton/precomputed_atmospheric_scattering",
+      "path": "atmosphere/definitions.glsl",
+      "url": "https://raw.githubusercontent.com/ebruneton/precomputed_atmospheric_scattering/HEAD/atmosphere/definitions.glsl",
+      "sha256": "fb7579bc25f7b22b19aaa479c2a009eb70875216062a58b329d1ca2f01b8794b",
+      "bytes": 10796,
+      "file": "ebruneton--precomputed_atmospheric_scattering--atmosphere--definitions.glsl"
+    },
+    {
+      "repo": "ebruneton/black_hole_shader",
+      "path": "black_hole/functions.glsl",
+      "url": "https://raw.githubusercontent.com/ebruneton/black_hole_shader/HEAD/black_hole/functions.glsl",
+      "sha256": "ee254594ca8461d0360bc1741c14d93d0fc80103b3f50670e677f0fd8e26df45",
+      "bytes": 19005,
+      "file": "ebruneton--black_hole_shader--black_hole--functions.glsl"
+    }
+  ],
+  "additionalLicenses": [
+    {
+      "url": "https://github.com/SebLague/Solar-System/blob/Development/LICENSE",
+      "bytes": 1072,
+      "sha256": "47d29eab4bb87359702f8f521ebb6c196a6a29b381ad8475401e0c28c52c3e53",
+      "scope": "License text fetched; dependencies and assets not fully audited."
+    },
+    {
+      "url": "https://github.com/RodZill4/material-maker/blob/master/LICENSE.md",
+      "bytes": 1100,
+      "sha256": "db17817a68e6c06c3aba6242d50ec34285c02f1ada4fbd8cd7382110f95c09de",
+      "scope": "License text fetched; dependencies and assets not fully audited."
+    },
+    {
+      "url": "https://github.com/jsulpis/realtime-planet-shader/blob/main/LICENSE",
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "scope": "License text fetched; dependencies and assets not fully audited."
+    },
+    {
+      "url": "https://github.com/ebruneton/black_hole_shader/blob/master/LICENSE",
+      "bytes": 1483,
+      "sha256": "e7f54c857e6bcc0bb57f77fcacaae95cf9ef785243da7f9ec243087c0931aeed",
+      "scope": "License text fetched; dependencies and assets not fully audited."
+    }
+  ],
+  "huaweiDocuments": [
+    {
+      "name": "document/cn/harmonyos-guides/napi-xcomponent-guidelines",
+      "title": "自定义渲染 (XComponent)",
+      "url": "https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/napi-xcomponent-guidelines",
+      "contentCharacters": 68446,
+      "contentSha256": "b5508ace8fcb4139185c73001856c1b64bce8d13272eefa7174166f1e6cf3c93",
+      "scope": "Official document retrieved through Huawei developer MCP; relevant paragraphs read; no device benchmark."
+    },
+    {
+      "name": "document/cn/harmonyos-guides/xengine-kit-introduction",
+      "title": "XEngine Kit简介",
+      "url": "https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/xengine-kit-introduction",
+      "contentCharacters": 2342,
+      "contentSha256": "8daceb3788fb861e078b2b25329767119fbf26f59c95b6b98ba1ba040e8ec808",
+      "scope": "Official document retrieved through Huawei developer MCP; relevant paragraphs read; no device benchmark."
+    },
+    {
+      "name": "document/cn/best-practices/bpta-maleoon-gpu-best-practices",
+      "title": "马良GPU渲染优化",
+      "url": "https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-maleoon-gpu-best-practices",
+      "contentCharacters": 35586,
+      "contentSha256": "b4a6fbaf07adda3cd19a05671548855113597f8f1f3c25dd092dcf57f6a699aa",
+      "scope": "Official document retrieved through Huawei developer MCP; relevant paragraphs read; no device benchmark."
+    }
+  ],
+  "localRenderer": [
+    {
+      "path": "entry/src/main/cpp/planet_texture.cpp",
+      "bytes": 4604,
+      "sha256": "3926db7ac875f6f9b83efea029622d20c8b9a9e965ebffd075f92ea49a2fd752"
+    },
+    {
+      "path": "entry/src/main/cpp/planet_texture.h",
+      "bytes": 517,
+      "sha256": "727aa35f1597f010f538502fd22e3a12d4d64497c5502740ccda884a75e955ad"
+    },
+    {
+      "path": "entry/src/main/cpp/planet_material.cpp",
+      "bytes": 13512,
+      "sha256": "626468f6eb950ebc22c27fdd79cd2448f326530f258d62f949c193d894e5ef6b"
+    },
+    {
+      "path": "entry/src/main/cpp/planet_material.h",
+      "bytes": 866,
+      "sha256": "b1fac2792d4afea87e9104b697fb312240146ddcf3401abfc0445f04d4c6f601"
+    }
+  ],
+  "sourceStorage": "Only URLs, metadata and hashes are committed as research evidence. Downloaded third-party source remains in the local work directory; none integrated into the application.",
+  "limitations": [
+    "Shadertoy author catalogue and per-work licenses unavailable.",
+    "Bilibili author catalogue unavailable; three indexed video records are not three watched videos.",
+    "NPGS root GPLv3 does not establish licensing of every bundled third-party asset.",
+    "Other candidate HEAD downloads are pinned by content hash only; integration requires commit and dependency/license pinning.",
+    "No validated mobile performance, scientific solver correctness, or complete source coverage claimed."
+  ]
+}

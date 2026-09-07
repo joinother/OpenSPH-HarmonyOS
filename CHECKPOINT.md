@@ -25,6 +25,8 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 
 ## 继续工作
 
+2026-09-07 增加 [天体程序化生成调研](OpenSPH-HarmonyOS-Native/docs/research/PROCEDURAL-CELESTIAL-GENERATION-2026-09-07.md)：固定 NPGS 提交并选读 10 份文件，比较 9 个开源候选，另选读 Solar-System 陨坑相关 3 份源码，核对 3 份华为 MCP 文档。形成外观 seed／地貌／大气、系统初值与黑洞的分批路线和 8 个预设；视频仅阅读索引，未播放，作者主页目录访问受限。此次仅更新文档和来源证据，应用仍为 0.31.0。
+
 2026-09-07 增加 [国产替代与国内运营预研](OpenSPH-HarmonyOS-Native/docs/research/CHINA-LOCALIZATION-OPERATIONS-2026-09-07.md) 和 [资源服务台账](OpenSPH-HarmonyOS-Native/docs/reference/SERVICE-INVENTORY.md)：核对 8 份 Stellarium 本地资料／实现及 20 个外部来源，区分国产数据、国内托管、构建镜像与可执行插件。该次预研只更新文档，当时应用为 0.24.0，未切换服务或重打包历史 HAP／ZIP。
 
 已接入薄环外观、可调切向发射速度的开普勒轨道、慢放与近远点诊断，局部参数存档现已接入，原生连续镜头已可取消和等待，曝光与海洋／云影控制已接入，首张真实月面底图与按需加载已接入，单行星质量／外观复制放置已接入；单次实验距离／速率曲线、持久参照、跨实验叠加和 CSV 导出已接入；下一步补整组配方复用、观测导览、更多地图与资源分档、时间曲线与卫星摄动的受控积分对照；压力、比内能、损伤已贯通；五指标曲线与原始 CSV 已接入；已建立材料解析极限及数值敏感性基线，但损伤与分辨率未收敛；物理侧继续按独立标准算例与收敛、自引力基线、局部 SPH 与轨道连接、完整检查点推进。当前没有土星环动力学、行星破碎或月球形成能力。详见 [当前路线](OpenSPH-HarmonyOS-Native/README.md) 与 [SpaceEngine 调研](OpenSPH-HarmonyOS-Native/docs/research/SPACEENGINE-2026-09-06.md)。
