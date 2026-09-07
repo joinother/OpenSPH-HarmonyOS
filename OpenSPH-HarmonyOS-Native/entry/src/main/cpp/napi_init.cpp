@@ -226,6 +226,21 @@ napi_value sphObservation(napi_env e,napi_callback_info) {
         napi_set_named_property(e,o,"samples",list);return o;
     }catch(const std::exception &ex){return fail(e,ex);}
 }
+napi_value sphFragments(napi_env e,napi_callback_info i){
+    try{auto args2=args(e,i,2);int offset=integer(e,args2[0]),limit=integer(e,args2[1]);if(offset<0||offset>10000||limit<1||limit>32)throw std::invalid_argument("Invalid fragment page");
+        const auto snapshot=lab::Engine::instance().fragmentFrame();const auto frame=snapshot.frame;napi_value o,list,available;napi_create_object(e,&o);
+        num(e,o,"sceneRevision",snapshot.sceneRevision);num(e,o,"selected",snapshot.selected);num(e,o,"time",frame?frame->time:0);num(e,o,"linkScale",lab::fragmentLinkScale);num(e,o,"offset",offset);str(e,o,"method","symmetric-smoothing-connectivity-v1");
+        bool valid=frame&&frame->fragments.available;napi_get_boolean(e,valid,&available);napi_set_named_property(e,o,"available",available);
+        if(!valid){napi_create_array(e,&list);napi_set_named_property(e,o,"groups",list);str(e,o,"reason","此记录没有材料团块数据，重新计算后可查看");return o;}
+        const auto& data=frame->fragments;const size_t end=std::min(data.groups.size(),size_t(offset+limit)),begin=std::min(data.groups.size(),size_t(offset));napi_create_array_with_length(e,end-begin,&list);
+        size_t singletons=0;double singletonMass=0;for(const auto&g:data.groups)if(g.count==1){singletons++;singletonMass+=g.mass;}
+        num(e,o,"groupCount",data.groups.size());num(e,o,"particleCount",data.labels.size());num(e,o,"totalMassKg",frame->totalMass);num(e,o,"singletonCount",singletons);num(e,o,"singletonMassKg",singletonMass);num(e,o,"largestMassFraction",data.groups[0].mass/frame->totalMass);num(e,o,"nextOffset",end<data.groups.size()?int(end):-1);str(e,o,"reason","");
+        for(size_t k=begin;k<end;k++){const auto&g=data.groups[k];napi_value item,center,velocity;napi_create_object(e,&item);napi_create_array_with_length(e,3,&center);napi_create_array_with_length(e,3,&velocity);
+            num(e,item,"rank",k+1);num(e,item,"anchor",g.anchor);num(e,item,"count",g.count);num(e,item,"massKg",g.mass);num(e,item,"massFraction",g.mass/frame->totalMass);num(e,item,"rmsRadiusKm",g.rmsRadius/1000);
+            for(int q=0;q<3;q++){napi_value p,v;napi_create_double(e,g.center[q]/1000,&p);napi_create_double(e,g.velocity[q]/1000,&v);napi_set_element(e,center,q,p);napi_set_element(e,velocity,q,v);}napi_set_named_property(e,item,"centerKm",center);napi_set_named_property(e,item,"velocityKmS",velocity);napi_set_element(e,list,k-begin,item);}
+        napi_set_named_property(e,o,"groups",list);return o;
+    }catch(const std::exception&ex){return fail(e,ex);}
+}
 napi_value seekSphObservation(napi_env e,napi_callback_info i) {
     try{auto a=args(e,i,3);const int revision=integer(e,a[1]);if(revision<0)throw std::invalid_argument("Invalid revision");lab::Engine::instance().seekSphObservation(integer(e,a[0]),uint64_t(revision),number(e,a[2]));}catch(const std::exception &ex){return fail(e,ex);}return undef(e);
 }
@@ -372,6 +387,7 @@ napi_value Init(napi_env e, napi_value exports) {
         {"navigateCamera", nullptr, navigateCamera, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"getCameraMotion", nullptr, getCameraMotion, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"cancelCameraMotion", nullptr, cancelCameraMotion, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"sphFragments", nullptr, sphFragments, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"sphObservation", nullptr, sphObservation, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"seekSphObservation", nullptr, seekSphObservation, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"orbitObservation", nullptr, observation, nullptr, nullptr, nullptr, napi_default, nullptr},

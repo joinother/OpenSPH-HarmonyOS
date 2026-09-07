@@ -4,7 +4,7 @@ import { sphPlot, sphCsv, sphMetricLabel, sphMetricIndex, sphMetricValue, sphWin
 import { ObservationReference, ReferenceSummary, ComparisonPlot, comparisonPlot, referenceSummary, observationCsv } from '../common/ObservationComparison';
 import { ObservationStore } from '../common/ObservationStore';
 import { observationPlot, ObservationPlot } from '../common/ObservationModel';
-import simulation, { SphObservationSample, SphObservation, OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
+import simulation, { SphFragmentSnapshot, SphMaterialGroup, SphObservationSample, SphObservation, OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
 import { SurfaceRecipe, legacySurfaces, copySurfaces, validateSurfaces, copiedPlanetDraft, PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
 import { themeExperiments, themeConfigMatches, ThemeExperiment } from '../common/ExperimentCatalog';
@@ -190,6 +190,8 @@ struct Index {
   @State sphReference:SphReference|undefined=undefined;
   @State sphReferenceShown:boolean=true;
   @State sphReferenceError:string='';
+  @State fragments:SphFragmentSnapshot={available:false,reason:'等待材料团块',sceneRevision:0,selected:-1,time:0,linkScale:1.5,offset:0,method:'symmetric-smoothing-connectivity-v1',groups:[]};
+  @State fragmentOffset:number=0;
   @State sphObserved:SphObservation={sceneRevision:0,selected:-1,samples:[]};
   @State observationMetric:string='distance';
   @State observed:OrbitObservation={sceneRevision:0,body:1,name:'',selected:-1,samples:[]};
@@ -280,6 +282,8 @@ struct Index {
     this.playing=false;this.info=simulation.status();this.refreshObservation();this.notice='已定位所显示记录的'+(maximum?'最大值':'最小值')+' · '+this.sphLabel();
   }
   private refreshObservation():void {
+    const fragments=simulation.sphFragments(this.fragmentOffset,8);
+    if(fragments.sceneRevision!==this.fragments.sceneRevision||(fragments.available&&this.fragmentOffset>=fragments.groupCount!)){this.fragmentOffset=0;this.fragments=simulation.sphFragments(0,8);}else this.fragments=fragments;
     this.sphObserved=simulation.sphObservation();
     this.observed=simulation.orbitObservation(this.focus>0?this.focus:1);
   }
@@ -858,6 +862,8 @@ struct Index {
     add('trace.toggle','启用动态环带',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
     for(const metric of ['pressure','internal','damage','kinetic','energy','gravity','relativeKinetic','radius','radial'])add('sph.metric.'+metric,sphMetricLabel(metric),this.preset<3&&(sphMetricIndex(metric)<10||this.info.sph?.structure!==undefined),this.sphMetric===metric);
     add('sph.minimum','SPH 记录最小',this.preset<3&&this.sphView().available);add('sph.maximum','SPH 记录最大',this.preset<3&&this.sphView().available);
+    add('color.6','材料团块',this.preset<3&&this.fragments.available,this.colorMode===6);
+    add('fragments.previous','上一组团块',this.fragments.available&&this.fragmentOffset>0);add('fragments.next','下一组团块',this.fragments.available&&(this.fragments.nextOffset??-1)>=0);
     add('color.3','压力',this.preset<3&&this.info.sph?.available===true,this.colorMode===3);add('color.4','比内能',this.preset<3&&this.info.sph?.available===true,this.colorMode===4);add('color.5','材料损伤',this.preset<3&&this.info.sph?.available===true,this.colorMode===5);
     add('sph.reference.capture',this.sphReference?'替换 SPH 参照':'保存 SPH 参照',this.info.config!==undefined&&this.info.config.preset<3&&this.sphObserved.samples.length>=2);
     add('sph.reference.toggle',this.sphReferenceShown?'隐藏 SPH 参照':'显示 SPH 参照',this.sphReference!==undefined,this.sphReferenceShown);
@@ -982,7 +988,9 @@ struct Index {
     else if(action==='camera.out')this.easeCamera(this.yaw,this.pitch,Math.min(15,this.zoom*1.2));
     else if(action==='camera.in')this.easeCamera(this.yaw,this.pitch,Math.max(.5,this.zoom/1.2));
     else if(action==='camera.reset'){this.closeSurface();this.easeCamera(.15,.25,2.7);}
-    else if(action.startsWith('color.')){this.colorMode=Number(action.slice(6));if(this.colorMode>=3){this.sphMetric=this.colorMode===3?'pressure':(this.colorMode===4?'internal':'damage');this.refreshObservation();}this.camera();}
+    else if(action==='fragments.previous'){this.fragmentOffset=Math.max(0,this.fragmentOffset-8);this.refreshObservation();}
+    else if(action==='fragments.next'){this.fragmentOffset=this.fragments.nextOffset!;this.refreshObservation();}
+    else if(action.startsWith('color.')){this.colorMode=Number(action.slice(6));if(this.colorMode>=3&&this.colorMode<=5){this.sphMetric=this.colorMode===3?'pressure':(this.colorMode===4?'internal':'damage');this.refreshObservation();}this.camera();}
     else if(action==='trace.controls'){this.setPanel(1);this.scroller.scrollEdge(Edge.Top);}
     else if(action==='trace.disturb')this.ringDisturbance(.25);
     else if(action==='trace.clear')this.ringDisturbance(0);
@@ -1081,6 +1089,7 @@ struct Index {
       {name:'getSkyInfo',payload:'{} - provenance and sky rendering status'},
       {name:'getProjectedBodies',payload:'{} - last presented orbital frame; normalized top-left x/y, radius in viewport-height units; ignores UI occlusion'},
       {name:'pickBody',payload:'{x:0..1,y:0..1} - viewport hit test, shared focus action; hit=-1 leaves selection unchanged'},
+      {name:'getSphFragments',payload:'{offset?:0..10000,limit?:1..32} - selected-frame geometric material groups, SI-derived units and frame identity; not binding/reaggregation'},
       {name:'getSphComparison',payload:'{} - shared axes, parameter differences, saved SPH provenance and interpolated cursor delta'},
       {name:'getSphReference',payload:'{} - full saved SPH reference or null; independent from orbital reference'},
       {name:'getSphComparisonTable',payload:'{} - selected metric raw current/reference CSV, seconds, no interpolated rows'},
@@ -1131,6 +1140,7 @@ struct Index {
     if(command==='getProjectedBodies')return JSON.stringify({ok:true,projection:simulation.projectedScene()});
     if(command==='pickBody'){const hit=await this.pickViewport(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,hit:hit});}
     if(command==='getPreparation'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,state:state.state,error:state.error,config:state.config,preparation:state.preparation});}
+    if(command==='getSphFragments')return JSON.stringify({ok:true,fragments:simulation.sphFragments(this.checked(p.offset??0,0,10000,true),this.checked(p.limit??8,1,32,true))});
     if(command==='getSphReference')return JSON.stringify({ok:true,reference:this.sphReference??null,error:this.sphReferenceError});
     if(command==='getSphComparison'){this.refreshObservation();const source=simulation.status();return JSON.stringify({ok:true,metric:this.sphMetric,visible:this.sphReferenceShown,reference:this.sphReference?sphReferenceSummary(this.sphReference):undefined,currentConfig:source.config,currentModel:source.model,currentSceneRevision:this.sphObserved.sceneRevision,differences:this.sphReference?sphParameterDifferences(source.config,this.sphReference.config):[],chart:this.sphComparisonView(),error:this.sphReferenceError});}
     if(command==='getSphComparisonTable'){this.refreshObservation();const source=simulation.status(),csv=sphComparisonCsv(this.sphObserved,this.sphMetric,this.sphReference?.data);return JSON.stringify({ok:true,metric:this.sphMetric,unit:this.sphView().unit,timeAlignment:'simulation-start',timeUnit:'s',csv,rows:csv.trim().split('\n').length-1,currentConfig:source.config,currentModel:source.model,currentSceneRevision:this.sphObserved.sceneRevision,currentAvailable:this.sphView().available,referenceAvailable:this.sphReference!==undefined&&sphPlot(this.sphReference.data,this.sphMetric).available,reference:this.sphReference?sphReferenceSummary(this.sphReference):undefined});}
@@ -1211,7 +1221,7 @@ struct Index {
     } else if(command==='setCamera') {
       const yaw: number=this.checked(p.yaw,-100,100);const pitch: number=this.checked(p.pitch,-1.5,1.5);
       const zoom: number=this.checked(p.zoom,0.5,15);const focus: number=this.checked(p.focus,-1,this.maxFocus(),true);
-      const color: number=this.checked(p.color,0,this.preset>=3?1:5,true);
+      const color: number=this.checked(p.color,0,this.preset>=3?1:6,true);
       this.stopCameraMotion();if(focus>=0)this.rememberOverview();else this.overviewCamera=undefined;this.yaw=yaw;this.pitch=pitch;this.zoom=zoom;this.focus=focus;if(this.preset===5&&focus>=0)this.selectOrbit(focus);this.colorMode=color;if(focus<0){this.closeup=false;this.autoSpin=false;}this.camera();
     } else if(command==='setMaterial'){this.changeMaterial(p);
     } else if(command==='setAppearance'){this.changeAppearance(p);
@@ -1229,6 +1239,7 @@ struct Index {
     if(this.colorMode>=3&&!this.info.sph?.available)return '当前记录不含 SPH 诊断 · 暂显示原色';
     if(this.colorMode===3)return '压力：蓝 −10 / 白 0 / 红 +10 GPa';
     if(this.colorMode===4)return '比内能：深蓝 0 → 金色 10 MJ/kg';
+    if(this.colorMode===6)return this.fragments.available?'按当前几何团块着色，列表颜色与画面对应；不是引力束缚判定':'此回放无团块记录 · 暂显示原色';
     if(this.colorMode===5)return '材料损伤：青色 0 → 红色 1';
     return this.colorMode===0?'灰岩 · 主天体 / 赭岩 · 撞击体；颜色不代表温度':(this.colorMode===1?'速度 0 → 10 km/s':'密度 0 → 5000 kg/m³');
   }
@@ -1315,6 +1326,33 @@ struct Index {
       }
     }.width('100%')
   }
+  private fragmentColor(anchor:number):string {
+    const hue=((anchor+1)*0.61803398875)%1;
+    return '#'+[0,0.333333,0.666667].map((phase:number):string=>Math.round(255*(0.55+0.38*Math.cos(6.2831853*(hue+phase)))).toString(16).padStart(2,'0')).join('');
+  }
+  @Builder
+  fragmentControls() {
+    Column({space:6}) {
+      Text('材料分成了几团').id('sph-fragments-heading').fontSize(13).fontColor('#D9CCF5').width('100%')
+      if(this.fragments.available){
+        Text(this.fragments.groupCount+' 个几何团块 · '+this.fragments.time.toFixed(2)+' s').fontSize(12).fontColor('#E2EEF5').width('100%')
+        MetricRow({label:'最大团块质量占比',value:(this.fragments.largestMassFraction!*100).toFixed(2)+' %'})
+        Text('单粒子团块 '+this.fragments.singletonCount+' 个 · '+(this.fragments.singletonMassKg!/this.fragments.totalMassKg!*100).toFixed(2)+' % 质量').fontSize(10).fontColor('#ABA6C0').width('100%')
+        ForEach(this.fragments.groups,(g:SphMaterialGroup)=>{
+          Column({space:3}){
+            Text('#'+g.rank+' · '+g.count+' 粒子 · '+(g.massFraction*100).toFixed(2)+' %').fontSize(11).fontColor(this.fragmentColor(g.anchor)).width('100%')
+            Text(g.massKg.toPrecision(4)+' kg · 质心速度 '+Math.hypot(g.velocityKmS[0],g.velocityKmS[1],g.velocityKmS[2]).toPrecision(3)+' km/s').fontSize(10).fontColor('#B7C5D5').width('100%')
+            Text('质心 km ['+g.centerKm.map((v:number):string=>v.toFixed(1)).join(', ')+'] · 尺度 '+g.rmsRadiusKm.toPrecision(3)+' km').fontSize(10).fontColor('#ABA6C0').lineHeight(15).width('100%')
+          }.width('100%')
+        },(g:SphMaterialGroup):string=>g.rank+'-'+g.anchor+'-'+this.fragments.time)
+        if(this.fragmentOffset>0||(this.fragments.nextOffset??-1)>=0){Row({space:6}){
+          ChoiceChip({label:'上一组',enabledAction:this.fragmentOffset>0,onPress:()=>{this.press('fragments.previous');}}).id('sph-fragments-previous')
+          ChoiceChip({label:'下一组',enabledAction:(this.fragments.nextOffset??-1)>=0,onPress:()=>{this.press('fragments.next');}}).id('sph-fragments-next')
+        }.width('100%')}
+        Text('以 1.5 × 平均光滑长度连接；序号按本帧质量排序，不等于永久碎片身份或再聚合结果。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+      }else{Text(this.fragments.reason).fontSize(10).fontColor('#ABA6C0').width('100%')}
+    }.width('100%')
+  }
   @Builder
   sphControls() {
     Column({space:8}) {
@@ -1325,8 +1363,10 @@ struct Index {
           ChoiceChip({label:'压力',active:this.colorMode===3,onPress:()=>{this.press('color.3');}}).id('sph-pressure')
           ChoiceChip({label:'比内能',active:this.colorMode===4,onPress:()=>{this.press('color.4');}}).id('sph-internal')
           ChoiceChip({label:'材料损伤',active:this.colorMode===5,onPress:()=>{this.press('color.5');}}).id('sph-damage')
+          if(this.fragments.available){ChoiceChip({label:'材料团块',active:this.colorMode===6,onPress:()=>{this.press('color.6');}}).id('sph-fragments-color')}
         }.width('100%')
-        Text(this.sphLegend()+'；超出色标的值仅在显示时饱和。').id('sph-legend').fontSize(11).fontColor('#D2C3E9').lineHeight(16).width('100%')
+        Text(this.sphLegend()+(this.colorMode===6?'。':'；超出色标的值仅在显示时饱和。')).id('sph-legend').fontSize(11).fontColor('#D2C3E9').lineHeight(16).width('100%')
+        this.fragmentControls()
         this.sphCurveControls()
         if(this.sphSummary().available){
           Column({space:6}){

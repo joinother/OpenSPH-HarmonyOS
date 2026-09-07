@@ -38,10 +38,23 @@ int main(int argc, char **argv) {
         mkdir(dir.c_str(), 0700);
         Engine e;
         {
+            for(int mode=0;mode<3;mode++){Config c{0,200,5,0,1};c.selfGravity=mode>0;c.relaxationSeconds=mode==2?16:0;e.start(c,true);awaitState(e,"paused");auto original=e.frame();
+                require(validSphFragments(original->fragments,original->particles.size(),original->totalMass),"initial fragment summary invalid");std::cout<<"initial fragment mode="<<mode<<" groups="<<original->fragments.groups.size()<<" largest_count="<<original->fragments.groups[0].count<<std::endl;
+                require(e.saveReplay(dir),"v10 save failed");const std::string path=dir+"/last-replay.osphr";std::ifstream in(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(in)),{});in.close();require(bytes[4]==10,"missing v10 fragments");
+                require(e.loadReplay(dir)&&e.status().config.selfGravity==c.selfGravity&&e.status().config.relaxationSeconds==c.relaxationSeconds,"v10 model identity changed");require(e.frame()->fragments.labels==original->fragments.labels,"v10 labels changed");require(e.frame()->fragments.groups[0].mass==original->fragments.groups[0].mass,"v10 mass changed");
+                uint32_t count=0;std::memcpy(&count,bytes.data()+120,4);const size_t groupsAt=120+84+size_t(count)*sizeof(Particle)+80+size_t(count)*sizeof(SphScalar)+32;
+                for(int badCase=0;badCase<5;badCase++){auto bad=bytes;uint32_t value=badCase==0?0:count+1;double nan=std::numeric_limits<double>::quiet_NaN();
+                    if(badCase==0)std::memcpy(&bad[groupsAt],&value,4);if(badCase==1)std::memcpy(&bad[groupsAt+4],&value,4);if(badCase==2)std::memcpy(&bad[groupsAt+4+4*count+8],&nan,8);if(badCase==3)bad.pop_back();if(badCase==4){value=2;std::memcpy(&bad[108],&value,4);}
+                    {std::ofstream out(path,std::ios::binary);out.write(bad.data(),bad.size());}const auto current=e.frame();require(!e.loadReplay(dir)&&e.frame()==current,"corrupt v10 replaced active history");}
+                {std::ofstream out(path,std::ios::binary);out.write(bytes.data(),bytes.size());}require(e.loadReplay(dir),"v10 recovery failed");require(e.saveReplay(dir,false)&&e.loadReplay(dir)&&!e.frame()->fragments.available,"legacy replay fabricated groups");
+            }
+            std::cout<<"PASS fragments: initial geometry, v10 three model identities and exact labels/mass, malformed data rejection, legacy absence"<<std::endl;
+        }
+        {
             Config stationary{2,200,0,0,1};stationary.selfGravity=true;stationary.relaxationSeconds=16;
             e.start(stationary,true);awaitState(e,"paused");require(e.frame()->maxSpeed==0&&e.frame()->sph.structure.values[1]==0,"stationary sphere has artificial spin");
             e.pause(false);awaitState(e,"completed");require(e.frame()->sph.structure.values[1]>0,"ordinary free evolution did not respond to residual forces");
-            require(e.saveReplay(dir)&&e.loadReplay(dir),"zero-spin prepared replay failed");require(e.status().config.speed==0&&e.status().config.preset==2,"replay lost stationary mode");
+            require(e.saveReplay(dir,false)&&e.loadReplay(dir),"zero-spin prepared replay failed");require(e.status().config.speed==0&&e.status().config.preset==2,"replay lost stationary mode");
             auto invalid=stationary;invalid.preset=0;require(!validConfig(invalid),"zero collision speed wrongly accepted");invalid.preset=1;require(!validConfig(invalid),"zero oblique impact speed wrongly accepted");
             std::cout<<"PASS stationary sphere: no initial spin, undamped release response, zero-speed prepared replay, impact speed validation"<<std::endl;
         }
@@ -53,7 +66,7 @@ int main(int argc, char **argv) {
             require(primary&&secondary,"prepared body identity lost");
             auto events=e.status().preparation.events;bool target=false,impactor=false;for(const auto&v:events){target|=v.stage=="relax-target";impactor|=v.stage=="relax-impactor";}require(target&&impactor,"missing separate relaxation stages");
             e.pause(false);awaitState(e,"completed");auto last=e.frame();require(last->sph.structure.available,"prepared continuation lost diagnostics");
-            require(e.saveReplay(dir),"prepared replay save");const auto path=dir+"/last-replay.osphr";std::ifstream in(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(in)),{});in.close();require(bytes[4]==9,"expected prepared v9");
+            require(e.saveReplay(dir,false),"prepared replay save");const auto path=dir+"/last-replay.osphr";std::ifstream in(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(in)),{});in.close();require(bytes[4]==9,"expected prepared v9");
             require(e.loadReplay(dir)&&e.status().config.relaxationSeconds==16&&e.status().config.selfGravity,"prepared replay model lost");e.seek(-1);require(e.frame()->sph.structure.values==last->sph.structure.values,"prepared replay diagnostics changed");
             for(double value:{0.,-1.,8.,std::numeric_limits<double>::quiet_NaN()}){auto bad=bytes;std::memcpy(&bad[108],&value,8);{std::ofstream out(path,std::ios::binary);out.write(bad.data(),bad.size());}auto current=e.frame();require(!e.loadReplay(dir)&&e.frame()==current,"invalid relaxation header replaced state");}
             for(double seconds:{-1.,1.,std::numeric_limits<double>::infinity()}){auto bad=prepared;bad.relaxationSeconds=seconds;require(!validConfig(bad),"bad preparation duration accepted");}
@@ -71,7 +84,7 @@ int main(int argc, char **argv) {
             const double relativeKinetic=.5*(targetMass*impactMass/(targetMass+impactMass))*25e6;
             require(std::abs(first->sph.structure.values[1]/relativeKinetic-1)<1e-12,"COM collision kinetic reference");
             require(first->sph.structure.values[0]<0&&first->sph.structure.values[2]>0&&first->sph.structure.values[3]<0,"initial collision structure signs");
-            require(e.saveReplay(dir),"structure replay save");const std::string path=dir+"/last-replay.osphr";
+            require(e.saveReplay(dir,false),"structure replay save");const std::string path=dir+"/last-replay.osphr";
             std::ifstream input(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(input)),{});input.close();require(bytes[4]==8,"expected gravity v8");
             uint32_t count=0;std::memcpy(&count,bytes.data()+108,4);const size_t at=108+84+size_t(count)*sizeof(Particle)+80+size_t(count)*sizeof(SphScalar);
             for(int mode=0;mode<5;++mode){auto bad=bytes;double value=mode==0?1.:-1.;if(mode==3)value=std::numeric_limits<double>::quiet_NaN();
@@ -158,7 +171,7 @@ int main(int argc, char **argv) {
             e.seek(0);
             require(e.frame()->time == 0, "seek failed");
             e.seek(-1);
-            require(e.saveReplay(dir), "save failed");
+            require(e.saveReplay(dir,false), "save failed");
             require(e.loadReplay(dir), "load failed");
             require(e.status().preparation.requestId==0&&e.status().preparation.stage=="idle","replay inherited preparation");
             e.seek(-1);
@@ -189,7 +202,7 @@ int main(int argc, char **argv) {
             const double expected=4*3.141592653589793/3*(std::pow(80000.,3)*2600+std::pow(40000.,3)*2800);
             require(std::abs(initial->totalMass/expected-1)<0.02,"edited radii/density not reflected in mass");
             e.pause(false);awaitState(e,"completed");
-            require(e.saveReplay(dir),"v2 replay save failed");
+            require(e.saveReplay(dir,false),"v2 replay save failed");
             e.start({2,200,2,0,1});awaitState(e,"completed");
             require(e.loadReplay(dir),"v2 replay load failed");
             const auto restored=e.status();
@@ -242,7 +255,7 @@ int main(int argc, char **argv) {
             e.seekObservation(5,observed.sceneRevision,observed.samples[5].time);require(e.status().selected==5,"observation seek");
             for(int mode=0;mode<3;++mode){try{e.seekObservation(mode==2?-1:5,observed.sceneRevision+(mode==0?1:0),observed.samples[5].time+(mode==1?1:0));throw std::runtime_error("stale observation accepted");}catch(const std::invalid_argument&){}require(e.status().selected==5,"stale observation changed selection");}
             e.seek(-1);
-            require(e.saveReplay(dir),"orbit save");e.start({0,200,5,0,1});awaitState(e,"completed");
+            require(e.saveReplay(dir,false),"orbit save");e.start({0,200,5,0,1});awaitState(e,"completed");
             require(e.loadReplay(dir),"orbit replay load");e.seek(-1);auto restored=e.frame();
             require(e.status().config.preset==preset&&restored->orbital,"orbit model restoration");
             const auto replayObservation=e.observation(1);require(replayObservation.samples.size()==observed.samples.size(),"replay observation count");
@@ -269,7 +282,7 @@ int main(int argc, char **argv) {
             e.start(c);e.pause(true);awaitState(e,"paused");require(e.frame()->particles.size()==8,"custom count");
             e.pause(false);awaitState(e,"completed");auto end=e.frame();
             require(std::abs(end->energyError)<1.e-5&&std::isfinite(end->angularError),"custom diagnostics");
-            require(e.saveReplay(dir),"v4 save");require(e.loadReplay(dir),"v4 load");e.seek(-1);
+            require(e.saveReplay(dir,false),"v4 save");require(e.loadReplay(dir),"v4 load");e.seek(-1);
             auto restored=e.frame();require(restored->surfaces==end->surfaces,"v4 surface restoration");
             require(restored->surfaces[3]==4,"ring style lost in replay");require(restored->surfaces[7]==5,"moon style lost in replay");
             auto invalidStyle=c;invalidStyle.orbitBodies[1].surface=6;

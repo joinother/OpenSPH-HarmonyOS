@@ -65,3 +65,7 @@ export interface SphObservationSample {frame:number;time:number;values:number[];
 export interface SphObservation {sceneRevision:number;selected:number;samples:SphObservationSample[];}
 export const sphObservation:()=>SphObservation;
 export const seekSphObservation:(frame:number,sceneRevision:number,time:number)=>void;
+
+export interface SphMaterialGroup {rank:number;anchor:number;count:number;massKg:number;massFraction:number;centerKm:number[];velocityKmS:number[];rmsRadiusKm:number;}
+export interface SphFragmentSnapshot {available:boolean;reason:string;sceneRevision:number;selected:number;time:number;linkScale:number;offset:number;method:string;groups:SphMaterialGroup[];groupCount?:number;particleCount?:number;totalMassKg?:number;singletonCount?:number;singletonMassKg?:number;largestMassFraction?:number;nextOffset?:number;}
+export const sphFragments:(offset:number,limit:number)=>SphFragmentSnapshot;

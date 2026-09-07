@@ -1,0 +1,6 @@
+FileTransfer finish, Size:4735144, File count = 1, time:19ms rate:249218.11kB/s
+budget=200 analysis_ms=0.027958
+budget=600 analysis_ms=0.229916
+budget=1200 analysis_ms=0.842958
+budget=2400 analysis_ms=3.24079
+PASS fragments: symmetric unequal-h connectivity, permutation/translation/boost invariance, exact mass and momentum, sensitivity and corrupted summaries

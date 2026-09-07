@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.38.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.39.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -227,7 +227,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getRingTrace --pa
 
 ## SPH 碰撞诊断
 
-预设 0–2 的观察面板提供压力、比内能与材料损伤。`uiAction` 的 `color.3`、`color.4`、`color.5` 与三个界面按钮共用处理；无诊断帧时这些动作禁用。0 为原色、1 速度、2 密度。切换着色不重算、不移动时间轴；所选颜色随命名实验配方保存，切入轨道模式时 2–5 恢复为 0。
+预设 0–2 的观察面板提供压力、比内能与材料损伤。`uiAction` 的 `color.3`、`color.4`、`color.5` 与三个界面按钮共用处理；无诊断帧时这些动作禁用。0 为原色、1 速度、2 密度。切换着色不重算、不移动时间轴；所选颜色随命名实验配方保存，切入轨道模式时 2–6 恢复为 0。
 
 ```sh
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getSphDiagnostics
@@ -243,7 +243,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 | `damageMean`、`damageMax` | 上游标量 DAMAGE 的三次方，0–1；Mean 为质量加权 |
 | `kineticJ`、`internalJ` | 所有粒子的动能、内能总量，J；不包含完整弹性／引力能量预算 |
 
-压力色标为蓝 −10／白 0／红 +10 GPa，比内能为深蓝 0 至金色 10 MJ/kg，损伤为青色 0 至红色 1。色标固定且显示饱和；原始读数不裁切。比内能不换算为温度，损伤不代表碎片计数。v7/v8 保存新结构记录（分别关闭／开启自引力）；v5/v6 只有原十项材料诊断；v1/v2 缺少此数据时提示重新运行，选择新色号时渲染回退原色。轨道仍使用 v3/v4。详情见 [诊断与复现](reference/SPH-DIAGNOSTICS.md)。
+压力色标为蓝 −10／白 0／红 +10 GPa，比内能为深蓝 0 至金色 10 MJ/kg，损伤为青色 0 至红色 1。色标固定且显示饱和；原始读数不裁切。比内能不换算为温度，损伤不代表碎片计数。旧 v7/v8 保存结构记录（分别关闭／开启自引力）；v5/v6 只有原十项材料诊断；v1/v2 缺少此数据时提示重新运行，选择新色号时渲染回退原色。轨道仍使用 v3/v4。详情见 [诊断与复现](reference/SPH-DIAGNOSTICS.md)。
 
 ### SPH 曲线与原始数据导出
 
@@ -274,7 +274,7 @@ node scripts/export-sph.mjs --device 127.0.0.1:5555 --output /tmp/sph-run.csv
 | `reset` | 重新初始化并暂停 |
 | `seek` | `{ "frame": -1 }` 回最新帧，或指定保留帧索引；暂停求解并停止自动回放 |
 | `listProjects` / `saveProject` / `loadProject` | 列表／按 title 保存／按 id 载入命名实验配方，最多 50 个 |
-| `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v9 |
+| `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v10 |
 
 预设 0–2 为 SPH，3 为双体，4 为四体，5 为自定义。完整配置范围以命令目录和应用校验为准。`getState.definition` 是初始条件，`simulation.bodies` 为当前显示的质心参考系数据；SPH 时间单位为秒，轨道为儒略年。
 
@@ -323,7 +323,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setAppearance --p
 
 `setSky` 接受 mode（0 干净背景、1 星空、2 银河）与 brightness（0–1）；UI 字段 `sky.brightness` 使用 0–100 百分比，不能混用。`getSkyInfo` 返回当前资源来源：摄影就绪时 reference 为 `photographic-panorama`，否则为 `procedural-fallback`；同时返回 ESO/S. Brunier 署名、素材／许可链接、纹理尺寸、loadError 与 rendering。银河摄影为 2048×1024，星空模式仍使用 6500 个程序星点；`proceduralStarsVisible` 描述稳定模式下是否使用程序星点。切换动画中的混合权重另看渲染状态。这不是可定位的星表。
 
-`setCamera` 需要完整 yaw（-100–100）、pitch（-1.5–1.5）、zoom（0.5–15）、focus（-1 或有效天体索引）、color（0–5，轨道模式为 0/1）。普通导航优先使用语义动作。
+`setCamera` 需要完整 yaw（-100–100）、pitch（-1.5–1.5）、zoom（0.5–15）、focus（-1 或有效天体索引）、color（0–6，轨道模式为 0/1）。普通导航优先使用语义动作。
 
 摄影资源需等待 `rendering.panoramaReady`，载入淡入完成需 `panoramaBlend === 1`；`skyReady` 仅证明背景渲染器可用。摄影加载失败时保留程序背景，检查 loadError；GPU 上传错误见 rendering.error。
 
@@ -441,7 +441,7 @@ CLI 验证覆盖状态和共享动作；实际触摸、键盘焦点、动画观�
 
 `getSphTable` 的新 CSV 在原 12 列之后追加 `gravity_J,relative_kinetic_J,rms_radius_km,radial_velocity_ms`，共 16 列。旧回放仍导出 12 列。`scripts/export-sph.mjs` 校验两种表头和完整有限数值行，保存原样 CSV 及来源元数据；下游应按表头识别列。
 
-新回放 v7/v8 在每帧原材料记录之后追加四个 double；物理模型配置不变。v1–v6 按原版本读取，重新保存旧回放不会捏造结构数据。全部材料的分布尺度不是单颗行星表面半径，径向速度不是碎片数量或再聚合判据，势能也不能补齐尚缺的弹性应变能。见 [定义与验证](reference/SPH-STRUCTURE.md)。
+旧版结构回放 v7/v8 在每帧原材料记录之后追加四个 double；物理模型配置不变。v1–v6 按原版本读取，重新保存旧回放不会捏造结构数据。全部材料的分布尺度不是单颗行星表面半径，径向速度不是碎片数量或再聚合判据，势能也不能补齐尚缺的弹性应变能。见 [定义与验证](reference/SPH-STRUCTURE.md)。
 
 ## SPH 预松弛
 
@@ -449,7 +449,7 @@ CLI 验证覆盖状态和共享动作；实际触摸、键盘焦点、动画观�
 
 `scene.relax.0`、`scene.relax.16`、`scene.relax.64` 与参数面板三个按钮共用动作，只修改草稿；调用 `simulation.apply` 才准备新场景。关闭自引力会清除准备草稿。`getUiState.actions` 提供选中／可用状态，`getState.definition.config` 和 `simulation.config` 分别给出草稿和当前物理配置。准备期间可用 `getPreparation` 查看 `relax-target`／`relax-impactor`，通过 `simulation.cancel` 取消；等待时可指定 `--timeout 120000`，超时不自动取消请求。
 
-实验库动作 `theme.direct-impact` 与 `theme.prepared-impact` 提供两组相同基础参数的对照，可用 `theme.compare` 切换并重新准备。模型身份为 `sph-rock-prepared-v1`，命名实验必须与正的准备时长、自引力设置相符。v9 回放在原 108 字节配置头之后增加准备时长 double，再写原 v8 帧内容；旧 v1–v8 仍按原物理身份读取，未保存的准备参数不会补造。旧应用应拒绝新模型／版本。
+实验库动作 `theme.direct-impact` 与 `theme.prepared-impact` 提供两组相同基础参数的对照，可用 `theme.compare` 切换并重新准备。模型身份为 `sph-rock-prepared-v1`，命名实验必须与正的准备时长、自引力设置相符。旧 v9 回放在原 108 字节配置头之后增加准备时长 double，再写原 v8 帧内容；旧 v1–v8 仍按原物理身份读取，未保存的准备参数不会补造。旧应用应拒绝新模型／版本。
 
 预松弛期间的耗散不属于碰撞历史，准备完才施加自转／撞击速度，首帧从 0 秒开始。16／64 秒为计算时长而非设备等待时长，也不是平衡或长时稳定保证。详见 [物理流程与对照](reference/SPH-RELAXATION.md)。
 
@@ -479,10 +479,25 @@ node scripts/export-sph-comparison.mjs --device 127.0.0.1:5555 --output /tmp/sph
 
 ## 静止岩球与记录窗口
 
-单体 preset 2 的 `speed` 可设为 0；其总初始角速度仍为 `targetSpin + speed*0.003`。`uiAction {"action":"scene.stationary"}` 同时清零两项草稿，不改当前求解；仅适用于单体，之后应用参数才重建。正碰／掠碰不接受零速度。UI 显示总初始角速度，零自转可通过 v8/v9 回放与命名实验保存。
+单体 preset 2 的 `speed` 可设为 0；其总初始角速度仍为 `targetSpin + speed*0.003`。`uiAction {"action":"scene.stationary"}` 同时清零两项草稿，不改当前求解；仅适用于单体，之后应用参数才重建。正碰／掠碰不接受零速度。UI 显示总初始角速度，零自转可通过 v10 回放与命名实验保存，兼容旧 v8/v9。
 
 `theme.sphere-unprepared`／`theme.sphere-release` 分别运行直接静止初态与 64 秒预松弛后释放的岩球，正式自由演化 32 秒，可通过 `theme.compare` 切换。此时使用普通材料与自引力求解，不再使用准备阻尼。
 
 `getSphWindowSummary` 返回当前应用配置及 `summary`：`available`、`reason`、`sceneRevision`；可用时另有 `firstTime`／`lastTime`（秒）、`samples`、`includesInitial`、`maxRadiusChangePercent`、`meanKineticJ`、`peakAbsRadialMS`。统计包含全部保留记录，与回放选中帧无关；不是稳定性结论。无数据、单帧、旧回放缺失结构或非法数据时不返回数值字段。
 
 CLI 回复限制为 128000 个 UTF-16 编码单元、256 片，保留原发送节流和输入限制，支持满 240 帧的 16 列 CSV；较旧 CLI 仍可能拒绝超过 128 片的回复，请使用本版本脚本。指标定义、时间加权和初始帧淘汰说明见 [自由演化基线](reference/SPH-RELEASE.md)。
+
+## SPH 材料团块
+
+观察面板的“材料团块”与 `uiAction {"action":"color.6"}` 共用动作；旧回放无分组时禁用。着色按当前材料的几何连接计算，不改求解器、镜头位置或当前时间。列表每页 8 团，`fragments.previous`／`fragments.next` 控制翻页。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getSphFragments --payload-json '{"offset":0,"limit":8}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"color.6"}'
+```
+
+`getSphFragments` 只读所选帧；offset 为 0–10000，limit 为 1–32，均为整数。响应 `fragments` 中包含 `available`、`reason`、`sceneRevision`、`selected`、`time`（秒）、`method`、`linkScale`、`offset` 和 `groups`。可用时另有 `groupCount`、`particleCount`、`totalMassKg`、`singletonCount`、`singletonMassKg`、`largestMassFraction`、`nextOffset`；末页 nextOffset 为 -1。
+
+每团返回本帧质量排名 `rank`、最小粒子序号 `anchor`、`count`、`massKg`、`massFraction`、`centerKm[3]`、`velocityKmS[3]`、`rmsRadiusKm`。翻页期间应核对场景修订、所选帧与时间，运行中不同查询可能对应不同帧。排名和 anchor 都不是永久碎片身份。
+
+新计算的材料回放为 v10，保存各帧分组及自引力／预松弛配置。v1–v9 没有团块数据，不能仅凭绘制位置重建；再次保存仍保留旧版，不补零或捏造分组。连接规则固定为距离不超过 1.5 倍平均光滑长度，低分辨率下相邻材料可能提前连通。完整定义、上游参考和格式见 [材料团块](reference/SPH-FRAGMENTS.md)。

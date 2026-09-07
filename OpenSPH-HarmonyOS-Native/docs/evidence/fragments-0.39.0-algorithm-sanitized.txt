@@ -1,0 +1,5 @@
+budget=200 analysis_ms=0.249875
+budget=600 analysis_ms=1.88296
+budget=1200 analysis_ms=7.47717
+budget=2400 analysis_ms=32.9162
+PASS fragments: symmetric unequal-h connectivity, permutation/translation/boost invariance, exact mass and momentum, sensitivity and corrupted summaries

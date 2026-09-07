@@ -1,4 +1,5 @@
 #pragma once
+#include "sph_fragments.h"
 #include "sph_diagnostics.h"
 #include "preparation.h"
 #include <atomic>
@@ -32,6 +33,7 @@ struct Particle {
     float x, y, z, speed, density, body;
 };
 struct Frame {
+    SphFragments fragments;
     SphDiagnostics sph;
     std::vector<SphScalar> scalars;
     std::vector<Particle> particles;
@@ -64,6 +66,7 @@ struct OrbitObservation {
 };
 struct SphObservationSample {int frame;double time;std::array<double,10> values;SphStructure structure;};
 struct SphObservation {uint64_t sceneRevision=0;int selected=-1;std::vector<SphObservationSample> samples;};
+struct FragmentFrame {uint64_t sceneRevision=0;int selected=-1;std::shared_ptr<const Frame> frame;};
 class Engine {
   public:
     Engine();
@@ -75,11 +78,12 @@ class Engine {
     Status status();
     OrbitObservation observation(int body);
     SphObservation sphObservation();
+    FragmentFrame fragmentFrame();
     void seekSphObservation(int index,uint64_t revision,double time);
     void seekObservation(int index, uint64_t revision, double time);
     std::shared_ptr<const Frame> frame();
     uint64_t sceneRevision() const { return generation.load(); }
-    bool saveReplay(const std::string &directory);
+    bool saveReplay(const std::string &directory,bool includeFragments=true);
     bool loadReplay(const std::string &directory);
     static Engine &instance();
     // Solver-thread only callbacks. No ArkTS objects cross this boundary.

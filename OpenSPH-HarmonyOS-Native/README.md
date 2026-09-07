@@ -1,6 +1,6 @@
 # 星体实验室 · OpenSPH HarmonyOS Native
 
-> 类型：当前项目概览；源码版本：0.38.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前项目概览；源码版本：0.39.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 鸿蒙原生科学探索应用，使用 ArkTS/ArkUI 构建交互界面，以 OpenSPH C++ 计算岩质碰撞，以独立的 C++ 多体引力模型计算行星轨道，通过 XComponent/OpenGL ES 显示。包名为 `com.opensph.lab`。
 
@@ -12,7 +12,8 @@
 
 - 单体岩球支持零自转与一键静止草稿，新增直接／预松弛后自由演化对照；观察面板提供按时间加权的记录窗口统计，满 240 帧 CSV 可由 CLI 完整导出，见 [释放实验](docs/reference/SPH-RELEASE.md)。
 
-- 岩质自引力实验可在碰撞前分别预松弛 16／64 秒，准备后再施加自转和撞击速度；支持取消、CLI、命名实验及 v9 回放，新增直接／预松弛对照主题。定时准备不代表静力平衡，见 [岩体准备](docs/reference/SPH-RELAXATION.md)。
+- 碰撞材料支持按实际光滑长度分组、独立团块着色、逐团质量／质心／速度／尺度统计和分页，结果随 v10 回放保存。几何连接不等于引力束缚或再聚合，见 [团块定义](docs/reference/SPH-FRAGMENTS.md)。
+- 岩质自引力实验可在碰撞前分别预松弛 16／64 秒，准备后再施加自转和撞击速度；支持取消、CLI、命名实验及 v10 回放（兼容旧 v9），新增直接／预松弛对照主题。定时准备不代表静力平衡，见 [岩体准备](docs/reference/SPH-RELAXATION.md)。
 
 - SPH 新增引力势能、扣除整体平移的相对动能、材料分布尺度和平均径向速度；支持曲线、极值定位、CSV 和回放保存，见 [结构与能量](docs/reference/SPH-STRUCTURE.md)。
 
@@ -73,6 +74,8 @@ python3 scripts/check-docs.py
 | [上游记录](third_party/opensph/UPSTREAM.md) | 固定提交、许可与本地修改 |
 
 ## 验证与下一步
+
+0.39.0 接入逐帧材料团块、几何分组着色、分页统计与 v10 回放，并保留自引力／准备阶段身份。见 [本轮记录](docs/releases/RELEASE-0.39.0.md)。
 
 0.38.0 接入跨实验 SPH 参照、九指标叠加与参数差异、持久化和原始采样导出，并补充预研实施核对。见 [本轮记录](docs/releases/RELEASE-0.38.0.md)。
 

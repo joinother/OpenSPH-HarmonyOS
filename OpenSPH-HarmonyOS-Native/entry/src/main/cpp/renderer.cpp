@@ -94,6 +94,7 @@ precision highp float;
 layout(location=0) in vec3 position;
 layout(location=1) in vec3 data;
 layout(location=2) in vec3 diagnostic;
+layout(location=3) in float groupAnchor;
 uniform vec3 camera;
 uniform vec3 center;
 uniform float aspect;
@@ -118,6 +119,7 @@ void main(){
  if(mode==2)tint=mix(vec3(0.30,0.22,0.70),vec3(0.94,0.86,0.49),clamp(data.y/5000.0,0.0,1.0));
  if(mode==3)tint=diagnostic.x<0.?mix(vec3(.90,.92,.96),vec3(.18,.43,.9),clamp(-diagnostic.x/10.,0.,1.)):mix(vec3(.90,.92,.96),vec3(1.,.30,.16),clamp(diagnostic.x/10.,0.,1.));
  if(mode==4)tint=mix(vec3(.18,.25,.48),vec3(1.,.74,.22),clamp(diagnostic.y/10.,0.,1.));
+ if(mode==6){float hue=fract((groupAnchor+1.)*.61803398875);tint=.55+.38*cos(6.2831853*(hue+vec3(0.,.333333,.666667)));}
  if(mode==5)tint=mix(vec3(.30,.74,.76),vec3(.96,.28,.35),clamp(diagnostic.z,0.,1.));
  if(orbital==1&&data.z>=0.0){
    float style=float(surfaces[clamp(int(data.z),0,7)]);
@@ -165,6 +167,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), (void *)(3 * sizeof(float)));
         GLuint diagnosticVbo;glGenBuffers(1,&diagnosticVbo);
+        GLuint fragmentVbo;glGenBuffers(1,&fragmentVbo);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_DEPTH_TEST);
@@ -261,8 +264,8 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             glUniform1f(glGetUniformLocation(program,"trailOpacity"),a.trails?.4f*(1-blend):0.f);
             glUniform1f(glGetUniformLocation(program, "size"), 2);
             if (frame) {
-                float size = std::clamp(float(h) / projectionZoom / std::cbrt(float(frame->particles.size())) * (c.color==0?0.9f:0.32f),
-                                        3.0f, c.color==0?96.0f:18.0f);
+                float size = std::clamp(float(h) / projectionZoom / std::cbrt(float(frame->particles.size())) * ((c.color==0||c.color==6)?0.9f:0.32f),
+                                        3.0f, (c.color==0||c.color==6)?96.0f:18.0f);
                 if(frame->orbital){
                     size=std::clamp(float(std::min(w,h))*0.011f,8.0f,24.0f);
                     glUniform1i(glGetUniformLocation(program,"trail"),1);glDepthMask(GL_FALSE);
@@ -300,7 +303,10 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                     glBindBuffer(GL_ARRAY_BUFFER,diagnosticVbo);glBufferData(GL_ARRAY_BUFFER,frame->scalars.size()*sizeof(SphScalar),frame->scalars.data(),GL_STREAM_DRAW);
                     glEnableVertexAttribArray(2);glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,sizeof(SphScalar),nullptr);
                 }else {glDisableVertexAttribArray(2);glVertexAttrib3f(2,0,0,0);if(c.color>=3)glUniform1i(glGetUniformLocation(program,"mode"),0);}
-                glDrawArrays(GL_POINTS, 0, frame->particles.size());
+                if(c.color==6&&frame->fragments.available&&frame->fragments.labels.size()==frame->particles.size()){
+                    glBindBuffer(GL_ARRAY_BUFFER,fragmentVbo);glBufferData(GL_ARRAY_BUFFER,frame->fragments.labels.size()*sizeof(uint32_t),frame->fragments.labels.data(),GL_STREAM_DRAW);glEnableVertexAttribArray(3);glVertexAttribPointer(3,1,GL_UNSIGNED_INT,GL_FALSE,sizeof(uint32_t),nullptr);
+                }else{glDisableVertexAttribArray(3);glVertexAttrib1f(3,0);if(c.color==6)glUniform1i(glGetUniformLocation(program,"mode"),0);}
+                glDrawArrays(GL_POINTS, 0, frame->particles.size());glDisableVertexAttribArray(3);
                 glDisableVertexAttribArray(2);glBindBuffer(GL_ARRAY_BUFFER,vbo);
                 }
             }
@@ -312,6 +318,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         }
         sky.release();
         material.release();
+        glDeleteBuffers(1, &fragmentVbo);
         glDeleteBuffers(1, &diagnosticVbo);
         glDeleteBuffers(1, &vbo);
         glDeleteVertexArrays(1, &vao);

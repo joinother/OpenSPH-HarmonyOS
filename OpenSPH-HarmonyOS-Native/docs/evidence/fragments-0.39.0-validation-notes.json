@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-08",
+  "timezone": "Asia/Shanghai",
+  "resolved": [
+    {
+      "test": "initial two-body count",
+      "observation": "200-budget initial geometry connected as one component, before visible contact",
+      "resolution": "Removed unsupported two-component assertion; retained fixed symmetric scale1.5 and actual initial outputs for three model configurations;600-budget independently yielded two initial groups",
+      "physicalLimit": "Kernel-neighborhood connectivity is resolution-sensitive, not bound fragment identity"
+    },
+    {
+      "test": "first ArkTS build",
+      "observation": "ChoiceChip supports enabledAction, not enabled",
+      "resolution": "Used actual shared component property; final build passed"
+    },
+    {
+      "test": "first installed color6 action",
+      "observation": "Native camera validator rejected color6 as invalid target",
+      "resolution": "Expanded native bound to6, native unit checks3–6 accepted and7 rejected; reran actual device test"
+    }
+  ],
+  "remaining": [
+    "No new force law, gravitational binding, permanent identity, reaggregation or surface reconstruction",
+    "0.35 fixed-condition repeatability difference remains open",
+    "Emulator measurements do not establish physical-device performance or animation FPS"
+  ]
+}

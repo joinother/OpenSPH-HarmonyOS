@@ -3,6 +3,7 @@ import { Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 
 export interface CommandPayload {
+  offset?:number;limit?:number;
   body?:number;surfaceSeed?:number;cloudSeed?:number;
   exposure?:number; ocean?:boolean; cloudShadows?:boolean;
   requestId?:number; durationMs?:number;
