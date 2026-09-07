@@ -5,6 +5,7 @@
 #include <memory>
 #include "sky_panorama.h"
 #include "projection.h"
+#include "camera_navigation.h"
 #include <ace/xcomponent/native_interface_xcomponent.h>
 namespace lab {
 struct SkySettings { int mode=2; float brightness=.65f; };
@@ -24,4 +25,7 @@ void setRenderActive(bool active);
 RenderStatus renderStatus();
 void bindSurface(OH_NativeXComponent *component);
 void setCamera(float yaw, float pitch, float zoom, int focus, int color);
+uint64_t navigateCamera(Camera camera,bool closeup,float duration,bool animatePose,bool force);
+CameraMotion cameraMotion(uint64_t requestId=0);
+CameraMotion cancelCameraMotion(uint64_t requestId=0);
 } // namespace lab

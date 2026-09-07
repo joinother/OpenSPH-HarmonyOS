@@ -1,0 +1,3 @@
+PASS projection: portrait/landscape scale, depth, touch tolerance, invisible bodies, boundaries, closeup
+PASS camera journey: interrupted geometry, convex live tracking, old/new surface weights, overview, cadence, scene replacement
+PASS native camera requests: cancel freeze, explicit resume, retarget continuity, stale IDs, presented completion, invalid atomicity, scene replacement, zero duration, bounded history and cadence

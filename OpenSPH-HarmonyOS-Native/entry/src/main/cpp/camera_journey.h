@@ -11,7 +11,7 @@ class CameraJourney {
     bool initialized=false;
     int focus=-2;
     bool close=false;
-    float elapsed=.42f;
+    float elapsed=.42f, duration=.42f;
 public:
     void step(uint64_t scene,int body,bool near,float dt) {
         if(!initialized||scene!=revision){
@@ -24,14 +24,25 @@ public:
             if(near&&body>=0&&body<8)target[9+body]=1;
             elapsed=0;
         }
-        elapsed=std::min(.42f,elapsed+std::max(0.f,dt));
-        float t=elapsed/.42f,k=t*t*t*(t*(t*6-15)+10);
+        elapsed=std::min(duration,elapsed+std::max(0.f,dt));
+        float t=duration>0?elapsed/duration:1.f,k=t*t*t*(t*(t*6-15)+10);
         for(size_t i=0;i<value.size();++i)value[i]=from[i]+(target[i]-from[i])*k;
     }
+    void retarget(uint64_t scene,int body,bool near,float seconds) {
+        if(!initialized||scene!=revision){
+            initialized=true;revision=scene;value.fill(0);value[8]=1;
+        }
+        focus=body;close=near;
+        from=value;target.fill(0);target[body>=0&&body<8?body:8]=1;
+        if(near&&body>=0&&body<8)target[9+body]=1;
+        duration=seconds;elapsed=0;
+    }
+    void cancel(){from=target=value;elapsed=duration;}
+    float progress()const{return duration>0?std::clamp(elapsed/duration,0.f,1.f):1.f;}
     float tracking(int body)const{return value[body];}
     float detail(int body)const{return value[9+body];}
     float totalDetail()const{float v=0;for(int i=0;i<8;++i)v+=detail(i);return std::clamp(v,0.f,1.f);}
-    bool moving()const{return elapsed<.42f;}
+    bool moving()const{return elapsed<duration;}
 };
 class ViewportComposition {
     std::array<float,3> from{.5f,.5f,1},target=from,value=from;

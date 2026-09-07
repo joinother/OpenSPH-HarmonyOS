@@ -13,14 +13,14 @@ call('uiAction',{action:'preset.5'},'paused');call('start',{},'completed');call(
 call('setCamera',{yaw:.4,pitch:.3,zoom:3.1,focus:-1,color:0});await settled();
 const before=call('getState'), evidence=[];
 function preserved(s){assert.equal(s.rendering.sceneRevision,before.rendering.sceneRevision);assert.equal(s.rendering.surfaceStarts,before.rendering.surfaceStarts);assert.ok(s.rendering.frames>=before.rendering.frames);assert.equal(s.rendering.error,'');assert.deepEqual(s.definition,before.definition);for(const k of ['state','count','time','frames','selected'])assert.equal(s.simulation[k],before.simulation[k],k);}
-action('focus.1');action('selection.edit');
+action('focus.1');action('surface.1');action('selection.edit');
 const composed=await settled();preserved(composed);const body=call('getProjectedBodies').projection.bodies.find(b=>b.id===1);
 if(composed.window.widthVp>=600){const right=(composed.window.viewportWidthVp-324)/composed.window.viewportWidthVp;assert.ok(body.x+body.radius*composed.window.viewportHeightVp/composed.window.viewportWidthVp<right);}
 else {const height=composed.window.viewportHeightVp,top=height-158-Math.max(120,Math.min(410,height*.5));assert.ok((body.y+body.radius)*height<top);assert.ok((body.y-body.radius)*height>66);}
 call('setUiValue',{field:'orbit.name',value:'海洋草稿仍在'});action('panel.close');
 action('surface.1');await settled();
 const first=call('getProjectedBodies').projection.bodies.find(b=>b.id===1);assert.ok(first.radius>.15);
-action('surface.next');let moving=false;
+call('navigateCamera',{focus:2,closeup:true,durationMs:3000});let moving=false;
 for(let i=0;i<5;i++){const s=call('getState'),p=call('getProjectedBodies').projection;preserved(s);moving ||= s.rendering.cameraMoving;evidence.push({rendering:s.rendering,bodies:p.bodies});}
 assert.ok(moving,'Observed an intermediate camera frame');
 const second=await settled();preserved(second);assert.equal(second.camera.focus,2);

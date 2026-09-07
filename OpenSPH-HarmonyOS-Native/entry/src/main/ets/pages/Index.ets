@@ -1,4 +1,4 @@
-import simulation, { SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus } from 'libsimulation.so';
+import simulation, { SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
 import { PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
 import { themeExperiments, themeConfigMatches, ThemeExperiment } from '../common/ExperimentCatalog';
@@ -29,7 +29,7 @@ interface AppearanceState { clouds:boolean; atmosphere:boolean; trails:boolean; 
 interface SkyState {mode:number;brightness:number;reference:string;}
 interface PlacementState { active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
 interface ThemeState { id:string; title:string; goal:string; limit:string; modified:boolean; compareId:string; }
-interface AppSnapshot { ringTrace:RingTraceStatus; theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
+interface AppSnapshot { cameraMotion:CameraMotionStatus; ringTrace:RingTraceStatus; theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
 interface CommandDescription { name: string; payload: string; }
 interface CommandCatalog { ok: boolean; commands: CommandDescription[]; }
 interface ExperimentInfo { title: string; caption: string; symbol: string; }
@@ -164,6 +164,7 @@ struct Index {
   @State skyLoadError:string='';
   @State rendering: RenderStatus = {panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
   @State colorMode: number = 0;
+  @State cameraFlight:string='idle';
   @State focus: number = -1;
   @State zoom: number = 2.7;
   @State yaw: number = 0.15;
@@ -205,7 +206,7 @@ struct Index {
     CliBridge.bind((command: string, payload: CommandPayload) => this.execute(command,payload));
     this.poll = setInterval(() => {
       const previousState: string = this.info.state;
-      this.info = simulation.status();this.rendering=simulation.renderStatus();this.trace=simulation.ringTraceStatus(false);
+      this.info = simulation.status();this.cameraFlight=simulation.getCameraMotion(0).state;this.rendering=simulation.renderStatus();this.trace=simulation.ringTraceStatus(false);
       if (this.info.state === 'completed' && previousState !== 'completed' && !this.ioBusy) { this.notice = '计算完成 · 可在时间轴回看结果'; }
       if (this.playing && this.appForeground && this.info.frames > 0) {
         const next: number = this.info.selected < 0 ? 0 : this.info.selected + 1;
@@ -256,14 +257,20 @@ struct Index {
   }
   private overviewCamera:CameraState|undefined=undefined;
   private rememberOverview():void {if(this.focus<0)this.overviewCamera={yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:-1,color:this.colorMode};}
-  private focusBody(body:number):void {this.stopCameraMotion();this.rememberOverview();this.focus=body;if(this.preset===5)this.selectOrbit(body);this.camera();if(this.preset>=3)this.notice='已选中 '+this.surfaceName()+' · 可近看或编辑初始条件';}
-  private cameraTween: number = -1;
-  private stopCameraMotion(): void {if(this.cameraTween!==-1){clearInterval(this.cameraTween);this.cameraTween=-1;}}
-  private easeCamera(yaw: number, pitch: number, zoom: number): void {
-    this.stopCameraMotion();const y=this.yaw,p=this.pitch,z=this.zoom,start=Date.now();
-    this.cameraTween=setInterval(() => {const t=Math.min(1,(Date.now()-start)/320);const k=1-Math.pow(1-t,3);
-      this.yaw=y+(yaw-y)*k;this.pitch=p+(pitch-p)*k;this.zoom=z+(zoom-z)*k;this.camera();
-      if(t===1)this.stopCameraMotion();},16);
+  private focusBody(body:number):void {this.adoptCameraPose();this.rememberOverview();this.focus=body;if(this.preset===5)this.selectOrbit(body);this.camera(.42,false,true);if(this.preset>=3)this.notice='已选中 '+this.surfaceName()+' · 可近看或编辑初始条件';}
+  private adoptCameraPose():void {
+    const m:CameraMotionStatus=simulation.getCameraMotion(0);
+    if(m.state==='queued'||m.state==='running'){this.yaw=m.yaw;this.pitch=m.pitch;this.zoom=m.zoom;}
+  }
+  private stopCameraMotion():void {
+    const m:CameraMotionStatus=simulation.getCameraMotion(0);
+    if(m.state==='queued'||m.state==='running'){
+      const stopped:CameraMotionStatus=simulation.cancelCameraMotion(m.requestId);
+      this.yaw=stopped.yaw;this.pitch=stopped.pitch;this.zoom=stopped.zoom;this.cameraFlight=stopped.state;
+    }
+  }
+  private easeCamera(yaw:number,pitch:number,zoom:number):void {
+    this.yaw=yaw;this.pitch=pitch;this.zoom=zoom;this.camera(.32,true,true);
   }
   private geometryChanged():void {this.composeViewport();}
   private layout():WorkspaceLayout {
@@ -273,7 +280,6 @@ struct Index {
   }
   private updateViewport(width:number,height:number):void {
     if(width<=0||height<=0)return;
-    this.stopCameraMotion();
     this.viewportWidth=width;this.viewportHeight=height;
     this.composeViewport();
   }
@@ -319,23 +325,25 @@ struct Index {
   }
   private tracePlotPixels(path:string):string {return this.pathPixels(path.replace(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/g,(v:string):string=>String(Number(v)*112/180)));}
   private traceTime(hours:number):void {this.checked(hours,0,24);if(!this.trace.enabled)throw new Error('示踪环未开启');simulation.seekRingTrace(hours*3600);this.trace=simulation.ringTraceStatus(false);}
-  private camera(): void {
+  private camera(duration:number=.42,animatePose:boolean=false,force:boolean=false): void {
     if(this.trace.enabled&&(!this.canTrace()||this.trace.target!==this.focus))this.stopTrace();
     this.composeViewport();
     simulation.setSky(this.skyMode,this.skyBrightness);
-    simulation.setCamera(this.yaw,this.pitch,this.zoom,this.focus,this.colorMode);
     simulation.setAppearance(this.clouds,this.atmosphere,this.trails,this.closeup,this.autoSpin,this.rings);
+    const m:CameraMotionStatus=simulation.navigateCamera(this.yaw,this.pitch,this.zoom,this.focus,this.colorMode,this.closeup,duration,animatePose,force);
+    this.cameraFlight=m.state;
   }
   private surfaceName(): string {if(this.preset===5)return this.orbitBodies[Math.max(0,this.focus)]?.name??'行星';return this.focus===0?'恒星':(this.focus===2?'厚云行星':(this.focus===3?'荒漠行星':'海洋行星'));}
   private openSurface(body: number = 1): void {
     if(this.preset<3)return;
-    this.rememberOverview();this.focus=body;if(this.preset===5)this.selectOrbit(body);this.closeup=true;this.autoSpin=true;this.colorMode=0;this.camera();this.setPanel(-1);
+    this.adoptCameraPose();this.rememberOverview();this.focus=body;if(this.preset===5)this.selectOrbit(body);this.closeup=true;this.autoSpin=true;this.colorMode=0;this.camera(.42,false,true);this.setPanel(-1);
     this.notice='近看天体 · 保留当前模拟时间与轨迹';
   }
   private closeSurface(): void {
-    this.closeup=false;this.autoSpin=false;this.focus=-1;this.camera();
+    this.closeup=false;this.autoSpin=false;this.focus=-1;
     const saved=this.overviewCamera;this.overviewCamera=undefined;
-    if(saved)this.easeCamera(saved.yaw,saved.pitch,saved.zoom);
+    if(saved){this.yaw=saved.yaw;this.pitch=saved.pitch;this.zoom=saved.zoom;}
+    this.camera(.42,true,true);
     this.notice='系统全景 · 保留当前模拟时间与轨迹';
   }
   private changeAppearance(p: CommandPayload): void {
@@ -625,6 +633,7 @@ struct Index {
       simulation:this.info,
       scene:{preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,dirty:this.dirty},
       camera:{yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode},
+      cameraMotion:simulation.getCameraMotion(0),
       ui:{panelOpen:this.panelOpen,toolsVisible:this.toolsVisible,panel:this.tab,playing:this.playing,ioBusy:this.ioBusy,foreground:this.appForeground,notice:this.notice},
       window:{layout:this.layout(),geometry:this.windowGeometry,viewportWidthVp:this.viewportWidth,viewportHeightVp:this.viewportHeight,widthVp:this.windowWidth,heightVp:this.windowHeight,immersive:this.immersive,
         safePx:{top:this.windowGeometry.topPx,bottom:this.windowGeometry.bottomPx,left:this.windowGeometry.leftPx,right:this.windowGeometry.rightPx}}};
@@ -656,6 +665,7 @@ struct Index {
     for(let i=0;i<=this.maxFocus();i++){add('focus.'+i,'跟踪天体 '+i,true,this.focus===i);if(this.preset>=3)add('surface.'+i,'近看天体 '+i,true,this.closeup&&this.focus===i);}
     add('orbit.plane.xy','XY 平面',this.preset===5,this.vectorPlane==='XY');add('orbit.plane.xz','XZ 平面',this.preset===5,this.vectorPlane==='XZ');
     add('sky.mode.0','纯净',true,this.skyMode===0);add('sky.mode.1','星空',true,this.skyMode===1);add('sky.mode.2','银河',true,this.skyMode===2);
+    const motion:CameraMotionStatus=simulation.getCameraMotion(0);add('camera.cancel','停在这里',motion.state==='queued'||motion.state==='running');
     add('focus.all','全景');add('camera.out','拉远');add('camera.in','拉近');add('camera.reset','复位视角');
     add('color.0','原色',true,this.colorMode===0);add('color.1','速度',true,this.colorMode===1);add('color.2','密度',this.preset<3,this.colorMode===2);
     add('trace.controls','调整局部轨道',this.trace.enabled);add('trace.circular','圆轨道对照',this.trace.enabled);add('trace.ellipse','拉长轨道',this.trace.enabled);add('trace.apoapsis','跳到内圈远点',this.trace.enabled&&this.trace.innerPeriodHours/2<=24);
@@ -755,7 +765,8 @@ struct Index {
     else if(action.startsWith('surface.'))this.openSurface(Number(action.slice(8)));
     else if(action==='focus.all')this.closeSurface();
     else if(action.startsWith('focus.'))this.focusBody(Number(action.slice(6)));
-    else if(action==='selection.edit'){this.selectOrbit(this.focus);if(!this.closeup){this.closeup=true;this.autoSpin=false;this.camera();}this.setPanel(0);this.notice='编辑初始条件 · 关闭面板或切换天体会保留草稿';}
+    else if(action==='selection.edit'){this.selectOrbit(this.focus);this.setPanel(0);this.notice='编辑初始条件 · 关闭面板或切换天体会保留草稿';}
+    else if(action==='camera.cancel'){this.stopCameraMotion();this.notice='已停止镜头过渡 · 可继续拖动或重新近看';}
     else if(action==='camera.out')this.easeCamera(this.yaw,this.pitch,Math.min(15,this.zoom*1.2));
     else if(action==='camera.in')this.easeCamera(this.yaw,this.pitch,Math.max(.5,this.zoom/1.2));
     else if(action==='camera.reset'){this.closeSurface();this.easeCamera(.15,.25,2.7);}
@@ -814,6 +825,9 @@ struct Index {
     if(command==='listCommands') {
       const catalog: CommandCatalog = {ok:true,commands:[
       {name:'getState',payload:'{}'},
+      {name:'getCameraMotion',payload:'{requestId?:number}; 0/current by default, last 32 terminal requests retained'},
+      {name:'cancelCameraMotion',payload:'{requestId?:number}; stops only that request; stale cancellation cannot stop a newer flight'},
+      {name:'navigateCamera',payload:'{focus:number,closeup?:boolean,yaw?:number,pitch?:number,zoom?:number,durationMs?:0..3000}; explicit continuous flight, request ID in cameraMotion'},
       {name:'getRingTrace',payload:'{particles?:boolean}; local bound Kepler test particles in km/km/s; speedScale 1–1.2, rateHours 0.1–4, independent 0–24 hour clock'},
       {name:'setSky',payload:'{mode?:0 clean|1 stars|2 galaxy,brightness?:0..1}; photographic galaxy / procedural stars; fixed-direction background'},
       {name:'setWindowOrientation',payload:'{orientation:auto|portrait|landscape|reverse-landscape}; main window only; auto respects system rotation lock'},
@@ -841,6 +855,14 @@ struct Index {
     if(command==='getRingTrace'){if(p.particles!==undefined&&typeof p.particles!=='boolean')throw new Error('particles must be boolean');return JSON.stringify({ok:true,ringTrace:simulation.ringTraceStatus(p.particles??true)});}
     if(command==='listExperiments')return JSON.stringify({ok:true,catalogVersion:1,experiments:themeExperiments(),active:this.themeState()});
     if(command==='getState') return this.snapshot();
+    if(command==='getCameraMotion'||command==='cancelCameraMotion'){
+      const id:number=p.requestId===undefined?0:this.checked(p.requestId,0,1.e9,true);
+      const m:CameraMotionStatus=command==='getCameraMotion'?simulation.getCameraMotion(id):simulation.cancelCameraMotion(id);
+      if(command==='cancelCameraMotion'&&m.requestId===simulation.getCameraMotion(0).requestId&&m.state==='cancelled'){
+        this.yaw=m.yaw;this.pitch=m.pitch;this.zoom=m.zoom;this.cameraFlight=m.state;this.notice='已停止镜头过渡';
+      }
+      return JSON.stringify({ok:true,cameraMotion:m});
+    }
     if(command==='setWindowOrientation'){if(typeof p.orientation!=='string')throw new Error('missing orientation');await WindowControl.orient(p.orientation);return this.snapshot();}
     if(command==='getSkyInfo'){const rendered:RenderStatus=simulation.renderStatus();return JSON.stringify({ok:true,reference:rendered.panoramaReady?'photographic-panorama':'procedural-fallback',catalog:'procedural-v1 (stars-only mode)',proceduralStarsVisible:this.skyMode===1||(this.skyMode===2&&!rendered.panoramaReady),seed:24190906,stars:6500,textureSize:rendered.panoramaReady?[2048,1024]:[1024,512],panorama:'eso0932a',credit:'ESO/S. Brunier',sourceUrl:'https://www.eso.org/public/images/eso0932a/',license:'CC BY 4.0',coordinateFrame:'simulation-orientation (not astrometric)',translationParallax:false,localZoomAffectsSky:false,loadError:this.skyLoadError,mode:this.skyMode,brightness:this.skyBrightness,rendering:rendered});}
     if(command==='getProjectedBodies')return JSON.stringify({ok:true,projection:simulation.projectedScene()});
@@ -895,6 +917,19 @@ struct Index {
     } else if(command==='seek') {
       const frame: number=this.checked(p.frame,-1,this.info.frames-1,true);
       this.stopTrace();this.playing=false;simulation.seek(frame);
+    } else if(command==='navigateCamera') {
+      const focus:number=this.checked(p.focus,-1,this.maxFocus(),true);
+      if(p.closeup!==undefined&&typeof p.closeup!=='boolean')throw new Error('closeup must be boolean');
+      const close:boolean=p.closeup??false;
+      if(close&&(this.preset<3||focus<0))throw new Error('近看需要有效的引力天体');
+      const duration:number=p.durationMs===undefined?420:this.checked(p.durationMs,0,3000);
+      const yaw:number=p.yaw===undefined?this.yaw:this.checked(p.yaw,-100,100);
+      const pitch:number=p.pitch===undefined?this.pitch:this.checked(p.pitch,-1.5,1.5);
+      const zoom:number=p.zoom===undefined?this.zoom:this.checked(p.zoom,.5,15);
+      if(focus>=0)this.rememberOverview();
+      this.focus=focus;this.closeup=close;if(!close)this.autoSpin=false;
+      this.yaw=yaw;this.pitch=pitch;this.zoom=zoom;if(this.preset===5&&focus>=0)this.selectOrbit(focus);
+      this.camera(duration/1000,true,true);
     } else if(command==='setCamera') {
       const yaw: number=this.checked(p.yaw,-100,100);const pitch: number=this.checked(p.pitch,-1.5,1.5);
       const zoom: number=this.checked(p.zoom,0.5,15);const focus: number=this.checked(p.focus,-1,this.maxFocus(),true);
@@ -939,7 +974,7 @@ struct Index {
         .gesture(GestureGroup(GestureMode.Parallel,
           TapGesture({count:1,fingers:1}).onAction((e:GestureEvent)=>{this.tapViewport(e);}),
           PanGesture({fingers:1}).onActionStart(() => {this.stopCameraMotion();this.dragYaw=this.yaw;this.dragPitch=this.pitch;})
-            .onActionUpdate((e:GestureEvent) => {this.yaw=this.dragYaw+e.offsetX*0.006;this.pitch=Math.max(-1.5,Math.min(1.5,this.dragPitch+e.offsetY*0.006));this.camera();}),
+            .onActionUpdate((e:GestureEvent) => {this.yaw=Math.max(-100,Math.min(100,this.dragYaw+e.offsetX*0.006));this.pitch=Math.max(-1.5,Math.min(1.5,this.dragPitch+e.offsetY*0.006));this.camera();}),
           PinchGesture({fingers:2}).onActionStart(() => {this.stopCameraMotion();this.pinchZoom=this.zoom;})
             .onActionUpdate((e:GestureEvent) => {this.zoom=Math.max(0.5,Math.min(15,this.pinchZoom/e.scale));this.camera();})
         ))
@@ -961,6 +996,7 @@ struct Index {
   @Builder
   surfacePrimary() {
     FloatingButton({label:this.closeup?'返回全景':'近看行星',icon:$r('app.media.ic_observe'),onPress:() => {this.press('surface.toggle');}})
+    if(this.cameraFlight==='queued'||this.cameraFlight==='running') {ChoiceChip({label:'停在这里',onPress:()=>{this.press('camera.cancel');}})}
     if(this.focus>=0&&this.preset===5) {ChoiceChip({label:'编辑',onPress:() => {this.press('selection.edit');}})}
     if(this.focus>=0&&!this.closeup) {ChoiceChip({label:'全景',onPress:() => {this.press('focus.all');}})}
   }

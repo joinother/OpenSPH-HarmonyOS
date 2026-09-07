@@ -21,6 +21,7 @@ class Renderer {
     std::atomic<int> width{1}, height{1};
     std::mutex mutex;
     Camera camera;
+    CameraNavigation navigation;
     std::array<float,3> composition{.5f,.5f,1};
     Appearance appearance;
     RingClock ringClock;uint64_t ringRevision=0;
@@ -144,7 +145,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         if(!skyReady){sky.release();error(skyError);}else{std::lock_guard<std::mutex> lock(mutex);stats.skyReady=true;}
         float skyStars=0,skyGalaxy=0,photoMix=0;bool photoReady=false;
         std::shared_ptr<const SkyPanorama> uploadedPanorama;
-        double previewTime=0;CameraJourney journey;ViewportComposition framing;
+        double previewTime=0;ViewportComposition framing;
         auto lastClock=std::chrono::steady_clock::now();
         GLuint vao, vbo;
         glGenVertexArrays(1, &vao);
@@ -192,7 +193,10 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
              if(frame)ringClock.advance(dt);trace=ringClock;
             }
             bool detail=frame&&frame->orbital&&a.closeup&&c.focus>=0&&size_t(c.focus)<frame->particles.size();
-            journey.step(revision,c.focus,detail,float(dt));
+            CameraJourney journey;uint64_t cameraRequest=0;
+            {std::lock_guard<std::mutex> lock(mutex);
+             navigation.step(revision,float(dt));c=navigation.displayed();journey=navigation.journey();cameraRequest=navigation.status().requestId;
+            }
             float blend=journey.totalDetail();
             framing.step(compositionTarget,float(dt));const auto compositionNow=framing.current();
             if(detail&&a.autoSpin)previewTime+=dt;
@@ -203,13 +207,9 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             if(skyReady)sky.draw(c.yaw,c.pitch,w,h,skyStars,skyGalaxy,photoMix);
             glUseProgram(program);glBindVertexArray(vao);glBindBuffer(GL_ARRAY_BUFFER,vbo);
             float cx = frame&&frame->orbital?0:0.5f, cy = 0, cz = 0;
-            if (frame && c.focus >= 0 && c.focus <= 1) {
-                cx = frame->centers[c.focus * 3];
-                cy = frame->centers[c.focus * 3 + 1];
-                cz = frame->centers[c.focus * 3 + 2];
-            }
-            if(frame&&frame->orbital&&c.focus>=0&&size_t(c.focus)<frame->particles.size()){
-                const auto &p=frame->particles[c.focus];cx=p.x;cy=p.y;cz=p.z;
+            if(frame&&!frame->orbital){
+                cx=.5f*journey.tracking(8);cy=cz=0;
+                for(int i=0;i<2;++i){float weight=journey.tracking(i);cx+=frame->centers[i*3]*weight;cy+=frame->centers[i*3+1]*weight;cz+=frame->centers[i*3+2]*weight;}
             }
             if(frame&&frame->orbital){
                 cx=cy=cz=0;
@@ -269,9 +269,9 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 }
             }
             GLenum glError=glGetError();if(glError!=GL_NO_ERROR)error("OpenGL draw error "+std::to_string(glError));
-            {std::lock_guard<std::mutex> lock(mutex);stats.sceneRevision=revision;stats.cameraMoving=journey.moving()||framing.moving();stats.compositionX=compositionNow[0];stats.compositionY=compositionNow[1];stats.compositionScale=compositionNow[2];stats.centerX=cx;stats.centerY=cy;stats.centerZ=cz;stats.frames++;stats.skyStars=skyStars;stats.skyGalaxy=skyGalaxy;stats.previewSeconds=previewTime;stats.submitMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count();}
+            {std::lock_guard<std::mutex> lock(mutex);stats.sceneRevision=revision;stats.cameraMoving=navigation.moving()||framing.moving();stats.compositionX=compositionNow[0];stats.compositionY=compositionNow[1];stats.compositionScale=compositionNow[2];stats.centerX=cx;stats.centerY=cy;stats.centerZ=cz;stats.frames++;stats.skyStars=skyStars;stats.skyGalaxy=skyGalaxy;stats.previewSeconds=previewTime;stats.submitMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count();}
             if (!eglSwapBuffers(display, surface)){error("EGL swap failed");break;}
-            {std::lock_guard<std::mutex> lock(mutex);projected=std::move(shown);projectedRevision=revision;}
+            {std::lock_guard<std::mutex> lock(mutex);navigation.presented(cameraRequest);projected=std::move(shown);projectedRevision=revision;}
             std::this_thread::sleep_until(begin + std::chrono::milliseconds(33));
         }
         sky.release();
@@ -320,8 +320,16 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
     }
     void set(Camera c) {
         std::lock_guard<std::mutex> lock(mutex);
+        navigation.request(Engine::instance().sceneRevision(),c,appearance.closeup,.42f,false,false);
         camera = c;
     }
+    uint64_t navigate(Camera c,bool close,float duration,bool animatePose,bool force){
+        std::lock_guard<std::mutex> lock(mutex);
+        auto id=navigation.request(Engine::instance().sceneRevision(),c,close,duration,animatePose,force);
+        camera=c;appearance.closeup=close;return id;
+    }
+    CameraMotion motion(uint64_t id){std::lock_guard<std::mutex> lock(mutex);return navigation.status(id);}
+    CameraMotion cancelMotion(uint64_t id){std::lock_guard<std::mutex> lock(mutex);return navigation.cancel(id);}
 };
 Renderer &renderer() {
     static Renderer r;
@@ -353,6 +361,9 @@ void setSkyPanorama(std::shared_ptr<const SkyPanorama> p){renderer().setPanorama
 void setSky(int mode,float brightness){renderer().setSky({mode,brightness});}
 void setRenderActive(bool active){renderer().setActive(active);}
 RenderStatus renderStatus(){return renderer().status();}
+uint64_t navigateCamera(Camera c,bool close,float duration,bool animatePose,bool force){return renderer().navigate(c,close,duration,animatePose,force);}
+CameraMotion cameraMotion(uint64_t id){return renderer().motion(id);}
+CameraMotion cancelCameraMotion(uint64_t id){return renderer().cancelMotion(id);}
 ProjectedScene projectedScene(){return renderer().projection();}
 void bindSurface(OH_NativeXComponent *c) { OH_NativeXComponent_RegisterCallback(c, &callbacks); }
 void setCamera(float yaw, float pitch, float zoom, int focus, int color) {

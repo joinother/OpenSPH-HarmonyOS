@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import vm from 'node:vm';
-import {collect} from '../scripts/opensph-cli.mjs';
+import {collect,options} from '../scripts/opensph-cli.mjs';
 const require=createRequire(import.meta.url);
 const ts=require(process.env.TYPESCRIPT_PATH||'/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/node_modules/typescript/lib/typescript.js');
 const source=readFileSync(new URL('../entry/src/main/ets/common/CliBridge.ets',import.meta.url),'utf8');
@@ -60,7 +60,8 @@ function page() {
   const transformed=(interfaces+'\nclass Index {'+body+'}\nexports.Index=Index;').replace(/@StorageLink\('[^']+'\)\s*/g,'').replace(/@Watch\('[^']+'\)\s*/g,'').replace(/@State\s*/g,'');
   let state={state:'paused',error:'',count:212,frames:5,selected:-1,time:1,duration:10,stepMs:5,steps:4,maxSpeed:5,meanDensity:2700};
   const calls=[],initialPauses=[];let trace={speedScale:1,rateHours:1,eccentricity:0,referenceXKm:76800,referenceYKm:0,innerApoapsisKm:76800,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:6,outerPeriodHours:14,model:'restricted-circular-kepler-v1'};
-  const simulation={setRingParameters:(speedScale,rateHours)=>{if(speedScale!==trace.speedScale){trace.timeHours=0;trace.running=false;}trace.speedScale=speedScale;trace.rateHours=rateHours;trace.eccentricity=speedScale*speedScale-1;},ringTraceStatus:()=>({...trace}),configureRingTrace:(enabled,running,target,massSolar)=>{if(enabled&&(!trace.enabled||target!==trace.target||massSolar!==trace.massSolar)){trace.timeHours=0;trace.speedScale=1;trace.rateHours=1;}trace={...trace,enabled,running,target,massSolar};},seekRingTrace:seconds=>{trace.timeHours=seconds/3600;trace.running=false;},setComposition:()=>{},setSky:(mode,brightness)=>{state.sky={mode,brightness};},pickBody:()=>state.pick??-1,projectedScene:()=>({ready:true,bodies:[]}),setAppearance:()=>{},renderStatus:()=>({panoramaReady:state.panoramaReady??false,panoramaBlend:state.panoramaReady?1:0,ready:true,texturesReady:true,active:true,frames:1,submitMs:1,previewSeconds:0,error:''}),status:()=>({...state}),startScene:(c,initiallyPaused)=>{if(state.rejectStart)throw Error('native rejected scene');initialPauses.push(initiallyPaused);calls.push(['start',c.preset,c.count,c.speed,c.angle,c.duration]);state.state='preparing';},pause:v=>{calls.push(['pause',v]);if(state.state!=='preparing')state.state=v?'paused':'running';},setCamera:(...args)=>calls.push(['camera',...args]),seek:i=>state.selected=i,saveReplay:async()=>false,loadReplay:async()=>{if(state.loadReplayOK){state.state='replay';return true;}return false;}};
+  let motion={requestId:0,sceneRevision:1,targetFocus:-1,targetCloseup:false,progress:1,state:'idle',reason:'',yaw:.15,pitch:.25,zoom:2.7};
+  const simulation={getCameraMotion:()=>({...motion}),cancelCameraMotion:()=>({...motion}),navigateCamera:(yaw,pitch,zoom,focus,color,closeup)=>{calls.push(['camera',yaw,pitch,zoom,focus,color]);motion={...motion,requestId:motion.requestId+1,yaw,pitch,zoom,targetFocus:focus,targetCloseup:closeup,state:'completed'};return {...motion};},setRingParameters:(speedScale,rateHours)=>{if(speedScale!==trace.speedScale){trace.timeHours=0;trace.running=false;}trace.speedScale=speedScale;trace.rateHours=rateHours;trace.eccentricity=speedScale*speedScale-1;},ringTraceStatus:()=>({...trace}),configureRingTrace:(enabled,running,target,massSolar)=>{if(enabled&&(!trace.enabled||target!==trace.target||massSolar!==trace.massSolar)){trace.timeHours=0;trace.speedScale=1;trace.rateHours=1;}trace={...trace,enabled,running,target,massSolar};},seekRingTrace:seconds=>{trace.timeHours=seconds/3600;trace.running=false;},setComposition:()=>{},setSky:(mode,brightness)=>{state.sky={mode,brightness};},pickBody:()=>state.pick??-1,projectedScene:()=>({ready:true,bodies:[]}),setAppearance:()=>{},renderStatus:()=>({panoramaReady:state.panoramaReady??false,panoramaBlend:state.panoramaReady?1:0,ready:true,texturesReady:true,active:true,frames:1,submitMs:1,previewSeconds:0,error:''}),status:()=>({...state}),startScene:(c,initiallyPaused)=>{if(state.rejectStart)throw Error('native rejected scene');initialPauses.push(initiallyPaused);calls.push(['start',c.preset,c.count,c.speed,c.angle,c.duration]);state.state='preparing';},pause:v=>{calls.push(['pause',v]);if(state.state!=='preparing')state.state=v?'paused':'running';},setCamera:(...args)=>calls.push(['camera',...args]),seek:i=>state.selected=i,saveReplay:async()=>false,loadReplay:async()=>{if(state.loadReplayOK){state.state='replay';return true;}return false;}};
   const modelContext={exports:{}};
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/SceneModel.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/WorkspaceLayout.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
@@ -557,4 +558,24 @@ test('return-to-overview is part of a saved close-up recipe',()=>{
  const saved=app.saveProject('回到全景');assert.equal(saved.recipe.overview.zoom,4.2);
  app.chooseTheme('rock-slow');app.openProject(saved.id);assert.equal(app.overviewCamera.zoom,4.2);
  app.closeSurface();app.stopCameraMotion();assert.equal(app.focus,-1);assert.equal(app.closeup,false);
+});
+
+test('explicit camera navigation validates all fields before mutation and returns a queryable request',async()=>{
+ const {page:app,calls}=page();await app.execute('uiAction',{action:'preset.5'});
+ const before=app.snapshot(),count=calls.length;
+ for(const payload of [{focus:99},{focus:1,durationMs:3001},{focus:1,closeup:'yes'},{focus:-1,closeup:true},{focus:1,yaw:101}])await assert.rejects(app.execute('navigateCamera',payload));
+ assert.equal(app.snapshot(),before);assert.equal(calls.length,count);
+ const result=JSON.parse(await app.execute('navigateCamera',{focus:2,closeup:true,durationMs:1200,yaw:.8,zoom:4}));
+ assert.equal(result.camera.focus,2);assert.equal(result.appearance.closeup,true);assert.ok(result.cameraMotion.requestId>0);
+ assert.equal(JSON.parse(await app.execute('getCameraMotion',{requestId:result.cameraMotion.requestId})).cameraMotion.targetFocus,2);
+});
+test('editing a selected body retains the current viewing distance',async()=>{
+ const {page:app,calls}=page();await app.execute('uiAction',{action:'preset.5'});await app.execute('uiAction',{action:'focus.1'});
+ const before=JSON.parse(app.snapshot()),count=calls.length;
+ await app.execute('uiAction',{action:'selection.edit'});const after=JSON.parse(app.snapshot());
+ assert.equal(after.appearance.closeup,false);assert.deepEqual(after.camera,before.camera);assert.equal(calls.length,count);assert.equal(after.ui.panelOpen,true);
+});
+test('CLI camera wait flag is explicit and cannot be combined with a batch envelope',()=>{
+ assert.equal(options(['--device','127.0.0.1:5555','--command','navigateCamera','--wait-camera'])['wait-camera'],true);
+ assert.throws(()=>options(['--device','127.0.0.1:5555','--batch','x.json','--wait-camera']));
 });

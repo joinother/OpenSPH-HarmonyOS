@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.21.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.22.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -58,7 +58,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 ## 选中、近看与编辑
 
-轨道场景使用 `focus.N` 选中索引 N 的天体，`focus.all` 返回全景；`surface.N` 近看指定天体，`surface.toggle`、`surface.previous`、`surface.next` 切换近看状态与对象。`selection.edit` 打开所选对象编辑，`orbit.select.N` 切换编辑对象，`orbit.near` 近看编辑对象。
+轨道场景使用 `focus.N` 选中索引 N 的天体，`focus.all` 返回全景；`surface.N` 近看指定天体，`surface.toggle`、`surface.previous`、`surface.next` 切换近看状态与对象。`selection.edit` 打开所选对象编辑并保留当前远近视角；需要近看时显式使用 `surface.N` 或 `orbit.near`。`orbit.select.N` 切换编辑对象，`orbit.near` 近看编辑对象。
 
 切换对象时，未应用的编辑草稿在会话内按天体保留。查看、选中、近看和打开面板不会重建场景。`orbit.apply` 显式应用并重建，`orbit.remove` 删除天体；这些会改变初始条件。
 
@@ -177,7 +177,38 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setAppearance --p
 
 摄影资源需等待 `rendering.panoramaReady`，载入淡入完成需 `panoramaBlend === 1`；`skyReady` 仅证明背景渲染器可用。摄影加载失败时保留程序背景，检查 loadError；GPU 上传错误见 rendering.error。
 
-诊断时查看 `rendering.sceneRevision`、`surfaceStarts`、`cameraMoving`、ready、texturesReady。cameraMoving 仅表示原生相机插值，submitMs 是 CPU 提交耗时，不是 GPU 耗时或 FPS。`window.widthVp/heightVp` 为 vp，safePx 与视口像素尺寸为物理像素；沉浸状态不证明 PC 标题栏已隐藏。
+诊断时查看 `rendering.sceneRevision`、`surfaceStarts`、`cameraMoving`、ready、texturesReady。cameraMoving 包含镜头过渡与面板构图过渡，不能用于判断某条镜头请求是否完成；应查询 cameraMotion.requestId 与 state。submitMs 是 CPU 提交耗时，不是 GPU 耗时或 FPS。`window.widthVp/heightVp` 为 vp，safePx 与视口像素尺寸为物理像素；沉浸状态不证明 PC 标题栏已隐藏。
+
+## 镜头请求、取消与等待
+
+普通 `getState` 包含 `cameraMotion`；轻量查询使用 `getCameraMotion`，避免大快照传输错过短过渡。镜头时钟来自原生渲染线程，与求解速度分开；物理暂停仍能飞近。退后台期间不推进镜头，窗口尺寸变化不主动取消镜头。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command navigateCamera --payload-json '{"focus":1,"closeup":true,"durationMs":900}' --wait-camera
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getCameraMotion --payload-json '{"requestId":1}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command cancelCameraMotion --payload-json '{"requestId":1}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"focus.all"}' --wait-camera
+```
+
+上例查询／取消的 `requestId` 应替换为实际返回值。省略 requestId 或传 0 表示当前请求。
+
+| 接口／字段 | 语义 |
+| --- | --- |
+| `navigateCamera` | 必填 focus（-1 全景或当前场景有效天体索引）；可选 closeup（默认 false）、yaw／pitch／zoom（默认当前 UI 目标值）、durationMs（默认 420，范围 0–3000）；参数整体校验通过后才改变视图 |
+| `cameraMotion.requestId` | 本进程内递增；连续手势姿态更新不产生导航请求；重启进程后不得复用旧 ID |
+| `cameraMotion.state` | idle、queued、running、completed、cancelled；无效参数和未知／过期 ID 返回 ok:false，不伪造成功记录 |
+| `progress` | 0–1 的镜头过渡进度；completed 在对应帧成功提交后记录，与面板动画完成无关 |
+| `targetFocus`／`targetCloseup` | 此次请求的目标；yaw／pitch／zoom 为渲染侧当前姿态，getState.camera 仍是 UI 目标值 |
+| `reason` | user（取消／手势接管）、superseded（被新请求取代）、scene_changed（原生检测场景替换）；已完成请求为空 |
+| `getCameraMotion` | 当前请求及最近 32 条终结记录可查；旧 ID 取消只返回其记录，不取消新请求 |
+| `camera.cancel` | 与界面“停在这里”共用；仅当前请求 queued／running 时可用 |
+| `--wait-camera` | 主机端轮询本次返回的 ID；完成退出 0，取消退出 2，超时明确失败；等待时应用仍能处理取消命令 |
+
+批次项可增加 `"waitForCamera":true`，例如 `{"command":"navigateCamera","payload":{"focus":1,"closeup":true},"waitForCamera":true}`。不要用固定 sleep 推断动画结束。`setCamera` 保留直接设姿态的兼容语义；需要明确的新请求和等待，应使用 `navigateCamera` 或飞近／返回类 `uiAction`。
+
+取消冻结当前镜头的插值参数和构图权重；正在运行的天体仍按物理位置移动，外观自转仍受原开关控制。重新发出同目标的显式导航可继续飞往该目标，单纯开关云层等外观不会偷偷恢复已取消的旅程。手势从当前姿态接管，连续切换从当前构图接续。
+
+现有实验配方保存目标视点，不保存旅程 ID、进度和中途取消的混合权重；载入后恢复目标视图，不能承诺重现半途构图。CLI 完成状态只证明请求完成，不证明触摸命中、动画帧率或真机流畅度。
 
 ## 折叠、旋转与窗口诊断
 

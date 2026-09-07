@@ -119,6 +119,20 @@ napi_value camera(napi_env e, napi_callback_info i) {
     }
     return undef(e);
 }
+napi_value motionValue(napi_env e,const lab::CameraMotion &s){
+    napi_value o;napi_create_object(e,&o);num(e,o,"requestId",s.requestId);num(e,o,"sceneRevision",s.sceneRevision);
+    num(e,o,"targetFocus",s.targetFocus);num(e,o,"progress",s.progress);str(e,o,"state",s.state);str(e,o,"reason",s.reason);
+    napi_value close;napi_get_boolean(e,s.targetCloseup,&close);napi_set_named_property(e,o,"targetCloseup",close);
+    num(e,o,"yaw",s.displayed.yaw);num(e,o,"pitch",s.displayed.pitch);num(e,o,"zoom",s.displayed.zoom);return o;
+}
+napi_value navigateCamera(napi_env e,napi_callback_info i){try{
+    auto a=args(e,i,9);bool close,animate,force;
+    if(napi_get_value_bool(e,a[5],&close)!=napi_ok||napi_get_value_bool(e,a[7],&animate)!=napi_ok||napi_get_value_bool(e,a[8],&force)!=napi_ok)throw std::invalid_argument("Boolean camera flags expected");
+    auto id=lab::navigateCamera({float(number(e,a[0])),float(number(e,a[1])),float(number(e,a[2])),integer(e,a[3]),integer(e,a[4])},close,number(e,a[6]),animate,force);
+    return motionValue(e,lab::cameraMotion(id));
+}catch(const std::exception &ex){return fail(e,ex);}}
+napi_value getCameraMotion(napi_env e,napi_callback_info i){try{auto a=args(e,i,1);int id=integer(e,a[0]);if(id<0)throw std::invalid_argument("Invalid camera request ID");return motionValue(e,lab::cameraMotion(id));}catch(const std::exception &ex){return fail(e,ex);}}
+napi_value cancelCameraMotion(napi_env e,napi_callback_info i){try{auto a=args(e,i,1);int id=integer(e,a[0]);if(id<0)throw std::invalid_argument("Invalid camera request ID");return motionValue(e,lab::cancelCameraMotion(id));}catch(const std::exception &ex){return fail(e,ex);}}
 napi_value appearance(napi_env e,napi_callback_info i){
     try {auto a=args(e,i,6);bool b[6];for(int k=0;k<6;++k)if(napi_get_value_bool(e,a[k],&b[k])!=napi_ok)throw std::invalid_argument("Appearance requires booleans");
         lab::setAppearance(b[0],b[1],b[2],b[3],b[4],b[5]);}catch(const std::exception &ex){return fail(e,ex);}return undef(e);
@@ -284,6 +298,9 @@ napi_value Init(napi_env e, napi_value exports) {
         {"cancel", nullptr, cancel, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"seek", nullptr, seek, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"setCamera", nullptr, camera, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"navigateCamera", nullptr, navigateCamera, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"getCameraMotion", nullptr, getCameraMotion, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"cancelCameraMotion", nullptr, cancelCameraMotion, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"status", nullptr, status, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"saveReplay", nullptr, save, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"loadReplay", nullptr, load, nullptr, nullptr, nullptr, napi_default, nullptr}};

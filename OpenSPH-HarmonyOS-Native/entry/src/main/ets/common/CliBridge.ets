@@ -3,6 +3,7 @@ import { Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 
 export interface CommandPayload {
+  requestId?:number; durationMs?:number;
   orientation?:string;
   mode?:number; brightness?:number;
   x?:number; y?:number;

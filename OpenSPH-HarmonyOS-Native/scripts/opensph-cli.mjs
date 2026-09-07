@@ -12,6 +12,7 @@ export function options(argv) {
   for (let i=0;i<argv.length;i++) {
     const key = argv[i];
     if(key==='--json') continue;
+    if(key==='--wait-camera'){o['wait-camera']=true;continue;}
     if(key==='--list') {o.command='listCommands';continue;}
     if(key==='--help') {o.help=true;continue;}
     if(!['--device','--command','--payload-json','--payload-file','--batch','--wait-state','--hdc','--timeout'].includes(key)||i+1>=argv.length) throw Error('Unknown or incomplete option: '+key);
@@ -24,7 +25,7 @@ export function options(argv) {
   o.timeout=Number(o.timeout);
   if(!Number.isFinite(o.timeout)||o.timeout<1000||o.timeout>120000) throw Error('Timeout must be 1000..120000 ms');
   if(o['payload-json']&&o['payload-file'])throw Error('Choose payload JSON or payload file');
-  if(o.batch&&(o.command||o['payload-json']||o['payload-file']||o['wait-state']))throw Error('Batch cannot be combined with a single command');
+  if(o.batch&&(o.command||o['payload-json']||o['payload-file']||o['wait-state']||o['wait-camera']))throw Error('Batch cannot be combined with a single command');
   if(o['wait-state']&&!['paused','running','completed','replay','cancelled','failed'].includes(o['wait-state']))throw Error('Invalid wait state');
   const p=JSON.parse(o['payload-file']?readFileSync(o['payload-file'],'utf8'):(o['payload-json']||'{}'));
   if(!p||Array.isArray(p)||typeof p!=='object') throw Error('Payload must be a JSON object');
@@ -62,7 +63,22 @@ export async function request(o) {
   throw Error('Timed out waiting for device response '+id+'; received '+parts.size+' chunks. Check application logs.');
 }
 async function requestAndWait(o) {
-  let result=await request(o);if(!o['wait-state']||result.ok!==true)return result;
+  let result=await request(o);
+  if(o['wait-camera']&&result.ok===true){
+    const id=result.cameraMotion?.requestId;
+    if(!Number.isInteger(id)||id<=0)return {ok:false,error:'Command did not produce a camera request',result};
+    const deadline=Date.now()+o.timeout;
+    for(;;){
+      const response=await request({...o,command:'getCameraMotion',payload:encodeURIComponent(JSON.stringify({requestId:id}))});
+      if(response.ok!==true)return response;
+      const motion=response.cameraMotion;
+      if(motion.state==='completed'){result={...result,cameraMotion:motion};break;}
+      if(motion.state==='cancelled')return {ok:false,error:'Camera request cancelled: '+motion.reason,cameraMotion:motion};
+      if(Date.now()>=deadline)return {ok:false,error:'Timed out waiting for camera request '+id,cameraMotion:motion};
+      await delay(80);
+    }
+  }
+  if(!o['wait-state']||result.ok!==true)return result;
   const deadline=Date.now()+o.timeout;
   while(Date.now()<deadline){
     const state=await request({...o,command:'getState',payload:'%7B%7D'});
@@ -75,7 +91,7 @@ async function requestAndWait(o) {
 }
 export async function run(argv) {
   const o=options(argv);
-  if(o.help){console.log('node scripts/opensph-cli.mjs --device <HDC ID> --command getUiState\n--command uiAction --payload-json \'{"action":"orbit.add"}\'\n--payload-file config.json | --batch commands.json\n--wait-state paused waits for a settled solver state. --list lists commands.');return;}
+  if(o.help){console.log('node scripts/opensph-cli.mjs --device <HDC ID> --command getUiState\n--command uiAction --payload-json \'{"action":"orbit.add"}\'\n--payload-file config.json | --batch commands.json\n--wait-state paused waits for a solver state. --wait-camera waits for the returned camera request; cancellation is a failure. Batch: waitForCamera:true. --list lists commands.');return;}
   let result;
   if(o.batch){
     const batch=JSON.parse(readFileSync(o.batch,'utf8'));
@@ -85,6 +101,8 @@ export async function run(argv) {
       if(!item||typeof item.command!=='string'||(item.waitForState!==undefined&&typeof item.waitForState!=='string'))throw Error('Invalid batch request');
       const args=['--device',o.device,'--hdc',o.hdc,'--timeout',String(o.timeout),'--command',item.command,'--payload-json',JSON.stringify(item.payload??{})];
       if(item.waitForState)args.push('--wait-state',item.waitForState);
+      if(item.waitForCamera!==undefined&&typeof item.waitForCamera!=='boolean')throw Error('waitForCamera must be boolean');
+      if(item.waitForCamera)args.push('--wait-camera');
       return options(args);
     });
     const results=[];let ok=true;

@@ -41,3 +41,8 @@ export const configureRingTrace:(enabled:boolean,running:boolean,target:number,m
 export const setRingParameters:(speedScale:number,rateHours:number)=>void;
 export const seekRingTrace:(seconds:number)=>void;
 export const ringTraceStatus:(particles:boolean)=>RingTraceStatus;
+
+export interface CameraMotionStatus {requestId:number;sceneRevision:number;targetFocus:number;targetCloseup:boolean;progress:number;state:string;reason:string;yaw:number;pitch:number;zoom:number;}
+export const navigateCamera:(yaw:number,pitch:number,zoom:number,focus:number,color:number,closeup:boolean,duration:number,animatePose:boolean,force:boolean)=>CameraMotionStatus;
+export const getCameraMotion:(requestId:number)=>CameraMotionStatus;
+export const cancelCameraMotion:(requestId:number)=>CameraMotionStatus;
