@@ -1,6 +1,6 @@
 import simulation, { SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
-import { PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
+import { PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
 import { themeExperiments, themeConfigMatches, ThemeExperiment } from '../common/ExperimentCatalog';
 import { ProjectStore } from '../common/ProjectStore';
 import { curves, LengthMetrics } from '@kit.ArkUI';
@@ -29,7 +29,7 @@ interface AppearanceState { clouds:boolean; atmosphere:boolean; trails:boolean; 
 interface SkyState {mode:number;brightness:number;reference:string;}
 interface PlacementState { active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
 interface ThemeState { id:string; title:string; goal:string; limit:string; modified:boolean; compareId:string; }
-interface AppSnapshot { cameraMotion:CameraMotionStatus; ringTrace:RingTraceStatus; theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
+interface AppSnapshot { material:RecipeMaterial; cameraMotion:CameraMotionStatus; ringTrace:RingTraceStatus; theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
 interface CommandDescription { name: string; payload: string; }
 interface CommandCatalog { ok: boolean; commands: CommandDescription[]; }
 interface ExperimentInfo { title: string; caption: string; symbol: string; }
@@ -154,6 +154,9 @@ struct Index {
   @State librarySection:string='collision';
   @State activeThemeId:string='';
   private themes:ThemeExperiment[]=themeExperiments();
+  @State exposure: number = 0;
+  @State ocean: boolean = true;
+  @State cloudShadows: boolean = true;
   @State clouds: boolean = true;
   @State atmosphere: boolean = true;
   @State trails: boolean = true;
@@ -162,7 +165,7 @@ struct Index {
   @State rings: boolean = true;
   @State trace:RingTraceStatus={speedScale:1,rateHours:1,eccentricity:0,innerApoapsisKm:76800,outerApoapsisKm:133200,referenceXKm:76800,referenceYKm:0,referenceRadiusKm:76800,referenceSpeedKmS:0,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-elliptic-kepler-v2'};
   @State skyLoadError:string='';
-  @State rendering: RenderStatus = {panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
+  @State rendering: RenderStatus = {materialExposure:0,materialOcean:true,materialCloudShadows:true,panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
   @State colorMode: number = 0;
   @State cameraFlight:string='idle';
   @State focus: number = -1;
@@ -329,6 +332,7 @@ struct Index {
     if(this.trace.enabled&&(!this.canTrace()||this.trace.target!==this.focus))this.stopTrace();
     this.composeViewport();
     simulation.setSky(this.skyMode,this.skyBrightness);
+    simulation.setMaterial(this.exposure,this.ocean,this.cloudShadows);
     simulation.setAppearance(this.clouds,this.atmosphere,this.trails,this.closeup,this.autoSpin,this.rings);
     const m:CameraMotionStatus=simulation.navigateCamera(this.yaw,this.pitch,this.zoom,this.focus,this.colorMode,this.closeup,duration,animatePose,force);
     this.cameraFlight=m.state;
@@ -524,7 +528,7 @@ struct Index {
   }
   private captureRecipe():ExperimentRecipe {
     const trace=simulation.ringTraceStatus(false);
-    const recipe:ExperimentRecipe={schemaVersion:1,appearanceVersion:1,themeId:this.activeThemeId,
+    const recipe:ExperimentRecipe={schemaVersion:1,appearanceVersion:2,material:this.materialState(),themeId:this.activeThemeId,
       camera:{yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode},
       appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},
       sky:{mode:this.skyMode,brightness:this.skyBrightness},
@@ -534,6 +538,7 @@ struct Index {
     return recipe;
   }
   private restoreRecipe(recipe:ExperimentRecipe):void {
+    this.applyMaterial(recipe.appearanceVersion===1?defaultMaterial():recipe.material!);
     const c=recipe.camera,a=recipe.appearance;
     this.yaw=c.yaw;this.pitch=c.pitch;this.zoom=c.zoom;this.focus=c.focus;this.colorMode=c.color;
     this.clouds=a.clouds;this.atmosphere=a.atmosphere;this.trails=a.trails;this.closeup=a.closeup;this.autoSpin=a.autoSpin;this.rings=a.rings;
@@ -629,7 +634,7 @@ struct Index {
   private snapshot(): string {
     this.info=simulation.status();
     const snapshot: AppSnapshot = {ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
-      appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},rendering:simulation.renderStatus(),
+      material:this.materialState(),appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},rendering:simulation.renderStatus(),
       simulation:this.info,
       scene:{preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,dirty:this.dirty},
       camera:{yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode},
@@ -670,6 +675,7 @@ struct Index {
     add('color.0','原色',true,this.colorMode===0);add('color.1','速度',true,this.colorMode===1);add('color.2','密度',this.preset<3,this.colorMode===2);
     add('trace.controls','调整局部轨道',this.trace.enabled);add('trace.circular','圆轨道对照',this.trace.enabled);add('trace.ellipse','拉长轨道',this.trace.enabled);add('trace.apoapsis','跳到内圈远点',this.trace.enabled&&this.trace.innerPeriodHours/2<=24);
     add('trace.toggle','开普勒示踪粒子',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
+    add('material.ocean','海洋反光',this.preset>=3,this.ocean);add('material.cloudShadows','云影',this.preset>=3,this.cloudShadows);add('material.reset','还原光照',this.preset>=3);
     add('appearance.rings','环带',this.preset>=3,this.rings);add('appearance.clouds','云层',this.preset>=3,this.clouds);add('appearance.atmosphere','大气',this.preset>=3,this.atmosphere);add('appearance.trails','轨迹',this.preset>=3,this.trails);add('appearance.spin','外观自转',this.preset>=3,this.autoSpin);
     add('body.primary','主天体',this.preset<3,this.editedBody===0);add('body.impactor','撞击体',this.preset<2,this.editedBody===1);
     add('placement.cancel','取消放置',this.placing);add('placement.confirm','确认加入 · 重新计算',this.placing&&this.placementPreview().valid);
@@ -686,7 +692,7 @@ struct Index {
   }
   private uiFields():UiFieldInfo[] {
     const active:boolean=!this.ioBusy,rock:boolean=this.preset<3;
-    const fields:UiFieldInfo[]=[{field:'trace.speed',value:this.trace.speedScale,enabled:active&&this.trace.enabled},{field:'trace.rate',value:this.trace.rateHours,enabled:active&&this.trace.enabled},{field:'trace.hours',value:this.trace.timeHours,enabled:active&&this.trace.enabled},{field:'sky.brightness',value:this.skyBrightness*100,enabled:active},{field:'scene.title',value:this.title,enabled:active},
+    const fields:UiFieldInfo[]=[{field:'material.exposure',value:this.exposure,enabled:active&&!rock},{field:'trace.speed',value:this.trace.speedScale,enabled:active&&this.trace.enabled},{field:'trace.rate',value:this.trace.rateHours,enabled:active&&this.trace.enabled},{field:'trace.hours',value:this.trace.timeHours,enabled:active&&this.trace.enabled},{field:'sky.brightness',value:this.skyBrightness*100,enabled:active},{field:'scene.title',value:this.title,enabled:active},
       {field:'scene.count',value:this.count,enabled:active&&rock},{field:'scene.speed',value:this.speed,enabled:active&&this.preset!==5},
       {field:'scene.angle',value:this.angle,enabled:active&&this.preset<2},{field:'scene.duration',value:this.duration,enabled:active},
       {field:'body.name',value:this.editedBody===0?this.targetName:this.impactorName,enabled:active&&rock},
@@ -722,6 +728,7 @@ struct Index {
     if(typeof value!=='number')throw new Error('Expected number');
     if(field==='trace.speed'||field==='trace.rate'){this.traceParameter(field,value);return;}
     if(field==='trace.hours'){this.traceTime(value);return;}
+    if(field==='material.exposure'){this.changeMaterial({exposure:value});return;}
     if(field==='sky.brightness'){this.checked(value,0,100);this.changeSky(this.skyMode,value/100);return;}
     if(field==='time.frame'){this.checked(value,-1,this.info.frames-1,true);this.stopTrace();this.playing=false;simulation.seek(value);this.info=simulation.status();return;}
     if(field==='scene.count'){this.checked(value,200,2400,true);this.count=value;}
@@ -778,6 +785,9 @@ struct Index {
     else if(action==='trace.toggle')this.toggleTrace();
     else if(action==='trace.play')this.playTrace();
     else if(action==='trace.reset')this.traceTime(0);
+    else if(action==='material.ocean')this.changeMaterial({ocean:!this.ocean});
+    else if(action==='material.cloudShadows')this.changeMaterial({cloudShadows:!this.cloudShadows});
+    else if(action==='material.reset')this.applyMaterial(defaultMaterial());
     else if(action==='appearance.rings'){this.rings=!this.rings;this.camera();}
     else if(action==='appearance.clouds'){this.clouds=!this.clouds;this.camera();}
     else if(action==='appearance.atmosphere'){this.atmosphere=!this.atmosphere;this.camera();}
@@ -817,6 +827,17 @@ struct Index {
     const finger=e.fingerList[0];if(!finger||this.viewportWidth<=0||this.viewportHeight<=0||this.preset<3)return;
     this.pickViewport(finger.localX/this.viewportWidth,finger.localY/this.viewportHeight).catch((error:Error)=>{this.notice=String(error);});
   }
+  private materialState():RecipeMaterial {return {exposure:this.exposure,ocean:this.ocean,cloudShadows:this.cloudShadows};}
+  private changeMaterial(p:CommandPayload):void {
+    // Undefined means unchanged; explicit null and all malformed values must fail atomically.
+    const m:RecipeMaterial={exposure:p.exposure===undefined?this.exposure:p.exposure,
+      ocean:p.ocean===undefined?this.ocean:p.ocean,cloudShadows:p.cloudShadows===undefined?this.cloudShadows:p.cloudShadows};
+    this.applyMaterial(m);
+  }
+  private applyMaterial(m:RecipeMaterial):void {
+    validateMaterial(m);simulation.setMaterial(m.exposure,m.ocean,m.cloudShadows);
+    this.exposure=m.exposure;this.ocean=m.ocean;this.cloudShadows=m.cloudShadows;
+  }
   private changeSky(mode:number,brightness:number):void {
     this.checked(mode,0,2,true);this.checked(brightness,0,1);
     simulation.setSky(mode,brightness);this.skyMode=mode;this.skyBrightness=brightness;
@@ -846,6 +867,7 @@ struct Index {
       {name:'start',payload:'{}'}, {name:'pause',payload:'{}'}, {name:'reset',payload:'{}'},
       {name:'seek',payload:'{frame:-1 or retained frame index}'},
       {name:'setCamera',payload:'{yaw:-100..100,pitch:-1.5..1.5,zoom:0.5..15,focus:-1..1 (orbit preset 4: -1..3; custom: -1..bodyCount-1),color:0..2 (orbit 0..1)}'},
+      {name:'setMaterial',payload:'{exposure?:-2..2 EV,ocean?:boolean,cloudShadows?:boolean}; original-color orbital surfaces only; no camera or solver reset'},
       {name:'setAppearance',payload:'{clouds?:boolean,atmosphere?:boolean,trails?:boolean,closeup?:boolean,autoSpin?:boolean,rings?:boolean} (visual settings only)'},
       {name:'setPanel',payload:'{panel:-1 close,0 parameters,1 observe,2 library}'},
       {name:'listProjects',payload:'{}'}, {name:'saveProject',payload:'{title:string}'}, {name:'loadProject',payload:'{id:string}'},
@@ -935,6 +957,7 @@ struct Index {
       const zoom: number=this.checked(p.zoom,0.5,15);const focus: number=this.checked(p.focus,-1,this.maxFocus(),true);
       const color: number=this.checked(p.color,0,this.preset>=3?1:2,true);
       this.stopCameraMotion();if(focus>=0)this.rememberOverview();else this.overviewCamera=undefined;this.yaw=yaw;this.pitch=pitch;this.zoom=zoom;this.focus=focus;if(this.preset===5&&focus>=0)this.selectOrbit(focus);this.colorMode=color;if(focus<0){this.closeup=false;this.autoSpin=false;}this.camera();
+    } else if(command==='setMaterial'){this.changeMaterial(p);
     } else if(command==='setAppearance'){this.changeAppearance(p);
     } else if(command==='setPanel') { this.setPanel(this.checked(p.panel,-1,2,true));
       // The return is an acknowledgement; query getState after the transition for settled UI state.
@@ -944,6 +967,21 @@ struct Index {
       if(!this.lastIOOk) throw new Error(this.notice);
     } else throw new Error('unknown command: '+command);
     return this.snapshot();
+  }
+  @Builder
+  materialControls() {
+    Text('光与质感').fontSize(14).fontColor('#E4DCF8').width('100%')
+    MetricRow({label:'曝光',value:(this.exposure>0?'+':'')+this.exposure.toFixed(1)+' EV'})
+    Slider({value:this.exposure,min:-2,max:2,step:.1}).id('material.exposure').accessibilityText('行星曝光')
+      .selectedColor('#BDA5F2').trackColor('#414154').blockColor('#F0E8FF')
+      .onChange((v:number,mode:SliderChangeMode)=>{if(mode===SliderChangeMode.Moving||mode===SliderChangeMode.Click||mode===SliderChangeMode.End)this.input('material.exposure',v);})
+    Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(8)}}) {
+      ChoiceChip({label:'海洋反光',active:this.ocean,onPress:()=>{this.press('material.ocean');}})
+      ChoiceChip({label:'云影',active:this.cloudShadows,onPress:()=>{this.press('material.cloudShadows');}})
+      ChoiceChip({label:'还原光照',active:false,onPress:()=>{this.press('material.reset');}})
+    }.width('100%')
+    Text(this.colorMode===0?'只调整天体画面亮度；海洋反光用于海陆外观，云影随云层开关。':'速度着色中暂不显示曝光与材质效果。').fontSize(11).fontColor('#ADA8BF').lineHeight(18).width('100%')
+    Divider().color('#33B4A7D6')
   }
   @Builder
   header() {
@@ -1426,6 +1464,7 @@ struct Index {
         }.width('100%')
       } else if(this.tab===1) {
         if(this.trace.enabled){this.traceControls()}
+        if(this.preset>=3){this.materialControls()}
         this.themeGuide()
         this.skyControls()
         if(this.preset>=3) {

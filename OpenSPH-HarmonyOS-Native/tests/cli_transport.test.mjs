@@ -56,12 +56,12 @@ function page() {
   // This tests command transactions; it is not an ArkUI/device integration test.
   const original=readFileSync(new URL('../entry/src/main/ets/pages/Index.ets',import.meta.url),'utf8');
   const interfaces=original.slice(original.indexOf('interface SceneSettings'),original.indexOf('@Component'));
-  const body=original.slice(original.indexOf('struct Index {')+'struct Index {'.length,original.indexOf('  @Builder\n  header()'));
+  const body=original.slice(original.indexOf('struct Index {')+'struct Index {'.length,original.indexOf('  @Builder\n  materialControls()'));
   const transformed=(interfaces+'\nclass Index {'+body+'}\nexports.Index=Index;').replace(/@StorageLink\('[^']+'\)\s*/g,'').replace(/@Watch\('[^']+'\)\s*/g,'').replace(/@State\s*/g,'');
   let state={state:'paused',error:'',count:212,frames:5,selected:-1,time:1,duration:10,stepMs:5,steps:4,maxSpeed:5,meanDensity:2700};
   const calls=[],initialPauses=[];let trace={speedScale:1,rateHours:1,eccentricity:0,referenceXKm:76800,referenceYKm:0,innerApoapsisKm:76800,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:6,outerPeriodHours:14,model:'restricted-circular-kepler-v1'};
   let motion={requestId:0,sceneRevision:1,targetFocus:-1,targetCloseup:false,progress:1,state:'idle',reason:'',yaw:.15,pitch:.25,zoom:2.7};
-  const simulation={getCameraMotion:()=>({...motion}),cancelCameraMotion:()=>({...motion}),navigateCamera:(yaw,pitch,zoom,focus,color,closeup)=>{calls.push(['camera',yaw,pitch,zoom,focus,color]);motion={...motion,requestId:motion.requestId+1,yaw,pitch,zoom,targetFocus:focus,targetCloseup:closeup,state:'completed'};return {...motion};},setRingParameters:(speedScale,rateHours)=>{if(speedScale!==trace.speedScale){trace.timeHours=0;trace.running=false;}trace.speedScale=speedScale;trace.rateHours=rateHours;trace.eccentricity=speedScale*speedScale-1;},ringTraceStatus:()=>({...trace}),configureRingTrace:(enabled,running,target,massSolar)=>{if(enabled&&(!trace.enabled||target!==trace.target||massSolar!==trace.massSolar)){trace.timeHours=0;trace.speedScale=1;trace.rateHours=1;}trace={...trace,enabled,running,target,massSolar};},seekRingTrace:seconds=>{trace.timeHours=seconds/3600;trace.running=false;},setComposition:()=>{},setSky:(mode,brightness)=>{state.sky={mode,brightness};},pickBody:()=>state.pick??-1,projectedScene:()=>({ready:true,bodies:[]}),setAppearance:()=>{},renderStatus:()=>({panoramaReady:state.panoramaReady??false,panoramaBlend:state.panoramaReady?1:0,ready:true,texturesReady:true,active:true,frames:1,submitMs:1,previewSeconds:0,error:''}),status:()=>({...state}),startScene:(c,initiallyPaused)=>{if(state.rejectStart)throw Error('native rejected scene');initialPauses.push(initiallyPaused);calls.push(['start',c.preset,c.count,c.speed,c.angle,c.duration]);state.state='preparing';},pause:v=>{calls.push(['pause',v]);if(state.state!=='preparing')state.state=v?'paused':'running';},setCamera:(...args)=>calls.push(['camera',...args]),seek:i=>state.selected=i,saveReplay:async()=>false,loadReplay:async()=>{if(state.loadReplayOK){state.state='replay';return true;}return false;}};
+  const simulation={setMaterial:(...args)=>calls.push(['material',...args]),getCameraMotion:()=>({...motion}),cancelCameraMotion:()=>({...motion}),navigateCamera:(yaw,pitch,zoom,focus,color,closeup)=>{calls.push(['camera',yaw,pitch,zoom,focus,color]);motion={...motion,requestId:motion.requestId+1,yaw,pitch,zoom,targetFocus:focus,targetCloseup:closeup,state:'completed'};return {...motion};},setRingParameters:(speedScale,rateHours)=>{if(speedScale!==trace.speedScale){trace.timeHours=0;trace.running=false;}trace.speedScale=speedScale;trace.rateHours=rateHours;trace.eccentricity=speedScale*speedScale-1;},ringTraceStatus:()=>({...trace}),configureRingTrace:(enabled,running,target,massSolar)=>{if(enabled&&(!trace.enabled||target!==trace.target||massSolar!==trace.massSolar)){trace.timeHours=0;trace.speedScale=1;trace.rateHours=1;}trace={...trace,enabled,running,target,massSolar};},seekRingTrace:seconds=>{trace.timeHours=seconds/3600;trace.running=false;},setComposition:()=>{},setSky:(mode,brightness)=>{state.sky={mode,brightness};},pickBody:()=>state.pick??-1,projectedScene:()=>({ready:true,bodies:[]}),setAppearance:()=>{},renderStatus:()=>({panoramaReady:state.panoramaReady??false,panoramaBlend:state.panoramaReady?1:0,ready:true,texturesReady:true,active:true,frames:1,submitMs:1,previewSeconds:0,error:''}),status:()=>({...state}),startScene:(c,initiallyPaused)=>{if(state.rejectStart)throw Error('native rejected scene');initialPauses.push(initiallyPaused);calls.push(['start',c.preset,c.count,c.speed,c.angle,c.duration]);state.state='preparing';},pause:v=>{calls.push(['pause',v]);if(state.state!=='preparing')state.state=v?'paused':'running';},setCamera:(...args)=>calls.push(['camera',...args]),seek:i=>state.selected=i,saveReplay:async()=>false,loadReplay:async()=>{if(state.loadReplayOK){state.state='replay';return true;}return false;}};
   const modelContext={exports:{}};
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/SceneModel.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/WorkspaceLayout.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
@@ -578,4 +578,25 @@ test('editing a selected body retains the current viewing distance',async()=>{
 test('CLI camera wait flag is explicit and cannot be combined with a batch envelope',()=>{
  assert.equal(options(['--device','127.0.0.1:5555','--command','navigateCamera','--wait-camera'])['wait-camera'],true);
  assert.throws(()=>options(['--device','127.0.0.1:5555','--batch','x.json','--wait-camera']));
+});
+
+test('material controls validate atomically and never submit camera or solver changes',async()=>{
+ const {page:app,calls}=page();app.chooseTheme('three-worlds');calls.length=0;
+ const before=JSON.parse(app.snapshot());
+ for(const payload of [{exposure:2.01},{exposure:null},{exposure:NaN},{exposure:1,ocean:'yes'},{exposure:-1,cloudShadows:null}])await assert.rejects(app.execute('setMaterial',payload));
+ assert.equal(calls.length,0);assert.deepEqual(JSON.parse(app.snapshot()),before);
+ await app.execute('setMaterial',{exposure:1.2,ocean:false,cloudShadows:false});
+ await app.execute('setUiValue',{field:'material.exposure',value:-.7});
+ await app.execute('uiAction',{action:'material.ocean'});
+ const after=JSON.parse(app.snapshot());assert.deepEqual(after.material,{exposure:-.7,ocean:true,cloudShadows:false});
+ assert.deepEqual(after.camera,before.camera);assert.deepEqual(after.cameraMotion,before.cameraMotion);assert.deepEqual(after.definition,before.definition);assert.deepEqual(after.simulation,before.simulation);
+ assert.ok(calls.every(c=>c[0]==='material'));await app.execute('uiAction',{action:'material.reset'});assert.deepEqual(JSON.parse(app.snapshot()).material,{exposure:0,ocean:true,cloudShadows:true});
+});
+test('material recipes round-trip and v1 appearance resets material to defaults',()=>{
+ const {page:app,projects}=page();app.chooseTheme('three-worlds');app.changeMaterial({exposure:1.3,ocean:false,cloudShadows:false});
+ const saved=app.saveProject('光照配方');assert.equal(saved.recipe.appearanceVersion,2);
+ app.changeMaterial({exposure:-2});app.openProject(saved.id);assert.deepEqual(JSON.parse(JSON.stringify(app.materialState())),saved.recipe.material);
+ const legacy=structuredClone(saved);legacy.id='project-3-0';legacy.recipe.appearanceVersion=1;delete legacy.recipe.material;projects.set(legacy.id,legacy);
+ app.openProject(legacy.id);assert.deepEqual(JSON.parse(JSON.stringify(app.materialState())),{exposure:0,ocean:true,cloudShadows:true});
+ assert.equal(projects.get(legacy.id).recipe.appearanceVersion,1,'reading legacy must not rewrite it');
 });

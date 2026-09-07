@@ -25,8 +25,19 @@ test('actual store writes complete recipes atomically and accepts old scene-only
 test('malformed and incompatible recipe fields are rejected before any file is written',()=>{
  const dir=fs.mkdtempSync(join(tmpdir(),'sph-recipe-invalid-'));try{
   const s=scene();s.config.orbitBodies[1].surface=4;const baseline=model.defaultRecipe(s);
-  const mutations=[r=>r.schemaVersion=2,r=>r.appearanceVersion=2,r=>r.camera=null,r=>r.camera.zoom=0,r=>r.camera.pitch=2,r=>r.camera.focus=8,r=>r.camera.color=2,r=>r.appearance.clouds='true',r=>delete r.appearance.rings,r=>r.appearance.closeup=true,r=>r.sky.brightness=2,r=>r.sky.mode=.5,r=>r.themeId='../bad',r=>r.ring.timeHours=25,r=>r.ring.speedScale=1.3,r=>r.ring.rateHours=0,r=>r.ring.enabled=true,r=>r.ring.target=1,r=>r.overview={...r.camera,focus:0}];
+  const mutations=[r=>r.schemaVersion=2,r=>r.appearanceVersion=999,r=>r.camera=null,r=>r.camera.zoom=0,r=>r.camera.pitch=2,r=>r.camera.focus=8,r=>r.camera.color=2,r=>r.appearance.clouds='true',r=>delete r.appearance.rings,r=>r.appearance.closeup=true,r=>r.sky.brightness=2,r=>r.sky.mode=.5,r=>r.themeId='../bad',r=>r.ring.timeHours=25,r=>r.ring.speedScale=1.3,r=>r.ring.rateHours=0,r=>r.ring.enabled=true,r=>r.ring.target=1,r=>r.overview={...r.camera,focus:0}];
   for(const mutate of mutations){const r=JSON.parse(JSON.stringify(baseline));mutate(r);assert.throws(()=>ProjectStore.save(dir,s,r));assert.deepEqual(fs.readdirSync(dir),[]);}
   const r=JSON.parse(JSON.stringify(baseline));r.camera.focus=2;r.ring={enabled:true,target:2,timeHours:1,speedScale:1.1,rateHours:1};assert.throws(()=>ProjectStore.save(dir,s,r));
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('v2 materials are bounded, v1 loads unchanged, invalid variants never create files',()=>{
+ const dir=fs.mkdtempSync(join(tmpdir(),'sph-material-recipe-'));try{
+  const s=scene(),baseline=model.defaultRecipe(s);assert.equal(baseline.appearanceVersion,2);
+  for(const mutate of [r=>delete r.material,r=>r.material=null,r=>r.material.exposure=2.01,r=>r.material.exposure=null,r=>r.material.exposure='1',r=>r.material.ocean=1,r=>delete r.material.cloudShadows,r=>r.appearanceVersion=1]){
+   const r=JSON.parse(JSON.stringify(baseline));mutate(r);assert.throws(()=>ProjectStore.save(dir,s,r));assert.deepEqual(fs.readdirSync(dir),[]);
+  }
+  const old={id:'project-4-0',savedAt:1,scene:s,recipe:baseline};old.recipe.appearanceVersion=1;delete old.recipe.material;
+  const path=join(dir,old.id+'.json'),bytes=JSON.stringify(old);fs.writeFileSync(path,bytes);assert.deepEqual(JSON.parse(JSON.stringify(ProjectStore.load(dir,old.id))),JSON.parse(JSON.stringify(old)));assert.equal(fs.readFileSync(path,'utf8'),bytes);
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });

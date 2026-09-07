@@ -19,8 +19,14 @@ out vec4 outputColor;
 uniform sampler2D surfaceMap,cloudMap;
 uniform vec3 light;
 uniform vec2 orientation;
-uniform float phase,cloudPhase,speed,opacity;
-uniform int style,colorMode,clouds,atmosphere,rings;
+uniform float phase,cloudPhase,speed,opacity,exposure;
+uniform int style,colorMode,clouds,atmosphere,rings,ocean,cloudShadows;
+// Surface RGB is authored display color; masks remain linear data.
+vec3 linearColor(vec3 c){return mix(c/12.92,pow((c+.055)/1.055,vec3(2.4)),step(vec3(.04045),c));}
+vec3 displayColor(vec3 c){
+ c=vec3(1)-exp(-max(c,vec3(0))*exp2(exposure));
+ return mix(c*12.92,1.055*pow(c,vec3(1.0/2.4))-.055,step(vec3(.0031308),c));
+}
 const float PI=3.141592653589793;
 vec3 worldNormal(vec3 n){float a=orientation.x,b=orientation.y;n=vec3(n.x,cos(b)*n.y+sin(b)*n.z,-sin(b)*n.y+cos(b)*n.z);return vec3(cos(a)*n.x-sin(a)*n.z,n.y,sin(a)*n.x+cos(a)*n.z);}
 // The tilted equator and rings share a fixed world-space axis (27 degrees).
@@ -52,30 +58,30 @@ vec4 sphereColor(){
   if(atmosphere==0||colorMode!=0)return vec4(0);
   float halo=exp(-(r-1.0)*(style==0?24.0:55.0))*(1.0-smoothstep(1.08,1.13,r));
   float day=max(0.0,dot(normalize(vec3(local,.08)),light));
-  if(style==0){return vec4(vec3(1.0,.49,.08),halo*.48);}
-  return vec4(air,halo*(.08+.45*day)*(style==3?.28:1.0));
+  if(style==0){return vec4(displayColor(linearColor(vec3(1.0,.49,.08))*2.0),halo*.48);}
+  return vec4(displayColor(linearColor(air)),halo*(.08+.45*day)*(style==3?.28:1.0));
  }
  vec3 n=vec3(local,sqrt(max(0.0,1.0-r*r))),w=surfaceNormal(n);
  vec4 texel=surfaceAt(w);
  float diffuse=max(dot(n,light),0.0);
- vec3 base=texel.rgb;
+ vec3 base=colorMode==0?linearColor(texel.rgb):texel.rgb;
  if(colorMode==1)base=mix(vec3(.30,.45,1.0),vec3(1.0,.4,.2),clamp(speed/50.0,0.0,1.0));
- if(style==0){return vec4(base*(.73+.27*n.z),1.0);}
+ if(style==0){vec3 emission=base*(.73+.27*n.z);return vec4(colorMode==0?displayColor(emission*2.0):emission,1.0);}
  float cover=0.0,shadow=0.0;
  if(clouds==1&&colorMode==0){
    vec3 cn=vec3(local/1.012,sqrt(max(0.0,1.0-dot(local/1.012,local/1.012))));
    cover=sampleMap(cloudMap,uv(surfaceNormal(cn),cloudPhase)).r;
-   shadow=sampleMap(cloudMap,uv(normalize(w+surfaceNormal(light)*.016),cloudPhase)).r;
+   if(cloudShadows==1)shadow=sampleMap(cloudMap,uv(normalize(w+surfaceNormal(light)*.016),cloudPhase)).r;
  }
  vec3 lit=base*(.035+diffuse*.95)*(1.0-shadow*.32);
- if(colorMode==0&&style==1){float spec=pow(max(dot(n,normalize(light+vec3(0,0,1))),0.0),90.0)*texel.a*diffuse*(1.0-cover);
+ if(colorMode==0&&style==1&&ocean==1){float spec=pow(max(dot(n,normalize(light+vec3(0,0,1))),0.0),90.0)*texel.a*diffuse*(1.0-cover);
   lit+=vec3(.80,.87,1.0)*spec*.85;}
  vec3 cloudTint=style==2?vec3(.92,.80,.56):vec3(.96,.98,1.0);
- lit=mix(lit,cloudTint*(.055+diffuse*.92),cover);
+ lit=mix(lit,linearColor(cloudTint)*(.055+diffuse*.92),cover);
  lit*=ringShadow(n);
- if(atmosphere==1&&colorMode==0)lit+=air*pow(1.0-n.z,3.2)*(.04+.40*diffuse)*(style==3?.25:1.0);
- // Modest gamma correction for the display; no HDR/bloom claim.
- return vec4(pow(max(lit,vec3(0)),vec3(.85)),1.0-smoothstep(1.0-edge,1.0,r));
+ if(atmosphere==1&&colorMode==0)lit+=linearColor(air)*pow(1.0-n.z,3.2)*(.04+.40*diffuse)*(style==3?.25:1.0);
+ // Tone-map only original-color planetary layers; diagnostic colors keep their mapping.
+ return vec4(colorMode==0?displayColor(lit):pow(max(lit,vec3(0)),vec3(.85)),1.0-smoothstep(1.0-edge,1.0,r));
 }
 void main(){
  vec4 ball=sphereColor();
@@ -92,7 +98,8 @@ void main(){
    float shadow=disc>0.0&&toward<0.0?.16:1.0;
    vec3 tint=mix(vec3(.44,.36,.27),vec3(.86,.77,.60),clamp((radial-1.24)/1.02,0.0,1.0));
    if(colorMode==1)tint=mix(vec3(.30,.45,1.0),vec3(1.0,.4,.2),clamp(speed/50.0,0.0,1.0));
-   ring=vec4(tint*(.24+.76*sqrt(facing))*side*shadow,density);
+   vec3 ringLit=(colorMode==0?linearColor(tint):tint)*(.24+.76*sqrt(facing))*side*shadow;
+   ring=vec4(colorMode==0?displayColor(ringLit):ringLit,density);
   }
  }
  float sphereZ=sqrt(max(0.0,1.0-dot(local,local)));
@@ -144,6 +151,7 @@ void PlanetMaterial::draw(const SurfaceView &v){
  glUniform2f(glGetUniformLocation(program,"orientation"),v.yaw,v.pitch);glUniform3fv(glGetUniformLocation(program,"light"),1,v.light);
  glUniform1f(glGetUniformLocation(program,"opacity"),v.opacity);glUniform1f(glGetUniformLocation(program,"phase"),v.phase);glUniform1f(glGetUniformLocation(program,"cloudPhase"),v.cloudPhase);glUniform1f(glGetUniformLocation(program,"speed"),v.speed);
  glUniform1i(glGetUniformLocation(program,"style"),v.style);glUniform1i(glGetUniformLocation(program,"colorMode"),v.color);
+ glUniform1f(glGetUniformLocation(program,"exposure"),v.exposure);glUniform1i(glGetUniformLocation(program,"ocean"),v.ocean);glUniform1i(glGetUniformLocation(program,"cloudShadows"),v.cloudShadows);
  glUniform1i(glGetUniformLocation(program,"rings"),v.rings);glUniform1i(glGetUniformLocation(program,"clouds"),v.clouds);glUniform1i(glGetUniformLocation(program,"atmosphere"),v.atmosphere);
  glActiveTexture(GL_TEXTURE0);glBindTexture(GL_TEXTURE_2D,surfaces[v.style]);glUniform1i(glGetUniformLocation(program,"surfaceMap"),0);
  glActiveTexture(GL_TEXTURE1);glBindTexture(GL_TEXTURE_2D,cloudMaps[v.style]);glUniform1i(glGetUniformLocation(program,"cloudMap"),1);

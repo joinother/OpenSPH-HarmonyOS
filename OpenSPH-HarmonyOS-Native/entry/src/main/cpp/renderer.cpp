@@ -24,6 +24,7 @@ class Renderer {
     CameraNavigation navigation;
     std::array<float,3> composition{.5f,.5f,1};
     Appearance appearance;
+    MaterialSettings materialSettings;
     RingClock ringClock;uint64_t ringRevision=0;
     SkySettings skySettings;
     std::shared_ptr<const SkyPanorama> skyPanorama;
@@ -164,10 +165,10 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             double dt=std::min(.1,std::chrono::duration<double>(begin-lastClock).count());lastClock=begin;
             if(!active){std::this_thread::sleep_for(std::chrono::milliseconds(100));continue;}
             std::shared_ptr<const SkyPanorama> panorama;
-            Camera c;Appearance a;SkySettings skyConfig;std::array<float,3> compositionTarget;
+            Camera c;Appearance a;MaterialSettings m;SkySettings skyConfig;std::array<float,3> compositionTarget;
             {
                 std::lock_guard<std::mutex> lock(mutex);
-                panorama=skyPanorama;c = camera;a=appearance;skyConfig=skySettings;compositionTarget=composition;
+                panorama=skyPanorama;c = camera;a=appearance;m=materialSettings;skyConfig=skySettings;compositionTarget=composition;
             }
             if(skyReady && panorama && panorama!=uploadedPanorama){
                 photoReady=sky.uploadPanorama(*panorama,skyError);uploadedPanorama=panorama;
@@ -257,7 +258,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                         float phase=float(std::fmod(frame->time*.75+previewTime*.012,1.0));
                         SurfaceView view{projectedBody.x*2-1,1-projectedBody.y*2,-projectedBody.depth/100,
                             projectedBody.radius*2,aspect,c.yaw,c.pitch,phase,float(std::fmod(frame->time*.78+previewTime*.014+.07,1.0)),
-                            {light[0],light[1],light[2]},frame->surfaces[i],c.color,p.speed,a.clouds,a.atmosphere,a.rings,projectedBody.opacity};
+                            {light[0],light[1],light[2]},frame->surfaces[i],c.color,p.speed,a.clouds,a.atmosphere,a.rings,projectedBody.opacity,m.exposure,m.ocean,m.cloudShadows};
                         if(view.opacity>.001f){material.draw(view);if(trace.enabled&&trace.target==int(i))material.drawTrace(view,sampleRing(trace.massSolar,trace.seconds,trace.speedScale));}
                     }
                     glEnable(GL_DEPTH_TEST);
@@ -271,7 +272,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             GLenum glError=glGetError();if(glError!=GL_NO_ERROR)error("OpenGL draw error "+std::to_string(glError));
             {std::lock_guard<std::mutex> lock(mutex);stats.sceneRevision=revision;stats.cameraMoving=navigation.moving()||framing.moving();stats.compositionX=compositionNow[0];stats.compositionY=compositionNow[1];stats.compositionScale=compositionNow[2];stats.centerX=cx;stats.centerY=cy;stats.centerZ=cz;stats.frames++;stats.skyStars=skyStars;stats.skyGalaxy=skyGalaxy;stats.previewSeconds=previewTime;stats.submitMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count();}
             if (!eglSwapBuffers(display, surface)){error("EGL swap failed");break;}
-            {std::lock_guard<std::mutex> lock(mutex);navigation.presented(cameraRequest);projected=std::move(shown);projectedRevision=revision;}
+            {std::lock_guard<std::mutex> lock(mutex);stats.materialExposure=m.exposure;stats.materialOcean=m.ocean;stats.materialCloudShadows=m.cloudShadows;navigation.presented(cameraRequest);projected=std::move(shown);projectedRevision=revision;}
             std::this_thread::sleep_until(begin + std::chrono::milliseconds(33));
         }
         sky.release();
@@ -311,6 +312,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
     RingClock traceStatus(){std::lock_guard<std::mutex> lock(mutex);return ringClock;}
     void setComposition(float x,float y,float scale){std::lock_guard<std::mutex> lock(mutex);composition={x,y,scale};}
     void setPanorama(std::shared_ptr<const SkyPanorama> p){std::lock_guard<std::mutex> lock(mutex);skyPanorama=std::move(p);}
+    void setMaterial(MaterialSettings m){if(!std::isfinite(m.exposure)||m.exposure<-2||m.exposure>2)throw std::invalid_argument("Exposure must be -2..2 EV");std::lock_guard<std::mutex> lock(mutex);materialSettings=m;}
     void setSky(SkySettings s){std::lock_guard<std::mutex> lock(mutex);skySettings=s;}
     void setAppearance(Appearance a){std::lock_guard<std::mutex> lock(mutex);appearance=a;}
     void setActive(bool value){active=value;}
@@ -358,6 +360,7 @@ RingClock ringTraceStatus(){return renderer().traceStatus();}
 void setAppearance(bool clouds,bool atmosphere,bool trails,bool closeup,bool autoSpin,bool rings){renderer().setAppearance({clouds,atmosphere,trails,closeup,autoSpin,rings});}
 void setComposition(float x,float y,float scale){renderer().setComposition(x,y,scale);}
 void setSkyPanorama(std::shared_ptr<const SkyPanorama> p){renderer().setPanorama(std::move(p));}
+void setMaterial(float exposure,bool ocean,bool cloudShadows){renderer().setMaterial({exposure,ocean,cloudShadows});}
 void setSky(int mode,float brightness){renderer().setSky({mode,brightness});}
 void setRenderActive(bool active){renderer().setActive(active);}
 RenderStatus renderStatus(){return renderer().status();}

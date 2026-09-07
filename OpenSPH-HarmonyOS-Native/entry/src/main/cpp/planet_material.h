@@ -8,6 +8,7 @@ struct SurfaceView {
  float yaw,pitch,phase,cloudPhase;
  float light[3];int style,color;float speed;
  bool clouds,atmosphere,rings;float opacity;
+ float exposure;bool ocean,cloudShadows;
 };
 class PlanetMaterial {
  GLuint traceProgram=0,traceVao=0,traceVbo=0;

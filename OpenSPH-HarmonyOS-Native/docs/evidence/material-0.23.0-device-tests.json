@@ -1,0 +1,119 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "rendered EV is monotonic and sky unchanged",
+    "ocean reflection and cloud shadow pixel differences",
+    "disabled clouds cast no shadow",
+    "diagnostic colors ignore EV",
+    "invalid transactions atomic",
+    "material edits preserve camera request, physical bodies/time and render surface"
+  ],
+  "comparison": {
+    "low": {
+      "difference": 11.817401216221393,
+      "luminanceA": 25.21856862263528,
+      "luminanceB": 37.12051866204834,
+      "changed": 225922,
+      "pixels": 243596
+    },
+    "high": {
+      "difference": 15.437274558421867,
+      "luminanceA": 37.12051866204834,
+      "luminanceB": 52.72577957518731,
+      "changed": 236091,
+      "pixels": 243596
+    },
+    "background": {
+      "difference": 0,
+      "luminanceA": 6.171446937925798,
+      "luminanceB": 6.171446937925798,
+      "changed": 0,
+      "pixels": 431186
+    },
+    "ocean": {
+      "difference": 7.3922450833894375,
+      "luminanceA": 52.72577957518731,
+      "luminanceB": 44.95726431222066,
+      "changed": 22665,
+      "pixels": 243596
+    },
+    "cloud": {
+      "difference": 0.18734708287492405,
+      "luminanceA": 93.3663267123134,
+      "luminanceB": 93.5568564903046,
+      "changed": 670,
+      "pixels": 243596
+    },
+    "cloudOff": {
+      "difference": 0,
+      "luminanceA": 44.95726431222066,
+      "luminanceB": 44.95726431222066,
+      "changed": 0,
+      "pixels": 243596
+    },
+    "speed": {
+      "difference": 0,
+      "luminanceA": 86.8661901377938,
+      "luminanceB": 86.8661901377938,
+      "changed": 0,
+      "pixels": 243596
+    }
+  },
+  "initial": {
+    "camera": {
+      "yaw": 0.9,
+      "pitch": 0.2,
+      "zoom": 2.7,
+      "focus": 1,
+      "color": 0
+    },
+    "request": {
+      "requestId": 5,
+      "sceneRevision": 4,
+      "targetFocus": 1,
+      "progress": 1,
+      "state": "completed",
+      "reason": "",
+      "targetCloseup": true,
+      "yaw": 0.8999999761581421,
+      "pitch": 0.20000000298023224,
+      "zoom": 2.700000047683716
+    },
+    "revision": 4,
+    "time": 0
+  },
+  "after": {
+    "material": {
+      "exposure": 0,
+      "ocean": true,
+      "cloudShadows": true
+    },
+    "rendering": {
+      "materialExposure": 0,
+      "materialOcean": true,
+      "materialCloudShadows": true,
+      "compositionX": 0.5,
+      "compositionY": 0.5,
+      "compositionScale": 1,
+      "sceneRevision": 4,
+      "surfaceStarts": 1,
+      "cameraMoving": false,
+      "centerX": 1.0000003576278687,
+      "centerY": 0.0000021122884845681256,
+      "centerZ": 0,
+      "panoramaReady": true,
+      "panoramaBlend": 1,
+      "skyReady": true,
+      "skyStars": 0.22750000655651093,
+      "skyGalaxy": 0.22750000655651093,
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 9597,
+      "submitMs": 0.205458,
+      "previewSeconds": 0,
+      "error": ""
+    }
+  }
+}

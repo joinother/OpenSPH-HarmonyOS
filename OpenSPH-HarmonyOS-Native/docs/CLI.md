@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.22.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.23.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -148,13 +148,31 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getRingTrace --pa
 
 预设 0–2 为 SPH，3 为双体，4 为四体，5 为自定义。完整配置范围以命令目录和应用校验为准。`getState.definition` 是初始条件，`simulation.bodies` 为当前显示的质心参考系数据；SPH 时间单位为秒，轨道为儒略年。
 
-命名实验保存结构保持 `scene.schemaVersion=1`，新增可选的 `recipe`：`schemaVersion=1`、`appearanceVersion=1`、`themeId`、`camera`、可选全景返回视角 `overview`、`appearance`、`sky` 和 `ring`。`listProjects` 每条新增 `hasRecipe` 与 `themeId`。界面“保存当前实验与视角”与 `saveProject` 共用写入逻辑。
+命名实验保存结构保持 `scene.schemaVersion=1`，新增可选的 `recipe`：`schemaVersion=1`、`appearanceVersion=2`、`material`、`themeId`、`camera`、可选全景返回视角 `overview`、`appearance`、`sky` 和 `ring`。`listProjects` 每条新增 `hasRecipe` 与 `themeId`。界面“保存当前实验与视角”与 `saveProject` 共用写入逻辑。
 
 保存采样当前镜头和局部环时钟，不自动暂停正在运行的实验。载入先校验整份文件，再创建暂停的初始场景；环恢复所存小时数、速度与倍率，并保持暂停。主系统时间不保存，不是中途续算；未提交的天体／放置草稿、撤销历史、回放帧、当前面板和窗口方向不在配方内。程序外观动画相位也不保存，因此恢复视角不等于逐像素复原旧帧。
+
+`appearanceVersion=2` 要求完整 `material:{exposure,ocean,cloudShadows}`；v1 外观配方读取时采用 0 EV、海洋反光／云影开启的默认材质，不重写原文件。新的 v2 外观配方不支持旧版应用读取；需要升级应用后打开。光照改进会改变同一旧外观的像素结果。
 
 旧存档缺少 `recipe` 时仍可打开，采用固定默认外观、银河亮度和全景，不继承上一个实验的设置。显式损坏的配方、未知配方／外观版本或不匹配的局部环目标会被拒绝，已有场景保持；损坏条目不影响其他有效实验。详见 [0.21.0 记录](releases/RELEASE-0.21.0.md)。验收入口为 `node scripts/test-recipe-emulator.mjs 127.0.0.1:5555`；它创建并清理自己的验收实验，不覆盖既有存档，但会替换当前会话，调用者需先备份并事后恢复。
 
 回放最多保留 240 帧，不是求解器检查点。完成、载入回放或配置改变后再次开始，会重新计算；不能从任意历史快照续算。语义动作还包括 `simulation.toggle`、`simulation.apply`、`replay.toggle`、`replay.latest`、`replay.save`、`replay.load`；时间轴输入为 `time.frame`。
+
+## 光照与材质
+
+观察面板顶部的“光与质感”对应 `setMaterial`，参数均可选：`exposure` 为 −2～+2 EV（默认 0），`ocean` 与 `cloudShadows` 为布尔值（默认 true）。显式 null、错误类型或越界值会整体拒绝，之前的设置保持。EV 每增加 1，使色调映射前的线性亮度乘以 2，显示像素不会简单翻倍。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setMaterial --payload-json '{"exposure":0.7,"ocean":true,"cloudShadows":false}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setUiValue --payload-json '{"field":"material.exposure","value":-0.5}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"material.reset"}'
+```
+
+`material.ocean`、`material.cloudShadows` 和 `material.reset` 与界面共用；曝光滑块使用 `material.exposure` 字段。重置恢复三个材质值，不改变云层、大气或银河开关。UI 在轨道场景中显示这些控制，CLI 也可预设下一次轨道显示的材质值。主题切换保留当前材质选择，载入命名实验使用所存配置。
+
+`getState.material` 是当前目标配置；`rendering.materialExposure/materialOcean/materialCloudShadows` 是最近成功提交帧使用的值，尚未提交时可与目标不同。材质命令不会发起镜头请求，也不重建渲染表面或物理场景；通常下一帧生效。曝光针对原色模式下的恒星、球面、云层、大气和艺术环带；不改变天空、界面、轨迹、示踪点、SPH 颗粒或速度诊断着色。海洋反光仅对海陆外观（surface 1）有效；云影依赖云层开启，关闭云层时不投影。没有真实地球地图、地形法线、夜灯、气候或光度测量含义。
+
+验收：`node scripts/test-material-lighting-emulator.mjs 127.0.0.1:5555` 比较真实渲染像素；`node scripts/test-material-controls-emulator.mjs 127.0.0.1:5555` 检查三个窗口中的触摸与滑块。两者替换会话，须先备份并恢复；测试截图不表示真机性能。见 [0.23.0 记录](releases/RELEASE-0.23.0.md)。
 
 ## 外观与相机
 

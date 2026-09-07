@@ -20,17 +20,18 @@ const fixture=p=>{
  h('shell','cat','/data/local/tmp/sph-recipe-fixture.json','>',remote+'/'+p.id+'.json');
 };
 async function settled(){for(let i=0;i<80;i++){const s=call('getState');assert.equal(s.rendering.error,'');if(s.rendering.texturesReady&&!s.rendering.cameraMoving&&s.rendering.frames>1)return s;await delay(150);}throw Error('render not ready');}
-function equivalent(s,r){assert.deepEqual(s.camera,r.camera);assert.deepEqual(s.appearance,r.appearance);assert.equal(s.sky.mode,r.sky.mode);assert.equal(s.sky.brightness,r.sky.brightness);assert.equal(s.theme.id,r.themeId);assert.equal(s.simulation.time,0);assert.equal(s.simulation.state,'paused');assert.equal(s.ringTrace.enabled,r.ring.enabled);assert.equal(s.ringTrace.running,false);if(r.ring.enabled)for(const key of ['target','timeHours','speedScale','rateHours'])assert.ok(Math.abs(s.ringTrace[key]-r.ring[key])<1e-10,key);}
+function equivalent(s,r){assert.deepEqual(s.material,r.material??{exposure:0,ocean:true,cloudShadows:true});assert.ok(Math.abs(s.rendering.materialExposure-s.material.exposure)<1e-5);assert.deepEqual(s.camera,r.camera);assert.deepEqual(s.appearance,r.appearance);assert.equal(s.sky.mode,r.sky.mode);assert.equal(s.sky.brightness,r.sky.brightness);assert.equal(s.theme.id,r.themeId);assert.equal(s.simulation.time,0);assert.equal(s.simulation.state,'paused');assert.equal(s.ringTrace.enabled,r.ring.enabled);assert.equal(s.ringTrace.running,false);if(r.ring.enabled)for(const key of ['target','timeHours','speedScale','rateHours'])assert.ok(Math.abs(s.ringTrace[key]-r.ring[key])<1e-10,key);}
 const checks=[],layouts=[];
 try{
  call('listCommands');call('getUiState');
  action('theme.eccentric-ring','paused');await settled();
  call('setCamera',{yaw:.4,pitch:.3,zoom:3.1,focus:1,color:0});
  call('setAppearance',{clouds:false,atmosphere:false,trails:false,closeup:true,autoSpin:false,rings:false});call('setSky',{mode:1,brightness:.37});
+ call('setMaterial',{exposure:1.3,ocean:false,cloudShadows:false});
  value('trace.speed',1.17);value('trace.rate',.3);value('trace.hours',4.75);await settled();
  const before=call('getState'),particles=call('getRingTrace',{particles:true}).ringTrace.particles;
  const saved=call('saveProject',{title:'验收 · 环与观察配方'});created.push(saved.id);const file=read(saved.id);
- assert.equal(file.recipe.ring.timeHours,4.75);assert.equal(file.recipe.appearanceVersion,1);
+ assert.equal(file.recipe.ring.timeHours,4.75);assert.equal(file.recipe.appearanceVersion,2);
  action('theme.rock-slow','paused');h('shell','aa','force-stop','com.opensph.lab');
  call('loadProject',{id:saved.id},'paused');const loaded=await settled();equivalent(loaded,file.recipe);assert.deepEqual(loaded.definition,file.scene);assert.deepEqual(call('getRingTrace',{particles:true}).ringTrace.particles,particles);
  assert.equal(call('listProjects').projects.find(p=>p.id===saved.id).hasRecipe,true);checks.push('cold process restores recipe, initial conditions and all 192 ring positions');
@@ -40,6 +41,10 @@ try{
  const prefix=Date.now();const bad=structuredClone(file);bad.id='project-'+prefix+'-701';bad.recipe.ring.speedScale=2;fixture(bad);
  const stable=call('getState');const rejected=spawnSync(process.execPath,[cli,'--device',device,'--command','loadProject','--payload-json',JSON.stringify({id:bad.id})],{encoding:'utf8'});assert.equal(rejected.status,2);assert.match(JSON.parse(rejected.stdout).error,/参数超出范围/);
  const after=call('getState');assert.deepEqual(after.definition,stable.definition);assert.deepEqual(after.camera,stable.camera);assert.equal(after.rendering.sceneRevision,stable.rendering.sceneRevision);assert.equal(after.ringTrace.timeHours,stable.ringTrace.timeHours);assert.ok(!call('listProjects').projects.some(p=>p.id===bad.id));checks.push('corrupt recipe rejected without replacing scene; isolated from valid library entries');
+ const v1=structuredClone(file);v1.recipe.appearanceVersion=1;delete v1.recipe.material;fixture(v1);
+ call('loadProject',{id:v1.id},'paused');equivalent(await settled(),v1.recipe);assert.equal(read(v1.id).recipe.appearanceVersion,1);checks.push('v1 appearance migrates in memory to default material without rewriting file');
+ const broken=structuredClone(file);broken.recipe.material.exposure=9;fixture(broken);const stableMaterial=call('getState');
+ const invalid=spawnSync(process.execPath,[cli,'--device',device,'--command','loadProject','--payload-json',JSON.stringify({id:broken.id})],{encoding:'utf8'});assert.equal(invalid.status,2);const intact=call('getState');assert.deepEqual(intact.material,stableMaterial.material);assert.equal(intact.rendering.sceneRevision,stableMaterial.rendering.sceneRevision);checks.push('invalid material recipe rejected before scene mutation');
  const legacy=structuredClone(file);legacy.id='project-'+prefix+'-702';delete legacy.recipe;fixture(legacy);
  call('loadProject',{id:legacy.id},'paused');const old=await settled();assert.equal(old.camera.focus,-1);assert.equal(old.appearance.closeup,false);assert.equal(old.ringTrace.enabled,false);assert.equal(old.sky.mode,2);assert.equal(old.sky.brightness,.65);assert.equal(old.theme.id,'');checks.push('legacy scene-only file loads with deterministic defaults');
  call('loadProject',{id:saved.id},'paused');await settled();

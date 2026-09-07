@@ -6,22 +6,29 @@ export interface SceneDefinition {
 }
 export interface RecipeCamera { yaw:number; pitch:number; zoom:number; focus:number; color:number; }
 export interface RecipeAppearance { clouds:boolean; atmosphere:boolean; trails:boolean; closeup:boolean; autoSpin:boolean; rings:boolean; }
+export interface RecipeMaterial { exposure:number; ocean:boolean; cloudShadows:boolean; }
+export function defaultMaterial():RecipeMaterial {return {exposure:0,ocean:true,cloudShadows:true};}
+export function validateMaterial(m:RecipeMaterial):void {
+ if(!m||typeof m.ocean!=='boolean'||typeof m.cloudShadows!=='boolean')throw new Error('无效材质开关');check(m.exposure,-2,2);
+}
 export interface RecipeSky { mode:number; brightness:number; }
 export interface RecipeRing { enabled:boolean; target:number; timeHours:number; speedScale:number; rateHours:number; }
 export interface ExperimentRecipe {
   schemaVersion:number; appearanceVersion:number; themeId:string; camera:RecipeCamera;
-  overview?:RecipeCamera; appearance:RecipeAppearance; sky:RecipeSky; ring:RecipeRing;
+  material?:RecipeMaterial; overview?:RecipeCamera; appearance:RecipeAppearance; sky:RecipeSky; ring:RecipeRing;
 }
 export interface SavedProject { id: string; savedAt: number; scene: SceneDefinition; recipe?:ExperimentRecipe; }
 
 export function defaultRecipe(scene:SceneDefinition):ExperimentRecipe {
-  return {schemaVersion:1,appearanceVersion:1,themeId:'',
+  return {schemaVersion:1,appearanceVersion:2,material:defaultMaterial(),themeId:'',
     camera:{yaw:.15,pitch:.25,zoom:2.7*Math.max(1,scene.config.targetRadiusKm/100),focus:-1,color:0},
     appearance:{clouds:true,atmosphere:true,trails:true,closeup:false,autoSpin:false,rings:true},
     sky:{mode:2,brightness:.65},ring:{enabled:false,target:-1,timeHours:0,speedScale:1,rateHours:1}};
 }
 export function validateRecipe(r:ExperimentRecipe,scene:SceneDefinition):void {
-  if(!r||r.schemaVersion!==1||r.appearanceVersion!==1)throw new Error('不支持的实验配方版本');
+  if(!r||r.schemaVersion!==1||(r.appearanceVersion!==1&&r.appearanceVersion!==2))throw new Error('不支持的实验配方版本');
+  if(r.appearanceVersion===2)validateMaterial(r.material!);
+  else if(r.material!==undefined)throw new Error('旧外观版本不支持材质配置');
   if(typeof r.themeId!=='string'||r.themeId.length>64||!/^[a-z0-9-]*$/.test(r.themeId))throw new Error('无效主题编号');
   const preset=scene.config.preset;
   const maxFocus=preset===5?scene.config.orbitBodies!.length-1:(preset===4?3:1);
