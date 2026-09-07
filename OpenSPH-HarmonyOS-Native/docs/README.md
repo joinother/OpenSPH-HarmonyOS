@@ -14,6 +14,7 @@
 | [主题实验与碰撞创意](research/THEMED-EXPERIMENTS-2026-09-06.md) | 土星环、坠入、月球形成等候选与外观／物理实施顺序 |
 | [同行调研与路线](research/PEER-RESEARCH-2026-09-06.md) | SpaceSim、Universe Sandbox、Celestia 等来源与实现取舍 |
 | [SpaceEngine 调研](research/SPACEENGINE-2026-09-06.md) | 2026-09-07 补充 9 个官方页面与 6 份工坊说明选读；12 项改进、6 个体验提案及许可边界 |
+| [Celestia 源码与插件专题](research/CELESTIA-SOURCE-ADDONS-2026-09-07.md) | 803 个源码／着色器文件清单、26 份文件选读；官方插件资料、鸿蒙工程经验、12 项改进与 8 个体验提案；论坛访问受限 |
 | [宇宙沙盒操作记录](research/UNIVERSE-SANDBOX-SESSION-2026-09-06.md) | Steam 启动后的实际观察、操作边界与输入问题 |
 | [同行更新日志筛选](research/PEER-UPDATES-2026-09-06.md) | Universe Sandbox、SpaceSim 更新和 Celestia 开发提交对当前路线的补充 |
 | [宇宙沙盒博客与论坛专题](research/UNIVERSE-SANDBOX-BLOG-FORUM-2026-09-07.md) | 242 篇博客与 2585 个主题索引、36 篇博客和 23 个主题选读；32 项改进与 14 个实验方案 |

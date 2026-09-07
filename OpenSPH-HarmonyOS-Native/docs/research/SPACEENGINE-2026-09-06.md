@@ -93,7 +93,7 @@ SpaceEngine 适合作为宇宙漫游和行星视觉的参考。官方 [FAQ](http
 
 后续若有符合授权及配置要求的 Windows 环境，实际体验有价值：依次观察远近飞行、跟随与自转绑定、环的正背面、曝光切换和地点恢复。记录操作与结果，不提取代码或私有资产。下载安装到本地也不会使闭源引擎变成可移植源码。
 
-补充资料线索：[Celestia 插件目录](https://celestiaproject.space/addons.html)。保留工作区新增链接供后续核验，未计入本轮阅读范围。
+补充资料线索：[Celestia 插件目录](https://celestiaproject.space/addons.html)。保留工作区新增链接供后续核验，未计入本轮阅读范围。 后续的官方站点源码、移动版与本地源码核对见 [Celestia 专题](CELESTIA-SOURCE-ADDONS-2026-09-07.md)，论坛访问受限；不追加计入本篇原有统计。
 
 ## 本轮交付与验证边界
 

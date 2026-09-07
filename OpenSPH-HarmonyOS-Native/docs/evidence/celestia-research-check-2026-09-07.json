@@ -1,0 +1,56 @@
+{
+  "checked_at_utc": "2026-09-07T05:33:02.711495+00:00",
+  "research_date": "2026-09-07",
+  "timezone": "Asia/Shanghai",
+  "app_version": "0.21.0",
+  "checks": {
+    "workspace": {
+      "ok": true,
+      "markdownFiles": 43,
+      "localLinksChecked": 324,
+      "sourceVersion": "0.21.0",
+      "errors": []
+    },
+    "checkpoint": {
+      "ok": true,
+      "markdownFiles": 42,
+      "localLinksChecked": 299,
+      "sourceVersion": "0.21.0",
+      "errors": []
+    }
+  },
+  "release_artifacts": [
+    {
+      "file": "OpenSPH-Lab-0.21.0-emulator-unsigned.hap",
+      "bytes": 16385008,
+      "sha256": "45a829ffbaefc61b914b3904c25c34245b0bca083d9344bc80747f9255412595",
+      "matches_existing_release": true
+    },
+    {
+      "file": "OpenSPH-HarmonyOS-Native-0.21.0-source.zip",
+      "bytes": 132642957,
+      "sha256": "e582cf8ad7ef8579442a9cae4587275a4775c1235fc18af6ec0be9781ca8c338",
+      "matches_existing_release": true
+    }
+  ],
+  "reference_repositories": [
+    {
+      "root": "celestia-src",
+      "head_and_worktree_status_unchanged": true
+    },
+    {
+      "root": "celestia-ohos",
+      "head_and_worktree_status_unchanged": true
+    }
+  ],
+  "all_803_inventoried_source_hashes_unchanged": true,
+  "app_rebuilt": false,
+  "simulator_tests_run": false,
+  "copied_document_files": [
+    "README.md",
+    "docs/README.md",
+    "docs/research/SPACEENGINE-2026-09-06.md",
+    "docs/research/CELESTIA-SOURCE-ADDONS-2026-09-07.md",
+    "docs/evidence/celestia-source-addons-index-2026-09-07.json"
+  ]
+}
