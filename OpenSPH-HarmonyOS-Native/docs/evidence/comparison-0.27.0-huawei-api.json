@@ -1,0 +1,17 @@
+{
+  "reviewDate": "2026-09-07",
+  "timezone": "Asia/Shanghai",
+  "provider": "Huawei HarmonyOS developer knowledge MCP",
+  "document": "document/cn/harmonyos-references/js-apis-file-fs",
+  "title": "@ohos.file.fs (文件管理)",
+  "url": "https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-file-fs",
+  "reviewedAPIs": ["accessSync", "statSync", "readTextSync", "openSync", "writeSync", "fsyncSync", "closeSync", "renameSync", "unlinkSync"],
+  "implementationDecisions": [
+    "Use app-private local paths and explicit missing-file detection.",
+    "writeSync returns bytes; verify complete UTF-8 text and file size instead of equating JavaScript string length with bytes written.",
+    "Flush and close the temporary file before renaming it over the reference.",
+    "Validate loaded schema, source configuration and finite monotonic samples before display.",
+    "Keep existing reference on write failure; do not silently remove invalid files."
+  ],
+  "verificationBoundary": "Documentation review does not prove replacement semantics or durability. Replacement and cold launch are tested on the emulator; injected write, flush and rename failures are host tests. No directory fsync or power-loss test."
+}

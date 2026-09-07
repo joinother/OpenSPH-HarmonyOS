@@ -1,0 +1,41 @@
+{
+  "ok": true,
+  "rows": 480,
+  "timeAlignment": "simulation-start",
+  "reference": {
+    "capturedAt": 1788771326127,
+    "title": "双体轨道",
+    "body": 1,
+    "name": "蓝色行星",
+    "count": 240,
+    "firstTime": 1.06640625,
+    "lastTime": 2,
+    "config": {
+      "preset": 3,
+      "count": 600,
+      "speed": 0.85,
+      "angle": 0,
+      "duration": 2,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "targetSpin": -0.009999999776482582,
+      "seed": 1234
+    }
+  },
+  "currentName": "蓝色行星",
+  "currentConfig": {
+    "preset": 3,
+    "count": 600,
+    "speed": 1,
+    "angle": 0,
+    "duration": 2,
+    "targetRadiusKm": 100,
+    "impactorRadiusKm": 60,
+    "targetDensity": 2700,
+    "impactorDensity": 2700,
+    "targetSpin": -0.009999999776482582,
+    "seed": 1234
+  }
+}

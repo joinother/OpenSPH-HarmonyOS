@@ -1,3 +1,5 @@
+import { ObservationReference, ReferenceSummary, ComparisonPlot, comparisonPlot, referenceSummary, observationCsv } from '../common/ObservationComparison';
+import { ObservationStore } from '../common/ObservationStore';
 import { observationPlot, ObservationPlot } from '../common/ObservationModel';
 import simulation, { OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
@@ -30,6 +32,8 @@ interface ProjectList { ok: boolean; projects: ProjectSummary[]; }
 interface AppearanceState { clouds:boolean; atmosphere:boolean; trails:boolean; closeup:boolean; autoSpin:boolean; rings:boolean; }
 interface SkyState {mode:number;brightness:number;reference:string;}
 interface PlacementState { sourceIndex:number; sourceName:string; active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
+interface ComparisonReply {ok:boolean;visible:boolean;reference?:ReferenceSummary;currentName:string;currentCount:number;currentConfig?:SimulationConfig;chart:ComparisonPlot;error:string;}
+interface ObservationTableReply {ok:boolean;csv:string;rows:number;timeAlignment:string;reference?:ReferenceSummary;currentName:string;currentConfig?:SimulationConfig;}
 interface ObservationReply {ok:boolean;metric:string;data:OrbitObservation;plot:ObservationPlot;}
 interface ThemeState { id:string; title:string; goal:string; limit:string; modified:boolean; compareId:string; }
 interface MoonAssetInfo {source:string;asset:string;credit:string;width:number;height:number;requested:boolean;ready:boolean;uploads:number;blend:number;error:string;decodedBudgetBytes:number;gpuBudgetBytes:number;}
@@ -171,6 +175,9 @@ struct Index {
   @State closeup: boolean = false;
   @State autoSpin: boolean = false;
   @State rings: boolean = true;
+  @State comparisonReference:ObservationReference|undefined=undefined;
+  @State comparisonShown:boolean=true;
+  @State comparisonError:string='';
   @State observationMetric:string='distance';
   @State observed:OrbitObservation={sceneRevision:0,body:1,name:'',selected:-1,samples:[]};
   @State trace:RingTraceStatus={speedScale:1,rateHours:1,eccentricity:0,innerApoapsisKm:76800,outerApoapsisKm:133200,referenceXKm:76800,referenceYKm:0,referenceRadiusKm:76800,referenceSpeedKmS:0,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-elliptic-kepler-v2'};
@@ -214,7 +221,31 @@ struct Index {
   private refreshObservation():void {
     this.observed=simulation.orbitObservation(this.focus>0?this.focus:1);
   }
-  private observationView():ObservationPlot {return observationPlot(this.observed,this.observationMetric);}
+  private comparisonView():ComparisonPlot {return comparisonPlot(this.observed,this.observationMetric,this.comparisonShown?this.comparisonReference?.data:undefined);}
+  private observationView():ObservationPlot {return this.comparisonView().plot;}
+  private reloadReference():void {
+    try{const saved=ObservationStore.load(this.directory());this.comparisonReference=saved;this.comparisonError='';}
+    catch(e){this.comparisonReference=undefined;this.comparisonError='无法读取参照 · '+String(e);}
+  }
+  private captureReference():void {
+    this.refreshObservation();const captured=this.observed,source=simulation.status();
+    if(!source.config||source.config.preset<3||captured.samples.length<2||simulation.orbitObservation(captured.body).sceneRevision!==captured.sceneRevision)throw new Error('需要同一场景的至少两帧轨道记录');
+    const value:ObservationReference={schemaVersion:1,capturedAt:Date.now(),title:this.title,config:source.config,data:captured};
+    try{const saved=ObservationStore.save(this.directory(),value);this.comparisonReference=saved;this.comparisonShown=true;this.comparisonError='';this.notice='已保存参照 · 改参数或切换实验后仍可比较';}
+    catch(e){this.comparisonError='保存参照失败 · '+String(e);throw new Error(this.comparisonError);}
+  }
+  private clearReference():void {
+    try{ObservationStore.clear(this.directory());this.comparisonReference=undefined;this.comparisonError='';this.notice='已移除参照 · 当前模拟保留';}
+    catch(e){this.comparisonError='移除参照失败 · '+String(e);throw new Error(this.comparisonError);}
+  }
+  private referenceCaption():string {
+    const r=this.comparisonReference;if(!r)return '';
+    return r.title+' / '+r.data.name+' · '+r.data.samples.length+' 帧 · '+r.data.samples[0].time.toFixed(3)+'–'+r.data.samples[r.data.samples.length-1].time.toFixed(3)+' 年';
+  }
+  private referenceParameters():string {
+    const c=this.comparisonReference?.config;if(!c)return '';
+    return (c.preset===5?'自定义 '+c.orbitBodies!.length+' 天体':(c.preset===3?'双体':'行星系统')+' · 初速 '+c.speed.toFixed(2)+' ×')+' · 时长 '+c.duration+' 年';
+  }
   private observationWidth():number {return Math.max(120,Math.min(240,this.layout().drawer.width-64));}
   private observationPath(path:string):string {
     const scale=this.observationWidth()/240;
@@ -228,7 +259,7 @@ struct Index {
   }
   private directory(): string { return (this.getUIContext().getHostContext() as common.UIAbilityContext).filesDir; }
   aboutToAppear(): void {
-    this.refreshProjects();
+    this.refreshProjects();this.reloadReference();
     loadSkyPanorama(this.getUIContext().getHostContext() as common.UIAbilityContext).catch((error:Error) => {this.skyLoadError=error.message;});
     this.prepare(false);
     CliBridge.bind((command: string, payload: CommandPayload) => this.execute(command,payload));
@@ -714,6 +745,9 @@ struct Index {
     add('color.0','原色',true,this.colorMode===0);add('color.1','速度',true,this.colorMode===1);add('color.2','密度',this.preset<3,this.colorMode===2);
     add('trace.controls','调整局部轨道',this.trace.enabled);add('trace.circular','圆轨道对照',this.trace.enabled);add('trace.ellipse','拉长轨道',this.trace.enabled);add('trace.apoapsis','跳到内圈远点',this.trace.enabled&&this.trace.innerPeriodHours/2<=24);
     add('trace.toggle','开普勒示踪粒子',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
+    add('comparison.capture',this.comparisonReference?'替换参照':'保存作参照',this.preset>=3&&this.observed.samples.length>=2);
+    add('comparison.toggle',this.comparisonShown?'隐藏参照':'显示参照',this.comparisonReference!==undefined,this.comparisonShown);
+    add('comparison.clear','移除参照',this.comparisonReference!==undefined||this.comparisonError!=='');add('comparison.reload','重试读取',this.comparisonError!=='');
     add('observation.distance','距恒星',this.preset>=3,this.observationMetric==='distance');add('observation.speed','速度',this.preset>=3,this.observationMetric==='speed');
     add('observation.minimum','记录最小',this.preset>=3&&this.observationView().available);add('observation.maximum','记录最大',this.preset>=3&&this.observationView().available);
     add('moon.retry','重试月面贴图',!!(this.moonLoadError||this.rendering.moonError));
@@ -842,6 +876,10 @@ struct Index {
     else if(action.startsWith('sky.mode.'))this.changeSky(Number(action.slice(9)),this.skyBrightness);
     else if(action==='orbit.plane.xy')this.vectorPlane='XY';
     else if(action==='orbit.plane.xz')this.vectorPlane='XZ';
+    else if(action==='comparison.capture')this.captureReference();
+    else if(action==='comparison.toggle')this.comparisonShown=!this.comparisonShown;
+    else if(action==='comparison.clear')this.clearReference();
+    else if(action==='comparison.reload'){this.reloadReference();if(this.comparisonError!=='')throw new Error(this.comparisonError);}
     else if(action==='observation.distance'||action==='observation.speed'){this.observationMetric=action==='observation.speed'?'speed':'distance';this.refreshObservation();}
     else if(action==='observation.minimum'||action==='observation.maximum')this.seekObservationExtreme(action==='observation.maximum');
     else if(action==='orbit.add')this.beginPlacement();
@@ -902,6 +940,9 @@ struct Index {
       {name:'getSkyInfo',payload:'{} - provenance and sky rendering status'},
       {name:'getProjectedBodies',payload:'{} - last presented orbital frame; normalized top-left x/y, radius in viewport-height units; ignores UI occlusion'},
       {name:'pickBody',payload:'{x:0..1,y:0..1} - viewport hit test, shared focus action; hit=-1 leaves selection unchanged'},
+      {name:'getObservationComparison',payload:'{} - shared axes, overlap, interpolated difference and saved reference provenance'},
+      {name:'getObservationReference',payload:'{} - complete saved local reference or null; does not seek'},
+      {name:'getObservationTable',payload:'{} - CSV rows for current and saved reference; no interpolation'},
       {name:'getOrbitObservation',payload:'{} - current planet (or first planet), retained-frame distance/speed curve; read-only'},
       {name:'getPlacementPreview',payload:'{} - candidate initial conditions, two-body guide; no mutation'},
       {name:'setPlacementPoint',payload:'{x:0..1,y:0..1} in the placement plot; same handler as tap/drag'},
@@ -939,7 +980,10 @@ struct Index {
     if(command==='getSurfaceInfo'){const response:MoonAssetReply={ok:true,moon:{source:'https://svs.gsfc.nasa.gov/4720/',asset:'lroc_color_2k.jpg',credit:"NASA's Scientific Visualization Studio",width:2048,height:1024,requested:this.moonRequested,ready:simulation.renderStatus().moonReady,uploads:simulation.renderStatus().moonUploads,blend:simulation.renderStatus().moonBlend,error:this.moonLoadError||simulation.renderStatus().moonError,decodedBudgetBytes:8388608,gpuBudgetBytes:11184812}};return JSON.stringify(response);}
     if(command==='getProjectedBodies')return JSON.stringify({ok:true,projection:simulation.projectedScene()});
     if(command==='pickBody'){const hit=await this.pickViewport(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,hit:hit});}
-    if(command==='getOrbitObservation'){this.refreshObservation();const reply:ObservationReply={ok:true,metric:this.observationMetric,data:this.observed,plot:this.observationView()};return JSON.stringify(reply);}
+    if(command==='getObservationComparison'){this.refreshObservation();const reply:ComparisonReply={ok:true,visible:this.comparisonShown,reference:this.comparisonReference?referenceSummary(this.comparisonReference):undefined,currentName:this.observed.name,currentCount:this.observed.samples.length,currentConfig:simulation.status().config,chart:this.comparisonView(),error:this.comparisonError};return JSON.stringify(reply);}
+    if(command==='getObservationReference')return JSON.stringify({ok:true,reference:this.comparisonReference??null,error:this.comparisonError});
+    if(command==='getObservationTable'){this.refreshObservation();const ref=this.comparisonReference;const reply:ObservationTableReply={ok:true,csv:observationCsv(this.observed,ref?.data),rows:this.observed.samples.length+(ref?.data.samples.length??0),timeAlignment:'simulation-start',reference:ref?referenceSummary(ref):undefined,currentName:this.observed.name,currentConfig:simulation.status().config};return JSON.stringify(reply);}
+    if(command==='getOrbitObservation'){this.refreshObservation();const reply:ObservationReply={ok:true,metric:this.observationMetric,data:this.observed,plot:observationPlot(this.observed,this.observationMetric)};return JSON.stringify(reply);}
     if(command==='getPlacementPreview')return JSON.stringify({ok:true,active:this.placing,preview:this.placementPreview()});
     if(command==='setPlacementPoint'){this.movePlacement(this.checked(p.x,0,1),this.checked(p.y,0,1));return this.snapshot();}
     if(command==='getOrbitPreview'){if(this.preset!==5)throw new Error('需要自定义系统');return JSON.stringify({ok:true,body:this.orbitEdit,draft:this.orbitDraft,reference:'initial-input',preview:this.orbitPreview()});}
@@ -1045,10 +1089,19 @@ struct Index {
         ChoiceChip({label:'速度',active:this.observationMetric==='speed',onPress:()=>{this.press('observation.speed');}}).id('observation-speed')
       }.width('100%')
       if(this.observationView().available) {
+        Row({space:8}) {
+          Text('当前 · '+this.observed.name).id('comparison-current-legend').fontSize(10).fontColor('#A9E1EF').layoutWeight(1).maxLines(1).textOverflow({overflow:TextOverflow.Ellipsis})
+          if(this.comparisonView().referenceVisible) {
+            Text('参照 · '+this.comparisonReference!.data.name).id('comparison-reference-legend').fontSize(10).fontColor('#EBC08B').layoutWeight(1).maxLines(1).textOverflow({overflow:TextOverflow.Ellipsis})
+          }
+        }.width('100%')
         Text(this.observationView().current.toPrecision(5)+' '+this.observationView().unit+' · '+this.observationView().currentTime.toFixed(3)+' 年').fontSize(13).fontColor('#BDE9FF').width('100%')
         Text(this.observationView().high.toPrecision(5)+' '+this.observationView().unit).fontSize(10).fontColor('#ABA6C0').width('100%')
         Stack({alignContent:Alignment.TopStart}) {
           Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath('M0 0 L240 0 M0 50 L240 50 M0 100 L240 100')).stroke('#414055').strokeWidth(1).fillOpacity(0)
+          if(this.comparisonView().referenceVisible) {
+            Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.comparisonView().referencePath)).stroke('#EBC08B').strokeWidth(2).fillOpacity(0)
+          }
           Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.observationView().path)).stroke('#A9E1EF').strokeWidth(2).fillOpacity(0)
           Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.observationView().cursorPath)).stroke('#CDB9F0').strokeWidth(1).fillOpacity(0)
         }.id('observation-plot').width(this.observationWidth()).height(this.observationWidth()*100/240).clip(true)
@@ -1059,6 +1112,28 @@ struct Index {
         }.width('100%')
         Text('最小 '+this.observationView().minimum.toPrecision(5)+' / 最大 '+this.observationView().maximum.toPrecision(5)+' '+this.observationView().unit).fontSize(10).fontColor('#B7C5D5').width('100%')
       } else {Text('运行轨道实验后显示曲线').fontSize(12).fontColor('#B7C5D5')}
+      Button(this.comparisonReference?'替换为本次结果':'保存本次作参照',{type:ButtonType.Normal}).id('comparison-capture').width('100%').height(36).borderRadius(18).fontSize(12).backgroundColor('#334F416E').fontColor('#D9CCF5')
+        .enabled(this.observed.samples.length>=2&&!this.ioBusy).onClick(()=>{this.press('comparison.capture');})
+      if(this.comparisonReference) {
+        Column({space:6}) {
+          Text('金色 · '+this.referenceCaption()).id('comparison-reference').fontSize(11).fontColor('#EBC08B').lineHeight(16).width('100%')
+          Text(this.referenceParameters()).fontSize(10).fontColor('#B8AFA7').width('100%')
+          Row({space:6}) {
+            ChoiceChip({label:this.comparisonShown?'隐藏参照':'显示参照',active:this.comparisonShown,onPress:()=>{this.press('comparison.toggle');}}).id('comparison-toggle')
+            ChoiceChip({label:'移除参照',onPress:()=>{this.press('comparison.clear');}}).id('comparison-clear')
+          }.width('100%')
+          if(this.comparisonShown&&this.observationView().available) {
+            Text(this.comparisonView().deltaReady?'当前 − 参照 '+this.comparisonView().delta.toPrecision(5)+' '+this.observationView().unit+' · 参照按当前时刻线性插值':(this.comparisonView().overlap?'当前时刻不在参照范围内':'两组采样时间不重叠')).id('comparison-delta').fontSize(10).fontColor('#B7C5D5').lineHeight(16).width('100%')
+          }
+        }.width('100%')
+      }
+      if(this.comparisonError!=='') {
+        Text(this.comparisonError).fontSize(10).fontColor('#F4A993').width('100%')
+        Row({space:6}) {
+          ChoiceChip({label:'重试读取',onPress:()=>{this.press('comparison.reload');}})
+          ChoiceChip({label:'移除参照',onPress:()=>{this.press('comparison.clear');}})
+        }
+      }
       Text((this.observationMetric==='distance'?'相对恒星中心的距离':'系统质心参考系中的速率')+'；最近 '+this.observed.samples.length+' / 240 帧。选择行星可切换对象，全景观察第一颗行星；采样极值不代表完整轨道近远点。').fontSize(10).fontColor('#ABA6C0').lineHeight(16)
       Divider().color('#33B4A7D6')
     }.width('100%')

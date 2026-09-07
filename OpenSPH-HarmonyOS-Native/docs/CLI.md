@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.26.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.27.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -137,7 +137,37 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 - 距离是该行星到第 0 个天体（恒星）中心的三维距离；速度是系统质心参考系中的速率，不是相对恒星速度。数据来自已有单精度显示／回放快照，不是新增双精度科学输出。
 - 无历史帧或 SPH 模型返回空曲线；极值动作禁用。放置中或 I/O 忙碌时沿用统一动作限制。新场景不拼接旧记录，载入轨道回放后可从原快照重建曲线。
 
-原生极值跳转在同一锁内核对场景修订号、帧索引与时间；若记录已因重建或滚动过期，则拒绝跳转，刷新后可重试。曲线不是连续轨道解析，采样最小／最大值不能直接称为近星点／远星点。单次实验曲线尚不包含跨实验叠加、CSV 导出、完整历史保存或新的 SPH 热力学诊断。指标选择属于当前会话界面状态，不写入实验配方。
+原生极值跳转在同一锁内核对场景修订号、帧索引与时间；若记录已因重建或滚动过期，则拒绝跳转，刷新后可重试。曲线不是连续轨道解析，采样最小／最大值不能直接称为近星点／远星点。曲线仍不包含完整历史保存或新的 SPH 热力学诊断。指标选择属于当前会话界面状态，不写入实验配方。
+
+## 跨实验参照与数据导出
+
+在轨道实验计算出至少两帧后，观察面板的“保存本次作参照”保留当前天体的距离与速率记录。修改初速、切换实验或重新启动应用后，仍可与新的结果叠加比较。参照为独立的一个本地槽位，已存在时按钮明确显示“替换为本次结果”；不会覆盖命名实验或回放槽。
+
+| 接口 | 行为 |
+| --- | --- |
+| `comparison.capture` | UI 动作：保存／替换当前天体最多 240 帧及已应用的原生配置，不使用未应用的输入；不暂停、跳帧或重建 |
+| `comparison.toggle` | UI 动作：仅切换参照显示，存储数据不变 |
+| `comparison.clear` | UI 动作：删除参照，保留当前模拟；损坏文件也可显式移除 |
+| `comparison.reload` | UI 动作：发生读取／保存错误时重试读取，磁盘文件仍无效则保留错误提示 |
+| `getObservationComparison` | `{ok,visible,reference?,currentName,currentCount,currentConfig?,chart,error}`；来源摘要、共享坐标、是否重叠与当前差值 |
+| `getObservationReference` | `{ok,reference,error}`；完整参照记录，无参照时为 null |
+| `getObservationTable` | `{ok,csv,rows,timeAlignment,reference?,currentName,currentConfig?}`；当前及已保存参照的原始行，即使参照隐藏也包含它 |
+
+青色为当前，金色为参照；两条曲线使用从各自模拟起点计算的实际年数与共同纵轴，不拉伸各自采样区间。`chart.referenceVisible` 表示实际绘制叠加曲线；`visible` 仅表示用户显示设置。当前没有轨道数据时可能为 `visible:true`、`referenceVisible:false`。`chart.plot` 的最小／最大值和跳帧索引始终属于当前记录，参照曲线不会驱动当前回放。兼容接口 `getOrbitObservation.plot` 仍保留单组坐标语义。
+
+`chart.deltaReady` 为 true 时，`delta` 为当前值减去参照同一时刻的线性插值，`referenceValue` 为该插值；两个标量在 deltaReady 为 false 时不可解释为测量结果。范围不重叠或光标超出参照时间范围时不外推，界面明确提示。不同天体或参数可以叠加，但不自动判断两组实验是否适合科学比较；界面标明来源标题、天体、初速和采样范围，自定义完整初态在返回的 config 中。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"comparison.capture"}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getObservationComparison
+node scripts/export-observation.mjs --device 127.0.0.1:5555 --output /tmp/my-orbit-comparison.csv
+```
+
+导出工具在指定主机位置生成 CSV 与同名 `.metadata.json`，两个路径都拒绝覆盖；第二份文件失败时撤回本次创建的 CSV。CSV 表头为 `series,frame,time_year,distance_AU,barycentric_speed_km_s`，最多 480 行；series 为 current／reference，数据保留原采样时间和值，没有插值行。JSON 保存来源配置、参照捕获时间和范围；capturedAt 为 Unix 毫秒。没有任何样本时导出拒绝。不同运行时的小数文本末位可能不同，数值比较应遵循浮点精度。
+
+参照文件 `observation-reference.json` 只在应用私有目录离线保存，上限 128 KiB。先完整写入临时文件、刷新并核对内容，再替换正式文件；写入失败保留旧记录。读取时验证版本、配置和单调样本；错误文件不静默删除，不导入网络资源。隐藏状态和指标选择是会话设置，重启默认显示参照和距离；参照不包含在命名实验或回放内。卸载、清除应用数据会失去它。
+
+`test-comparison-emulator.mjs` 和 `test-comparison-layout-emulator.mjs` 需要参照槽为空，并会改变当前场景；先备份原实验／草稿。前者验证保存、替换、冷启动与导出，后者验证展开、折叠竖屏、折叠横屏的实际新按钮命中与曲线可视区域。脚本不自动恢复原会话，验收工作应另行恢复。
 
 ## 局部示踪环
 

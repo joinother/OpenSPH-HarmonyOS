@@ -67,10 +67,12 @@ function page() {
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/WorkspaceLayout.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/ObservationModel.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
   modelContext.require=()=>modelContext.exports;
+  vm.runInNewContext('(function(){'+ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/ObservationComparison.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText+'})()',modelContext);
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/ExperimentCatalog.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
   const projects=new Map();
   const ProjectStore={list:()=>[...projects.values()],load:(_dir,id)=>{const p=projects.get(id);if(!p)throw Error('missing project');modelContext.exports.validateScene(p.scene);if(p.recipe!==undefined)modelContext.exports.validateRecipe(p.recipe,p.scene);return structuredClone(p);},save:(_dir,scene,recipe)=>{modelContext.exports.validateScene(scene);modelContext.exports.validateRecipe(recipe,scene);const p=structuredClone({id:'project-1-'+projects.size,savedAt:1,scene,recipe});projects.set(p.id,p);return p;}};
-  const context={exports:{},...modelContext.exports,ProjectStore,simulation,Scroller:class {scrollEdge(){}},Edge:{Top:0},Curve:{EaseOut:0},setInterval,clearInterval,console};
+  let reference;const ObservationStore={load:()=>{if(state.rejectReferenceLoad)throw Error('bad reference file');return reference;},save:(_dir,value)=>{if(state.rejectReferenceSave)throw Error('disk full');reference=modelContext.exports.copyReference(value);return reference;},clear:()=>{if(state.rejectReferenceClear)throw Error('permission denied');reference=undefined;}};
+  const context={exports:{},...modelContext.exports,ObservationStore,ProjectStore,simulation,Scroller:class {scrollEdge(){}},Edge:{Top:0},Curve:{EaseOut:0},setInterval,clearInterval,console};
   vm.runInNewContext(ts.transpileModule(transformed,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,context);
   const page=new context.exports.Index();
   page.getUIContext=()=>({px2vp:v=>v,getHostContext:()=>({filesDir:'/mock'}),animateTo:(opts,apply)=>{apply();opts.onFinish?.();}});
@@ -679,4 +681,43 @@ test('observation reads real adapter history without seeking; metrics and extrem
  app.ioBusy=true;await assert.rejects(app.execute('uiAction',{action:'observation.minimum'}));app.ioBusy=false;
  state.observation.samples=[];await assert.rejects(app.execute('uiAction',{action:'observation.minimum'}));assert.equal(JSON.parse(await app.execute('getOrbitObservation',{})).plot.available,false);
  app.preset=0;await assert.rejects(app.execute('uiAction',{action:'observation.speed'}));
+});
+
+
+test('comparison capture stores applied native config and immutable samples; survives edits, hide and errors',async()=>{
+ const {page:app,state,calls}=page();app.choose(5);state.state='completed';state.selected=-1;state.config=JSON.parse(JSON.stringify(app.config()));
+ state.observation={sceneRevision:8,body:1,name:'蔚蓝',samples:[{frame:0,time:.1,distanceAU:1,speedKmS:30},{frame:1,time:.2,distanceAU:2,speedKmS:15}]};
+ app.duration=4;app.orbitName='未应用名称';app.orbitDraft=true;
+ const before=app.snapshot(),starts=calls.filter(c=>c[0]==='start').length;
+ await app.execute('uiAction',{action:'comparison.capture'});let saved=JSON.parse(await app.execute('getObservationReference',{})).reference;
+ assert.equal(saved.config.duration,state.config.duration);assert.notEqual(saved.config.duration,app.duration);assert.equal(saved.data.name,'蔚蓝');assert.equal(saved.data.samples.length,2);
+ state.observation.samples[0].distanceAU=1.5;assert.equal(JSON.parse(await app.execute('getObservationReference',{})).reference.data.samples[0].distanceAU,1);
+ await app.execute('uiAction',{action:'comparison.toggle'});assert.equal(JSON.parse(await app.execute('getObservationComparison',{})).chart.referenceVisible,false);
+ assert.deepEqual(JSON.parse(await app.execute('getObservationReference',{})).reference,saved);
+ await app.execute('uiAction',{action:'comparison.toggle'});let c=JSON.parse(await app.execute('getObservationComparison',{}));assert.equal(c.chart.referenceVisible,true);assert.equal(c.chart.deltaReady,true);
+ state.rejectReferenceSave=true;await assert.rejects(app.execute('uiAction',{action:'comparison.capture'}),/disk full/);assert.deepEqual(JSON.parse(await app.execute('getObservationReference',{})).reference,saved);
+ state.rejectReferenceClear=true;await assert.rejects(app.execute('uiAction',{action:'comparison.clear'}));assert.deepEqual(JSON.parse(await app.execute('getObservationReference',{})).reference,saved);
+ app.comparisonReference=undefined;app.reloadReference();assert.deepEqual(JSON.parse(await app.execute('getObservationReference',{})).reference,saved);
+ state.rejectReferenceClear=false;await app.execute('uiAction',{action:'comparison.clear'});assert.equal(JSON.parse(await app.execute('getObservationReference',{})).reference,null);
+ assert.equal(calls.filter(c=>c[0]==='start').length,starts);assert.deepEqual(JSON.parse(app.snapshot()).definition,JSON.parse(before).definition);assert.equal(app.orbitName,'未应用名称');assert.equal(state.selected,-1);
+});
+
+test('comparison and table APIs keep original observation semantics, empty and placement guards',async()=>{
+ const {page:app,state}=page();app.choose(5);state.state='paused';state.config=JSON.parse(JSON.stringify(app.config()));state.selected=-1;
+ state.observation={sceneRevision:2,body:1,name:'蔚蓝',samples:[{frame:0,time:.1,distanceAU:1,speedKmS:30}]};
+ await assert.rejects(app.execute('uiAction',{action:'comparison.capture'}));
+ state.observation.samples.push({frame:1,time:.2,distanceAU:2,speedKmS:15});await app.execute('uiAction',{action:'comparison.capture'});
+ state.observation.samples=[{frame:0,time:.5,distanceAU:3,speedKmS:10},{frame:1,time:.6,distanceAU:4,speedKmS:8}];
+ const raw=JSON.parse(await app.execute('getOrbitObservation',{})),comparison=JSON.parse(await app.execute('getObservationComparison',{}));assert.equal(raw.plot.firstTime,.5);assert.equal(comparison.chart.plot.firstTime,.1);assert.equal(comparison.chart.overlap,false);assert.equal(comparison.chart.deltaReady,false);
+ const table=JSON.parse(await app.execute('getObservationTable',{}));assert.equal(table.rows,4);assert.match(table.csv,/reference,0,0.1,1,30/);assert.equal(table.timeAlignment,'simulation-start');
+ app.beginPlacement();await assert.rejects(app.execute('uiAction',{action:'comparison.clear'}));app.cancelPlacement();app.ioBusy=true;await assert.rejects(app.execute('uiAction',{action:'comparison.capture'}));
+});
+
+test('reference read failures remain visible, retry rejects while corrupt and recovers the same saved data',async()=>{
+ const {page:app,state}=page();app.choose(5);state.state='completed';state.selected=-1;state.config=JSON.parse(JSON.stringify(app.config()));
+ state.observation={sceneRevision:5,body:1,name:'蔚蓝',samples:[{frame:0,time:.1,distanceAU:1,speedKmS:30},{frame:1,time:.2,distanceAU:2,speedKmS:15}]};
+ await app.execute('uiAction',{action:'comparison.capture'});const saved=JSON.parse(await app.execute('getObservationReference',{})).reference;
+ state.rejectReferenceLoad=true;app.reloadReference();let r=JSON.parse(await app.execute('getObservationReference',{}));assert.equal(r.reference,null);assert.match(r.error,/bad reference file/);
+ await assert.rejects(app.execute('uiAction',{action:'comparison.reload'}),/bad reference file/);assert.equal(JSON.parse(await app.execute('getUiState',{})).actions.find(a=>a.id==='comparison.clear').enabled,true);
+ state.rejectReferenceLoad=false;await app.execute('uiAction',{action:'comparison.reload'});r=JSON.parse(await app.execute('getObservationReference',{}));assert.deepEqual(r.reference,saved);assert.equal(r.error,'');
 });
