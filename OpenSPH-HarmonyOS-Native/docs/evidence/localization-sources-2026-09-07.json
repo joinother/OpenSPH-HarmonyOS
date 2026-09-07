@@ -1,0 +1,119 @@
+{
+  "kind": "research source index",
+  "researchDate": "2026-09-07",
+  "timezone": "Asia/Shanghai",
+  "sourceCount": 20,
+  "sources": [
+    {
+      "title": "国家航天局原始发布",
+      "url": "https://www.cnsa.gov.cn/n6758823/n6758838/c6771305/content.html",
+      "access": "official webpage read"
+    },
+    {
+      "title": "CLPDS",
+      "url": "https://clpds.bao.ac.cn/",
+      "access": "JavaScript shell only; data license not verified"
+    },
+    {
+      "title": "NADC 官方入口",
+      "url": "https://nadc.china-vo.org/",
+      "access": "official webpage read"
+    },
+    {
+      "title": "NASA SVS 使用说明",
+      "url": "https://svs.gsfc.nasa.gov/help/",
+      "access": "official webpage read"
+    },
+    {
+      "title": "ESO 使用说明",
+      "url": "https://www.eso.org/public/outreach/copyright/",
+      "access": "official webpage read"
+    },
+    {
+      "title": "OBS/CDN 文档",
+      "url": "https://support.huaweicloud.com/usermanual-obs/obs_03_0600.html",
+      "access": "official webpage read"
+    },
+    {
+      "title": "阿里云计费总览",
+      "url": "https://help.aliyun.com/zh/cdn/product-overview/billing-overview",
+      "access": "official webpage read"
+    },
+    {
+      "title": "OSS 与 CDN 回源计费",
+      "url": "https://help.aliyun.com/zh/cdn/product-overview/billing-of-data-transfer-when-alibaba-cloud-cdn-is-used-with-other-alibaba-cloud-services",
+      "access": "official webpage read"
+    },
+    {
+      "title": "腾讯云 CDN 计费问答",
+      "url": "https://cloud.tencent.com/document/product/228/43799",
+      "access": "official webpage read"
+    },
+    {
+      "title": "CodeArts 迁移文档",
+      "url": "https://support.huaweicloud.com/usermanual-codeartsrepo/codeartsrepo_03_0012.html",
+      "access": "official webpage read"
+    },
+    {
+      "title": "Gitee 官方导入说明",
+      "url": "https://gitee.com/help/categories/45?skip_mobile=true",
+      "access": "official search excerpt only; direct page fetch failed"
+    },
+    {
+      "title": "npmmirror 官方说明",
+      "url": "https://npmmirror.com/",
+      "access": "official webpage read"
+    },
+    {
+      "title": "TUNA PyPI",
+      "url": "https://mirrors.tuna.tsinghua.edu.cn/help/pypi/",
+      "access": "official webpage read"
+    },
+    {
+      "title": "TUNA Homebrew",
+      "url": "https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/",
+      "access": "official webpage read"
+    },
+    {
+      "title": "ohpm-repo batch_download",
+      "url": "https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ide-ohpm-repo-batch-download",
+      "name": "document/cn/harmonyos-guides/ide-ohpm-repo-batch-download",
+      "access": "full document via Huawei developer MCP"
+    },
+    {
+      "title": "产品特性按需分发(ArkTS)",
+      "url": "https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/store-moduleinstall_arkts",
+      "name": "document/cn/harmonyos-guides/store-moduleinstall_arkts",
+      "access": "full document via Huawei developer MCP"
+    },
+    {
+      "title": "工信部通知",
+      "url": "https://www.miit.gov.cn/zwgk/zcwj/wjfb/tz/art/2023/art_920db564162e4312916a01bed6540ad8.html",
+      "access": "official webpage read"
+    },
+    {
+      "title": "APP核准（APP备案）指引",
+      "url": "https://developer.huawei.com/consumer/cn/doc/app/50130",
+      "name": "document/cn/app/50130",
+      "access": "full document via Huawei developer MCP"
+    },
+    {
+      "title": "AppGallery Connect数据处理附录",
+      "url": "https://developer.huawei.com/consumer/cn/doc/app/20215",
+      "name": "document/cn/app/20215",
+      "access": "full document via Huawei developer MCP"
+    },
+    {
+      "title": "IAP",
+      "url": "https://developer.huawei.com/consumer/cn/doc/harmonyos-references/iap-iap",
+      "name": "document/cn/harmonyos-references/iap-iap",
+      "access": "full document via Huawei developer MCP"
+    }
+  ],
+  "limits": [
+    "Official pages establish capability or policy; no provider account, regional latency, SLA or price quote verified",
+    "Product-specific Chinese scientific data redistribution permission remains unresolved",
+    "Source publication dates are not inferred from retrieval date",
+    "Local reference file hashes are recorded separately in localization-inventory-2026-09-07.json"
+  ]
+}

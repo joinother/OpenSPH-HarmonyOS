@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "kind": "research inventory; not runtime configuration",
+  "researchDate": "2026-09-07",
+  "timezone": "Asia/Shanghai",
+  "appVersion": "0.24.0",
+  "baselineCommit": "c7a6d56f5ce54618ed3c1e9748687cad60b7487b",
+  "scope": "first-party ArkTS and native renderer/engine wrappers, module/dependency/build manifests; not a packet capture or full SDK audit",
+  "modulePermissions": [],
+  "runtimeNetworkPatternHits": [],
+  "scannedFirstPartyFiles": 31,
+  "assets": [
+    {
+      "file": "entry/src/main/resources/rawfile/eso0932a.jpg",
+      "bytes": 4857484,
+      "sha256": "5363732a1629eed9df2f707b31eaae6b117c0ee35d7cc8d6ddd636bc6512302d",
+      "runtimeSource": "bundled rawfile"
+    },
+    {
+      "file": "entry/src/main/resources/rawfile/lroc_color_2k.jpg",
+      "bytes": 457942,
+      "sha256": "f7130a1822681fa7512d7dcfd40db8c10b9ba4f06777910348698260ed7a2170",
+      "runtimeSource": "bundled rawfile"
+    }
+  ],
+  "localInputs": [
+    {
+      "path": "entry/src/main/module.json5",
+      "sha256": "864eb14c9971176f96a5e86f9f438eab89e4e0711345b683b02f0df18fa9d810"
+    },
+    {
+      "path": "oh-package.json5",
+      "sha256": "b3a59f4e38b92f307006aedd5bf34944e1159cd91f65e58f33d7ca06730b1adf"
+    },
+    {
+      "path": "entry/oh-package.json5",
+      "sha256": "62d1683e8d9da3026059a5ef222ffa4840f35ab8deb21d7a9484f2a82e2ebaee"
+    },
+    {
+      "path": "hvigor/hvigor-config.json5",
+      "sha256": "873e1c76d6a3607344f3eca10c005ca5685a9dd2503ba49c29411978a4b19a7f"
+    },
+    {
+      "path": "scripts/build.sh",
+      "sha256": "824c25773617563440fbf93b7fa8f89fc16640609ac912fd65ddb0e08d8c1a2c"
+    },
+    {
+      "path": "entry/src/main/cpp/CMakeLists.txt",
+      "sha256": "95749590d0c1cc82172764ed3dbb039e11c53501c3fb17547be262b61d7cef21"
+    },
+    {
+      "path": "third_party/opensph/CMakeLists.txt",
+      "sha256": "8e15deff6542487daa48a97cebaae27847cbdad000142a69ada853d8df00a4d7"
+    },
+    {
+      "path": "third_party/opensph/UPSTREAM.md",
+      "sha256": "aacb8ff78d582b4546077b408d53790a66801df0fcf57492dd99450d3d6a2de3"
+    },
+    {
+      "path": "entry/src/main/ets/common/MoonTexture.ets",
+      "sha256": "a88b4eea56e9fea3c6f65c8bd45c681adb8adf99f910a42db79be367fdc5bfb8"
+    },
+    {
+      "path": "entry/src/main/ets/common/SkyPanorama.ets",
+      "sha256": "5ddcadcf43332f0c9d076d704a7cb6832b46a504a41b848a0a05605d3b5da0af"
+    },
+    {
+      "path": "entry/src/main/ets/common/CliBridge.ets",
+      "sha256": "f11f3e936e4fdd4909b6b747bdec3ff81c0b8623bda44e287928fb651ab63abd"
+    }
+  ],
+  "stellarium": {
+    "workingTreeHead": "6245c85b0771a2df8f288881668f9d4d921caf97",
+    "note": "files read from local working tree; hashes identify inspected bytes independently of HEAD; no changes or tests run in reference project",
+    "files": [
+      {
+        "path": "/Users/jiexuanyang/stellarium-src/docs/harmonyos/LOCALIZATION-POLICY.md",
+        "sha256": "2aafc005be2730a2a32c9f009f39bfa75e6bea22791b93663094caee73658759",
+        "bytes": 3708
+      },
+      {
+        "path": "/Users/jiexuanyang/stellarium-src/docs/harmonyos/OFFLINE-MIRROR-ARCHITECTURE.md",
+        "sha256": "efd52cbf30cc463b50ca8c6a3c183ccca75819431541dc90e1bc42c6aa876aff",
+        "bytes": 4410
+      },
+      {
+        "path": "/Users/jiexuanyang/stellarium-src/docs/harmonyos/NETWORK-INVENTORY.md",
+        "sha256": "3a006eaa980026eceb5535080bffcf77058fd11f50217daa38a56b97c1d7dc8c",
+        "bytes": 18783
+      },
+      {
+        "path": "/Users/jiexuanyang/stellarium-src/docs/harmonyos/OFFLINE-FEATURE-MATRIX.md",
+        "sha256": "ffa798ce5e2e149bb9f977fff938ba7b3abef4fbe07c39c8efa5cb31273240fc",
+        "bytes": 8071
+      },
+      {
+        "path": "/Users/jiexuanyang/stellarium-src/data/ohos/network-sources.json",
+        "sha256": "b92545b8c3de5d41e107eb2127a7621d718f548a90309f2dfdd10946d37d7bf2",
+        "bytes": 11312
+      },
+      {
+        "path": "/Users/jiexuanyang/stellarium-src/scripts/ohos-data-sources.mjs",
+        "sha256": "875f010f9bf97db32cf411b5f7ebdc59ccf6b6bdf2c2f78ee4a7bded3d7d1549",
+        "bytes": 1343
+      },
+      {
+        "path": "/Users/jiexuanyang/stellarium-src/scripts/update-ohos-astronomy-data.mjs",
+        "sha256": "c49f4457feb24e2d9ea7411d4d9b5c55633b3eb679818939dc4399e41a946572",
+        "bytes": 17875
+      },
+      {
+        "path": "/Users/jiexuanyang/stellarium-src/scripts/check-ohos-network-sources.mjs",
+        "sha256": "9b9f16bbdc5464f61bd793927e5d7ec9e4e5fd08ea3d29ae15c2ad5d22186349",
+        "bytes": 2244
+      }
+    ]
+  },
+  "buildObservation": "build.sh still invokes ohpm install; empty remote app dependencies do not prove an uncached offline build",
+  "capabilitiesAbsent": [
+    "runtime resource updater",
+    "third-party plugin loader",
+    "account or cloud sync",
+    "payments or advertising",
+    "analytics/crash upload SDK",
+    "remote simulation server",
+    "map/location SDK"
+  ],
+  "limits": [
+    "No domestic cloud account or deployment tested",
+    "No provider SLA, mainland network measurements or bill obtained",
+    "No permission inferred to redistribute newly discovered Chinese datasets",
+    "HAP and source ZIP for 0.24.0 remain historical immutable artifacts"
+  ]
+}

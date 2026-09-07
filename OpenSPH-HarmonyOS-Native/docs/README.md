@@ -8,6 +8,8 @@
 
 | 文档 | 用途 |
 | --- | --- |
+| [资源与服务台账](reference/SERVICE-INVENTORY.md) | 运行时、开发依赖和未接入服务的分类基线 |
+| [国产替代与国内运营预研](research/CHINA-LOCALIZATION-OPERATIONS-2026-09-07.md) | Stellarium 经验、国产数据、国内镜像、插件分发、费用与运营分期 |
 | [月面素材与加载](reference/MOON-ASSETS.md) | NASA 底图、坐标方向、按需加载、预算与边界 |
 | [银河素材来源](reference/SKY-ASSETS.md) | 摄影原图、许可、运行时处理及定位边界 |
 | [CLI 操作指南](CLI.md) | 当前命令、放置、编辑、批处理与状态语义 |
