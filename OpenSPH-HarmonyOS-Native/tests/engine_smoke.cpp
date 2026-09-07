@@ -54,6 +54,12 @@ int main(int argc, char **argv) {
             e.pause(false);
             awaitState(e, "completed");
             auto end = e.frame();
+            const auto curve=e.sphObservation();require(curve.samples.size()==size_t(e.status().frames),"SPH curve history size");
+            require(curve.samples.back().values==end->sph.values,"SPH curve loses double precision");
+            const auto selected=e.status().selected;e.sphObservation();require(e.status().selected==selected,"SPH observation mutates selection");
+            e.seekSphObservation(0,curve.sceneRevision,curve.samples[0].time);require(e.frame()==initial,"SPH curve seek wrong frame");
+            for(int invalid=0;invalid<3;++invalid){bool rejected=false;try{e.seekSphObservation(invalid==0?999:0,curve.sceneRevision+(invalid==1?1:0),curve.samples[0].time+(invalid==2?1:0));}catch(...){rejected=true;}require(rejected&&e.frame()==initial,"stale SPH curve changed state");}e.seek(-1);
+
             require(initial->sph.available&&end->sph.available&&end->scalars.size()==end->particles.size(),"missing SPH diagnostics");
             require(validSphDiagnostics(end->sph),"invalid SPH aggregate");
             for(const auto &p:end->scalars)require(validSphScalar(p),"invalid SPH scalar");
@@ -77,6 +83,7 @@ int main(int argc, char **argv) {
             require(e.loadReplay(dir), "load failed");
             e.seek(-1);
             auto restored = e.frame();
+            require(e.sphObservation().samples.back().values==curve.samples.back().values,"v5 curve changed");
             require(restored->sph.values==end->sph.values&&restored->sph.available,"replay diagnostic summary changed");
             require(restored->scalars.size()==end->scalars.size()&&std::memcmp(restored->scalars.data(),end->scalars.data(),end->scalars.size()*sizeof(SphScalar))==0,"replay diagnostic scalars changed");
             require(restored->particles.size() == end->particles.size(), "replay particle count changed");
@@ -124,7 +131,7 @@ int main(int argc, char **argv) {
                 // Legacy v1 has the same frame records but no configuration block.
                 std::string v2=legacySph(data);
                 {std::ofstream out(path,std::ios::binary|std::ios::trunc);out.write(v2.data(),v2.size());}
-                require(e.loadReplay(dir)&&!e.status().sph.available,"v2 diagnostic absence");
+                require(e.loadReplay(dir)&&!e.status().sph.available&&e.sphObservation().samples.empty(),"v2 diagnostic absence");
                 std::string legacy=v2.substr(0,20)+v2.substr(108);
                 legacy[4]=1;
                 {std::ofstream out(path,std::ios::binary|std::ios::trunc);out.write(legacy.data(),legacy.size());}
@@ -223,6 +230,9 @@ int main(int argc, char **argv) {
         awaitState(e, "completed");
         require(e.status().frames == 240, "history not bounded at 240 frames");
         require(e.frame()->time >= 60.0, "long collision ended early");
+        const auto bounded=e.sphObservation();require(bounded.samples.size()==240&&bounded.samples.front().frame==0&&bounded.samples.front().time>0,"SPH curve cap/reindex");
+        bool oldRejected=false;try{e.seekSphObservation(0,bounded.sceneRevision,0);}catch(...){oldRejected=true;}require(oldRejected,"evicted SPH frame accepted");
+        std::cout << "PASS SPH curves: double statistics, read-only snapshots, guarded seek, v5 roundtrip, missing legacy, bounded history" << std::endl;
         std::cout << "PASS 60 s collision, 600-particle budget, bounded 240-frame history" << std::endl;
         std::cout << "PASS pause/resume, seek, replay round-trip, deterministic runs, invalid input, corrupt "
                      "file, cancel/restart"

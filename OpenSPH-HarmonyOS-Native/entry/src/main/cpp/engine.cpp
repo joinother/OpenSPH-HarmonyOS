@@ -301,6 +301,22 @@ OrbitObservation Engine::observation(int body) {
     }
     return result;
 }
+SphObservation Engine::sphObservation() {
+    std::lock_guard<std::mutex> lock(mutex);
+    SphObservation result;result.sceneRevision=generation.load();result.selected=current.selected;
+    for(size_t i=0;i<history.size();++i){const auto &f=*history[i];
+        if(f.orbital||!f.sph.available){result.samples.clear();return result;}
+        result.samples.push_back({int(i),f.time,f.sph.values});
+    }
+    return result;
+}
+void Engine::seekSphObservation(int index,uint64_t revision,double time) {
+    std::lock_guard<std::mutex> lock(mutex);
+    if(revision!=generation.load()||index<0||size_t(index)>=history.size()||!std::isfinite(time)||
+       history[index]->time!=time||history[index]->orbital||!history[index]->sph.available)
+        throw std::invalid_argument("SPH observation changed; refresh the chart and try again");
+    paused=true;if(current.state=="running")current.state="paused";current.selected=index;
+}
 void Engine::seekObservation(int index, uint64_t revision, double time) {
     std::lock_guard<std::mutex> lock(mutex);
     // History indices shift at the 240-frame cap. Refuse a stale chart atomically.

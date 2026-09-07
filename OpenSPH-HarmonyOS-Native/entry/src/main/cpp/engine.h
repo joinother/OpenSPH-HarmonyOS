@@ -58,6 +58,8 @@ struct OrbitObservation {
     std::string name;
     std::vector<ObservationSample> samples;
 };
+struct SphObservationSample {int frame;double time;std::array<double,10> values;};
+struct SphObservation {uint64_t sceneRevision=0;int selected=-1;std::vector<SphObservationSample> samples;};
 class Engine {
   public:
     Engine();
@@ -68,6 +70,8 @@ class Engine {
     void seek(int index);
     Status status();
     OrbitObservation observation(int body);
+    SphObservation sphObservation();
+    void seekSphObservation(int index,uint64_t revision,double time);
     void seekObservation(int index, uint64_t revision, double time);
     std::shared_ptr<const Frame> frame();
     uint64_t sceneRevision() const { return generation.load(); }

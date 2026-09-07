@@ -1,0 +1,18 @@
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/build/native-test
+ninja: no work to do.
+FileTransfer finish, Size:8484248, File count = 1, time:344ms rate:24663.51kB/s
+SPH_DIAGNOSTICS preset=0 pressureMaxGPa=77.0499 internalMeanMJkg=0.427384 damageMax=0.011714
+PASS preset=0 particles=212 time=10.07 mass=1.37526e+19
+SPH_DIAGNOSTICS preset=1 pressureMaxGPa=62.1255 internalMeanMJkg=0.258184 damageMax=0.0267207
+PASS preset=1 particles=212 time=10.07 mass=1.37526e+19
+SPH_DIAGNOSTICS preset=2 pressureMaxGPa=-0.0270634 internalMeanMJkg=0.000210408 damageMax=0.234128
+PASS preset=2 particles=210 time=10.07 mass=1.13097e+19
+PASS edited bodies mass, v2 config restoration, v1 compatibility, invalid radius atomicity
+PASS orbit preset=3 observation units/read-only/guarded seek/history eviction/replay, pause, 2 years, conserved energy, bounded trails/history, v3 roundtrip, truncation atomicity, cancel and SPH switching
+PASS orbit preset=4 observation units/read-only/guarded seek/history eviction/replay, pause, 2 years, conserved energy, bounded trails/history, v3 roundtrip, truncation atomicity, cancel and SPH switching
+PASS custom 8 bodies, 3D, deterministic integration, v4 complete roundtrip/corruption atomicity, zero angular momentum, radial stop
+PASS SPH curves: double statistics, read-only snapshots, guarded seek, v5 roundtrip, missing legacy, bounded history
+PASS 60 s collision, 600-particle budget, bounded 240-frame history
+PASS pause/resume, seek, replay round-trip, deterministic runs, invalid input, corrupt file, cancel/restart

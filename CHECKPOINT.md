@@ -1,6 +1,6 @@
 # 星体实验室 GitHub 检查点
 
-记录日期：2026-09-07（Asia/Shanghai）；源码版本：0.28.0。
+记录日期：2026-09-07（Asia/Shanghai）；源码版本：0.29.0。
 
 ## 恢复开发
 
@@ -21,13 +21,13 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 - 当前 ArkUI / ArkTS、OpenSPH 原生内核、独立轨道模型、渲染、资源及许可证。
 - NASA SVS 月面颜色图、按需解码／上传、月面主题及编辑／放置／保存；曝光、线性光照、海洋反光／云影独立控制与 v2 外观配方；原生镜头请求与取消、手势接管、编辑保持视角、CLI 等待；实验配方保存、主题／镜头／外观恢复、旧文件兼容、局部环参数持久化；十种主题实验、可调圆／椭圆示踪、慢放、轨道预览和带环气态行星外观、放置与编辑历史、沉浸式窗口、折叠／旋转布局和语义 CLI。
 - 历史发布记录、原始验收证据、文档引用的本项目截图及 Celestia／SpaceEngine／Universe Sandbox 研究。
-- 0.28.0 接入真实 SPH 压力／比内能／有效材料损伤、双精度质量加权读数、粒子着色、CLI 与 v5 回放；81 项主机测试、原生求解／回放回归和三类桌面同初值对照通过。应用已构建安装；最终横屏复验、完整旧 UI／CLI 回归和现场恢复因模拟器交错操作待继续，不声称最终验收完成。见 [0.28.0 检查点记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.28.0.md)。
+- 0.29.0 新增 SPH 五指标曲线、采样极值定位和原始 CSV／来源导出。85 项主机测试、原生求解与回放回归、三类真实 SPH 曲线、三种窗口实际点击、旧 UI／CLI 完整回归通过；已恢复本轮开始时的一年环形行星轨道与视角，保留十个命名实验并清理临时备份。上一版未完成的窗口验收已补做。见 [0.29.0 记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.29.0.md)。
 
 ## 继续工作
 
 2026-09-07 增加 [国产替代与国内运营预研](OpenSPH-HarmonyOS-Native/docs/research/CHINA-LOCALIZATION-OPERATIONS-2026-09-07.md) 和 [资源服务台账](OpenSPH-HarmonyOS-Native/docs/reference/SERVICE-INVENTORY.md)：核对 8 份 Stellarium 本地资料／实现及 20 个外部来源，区分国产数据、国内托管、构建镜像与可执行插件。该次预研只更新文档，当时应用为 0.24.0，未切换服务或重打包历史 HAP／ZIP。
 
-已接入薄环外观、可调切向发射速度的开普勒轨道、慢放与近远点诊断，局部参数存档现已接入，原生连续镜头已可取消和等待，曝光与海洋／云影控制已接入，首张真实月面底图与按需加载已接入，单行星质量／外观复制放置已接入；单次实验距离／速率曲线、持久参照、跨实验叠加和 CSV 导出已接入；下一步补整组配方复用、观测导览、更多地图与资源分档、时间曲线与卫星摄动的受控积分对照；压力、比内能、损伤已贯通；物理侧继续按诊断曲线／标准算例、自引力基线、局部 SPH 与轨道连接、完整检查点推进。当前没有土星环动力学、行星破碎或月球形成能力。详见 [当前路线](OpenSPH-HarmonyOS-Native/README.md) 与 [SpaceEngine 调研](OpenSPH-HarmonyOS-Native/docs/research/SPACEENGINE-2026-09-06.md)。
+已接入薄环外观、可调切向发射速度的开普勒轨道、慢放与近远点诊断，局部参数存档现已接入，原生连续镜头已可取消和等待，曝光与海洋／云影控制已接入，首张真实月面底图与按需加载已接入，单行星质量／外观复制放置已接入；单次实验距离／速率曲线、持久参照、跨实验叠加和 CSV 导出已接入；下一步补整组配方复用、观测导览、更多地图与资源分档、时间曲线与卫星摄动的受控积分对照；压力、比内能、损伤已贯通；五指标曲线与原始 CSV 已接入；物理侧继续按标准算例与收敛、自引力基线、局部 SPH 与轨道连接、完整检查点推进。当前没有土星环动力学、行星破碎或月球形成能力。详见 [当前路线](OpenSPH-HarmonyOS-Native/README.md) 与 [SpaceEngine 调研](OpenSPH-HarmonyOS-Native/docs/research/SPACEENGINE-2026-09-06.md)。
 
 宇宙沙盒已通过 Steam 正常进入太阳系，之前已验证暂停和菜单观察；鼠标输入尚未成功打开添加面板，未完成碰撞预设体验。详见 [操作记录](OpenSPH-HarmonyOS-Native/docs/research/UNIVERSE-SANDBOX-SESSION-2026-09-06.md)。
 

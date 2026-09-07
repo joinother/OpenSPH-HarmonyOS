@@ -1,7 +1,8 @@
+import { sphPlot, sphCsv, sphMetricLabel, sphMetricIndex } from '../common/SphObservationModel';
 import { ObservationReference, ReferenceSummary, ComparisonPlot, comparisonPlot, referenceSummary, observationCsv } from '../common/ObservationComparison';
 import { ObservationStore } from '../common/ObservationStore';
 import { observationPlot, ObservationPlot } from '../common/ObservationModel';
-import simulation, { OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
+import simulation, { SphObservationSample, SphObservation, OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
 import { copiedPlanetDraft, PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
 import { themeExperiments, themeConfigMatches, ThemeExperiment } from '../common/ExperimentCatalog';
@@ -34,6 +35,9 @@ interface SkyState {mode:number;brightness:number;reference:string;}
 interface PlacementState { sourceIndex:number; sourceName:string; active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
 interface ComparisonReply {ok:boolean;visible:boolean;reference?:ReferenceSummary;currentName:string;currentCount:number;currentConfig?:SimulationConfig;chart:ComparisonPlot;error:string;}
 interface ObservationTableReply {ok:boolean;csv:string;rows:number;timeAlignment:string;reference?:ReferenceSummary;currentName:string;currentConfig?:SimulationConfig;}
+interface SphCurveData {sceneRevision:number;selected:number;samples:SphCurveSample[];}
+interface SphCurveReply {ok:boolean;metric:string;label:string;data:SphCurveData;plot:ObservationPlot;}
+interface SphCurveSample {frame:number;time:number;value:number;}
 interface ObservationReply {ok:boolean;metric:string;data:OrbitObservation;plot:ObservationPlot;}
 interface ThemeState { id:string; title:string; goal:string; limit:string; modified:boolean; compareId:string; }
 interface MoonAssetInfo {source:string;asset:string;credit:string;width:number;height:number;requested:boolean;ready:boolean;uploads:number;blend:number;error:string;decodedBudgetBytes:number;gpuBudgetBytes:number;}
@@ -178,6 +182,8 @@ struct Index {
   @State comparisonReference:ObservationReference|undefined=undefined;
   @State comparisonShown:boolean=true;
   @State comparisonError:string='';
+  @State sphMetric:string='pressure';
+  @State sphObserved:SphObservation={sceneRevision:0,selected:-1,samples:[]};
   @State observationMetric:string='distance';
   @State observed:OrbitObservation={sceneRevision:0,body:1,name:'',selected:-1,samples:[]};
   @State trace:RingTraceStatus={speedScale:1,rateHours:1,eccentricity:0,innerApoapsisKm:76800,outerApoapsisKm:133200,referenceXKm:76800,referenceYKm:0,referenceRadiusKm:76800,referenceSpeedKmS:0,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-elliptic-kepler-v2'};
@@ -218,7 +224,15 @@ struct Index {
     if (this.info.state === 'replay') return '已载入回放';
     return '准备实验';
   }
+  private sphView():ObservationPlot {return sphPlot(this.sphObserved,this.sphMetric);}
+  private sphLabel():string {return sphMetricLabel(this.sphMetric);}
+  private seekSphExtreme(maximum:boolean):void {
+    const data=this.sphObserved,p=this.sphView();if(!p.available)throw new Error('暂无 SPH 曲线');
+    simulation.seekSphObservation(maximum?p.maxFrame:p.minFrame,data.sceneRevision,maximum?p.maxTime:p.minTime);
+    this.playing=false;this.info=simulation.status();this.refreshObservation();this.notice='已定位所显示记录的'+(maximum?'最大值':'最小值')+' · '+this.sphLabel();
+  }
   private refreshObservation():void {
+    this.sphObserved=simulation.sphObservation();
     this.observed=simulation.orbitObservation(this.focus>0?this.focus:1);
   }
   private comparisonView():ComparisonPlot {return comparisonPlot(this.observed,this.observationMetric,this.comparisonShown?this.comparisonReference?.data:undefined);}
@@ -745,6 +759,8 @@ struct Index {
     add('color.0','原色',true,this.colorMode===0);add('color.1','速度',true,this.colorMode===1);add('color.2','密度',this.preset<3,this.colorMode===2);
     add('trace.controls','调整局部轨道',this.trace.enabled);add('trace.circular','圆轨道对照',this.trace.enabled);add('trace.ellipse','拉长轨道',this.trace.enabled);add('trace.apoapsis','跳到内圈远点',this.trace.enabled&&this.trace.innerPeriodHours/2<=24);
     add('trace.toggle','开普勒示踪粒子',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
+    for(const metric of ['pressure','internal','damage','kinetic','energy'])add('sph.metric.'+metric,sphMetricLabel(metric),this.preset<3,this.sphMetric===metric);
+    add('sph.minimum','SPH 记录最小',this.preset<3&&this.sphView().available);add('sph.maximum','SPH 记录最大',this.preset<3&&this.sphView().available);
     add('color.3','压力',this.preset<3&&this.info.sph?.available===true,this.colorMode===3);add('color.4','比内能',this.preset<3&&this.info.sph?.available===true,this.colorMode===4);add('color.5','材料损伤',this.preset<3&&this.info.sph?.available===true,this.colorMode===5);
     add('comparison.capture',this.comparisonReference?'替换参照':'保存作参照',this.preset>=3&&this.observed.samples.length>=2);
     add('comparison.toggle',this.comparisonShown?'隐藏参照':'显示参照',this.comparisonReference!==undefined,this.comparisonShown);
@@ -855,7 +871,7 @@ struct Index {
     else if(action==='camera.out')this.easeCamera(this.yaw,this.pitch,Math.min(15,this.zoom*1.2));
     else if(action==='camera.in')this.easeCamera(this.yaw,this.pitch,Math.max(.5,this.zoom/1.2));
     else if(action==='camera.reset'){this.closeSurface();this.easeCamera(.15,.25,2.7);}
-    else if(action.startsWith('color.')){this.colorMode=Number(action.slice(6));this.camera();}
+    else if(action.startsWith('color.')){this.colorMode=Number(action.slice(6));if(this.colorMode>=3){this.sphMetric=this.colorMode===3?'pressure':(this.colorMode===4?'internal':'damage');this.refreshObservation();}this.camera();}
     else if(action==='trace.controls'){this.setPanel(1);this.scroller.scrollEdge(Edge.Top);}
     else if(action==='trace.circular')this.traceParameter('trace.speed',1);
     else if(action==='trace.ellipse')this.traceParameter('trace.speed',1.12);
@@ -877,6 +893,8 @@ struct Index {
     else if(action.startsWith('sky.mode.'))this.changeSky(Number(action.slice(9)),this.skyBrightness);
     else if(action==='orbit.plane.xy')this.vectorPlane='XY';
     else if(action==='orbit.plane.xz')this.vectorPlane='XZ';
+    else if(action.startsWith('sph.metric.')){this.sphMetric=action.slice(11);this.refreshObservation();}
+    else if(action==='sph.minimum'||action==='sph.maximum')this.seekSphExtreme(action==='sph.maximum');
     else if(action==='comparison.capture')this.captureReference();
     else if(action==='comparison.toggle')this.comparisonShown=!this.comparisonShown;
     else if(action==='comparison.clear')this.clearReference();
@@ -941,6 +959,8 @@ struct Index {
       {name:'getSkyInfo',payload:'{} - provenance and sky rendering status'},
       {name:'getProjectedBodies',payload:'{} - last presented orbital frame; normalized top-left x/y, radius in viewport-height units; ignores UI occlusion'},
       {name:'pickBody',payload:'{x:0..1,y:0..1} - viewport hit test, shared focus action; hit=-1 leaves selection unchanged'},
+      {name:'getSphObservation',payload:'{} - retained double-precision SPH curve, metric, units, extrema and frame identity; read-only'},
+      {name:'getSphTable',payload:'{} - raw SPH CSV and applied source configuration; no interpolation'},
       {name:'getSphDiagnostics',payload:'{} - selected SPH frame pressure GPa, specific internal energy MJ/kg, cubed scalar damage and mass-weighted statistics; no seek'},
       {name:'getObservationComparison',payload:'{} - shared axes, overlap, interpolated difference and saved reference provenance'},
       {name:'getObservationReference',payload:'{} - complete saved local reference or null; does not seek'},
@@ -982,6 +1002,8 @@ struct Index {
     if(command==='getSurfaceInfo'){const response:MoonAssetReply={ok:true,moon:{source:'https://svs.gsfc.nasa.gov/4720/',asset:'lroc_color_2k.jpg',credit:"NASA's Scientific Visualization Studio",width:2048,height:1024,requested:this.moonRequested,ready:simulation.renderStatus().moonReady,uploads:simulation.renderStatus().moonUploads,blend:simulation.renderStatus().moonBlend,error:this.moonLoadError||simulation.renderStatus().moonError,decodedBudgetBytes:8388608,gpuBudgetBytes:11184812}};return JSON.stringify(response);}
     if(command==='getProjectedBodies')return JSON.stringify({ok:true,projection:simulation.projectedScene()});
     if(command==='pickBody'){const hit=await this.pickViewport(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,hit:hit});}
+    if(command==='getSphObservation'){this.refreshObservation();const reply:SphCurveReply={ok:true,metric:this.sphMetric,label:this.sphLabel(),data:{sceneRevision:this.sphObserved.sceneRevision,selected:this.sphObserved.selected,samples:this.sphObserved.samples.map((s:SphObservationSample):SphCurveSample=>({frame:s.frame,time:s.time,value:s.values[sphMetricIndex(this.sphMetric)]}))},plot:this.sphView()};return JSON.stringify(reply);}
+    if(command==='getSphTable'){const data:SphObservation=simulation.sphObservation(),config:SimulationConfig|undefined=simulation.status().config;if(simulation.sphObservation().sceneRevision!==data.sceneRevision)throw new Error('场景已变化，请重试导出');return JSON.stringify({ok:true,rows:data.samples.length,timeUnit:'s',sceneRevision:data.sceneRevision,config,csv:sphCsv(data)});}
     if(command==='getSphDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,time:state.time,timeUnit:state.config&&state.config.preset>=3?'year':'s',selected:state.selected,frameCount:state.frames,model:state.model,config:state.config,diagnostics:state.sph??{available:false},source:'OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted'});}
     if(command==='getObservationComparison'){this.refreshObservation();const reply:ComparisonReply={ok:true,visible:this.comparisonShown,reference:this.comparisonReference?referenceSummary(this.comparisonReference):undefined,currentName:this.observed.name,currentCount:this.observed.samples.length,currentConfig:simulation.status().config,chart:this.comparisonView(),error:this.comparisonError};return JSON.stringify(reply);}
     if(command==='getObservationReference')return JSON.stringify({ok:true,reference:this.comparisonReference??null,error:this.comparisonError});
@@ -1092,6 +1114,34 @@ struct Index {
     Divider().color('#33B4A7D6')
   }
   @Builder
+  sphCurveControls() {
+    Column({space:7}) {
+      Text('随时间变化 · '+this.sphLabel()).fontSize(13).fontColor('#D9CCF5').width('100%')
+      Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(6)}}) {
+        ChoiceChip({label:'峰值压力',active:this.sphMetric==='pressure',onPress:()=>{this.press('sph.metric.pressure');}}).id('sph-curve-pressure')
+        ChoiceChip({label:'平均比内能',active:this.sphMetric==='internal',onPress:()=>{this.press('sph.metric.internal');}}).id('sph-curve-internal')
+        ChoiceChip({label:'平均损伤',active:this.sphMetric==='damage',onPress:()=>{this.press('sph.metric.damage');}}).id('sph-curve-damage')
+        ChoiceChip({label:'动能',active:this.sphMetric==='kinetic',onPress:()=>{this.press('sph.metric.kinetic');}}).id('sph-curve-kinetic')
+        ChoiceChip({label:'内能总量',active:this.sphMetric==='energy',onPress:()=>{this.press('sph.metric.energy');}}).id('sph-curve-energy')
+      }.width('100%')
+      if(this.sphView().available) {
+        Text(this.sphView().current.toPrecision(5)+' '+this.sphView().unit+' · '+this.sphView().currentTime.toFixed(2)+' s').id('sph-curve-current').fontSize(12).fontColor('#BDE9FF').width('100%')
+        Text(this.sphView().high.toPrecision(4)+' '+this.sphView().unit).fontSize(10).fontColor('#ABA6C0').width('100%')
+        Stack({alignContent:Alignment.TopStart}) {
+          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath('M0 0 L240 0 M0 50 L240 50 M0 100 L240 100')).stroke('#414055').strokeWidth(1).fillOpacity(0)
+          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.sphView().path)).stroke('#A9E1EF').strokeWidth(2).fillOpacity(0)
+          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.sphView().cursorPath)).stroke('#CDB9F0').strokeWidth(1).fillOpacity(0)
+        }.id('sph-curve-plot').width(this.observationWidth()).height(this.observationWidth()*100/240).clip(true)
+        Text(this.sphView().low.toPrecision(4)+' '+this.sphView().unit+' · '+this.sphView().firstTime.toFixed(2)+'–'+this.sphView().lastTime.toFixed(2)+' s').fontSize(10).fontColor('#ABA6C0').width('100%')
+        Row({space:6}) {
+          ChoiceChip({label:'记录最小',onPress:()=>{this.press('sph.minimum');}}).id('sph-curve-minimum')
+          ChoiceChip({label:'记录最大',onPress:()=>{this.press('sph.maximum');}}).id('sph-curve-maximum')
+        }.width('100%')
+        Text('最近 '+this.sphObserved.samples.length+' / 240 帧；极值只代表保留的采样，不等于接触或破碎事件。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+      } else {Text('等待完整 SPH 诊断记录').fontSize(12).fontColor('#B7C5D5')}
+    }.width('100%')
+  }
+  @Builder
   sphControls() {
     Column({space:8}) {
       Text('碰撞内部发生了什么').fontSize(15).fontColor('#E2EEF5').width('100%')
@@ -1103,6 +1153,7 @@ struct Index {
           ChoiceChip({label:'材料损伤',active:this.colorMode===5,onPress:()=>{this.press('color.5');}}).id('sph-damage')
         }.width('100%')
         Text(this.sphLegend()+'；超出色标的值仅在显示时饱和。').id('sph-legend').fontSize(11).fontColor('#D2C3E9').lineHeight(16).width('100%')
+        this.sphCurveControls()
         MetricRow({label:'压力 · 质量加权均值',value:this.sphNumber(this.info.sph?.pressureMeanGPa,'GPa')})
         Text('范围 '+this.sphNumber(this.info.sph?.pressureMinGPa,'')+' → '+this.sphNumber(this.info.sph?.pressureMaxGPa,'GPa')).fontSize(11).fontColor('#B7C5D5').width('100%')
         MetricRow({label:'比内能 · 质量加权均值',value:this.sphNumber(this.info.sph?.internalMeanMJkg,'MJ/kg')})

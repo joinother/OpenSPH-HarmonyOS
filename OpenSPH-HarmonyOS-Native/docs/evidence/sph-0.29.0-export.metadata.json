@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "rows": 136,
+  "timeUnit": "s",
+  "sceneRevision": 7,
+  "config": {
+    "preset": 0,
+    "count": 600,
+    "speed": 5,
+    "angle": 0,
+    "duration": 20,
+    "targetRadiusKm": 100,
+    "impactorRadiusKm": 60,
+    "targetDensity": 2700,
+    "impactorDensity": 2700,
+    "targetSpin": 0,
+    "seed": 1234
+  }
+}

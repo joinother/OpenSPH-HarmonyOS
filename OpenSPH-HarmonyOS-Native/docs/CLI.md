@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.28.0；更新日期：2026-09-07（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.29.0；更新日期：2026-09-07（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 128 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -218,6 +218,26 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 | `kineticJ`、`internalJ` | 所有粒子的动能、内能总量，J；不包含完整弹性／引力能量预算 |
 
 压力色标为蓝 −10／白 0／红 +10 GPa，比内能为深蓝 0 至金色 10 MJ/kg，损伤为青色 0 至红色 1。色标固定且显示饱和；原始读数不裁切。比内能不换算为温度，损伤不代表碎片计数。v5 保存逐帧诊断；v1/v2 缺少此数据时提示重新运行，选择新色号时渲染回退原色。轨道仍使用 v3/v4。详情见 [诊断与复现](reference/SPH-DIAGNOSTICS.md)。
+
+### SPH 曲线与原始数据导出
+
+观察面板显示最近 240 帧的真实秒数、所选指标曲线及当前时间轴游标。五种曲线对应：峰值压力（GPa）、质量加权平均比内能（MJ/kg）、质量加权平均损伤（0–1）、总动能（J）、总内能（J）。图形纵轴按记录范围缩放，不裁切负压力；粒子色标仍保持固定。选择压力／比内能／损伤着色时会同步选择对应曲线，独立切换曲线不改变着色或相机。
+
+- `uiAction sph.metric.pressure/internal/damage/kinetic/energy`：用完整动作名如 `sph.metric.pressure` 切换曲线。
+- `uiAction sph.minimum` / `sph.maximum`：定位该指标在保留记录中的最小／最大样本；相同极值选择最早一帧，停止自动回放。
+- `getSphObservation {}`：只读返回 `metric`、`label`、`data.sceneRevision/selected/samples` 和 `plot`。样本为 `frame,time,value`，只含所选指标，避免超过 CLI 单次上限；`plot` 包括秒数、单位、范围、游标与极值帧。
+- `getSphTable {}`：返回全部十项逐帧原始诊断的 CSV、行数、秒单位、场景修订与已应用配置；不插值，不包含绘图坐标。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"sph.metric.pressure"}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getSphObservation
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"sph.maximum"}'
+node scripts/export-sph.mjs --device 127.0.0.1:5555 --output /tmp/sph-run.csv
+```
+
+导出另生成同名 `.metadata.json` 来源说明；已有文件拒绝覆盖，失败移除本次新建文件。原生跳帧核对场景修订、帧索引和实际时间，拒绝重算、模型切换或 240 帧滚动淘汰后的旧定位。曲线指标是会话状态，未加入实验配方；所选着色仍按原规则保存。
+
+这些最小／最大值只属于保留采样，不是完整模拟的连续极值，也不能称为自动识别的接触、破碎或月球形成事件。没有诊断的旧回放不生成曲线或 CSV。动能与内能曲线不等于完整能量守恒监控。
 
 ## 场景、求解与回放
 

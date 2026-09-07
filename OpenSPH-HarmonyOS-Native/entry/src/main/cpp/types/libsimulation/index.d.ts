@@ -55,3 +55,8 @@ export interface ObservationSample {frame:number;time:number;distanceAU:number;s
 export interface OrbitObservation {sceneRevision:number;body:number;name:string;selected:number;samples:ObservationSample[];}
 export const orbitObservation:(body:number)=>OrbitObservation;
 export const seekObservation:(frame:number,sceneRevision:number,time:number)=>void;
+
+export interface SphObservationSample {frame:number;time:number;values:number[];}
+export interface SphObservation {sceneRevision:number;selected:number;samples:SphObservationSample[];}
+export const sphObservation:()=>SphObservation;
+export const seekSphObservation:(frame:number,sceneRevision:number,time:number)=>void;
