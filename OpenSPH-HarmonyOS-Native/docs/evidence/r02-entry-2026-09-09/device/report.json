@@ -1,0 +1,15 @@
+{
+  "version": "0.57.0",
+  "task": "R02-first-slice",
+  "startedAt": "2026-09-08T16:36:04.908Z",
+  "checks": [],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n800 !== 0\n\n    at file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-r02-entry-emulator.mjs:33:37",
+    "RESTORATION Error: --command or --list is required\n    at options (file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/opensph-cli.mjs:24:63)\n    at call (file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-r02-entry-emulator.mjs:16:160)\n    at async file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-r02-entry-emulator.mjs:54:4"
+  ],
+  "restoration": {
+    "completed": false
+  },
+  "hapSha256": "75cab96195033137a4685c4927f8484c82d6afb5ca37169428eff5f1dacd38f7",
+  "completedAt": "2026-09-08T16:36:28.561Z"
+}

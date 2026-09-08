@@ -1,0 +1,3 @@
+ninja: no work to do.
+FileTransfer finish, Size:8740360, File count = 1, time:32ms rate:273136.25kB/s
+PASS actual 3-body orbit incoming capture at 29.9994 seconds, 8.00043 km/s; v18 world roundtrip, seek, nine corrupt transactional rejections, resume immutability, expired event rejection, v14/v16 compatibility

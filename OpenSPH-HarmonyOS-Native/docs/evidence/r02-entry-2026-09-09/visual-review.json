@@ -1,0 +1,20 @@
+{
+  "version": "0.57.0",
+  "date": "2026-09-09",
+  "timezone": "Asia/Shanghai",
+  "images": [
+    "device-release/local-completed.jpeg",
+    "device-release/local-reloaded.jpeg",
+    "device-release/restored-galaxy.jpeg"
+  ],
+  "observed": [
+    "Completed local primary says view replay; return action remains separate; notice says fragments are not carried back",
+    "Cold local replay has no return action and clearly states observation only",
+    "Restored galaxy shows 800.00 million years without time-unit clipping at current window size"
+  ],
+  "limitations": [
+    "Only current emulator window reviewed; no new touch, animation, folding or rotation validation",
+    "Point-like SPH rendering and main panel structure unchanged; continuous surfaces and layout still pending"
+  ],
+  "originalPreUpgradeReplayMatchesFinal": true
+}

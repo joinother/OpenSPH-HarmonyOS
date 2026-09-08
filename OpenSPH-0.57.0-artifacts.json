@@ -1,0 +1,36 @@
+{
+  "version": "0.57.0",
+  "versionCode": 1000058,
+  "kind": "development-checkpoint",
+  "date": "2026-09-09",
+  "timezone": "Asia/Shanghai",
+  "sourceFiles": 1578,
+  "artifacts": [
+    {
+      "file": "OpenSPH-Lab-0.57.0-emulator-unsigned.hap",
+      "bytes": 18969835,
+      "sha256": "5a37780aabe1f64cc0e5d23f561845c776b004765e9c4577ac8bdfeac38880c8"
+    },
+    {
+      "file": "OpenSPH-HarmonyOS-Native-0.57.0-source.zip",
+      "bytes": 16989464,
+      "sha256": "491ac65e9d9f92a1a1b184b3b199b63dd6295059ee2ccec5b8b9f564357b6079"
+    }
+  ],
+  "verified": [
+    "125 host UI/CLI, recipe, acceptance and wait checks",
+    "Native stale contact rejection, exact parent restoration, v14/v16/v18 and corrupt replay checks",
+    "Actual 641-particle native SPH to 8.12 seconds with thermal growth and mass/3D budgets",
+    "Final installed HAP: six emulator action flows including actual SPH to 60 seconds, stale entry rejection and cold replay",
+    "Completed local, reloaded local and restored galaxy screenshots inspected at current emulator window",
+    "Original pre-upgrade 800 Myr complete galaxy replay matches final bytes; theme, camera, appearance and 13 persistent files restored",
+    "Source ZIP member bytes match staged source and local project",
+    "Current documentation checks passed in live project and Git checkout; raw HDC CRLF evidence preserved"
+  ],
+  "limits": [
+    "R02 first slice only: no pre-bounce pending event checkpoint, integrator phase continuation or durable event session",
+    "Parent return remains the previously displayed post-response world; no remnant insertion, new forces or advancing parent clock",
+    "v20 is still observation replay without complete solver continuation",
+    "No liquid phase, latent heat, cooling, continuous surface or new convergence, touch, animation, fold/rotation or real-device validation"
+  ]
+}

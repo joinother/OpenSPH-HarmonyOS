@@ -18,7 +18,7 @@ int main(int argc,char** argv){try{
  Config c;c.preset=5;c.speed=1;c.duration=1;double ma=4*3.141592653589793/3*std::pow(100000.,3)*2700/SOLAR_MASS;
  c.orbitBodies={{"star",1,0,0,0,0,0,0,0,695700},{"target",ma,1,-200000/AU,0,0,34,0,3,100},{"impactor",ma*.216,1,200000/AU,0,0,26,0,5,60}};
  Engine e;e.start(c,true);wait(e,[](Status s){return s.state=="paused"&&s.frames>0;});e.orbitClock(.001);e.pause(false);
- auto hit=wait(e,[](Status s){return s.state=="paused"&&s.contact.count>0;});auto plan=makeImpactPlan(hit.contact);
+ auto hit=wait(e,[](Status s){return s.state=="paused"&&s.contact.count>0;});auto plan=makeImpactPlan(hit.contact);require(hit.impactEntryReady,"fresh event entry unavailable");
  require(plan.available&&plan.supported,"real world incoming plan unavailable");require(hit.contact.a==1&&hit.contact.b==2,"wrong colliders");require(plan.timeSeconds>29&&plan.timeSeconds<31,"unexpected impact time");
  require(e.saveReplay(argv[1]),"v18 save failed");std::ifstream f(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(f)),{});require(u32(bytes,4)==18,"missing v18");
  std::vector<size_t> incoming,extensions,worlds;size_t p=88;const auto n=u32(bytes,8);
@@ -38,9 +38,12 @@ int main(int argc,char** argv){try{
    write(bad);const auto revision=e.sceneRevision();require(!e.loadReplay(argv[1]),"corrupt event accepted");require(e.sceneRevision()==revision,"failed load changed scene");same(hit.contact,e.status().contact);
  }
  write(bytes);require(e.loadReplay(argv[1]),"restore v18 failed");e.orbitClock(.001);e.pause(false);wait(e,[&](Status s){return s.time>hit.time;});e.pause(true);same(hit.contact,e.status().contact);
+ auto advanced=e.status();require(!advanced.impactEntryReady,"old event still exposed as ready");bool staleRejected=false;try{e.startImpact(advanced.orbitRevision,advanced.contact.count,600,8);}catch(const std::invalid_argument&){staleRejected=true;}
+ require(staleRejected,"continued world accepted an old collision event");require(e.sceneRevision()==advanced.orbitRevision&&e.status().time==advanced.time,"stale rejection changed world");
+
  auto v16=bytes;for(auto it=worlds.rbegin();it!=worlds.rend();++it)v16.erase(*it,4+64*u32(bytes,*it));uint32_t version16=16;std::memcpy(&v16[4],&version16,4);write(v16);require(e.loadReplay(argv[1]),"legacy v16 failed");require(e.status().contact.world.empty(),"legacy world invented");same(hit.contact,e.status().contact);
  auto legacy=bytes;for(size_t i=worlds.size();i-->0;){legacy.erase(worlds[i],4+64*u32(bytes,worlds[i]));legacy.erase(extensions[i],u32(bytes,extensions[i])?132:4);}uint32_t v14=14;std::memcpy(&legacy[4],&v14,4);write(legacy);
  require(e.loadReplay(argv[1]),"legacy v14 contact failed");require(e.status().contact.count==hit.contact.count&&!makeImpactPlan(e.status().contact).available,"legacy fabricated velocities");
- std::cout<<"PASS actual 3-body orbit incoming capture at "<<plan.timeSeconds<<" seconds, "<<plan.relativeSpeedKmS<<" km/s; v18 world roundtrip, seek, nine corrupt transactional rejections, resume immutability, v14/v16 compatibility\n";
+ std::cout<<"PASS actual 3-body orbit incoming capture at "<<plan.timeSeconds<<" seconds, "<<plan.relativeSpeedKmS<<" km/s; v18 world roundtrip, seek, nine corrupt transactional rejections, resume immutability, expired event rejection, v14/v16 compatibility\n";
  e.cancel();
 }catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<'\n';return 1;}}

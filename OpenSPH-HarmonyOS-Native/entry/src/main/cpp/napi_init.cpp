@@ -391,6 +391,7 @@ napi_value status(napi_env e, napi_callback_info) {
     if(s.config.impactContact.hasIncoming||(s.config.preset==5&&!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0)){
         napi_value contact;napi_create_object(e,&contact);num(e,contact,"count",s.contact.count);num(e,contact,"a",s.contact.a);num(e,contact,"b",s.contact.b);num(e,contact,"timeSeconds",s.contact.time*lab::YEAR);num(e,contact,"normalSpeedKmS",s.contact.speed*lab::AU/lab::YEAR/1000);num(e,contact,"restitution",1);
         const auto plan=lab::makeImpactPlan(s.contact);napi_value incoming,flag;napi_create_object(e,&incoming);
+        napi_get_boolean(e,s.impactEntryReady,&flag);napi_set_named_property(e,o,"impactEntryReady",flag);str(e,o,"impactEntryReason",s.impactEntryReason);
         napi_get_boolean(e,plan.available,&flag);napi_set_named_property(e,incoming,"available",flag);
         napi_get_boolean(e,plan.supported,&flag);napi_set_named_property(e,incoming,"withinCurrentBounds",flag);
         str(e,incoming,"reason",plan.reason);str(e,incoming,"model","orbital-incoming-com-v1");

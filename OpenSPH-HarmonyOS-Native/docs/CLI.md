@@ -1,8 +1,24 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.56.0；更新日期：2026-09-09（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.57.0；更新日期：2026-09-09（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
+
+## 主操作与接触入口
+
+`uiAction {"action":"simulation.primary"}` 与屏幕主按钮共用实现和标签：实时运行时暂停，初态开始，暂停态继续；计算完成后“查看回放”，回放中“暂停回放”。它不会在局部计算完成后自动返回旧轨道。需要重算时使用明确的 `simulation.toggle`／`simulation.apply` 动作，并读取动作目录的实际标签与可用性；重算会丢弃本次演化。
+
+`getState.simulation.impactEntryReady` 与 `impactEntryReason` 描述当前世界能否打开局部撞击；`getImpactPlan.entryReady/entryReason` 同步这项判据。`contact.incoming.withinCurrentBounds` 只检查入射范围，不能独自判定入口可用。只有最新暂停历史帧中新增加的接触、有完整事件世界且范围合格时才开放；轨道继续后保留的旧事件只能查看。入口尚非未施加反弹的待处理事件，不能据此声称 R02 检查点完成。
+
+`project.save` 显示“保存设置与视角”，保存初始配方；`replay.save` 保存观察记录。没有新增“保存进度”能力。冷载入局部 SPH 回放明确显示“仅供观看，不能继续计算”，没有父会话可返回。星系时间栏显示“百万年”，原始模型与导出单位仍是 `Myr`。
+
+本轮严格的设备验证脚本只接受指定模拟器中无草稿、无放置、无独立环和录像的已完成星系场景；其他场景在修改前拒绝。两个输出目录必须不存在，私有备份不得发布：
+
+```sh
+node scripts/test-r02-entry-emulator.mjs 127.0.0.1:5555 docs/evidence/r02-new-run build/r02-new-private entry/build/default/outputs/default/entry-default-unsigned.hap
+```
+
+脚本安装 0.57.0、验证共享操作和实际 SPH，最后重建原星系并要求整份回放字节相同，恢复视角、主题和持久文件。恢复失败退出 1；应保留现场与备份，修正原因后以新的证据目录、原私有备份和末尾参数 `restore` 单独恢复。不能将此脚本用于任意未保存会话。
 
 ## 连续碰撞验收基线
 
@@ -27,7 +43,7 @@ node scripts/analyze-collision-acceptance.mjs docs/evidence/r01-new-run/report.j
 
 查询 `getImpactPlan` 读取所选帧最近接触的反弹前三维向量、质量／半径及质心系动能；`withinCurrentBounds` 表示局部岩体尺寸、密度和撞速检查，`contact.tides` 另给冻结潮汐的可用性、原因、来源数量、空间范围与张量。
 
-`orbit.impact.demo` 创建 1 AU 小岩体初态；`orbit.impact.tidesDemo` 创建 0.02 AU 近恒星对照初态。启动后接触处自动暂停，在最新帧选择 `impact.simulate`（隔离）或 `impact.simulateTides`（含外部潮汐）。只有无编辑／撤销历史、无独立环且来源合格时开放。两者均生成真实 SPH 粒子、局部初态暂停在 0 秒，再通过 `simulation.toggle` 运行约 60 秒。
+`orbit.impact.demo` 创建 1 AU 小岩体初态；`orbit.impact.tidesDemo` 创建 0.02 AU 近恒星对照初态。启动后接触处自动暂停，在最新帧选择 `impact.simulate`（计算局部撞击）或 `impact.simulateTides`（使用外部引力近似）。只有无编辑／撤销历史、无独立环且来源合格时开放。两者均生成真实 SPH 粒子、局部初态暂停在 0 秒，再通过 `simulation.toggle` 运行约 60 秒。
 
 `impact.return` 恢复进入前的原轨道、时间、历史和外观。期间可观察、保存回放，不能修改初值或保存会丢失来源的普通配方。潮汐状态模型为 `sph-orbit-impact-tides-v1`；`simulation.impact` 提供 `tides`、`tidalPotentialJ`、`trackedEnergyJ`、`energyScope`、`sourceTimeSeconds`、`elapsedSeconds` 与 `eventEpochPlusElapsedSeconds`。记录能量不含弹性应变能；时间相加不是父世界推进。
 
@@ -54,7 +70,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 ## 星系双向引力
 
-`uiAction` 的 `theme.galaxy-responsive` 载入 600 群／600 Myr 的“恒星也能拉动星系”，`theme.compare` 在同参数的无质量对照之间切换。参数页 `galaxy.responsive` 切换草稿的恒星引力反馈；开启时若超过 800 群会将草稿预算降至 800，应用后生效。`setScene` 的 `galaxyResponsive:true` 仅允许 preset 6、count 200–800，非法输入直接拒绝；省略或 false 保持旧模型。参见 [双向引力定义](reference/GALAXY-RESPONSE.md)。
+`uiAction` 的 `theme.galaxy-responsive` 载入 600 群／600 Myr 的“星系引力对照：恒星群参与引力”，`theme.compare` 在同参数的无质量对照之间切换。参数页 `galaxy.responsive` 切换草稿的恒星引力反馈；开启时若超过 800 群会将草稿预算降至 800，应用后生效。`setScene` 的 `galaxyResponsive:true` 仅允许 preset 6、count 200–800，非法输入直接拒绝；省略或 false 保持旧模型。参见 [双向引力定义](reference/GALAXY-RESPONSE.md)。
 
 新模型标识 `galaxy-responsive-v1`，回放 v13；旧模型仍为 `galaxy-tidal-restricted-v1`、v12。新记录的 `parameters.responsive:true`、命名实验及本地参照均保留身份；旧数据缺省 false。CSV 保持 18 列（双实验 19 列），计数标题改为 `stellar_sample_count`，误差标题为 `model_energy_normalized_error`／`model_angular_normalized_error`，按每行 model 解释。新模型误差涵盖恒星群及中心的封闭系统，旧模型仅含两中心。`getGalaxyDiagnostics` 提供 `energyError`、`angularError`、`energyScope`；旧 `centerEnergyError`／`centerAngularError` 仅在旧模型返回，避免误解。
 
@@ -400,7 +416,7 @@ node scripts/export-sph.mjs --device 127.0.0.1:5555 --output /tmp/sph-run.csv
 
 预设 0–2 为 SPH，3 为双体，4 为四体，5 为自定义。完整配置范围以命令目录和应用校验为准。`getState.definition` 是初始条件，`simulation.bodies` 为当前显示的质心参考系数据；SPH 时间单位为秒，轨道为儒略年。
 
-命名实验保存结构保持 `scene.schemaVersion=1`，新增可选的 `recipe`：`schemaVersion=1`、`appearanceVersion=2`、`material`、`themeId`、`camera`、可选全景返回视角 `overview`、`appearance`、`sky` 和 `ring`。`listProjects` 每条新增 `hasRecipe` 与 `themeId`。界面“保存当前实验与视角”与 `saveProject` 共用写入逻辑。
+命名实验保存结构保持 `scene.schemaVersion=1`，新增可选的 `recipe`：`schemaVersion=1`、`appearanceVersion=2`、`material`、`themeId`、`camera`、可选全景返回视角 `overview`、`appearance`、`sky` 和 `ring`。`listProjects` 每条新增 `hasRecipe` 与 `themeId`。界面“保存设置与视角”与 `saveProject` 共用写入逻辑。
 
 保存采样当前镜头和局部环时钟，不自动暂停正在运行的实验。载入先校验整份文件，再创建暂停的初始场景；环恢复所存小时数、速度与倍率，并保持暂停。主系统时间不保存，不是中途续算；未提交的天体／放置草稿、撤销历史、回放帧、当前面板和窗口方向不在配方内。程序外观动画相位也不保存，因此恢复视角不等于逐像素复原旧帧。
 

@@ -345,9 +345,24 @@ void Engine::start(Config c, bool initiallyPaused) {
     cv.notify_all();
 }
 
+// A retained contact is an observation, not permission to rewind a later world.
+// The event must first appear in the latest frame. Missing history fails closed.
+std::string Engine::impactEntryReasonLocked() const {
+    if(impactReturn)return "局部撞击已打开，请先返回原轨道";
+    if(config.preset!=5||history.empty())return "请先在轨道中产生一次接触";
+    if(current.state!="paused"||current.selected>=0)return "请停在最新的接触响应帧";
+    const auto& frame=*history.back();
+    if(!frame.contact.hasIncoming)return "没有可用的撞击初值";
+    if(history.size()<2||history[history.size()-2]->contact.count>=frame.contact.count)
+        return "轨道已离开这次接触，旧事件仅供查看；不能从当前世界重放旧撞击";
+    if(frame.contact.world.size()!=frame.orbitState.size())return "接触缺少完整世界记录，不能启动局部撞击";
+    const auto plan=makeImpactPlan(frame.contact);
+    return plan.supported?"":plan.reason;
+}
 void Engine::startImpact(uint64_t revision,uint32_t event,int count,double duration,bool tides){
     std::lock_guard<std::mutex> lock(mutex);
-    if(revision!=generation.load()||impactReturn||config.preset!=5||history.empty()||current.state!="paused"||current.selected>=0)throw std::invalid_argument("请在最新暂停的轨道接触帧启动；状态已变化时请刷新");
+    if(revision!=generation.load())throw std::invalid_argument("轨道状态已变化，请刷新后再操作");
+    const auto blocked=impactEntryReasonLocked();if(!blocked.empty())throw std::invalid_argument(blocked);
     const auto contact=history.back()->contact;const auto plan=makeImpactPlan(contact);
     if(contact.count!=event||!plan.supported)throw std::invalid_argument("入射事件不匹配或超出局部岩体范围");
     Config c;c.count=count;c.duration=duration;c.selfGravity=true;c.speed=plan.relativeSpeedKmS;c.targetRadiusKm=plan.bodies[0].radiusKm;c.impactorRadiusKm=plan.bodies[1].radiusKm;c.targetDensity=plan.bodies[0].densityKgM3;c.impactorDensity=plan.bodies[1].densityKgM3;c.impactContact=contact;c.impactTides=tides;
@@ -502,6 +517,7 @@ void Engine::publish(std::shared_ptr<Frame> f, uint64_t g, double ms) {
 Status Engine::status() {
     std::lock_guard<std::mutex> lock(mutex);
     Status s = current;
+    s.impactEntryReason=impactEntryReasonLocked();s.impactEntryReady=s.impactEntryReason.empty();
     s.preparation=preparation.snapshot(monotonicMs(),workerRequestId,workerStage);
     s.impactReturnAvailable=bool(impactReturn);s.impactPreparing=impactPreparing;
     s.config = impactPreparing?impactReturn->config:config;s.continuous=continuous;s.daysPerSecond=daysPerSecond;s.orbitRevision=generation.load();if(paused)s.actualDaysPerSecond=0;

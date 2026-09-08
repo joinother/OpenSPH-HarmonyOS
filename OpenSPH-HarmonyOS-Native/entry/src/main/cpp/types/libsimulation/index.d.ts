@@ -25,6 +25,7 @@ export const setGalaxyPlacement:(enabled:boolean,count:number,seed:number,speed:
 export const placeGalaxyAt:(x:number,y:number)=>number;
 export interface GalaxyDiagnostics {separationKpc:number;primaryRmsKpc:number;secondaryRmsKpc:number;primaryOuterFraction:number;secondaryOuterFraction:number;energyScope:string;outerScope:string;}
 export interface SimulationStatus {
+  impactEntryReady?:boolean;impactEntryReason?:string;
   impact?:{local:boolean;canReturn:boolean;preparing:boolean;sourceTimeSeconds:number;eventCount:number;a:number;b:number;assumptions:string;tides?:boolean;elapsedSeconds?:number;eventEpochPlusElapsedSeconds?:number;tidalPotentialJ?:number;trackedEnergyJ?:number;energyScope?:string;};
   orbitState?:OrbitBodyConfig[];orbitRevision?:number;continuous?:boolean;daysPerSecond?:number;actualDaysPerSecond?:number;
   galaxy?:GalaxyDiagnostics;

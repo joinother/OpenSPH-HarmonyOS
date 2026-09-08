@@ -184,7 +184,7 @@ struct Index {
   @State galaxyRetrograde:boolean=false;
   @State galaxyResponsive:boolean=false;
   private isOrbit():boolean {return this.preset>=3&&this.preset<=5;}
-  private timeLabel():string {return this.preset===6?' Myr':this.isOrbit()?' 年':' s';}
+  private timeLabel():string {return this.preset===6?' 百万年':this.isOrbit()?' 年':' s';}
   @State seed: number = 1234;
   @State title: string = '我的碰撞实验';
   @State targetName: string = '主天体';
@@ -283,7 +283,7 @@ struct Index {
     if (this.info.state === 'preparing') return this.preparationLabel();
     if (this.info.state === 'running') return '正在计算';
     if (this.info.state === 'paused') return '已暂停';
-    if (this.info.state === 'completed') return '计算完成';
+    if (this.info.state === 'completed') return '本段计算结束';
     if (this.info.state === 'cancelled') return '已停止';
     if (this.info.state === 'failed') return '计算异常';
     if (this.info.state === 'replay') return '已载入回放';
@@ -384,22 +384,33 @@ struct Index {
   }
   private contactNoticeKey:string='';
   private mainSimulationAction():string {
-    if(this.info.impact?.canReturn&&['completed','failed','cancelled'].includes(this.info.state))return 'impact.return';
-    return this.info.state==='preparing'?'simulation.cancel':'simulation.toggle';
+    if(this.info.state==='preparing')return 'simulation.cancel';
+    if(this.playing||(!this.dirty&&(this.info.selected>=0||['completed','replay'].includes(this.info.state)||
+      (this.info.impact?.local===true&&['failed','cancelled'].includes(this.info.state)))))return 'replay.toggle';
+    return 'simulation.toggle';
   }
   private mainSimulationEnabled():boolean {
-    return !this.ioBusy&&!(this.info.impact?.local&&!this.info.impact?.canReturn&&!['paused','running'].includes(this.info.state));
+    if(this.ioBusy)return false;
+    if(this.mainSimulationAction()==='replay.toggle')return this.info.frames>1;
+    return !(this.info.impact?.local&&!this.info.impact?.canReturn&&!['paused','running'].includes(this.info.state));
+  }
+  private primarySimulationLabel(compact:boolean=false):string {
+    if(this.mainSimulationAction()==='simulation.cancel')return '取消准备';
+    if(this.mainSimulationAction()==='replay.toggle')return this.playing?'暂停回放':this.info.selected<0&&this.info.state==='completed'?'查看回放':'播放回放';
+    return this.simulationLabel(compact);
   }
   private simulationLabel(compact:boolean=false):string {
-    if(this.mainSimulationAction()==='impact.return')return compact?'返回':'返回轨道';
-    if(this.info.impact?.local&&!this.info.impact?.canReturn&&!['paused','running'].includes(this.info.state))return '仅回放';
-    if(this.info.state==='preparing')return compact?'取消':'取消准备';
-    if(this.info.state==='running')return compact?'暂停':'暂停时间';
-    if(this.isOrbit()&&!this.dirty&&(this.info.orbitState??[]).length>0)return compact?'继续':'时间继续';
-    if(this.dirty)return compact?'应用':'应用并开始';
-    if(this.contactMode()&&this.info.state==='paused'&&this.info.time>0)return compact?'继续':'继续实验';
-    return compact?'开始':'开始实验';
+    if(this.info.state==='preparing')return '取消准备';
+    if(this.info.state==='running')return compact?'暂停':'暂停模拟';
+    if(this.isOrbit()&&!this.dirty&&(this.info.orbitState??[]).length>0)return compact?'继续':'继续模拟';
+    if(this.dirty)return compact?'应用重跑':'应用设置并重跑';
+    if(['completed','cancelled','failed','replay'].includes(this.info.state))return '从头重跑';
+    if(this.info.state==='paused'&&this.info.time>0)return compact?'继续':'继续模拟';
+    return compact?'开始':'开始模拟';
   }
+  private impactActionLabel(tides:boolean=false):string {return tides?'使用外部引力近似':'计算局部撞击';}
+  private impactReturnLabel():string {return '返回原轨道';}
+  private replayEndLabel():string {return this.info.state==='replay'||this.info.state==='completed'?'回放末尾':'当前状态';}
   private directory(): string { return (this.getUIContext().getHostContext() as common.UIAbilityContext).filesDir; }
   aboutToAppear(): void {
     this.videos();this.syncVideo();
@@ -417,7 +428,7 @@ struct Index {
       }
       this.ensureMoonTexture();
       if(this.panelOpen&&this.tab===1&&this.appForeground)this.refreshObservation();
-      if (this.info.state === 'completed' && previousState !== 'completed' && !this.ioBusy) { this.notice = '计算完成 · 可在时间轴回看结果'; }
+      if (this.info.state === 'completed' && previousState !== 'completed' && !this.ioBusy) { this.notice = this.info.impact?.local ? '局部计算结束 · 可查看回放；返回原轨道不会带入碎片' : '本段已结束 · 查看回放，或编辑设置后从头重跑'; }
       if (this.playing && this.appForeground && this.info.frames > 0) {
         const next: number = this.info.selected < 0 ? 0 : this.info.selected + 1;
         if (next >= this.info.frames) { this.playing = false; }
@@ -764,7 +775,7 @@ struct Index {
     if(!this.info.impact)this.impactEntered=false;
     if(this.info.impact?.local&&!this.impactEntered){
       this.applyConfig(this.info.config!);this.impactEntered=true;this.title=this.info.impact?.tides?'局部撞击 · 外部潮汐':'局部撞击 · 岩质 SPH';this.closeup=false;this.autoSpin=false;this.focus=-1;this.yaw=0;this.pitch=.25;this.zoom=3;this.colorMode=7;this.dirty=false;this.camera(0,true,true);this.setPanel(-1);
-      this.notice='已按真实入射状态生成粒子 · 开始后计算破坏与热软化 · 原轨道暂停保留';
+      this.notice=this.info.impact?.canReturn?'局部撞击 · 原轨道暂停保留，撞击结果暂不能带回':'已打开局部撞击回放 · 仅供观看，不能继续计算';
     } else if(!this.info.impact&&this.impactRecipe){
       const recipe=this.impactRecipe;this.applyConfig(this.info.config!,true);this.title=this.impactTitle;this.restoreRecipe(recipe);this.impactRecipe=undefined;this.impactEntered=false;this.dirty=false;this.notice=this.info.error||'已返回原轨道 · 保留原来的时刻与历史，局部碎片尚不回注';
     }
@@ -775,6 +786,7 @@ struct Index {
     this.impactRecipe=recipe;this.impactTitle=this.title;this.impactEntered=false;this.playing=false;this.info=simulation.status();this.notice='正在生成真实入射状态的岩体粒子 · 原轨道已保留';
   }
   private localImpactActionAllowed(action:string):boolean {
+    if(action==='simulation.primary')return this.localImpactActionAllowed(this.mainSimulationAction());
     if(!this.info.impact?.canReturn&&['preset.','project.load.'].some((prefix:string):boolean=>action.startsWith(prefix)))return true;
     return ['impact.return','simulation.cancel'].includes(action)||((action==='simulation.toggle')&&['paused','running'].includes(this.info.state))||['panel.','ui.','camera.','color.','focus.','replay.','video.','sky.','sph.metric.','fragments.'].some((prefix:string):boolean=>action.startsWith(prefix));
   }
@@ -1104,16 +1116,17 @@ struct Index {
     add('panel.parameters','参数',true,this.panelOpen&&this.tab===0);add('panel.observe','观察',true,this.panelOpen&&this.tab===1);add('panel.library','实验库',true,this.panelOpen&&this.tab===2);
     add('panel.close','收起');add('ui.focus','专注');add('ui.restore','显示工具');add('ui.back','返回',this.videoOpen||this.videoPreview||this.observerMode>0||this.galaxyPlacing||this.panelOpen||this.closeup||this.focus>=0||!this.toolsVisible||this.rendering.fragmentFollow.active);
     for(const t of this.themes)add('theme.'+t.id,t.title,true,this.activeThemeId===t.id);
-    add('theme.restore','恢复主题初始条件',this.activeThemeId!=='');
+    add('theme.restore','恢复初始设置',this.activeThemeId!=='');
     add('theme.compare','切换对照实验',this.themeState().compareId!=='');
     add('theme.observe',this.preset===2?'查看岩球曲线':'查看碰撞曲线',this.activeThemeId!==''&&this.preset<3);
     add('library.collision','碰撞',true,this.librarySection==='collision');add('library.explore','探索',true,this.librarySection==='explore');add('library.saved','我的实验',true,this.librarySection==='saved');
     add('presets.show','切换实验',this.preset===5);
     for(let i=0;i<this.experiments.length;i++)add('preset.'+i,this.experiments[i].title,true,this.preset===i);
     for(const rate of [.01,.1,1,10,100])add('time.rate.'+rate,rate+' 天/秒',this.isOrbit()&&this.info.frames>0,this.orbitDays===rate);
-    add('simulation.toggle',this.simulationLabel(),this.info.state!=='preparing');add('simulation.apply','应用参数 · 重新生成');
+    add('simulation.primary',this.primarySimulationLabel(),this.mainSimulationEnabled());
+    add('simulation.toggle',this.simulationLabel(),this.info.state!=='preparing');add('simulation.apply','应用设置 · 从头生成');
     add('simulation.cancel','停止实验',['preparing','running','paused'].includes(this.info.state));
-    add('replay.toggle',this.playing?'暂停回放':'播放回放',this.info.frames>1,this.playing);add('replay.latest','最新',this.info.frames>0);
+    add('replay.toggle',this.playing?'暂停回放':'播放回放',this.info.frames>1,this.playing);add('replay.latest',this.replayEndLabel(),this.info.frames>0);
     add('replay.save','保存回放',this.info.frames>0);add('replay.load','载入回放');
     add('video.open','视频',!this.placing&&!this.galaxyPlacing);
     add('video.close','返回星图',true);add('video.reload','刷新视频',!this.videoBusy());
@@ -1125,7 +1138,7 @@ struct Index {
     add('video.quality.1280','标准 · 长边 1280',!this.videoBusy(),this.videoQuality===1280);
     add('video.quality.1920','高清 · 长边 1920',!this.videoBusy(),this.videoQuality===1920);
     for(const clip of this.videoState.clips)add('video.select.'+clip.id,'选择视频 · '+clip.name,!this.videoBusy(),this.videoState.selectedId===clip.id);
-    add('project.save','另存实验');add('project.open','打开实验库');
+    add('project.save','保存设置与视角');add('project.open','打开实验库');
     for(const project of this.projects)add('project.load.'+project.id,'载入实验 · '+project.scene.title);
     add('surface.toggle',this.closeup?'返回轨道':'近看行星',this.isOrbit(),this.closeup);
     add('selection.edit','编辑这颗天体',this.preset===5&&this.focus>=0);
@@ -1177,7 +1190,7 @@ struct Index {
     for(let i=0;i<5;i++)add('galaxy.metric.'+i,GALAXY_METRICS[i],this.preset===6,this.galaxyMetric===i);
     add('galaxy.minimum','记录最小',this.preset===6&&this.galaxyView().available);add('galaxy.maximum','记录最大',this.preset===6&&this.galaxyView().available);
     add('galaxy.responsive','恒星参与引力',this.preset===6,this.galaxyResponsive);
-    add('galaxy.retrograde','反转次星系旋转',this.preset===6,this.galaxyRetrograde);
+    add('galaxy.retrograde','次星系反向旋转',this.preset===6,this.galaxyRetrograde);
     add('scene.stationary','设为静止初态',this.preset===2,this.speed===0&&this.targetSpin===0);
     add('scene.gravity','材料自引力',this.preset<3&&this.count<=1200,this.selfGravity);
     add('body.primary','主天体',this.preset<3,this.editedBody===0);add('body.impactor','撞击体',this.preset<2,this.editedBody===1);
@@ -1194,7 +1207,7 @@ struct Index {
     add('placement.rock','15 km 岩质小行星',this.placing&&finiteOrbitBodies(this.placementBodies));
     for(let i=0;i<=5;i++)add('placement.surface.'+i,['恒星','海洋','厚云','荒漠','带环','月面'][i],this.placing,this.placementSurface===i);
     for(const mode of ['satellite','launch','drop'])add('selection.'+mode,mode==='satellite'?'添加卫星':mode==='launch'?'向它发射':'附近投放',this.isOrbit()&&this.focus>=0&&this.focus<(this.info.orbitState??[]).length&&(this.info.orbitState??[]).length<8);
-    add('orbit.contact','启用球体接触',this.preset===5&&!this.contactMode());add('orbit.contact.demo','球体接触实验',this.preset===5);add('orbit.impact.demo','小岩体撞击初值',this.preset===5);add('orbit.impact.tidesDemo','近恒星岩体撞击',this.preset===5);add('impact.inspect','查看撞击初值',this.contactMode());add('impact.simulate','模拟这次撞击',this.contactMode()&&this.info.state==='paused'&&this.info.selected<0&&this.info.contact?.incoming?.withinCurrentBounds===true&&!this.dirty&&!this.orbitDraft&&!this.trace.enabled&&this.orbitDrafts.length===0&&this.orbitUndo.length===0&&this.orbitRedo.length===0);add('impact.simulateTides','含外部潮汐',a.find((item:UiActionInfo):boolean=>item.id==='impact.simulate')?.enabled===true&&this.info.contact?.tides?.available===true);add('impact.return','返回轨道',this.info.impact?.canReturn===true);
+    add('orbit.contact','启用球体接触',this.preset===5&&!this.contactMode());add('orbit.contact.demo','球体接触实验',this.preset===5);add('orbit.impact.demo','小岩体撞击初值',this.preset===5);add('orbit.impact.tidesDemo','近恒星岩体撞击',this.preset===5);add('impact.inspect','查看撞击初值',this.contactMode());add('impact.simulate',this.impactActionLabel(),this.contactMode()&&this.info.state==='paused'&&this.info.selected<0&&this.info.impactEntryReady===true&&!this.dirty&&!this.orbitDraft&&!this.trace.enabled&&this.orbitDrafts.length===0&&this.orbitUndo.length===0&&this.orbitRedo.length===0);add('impact.simulateTides',this.impactActionLabel(true),a.find((item:UiActionInfo):boolean=>item.id==='impact.simulate')?.enabled===true&&this.info.contact?.tides?.available===true);add('impact.return',this.impactReturnLabel(),this.info.impact?.canReturn===true);
     add('orbit.copy','复制并放置',this.preset===5&&this.orbitEdit>0&&this.orbitBodies.length<8);
     add('orbit.add','加入天体',this.isOrbit()&&(this.info.orbitState??[]).length>=2&&(this.info.orbitState??[]).length<8);add('orbit.remove','删除天体',this.preset===5&&this.orbitEdit>0&&this.orbitBodies.length>2);
     add('orbit.undo','撤销天体编辑',this.preset===5&&this.orbitUndo.length>0);add('orbit.redo','重做天体编辑',this.preset===5&&this.orbitRedo.length>0);
@@ -1328,6 +1341,7 @@ struct Index {
     else if(action==='scene.gravity'){this.selfGravity=!this.selfGravity;if(!this.selfGravity)this.relaxationSeconds=0;this.dirty=true;}
     else if(action.startsWith('scene.relax.')){this.relaxationSeconds=Number(action.slice('scene.relax.'.length));this.dirty=true;}
     else if(action.startsWith('time.rate.'))this.changeOrbitClock(Number(action.slice(10)));
+    else if(action==='simulation.primary'){await this.performUiAction(this.mainSimulationAction());}
     else if(action==='simulation.toggle'){this.run();this.setPanel(-1);}
     else if(action==='simulation.apply'){if(!this.prepare(false))throw new Error(this.notice);this.setPanel(-1);}
     else if(action==='simulation.cancel'){this.cancelSimulation();}
@@ -1470,7 +1484,7 @@ struct Index {
     if(command==='listCommands') {
       const catalog: CommandCatalog = {ok:true,commands:[
       {name:'getState',payload:'{}'},
-      {name:'getImpactPlan',payload:'{} - latest incoming orbital contact in the selected frame; local COM metres, m/s and kg; bounds check only, no SPH handoff'},
+      {name:'getImpactPlan',payload:'{} - latest incoming orbital contact in the selected frame; local COM metres, m/s and kg; physical bounds plus current-world entry readiness; observations alone do not authorize a transition'},
       {name:'getCameraMotion',payload:'{requestId?:number}; 0/current by default, last 32 terminal requests retained'},
       {name:'cancelCameraMotion',payload:'{requestId?:number}; stops only that request; stale cancellation cannot stop a newer flight'},
       {name:'navigateCamera',payload:'{focus:number,closeup?:boolean,yaw?:number,pitch?:number,zoom?:number,durationMs?:0..3000}; explicit continuous flight, request ID in cameraMotion'},
@@ -1532,7 +1546,7 @@ struct Index {
     if(command==='getRingTrace'){if(p.particles!==undefined&&typeof p.particles!=='boolean')throw new Error('particles must be boolean');return JSON.stringify({ok:true,ringTrace:simulation.ringTraceStatus(p.particles??true)});}
     if(command==='listExperiments')return JSON.stringify({ok:true,catalogVersion:1,experiments:themeExperiments(),active:this.themeState()});
     if(command==='getState') return this.snapshot();
-    if(command==='getImpactPlan'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,sceneRevision:state.orbitRevision,selected:state.selected,contact:state.contact});}
+    if(command==='getImpactPlan'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,sceneRevision:state.orbitRevision,selected:state.selected,entryReady:state.impactEntryReady,entryReason:state.impactEntryReason,contact:state.contact});}
     if(command==='getCameraMotion'||command==='cancelCameraMotion'){
       const id:number=p.requestId===undefined?0:this.checked(p.requestId,0,1.e9,true);
       const m:CameraMotionStatus=command==='getCameraMotion'?simulation.getCameraMotion(id):simulation.cancelCameraMotion(id);
@@ -1880,8 +1894,8 @@ struct Index {
   impactControls() {
     if(this.contactMode()) {
       Column({space:6}) {
-        ChoiceChip({label:'隔离撞击',enabledAction:this.info.state==='paused'&&this.info.selected<0&&this.info.contact?.incoming?.withinCurrentBounds===true&&!this.dirty&&!this.orbitDraft&&!this.trace.enabled&&this.orbitDrafts.length===0&&this.orbitUndo.length===0&&this.orbitRedo.length===0,onPress:()=>{this.press('impact.simulate');}})
-        ChoiceChip({label:'含外部潮汐',enabledAction:this.uiActions().find((item:UiActionInfo):boolean=>item.id==='impact.simulateTides')?.enabled===true,onPress:()=>{this.press('impact.simulateTides');}})
+        ChoiceChip({label:this.impactActionLabel(),enabledAction:this.info.state==='paused'&&this.info.selected<0&&this.info.impactEntryReady===true&&!this.dirty&&!this.orbitDraft&&!this.trace.enabled&&this.orbitDrafts.length===0&&this.orbitUndo.length===0&&this.orbitRedo.length===0,onPress:()=>{this.press('impact.simulate');}})
+        ChoiceChip({label:this.impactActionLabel(true),enabledAction:this.uiActions().find((item:UiActionInfo):boolean=>item.id==='impact.simulateTides')?.enabled===true,onPress:()=>{this.press('impact.simulateTides');}})
         Text('撞击初值 · 反弹前').fontSize(15).fontColor('#EBC08B').width('100%')
         if(this.info.contact?.incoming?.available) {
           Text('相对速度 '+this.info.contact!.incoming!.relativeSpeedKmS!.toFixed(3)+' km/s · 入射角 '+this.info.contact!.incoming!.contactAngleDegrees!.toFixed(1)+'°').fontSize(12).fontColor('#E2EEF5').width('100%')
@@ -1890,7 +1904,7 @@ struct Index {
             Text('天体 '+body.id+' · 半径 '+body.radiusKm.toFixed(1)+' km · 密度 '+body.densityKgM3.toFixed(0)+' kg/m³').fontSize(11).fontColor('#B7C5D5').width('100%')
           })
         }
-        Text(this.info.contact?.incoming?.reason??'等待接触事件').fontSize(11).fontColor('#D1BB9A').lineHeight(18).width('100%')
+        Text(this.info.impactEntryReason||this.info.contact?.incoming?.reason||'等待接触事件').fontSize(11).fontColor('#D1BB9A').lineHeight(18).width('100%')
         Text(this.info.contact?.tides?.reason??'尚无外部快照').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
         Text('撞速取积分的入射半步。隔离撞击只含材料自引力；含外部潮汐使用同一事件快照，限短时、远场近似。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
         Divider().color('#33B4A7D6')
@@ -1962,7 +1976,7 @@ struct Index {
       if(this.viewportWidth>=600&&!this.layout().compact) {Text('星体实验室').fontSize(15).fontColor('#EFEDFA').fontWeight(FontWeight.Medium)}
       ChoiceChip({label:'视频',active:this.videoOpen,onPress:() => {this.press('video.open');}})
       Blank()
-      if(this.info.impact?.canReturn){ChoiceChip({label:this.layout().safe.width<480?'返回':'返回轨道',onPress:()=>{this.press('impact.return');}})}
+      if(this.info.impact?.canReturn){ChoiceChip({label:this.impactReturnLabel(),onPress:()=>{this.press('impact.return');}})}
       FloatingButton({label:'参数',compact:this.layout().safe.width<480,icon:$r('app.media.ic_sliders'),active:this.panelOpen&&this.tab===0,onPress:() => {this.press('panel.parameters');}})
       FloatingButton({label:'观察',compact:this.layout().safe.width<480,icon:$r('app.media.ic_observe'),active:this.panelOpen&&this.tab===1,onPress:() => {this.press('panel.observe');}})
       FloatingButton({label:'实验库',compact:this.layout().safe.width<480,icon:$r('app.media.ic_library'),active:this.panelOpen&&this.tab===2,onPress:() => {this.press('panel.library');}})
@@ -2070,20 +2084,20 @@ struct Index {
         }.id('ring-transport').width('100%')
       } else if(this.layout().compact) {
         Row({space:6}) {
-          Text(this.contactMode()?(this.info.time*31557600).toFixed(0)+' s':this.isOrbit()?(this.info.time*365.25).toFixed(3)+' d':this.info.time.toFixed(2)+(this.timeLabel())).fontSize(11).fontColor('#E9E2F5').width(this.isOrbit()?92:50).maxLines(1).minFontSize(9)
+          Text(this.contactMode()?(this.info.time*31557600).toFixed(0)+' s':this.isOrbit()?(this.info.time*365.25).toFixed(3)+' d':this.info.time.toFixed(2)+(this.timeLabel())).fontSize(11).fontColor('#E9E2F5').width(this.isOrbit()?92:this.preset===6?96:64).maxLines(1).minFontSize(9)
           Slider({value:this.info.selected<0?Math.max(0,this.info.frames-1):this.info.selected,min:0,max:Math.max(1,this.info.frames-1),step:1})
             .id('history-slider-compact').layoutWeight(1).height(30).selectedColor('#BEABF5').trackColor('#404154').blockColor('#F1E9FF')
             .enabled(this.info.frames>1&&!this.ioBusy).onChange((v:number,mode:SliderChangeMode)=>{
               if(mode===SliderChangeMode.Moving||mode===SliderChangeMode.Click||mode===SliderChangeMode.End){this.input('time.frame',Math.round(v));}
             })
-          FloatingButton({label:this.playing?'停播':'回放',compact:true,enabledAction:this.info.frames>1&&!this.ioBusy,onPress:()=>{this.press('replay.toggle');}})
-          FloatingButton({label:this.simulationLabel(true),compact:true,primary:true,enabledAction:this.mainSimulationEnabled(),onPress:()=>{this.press(this.mainSimulationAction());}}).id('simulation-main-compact')
-          FloatingButton({label:'最新',compact:true,onPress:()=>{this.press('replay.latest');}})
+          if(this.mainSimulationAction()!=='replay.toggle'){FloatingButton({label:this.playing?'停播':'回放',compact:true,enabledAction:this.info.frames>1&&!this.ioBusy,onPress:()=>{this.press('replay.toggle');}})}
+          FloatingButton({label:this.primarySimulationLabel(true),compact:true,primary:true,enabledAction:this.mainSimulationEnabled(),onPress:()=>{this.press('simulation.primary');}}).id('simulation-main-compact')
+          FloatingButton({label:this.replayEndLabel(),compact:true,onPress:()=>{this.press('replay.latest');}})
         }.width('100%').height(50)
       } else {
 
       Row({space:8}) {
-        Text(this.contactMode()?(this.info.time*31557600).toFixed(0)+' s':this.isOrbit()?(this.info.time*365.25).toFixed(3)+' d':this.info.time.toFixed(2)+(this.timeLabel())).fontSize(13).fontColor('#F1EEFC').width(this.isOrbit()?112:65).maxLines(1).minFontSize(10).fontWeight(FontWeight.Medium)
+        Text(this.contactMode()?(this.info.time*31557600).toFixed(0)+' s':this.isOrbit()?(this.info.time*365.25).toFixed(3)+' d':this.info.time.toFixed(2)+(this.timeLabel())).fontSize(13).fontColor('#F1EEFC').width(this.isOrbit()?112:this.preset===6?120:80).maxLines(1).minFontSize(10).fontWeight(FontWeight.Medium)
         Slider({value:this.info.selected<0?Math.max(0,this.info.frames-1):this.info.selected,min:0,max:Math.max(1,this.info.frames-1),step:1})
           .id('history-slider').layoutWeight(1).height(26).selectedColor('#BEABF5').trackColor('#404154').blockColor('#F1E9FF')
           .enabled(this.info.frames>1&&!this.ioBusy).onChange((v:number,mode:SliderChangeMode) => {
@@ -2094,13 +2108,13 @@ struct Index {
         .backgroundColor('#66222537').backgroundBlurStyle(BlurStyle.COMPONENT_ULTRA_THIN,{colorMode:ThemeColorMode.DARK})
         .border({width:0.6,radius:24,color:'#33D6D0F5'}).shadow({radius:18,color:'#26000000',offsetY:5})
       Row({space:10}) {
-        FloatingButton({label:this.playing?'暂停回放':'播放回放',icon:$r('app.media.ic_replay'),enabledAction:this.info.frames>1&&!this.ioBusy,compact:this.viewportWidth<380,onPress:() => {
+        if(this.mainSimulationAction()!=='replay.toggle'){FloatingButton({label:this.playing?'暂停回放':'播放回放',icon:$r('app.media.ic_replay'),enabledAction:this.info.frames>1&&!this.ioBusy,compact:this.viewportWidth<380,onPress:() => {
           this.press('replay.toggle');
-        }})
-        FloatingButton({label:this.simulationLabel(),primary:true,
+        }})} else if(!this.info.impact?.local){FloatingButton({label:'编辑设置',onPress:()=>{this.press('panel.parameters');}})}
+        FloatingButton({label:this.primarySimulationLabel(),primary:true,
           icon:this.info.state==='running'?$r('app.media.ic_pause'):$r('app.media.ic_play'),enabledAction:this.mainSimulationEnabled(),
-          onPress:() => {this.press(this.mainSimulationAction());}}).id('simulation-main')
-        FloatingButton({label:'最新',icon:$r('app.media.ic_latest'),compact:this.viewportWidth<380,onPress:() => {this.press('replay.latest');}})
+          onPress:() => {this.press('simulation.primary');}}).id('simulation-main')
+        FloatingButton({label:this.replayEndLabel(),icon:$r('app.media.ic_latest'),compact:this.viewportWidth<380,onPress:() => {this.press('replay.latest');}})
       }.justifyContent(FlexAlign.Center).width('100%')
       }
       if(!this.trace.enabled||!this.layout().compact) {
@@ -2569,7 +2583,7 @@ struct Index {
         Text(this.themeState().title+(this.themeState().modified?' · 已改参数':'')).fontSize(14).fontColor('#E6DDF9').width('100%')
         Text(this.themeState().goal).fontSize(12).fontColor('#C7BFD7').lineHeight(19).width('100%')
         Row({space:6}) {
-          ChoiceChip({label:'恢复主题',onPress:()=>{this.press('theme.restore');}})
+          ChoiceChip({label:'恢复初始设置',onPress:()=>{this.press('theme.restore');}})
           if(this.themeState().compareId!=='') {ChoiceChip({label:'切换对照实验',onPress:()=>{this.press('theme.compare');}}).id('theme-compare')}
         }.width('100%')
         if(this.preset<3){ChoiceChip({label:this.preset===2?'查看岩球曲线':'查看碰撞曲线',onPress:()=>{this.press('theme.observe');}}).id('theme-observe')}
@@ -2625,7 +2639,7 @@ struct Index {
       Text('把一次想法，留作下一次实验。').fontSize(14).fontColor('#DAEAEF').width('100%')
       TextInput({text:this.title,placeholder:'实验名称'}).maxLength(48).height(40).fontColor('#EBE7F8').backgroundColor('#5533334D')
         .onChange((v:string) => {this.input('scene.title',v);})
-      Button('保存当前实验与视角',{type:ButtonType.Normal}).width('100%').height(40).borderRadius(10)
+      Button('保存设置与视角',{type:ButtonType.Normal}).width('100%').height(40).borderRadius(10)
         .fontSize(13).fontColor('#07282C').backgroundColor('#D2C2FF').enabled(!this.ioBusy).onClick(() => {this.press('project.save');})
       Text('保存初始参数、外观、视角与局部环设置。载入后暂停；主系统重新开始，回放另存。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
       if(this.projects.length===0) {Text('还没有保存的实验').fontColor('#AAA3BF').fontSize(13).padding(16)}
@@ -2686,10 +2700,10 @@ struct Index {
         Slider({value:this.duration,min:this.preset===6?50:1,max:this.preset===6?800:(this.isOrbit()?10:120),step:this.preset===6?50:1}).selectedColor('#BDA5F2').trackColor('#414154').blockColor('#F0E8FF')
           .onChange((v:number,mode:SliderChangeMode) => {if(mode!==SliderChangeMode.Moving&&mode!==SliderChangeMode.Click&&mode!==SliderChangeMode.End)return;this.input('scene.duration',v);})
         Text(this.dirty?'参数已修改，应用后会重新生成实验。':(this.preset===6?(this.galaxyResponsive?'恒星群相互吸引并拉动中心；每 4 Myr 记录一帧，无实体接触。':'每 4 Myr 记录一帧；示踪点不相互吸引，也不发生实体碰撞。'):this.isOrbit()?'轨迹保留最近 2 年；近距离遭遇会停止计算。':'粒子数是预算值，实际数量由采样分布决定。')).fontSize(11).fontColor(this.dirty?'#F0BD82':'#A5A0B6').width('100%')
-        Button('应用参数 · 重新生成',{type:ButtonType.Normal}).width('100%').height(38).borderRadius(10).backgroundColor('#6657477D').fontColor('#E2D7FC').fontSize(12)
+        Button('应用设置 · 从头生成',{type:ButtonType.Normal}).width('100%').height(38).borderRadius(10).backgroundColor('#6657477D').fontColor('#E2D7FC').fontSize(12)
           .enabled(!this.ioBusy).onClick(() => {this.press('simulation.apply');})
         Row({space:8}) {
-          ChoiceChip({label:'另存实验',active:false,onPress:() => {this.press('project.save');}})
+          ChoiceChip({label:'保存设置',active:false,onPress:() => {this.press('project.save');}})
           ChoiceChip({label:'打开实验库',active:false,onPress:() => {this.press('project.open');}})
         }.width('100%')
       } else if(this.tab===1) {

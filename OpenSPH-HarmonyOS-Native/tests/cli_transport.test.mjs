@@ -946,7 +946,7 @@ test('galaxy UI/CLI uses an independent model, validates atomically and retains 
 
 
 test('time labels render for every model without recursion or unit leakage',()=>{
- const {page:app}=page();for(let preset=0;preset<=6;preset++){app.preset=preset;assert.equal(app.timeLabel(),preset===6?' Myr':preset>=3?' 年':' s');}
+ const {page:app}=page();for(let preset=0;preset<=6;preset++){app.preset=preset;assert.equal(app.timeLabel(),preset===6?' 百万年':preset>=3?' 年':' s');}
 });
 
 
@@ -1179,7 +1179,7 @@ test('incoming collision plan shares the observation action, preserves state and
 });
 
 test('local impact shares native transition, locks lossy edits and restores presentation',async()=>{
- const {page:app,state,simulation}=page();app.choose(5);app.contactDemo(true);state.state='paused';state.frames=2;state.selected=-1;state.orbitRevision=21;state.contact={count:1,incoming:{available:true,withinCurrentBounds:true}};
+ const {page:app,state,simulation}=page();app.choose(5);app.contactDemo(true);state.state='paused';state.frames=2;state.selected=-1;state.orbitRevision=21;state.impactEntryReady=true;state.contact={count:1,incoming:{available:true,withinCurrentBounds:true}};
  const originalConfig=structuredClone(app.config()),originalRecipe=structuredClone(app.captureRecipe()),originalTitle=app.title;
  let returned=0,started=0;
  simulation.startImpact=(revision,event)=>{assert.equal(revision,21);assert.equal(event,1);started++;state.impact={local:false,canReturn:true,preparing:true};state.state='preparing';};
@@ -1189,7 +1189,7 @@ test('local impact shares native transition, locks lossy edits and restores pres
  state.config={preset:0,count:600,speed:8,angle:0,duration:60,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,selfGravity:true,impactLocal:true};state.impact={local:true,canReturn:true,preparing:false,sourceTimeSeconds:30};state.sph={available:true,response:{strengthMean:1}};state.state='paused';
  await app.execute('getState',{});assert.equal(app.preset,0);assert.equal(app.colorMode,7);assert.equal(app.definition().model,'sph-orbit-impact-v1');
  await assert.rejects(app.execute('setUiValue',{field:'scene.speed',value:5}));await assert.rejects(app.execute('saveProject',{title:'lossy'}));
- await app.execute('uiAction',{action:'color.8'});state.state='completed';await app.execute('getState',{});assert.equal(app.mainSimulationAction(),'impact.return');assert.equal(app.simulationLabel(),'返回轨道');await app.execute('uiAction',{action:'impact.return'});
+ await app.execute('uiAction',{action:'color.8'});state.state='completed';await app.execute('getState',{});assert.equal(app.mainSimulationAction(),'replay.toggle');assert.equal(app.primarySimulationLabel(),'查看回放');await app.execute('uiAction',{action:'impact.return'});
  assert.equal(returned,1);assert.equal(app.title,originalTitle);assert.equal(app.preset,5);assert.deepEqual(structuredClone(app.captureRecipe()),originalRecipe);
  state.impact={local:true,canReturn:false,preparing:false};state.config={...state.config,preset:0};assert.equal(app.localImpactActionAllowed('preset.4'),true);assert.equal(app.localImpactActionAllowed('simulation.apply'),false);
 });
@@ -1200,7 +1200,7 @@ test('external tide action requires an eligible event and shares the near-star p
  assert.equal(app.orbitBodies[1].xAU,.02);assert.equal(app.orbitBodies[2].xAU,.02);
  assert.equal(app.orbitBodies[1].radiusKm,100);assert.equal(app.orbitBodies[2].radiusKm,60);
  state.state='paused';state.selected=-1;state.frames=2;state.orbitRevision=25;
- state.contact={count:1,incoming:{available:true,withinCurrentBounds:true},tides:{available:false}};
+ state.impactEntryReady=true;state.contact={count:1,incoming:{available:true,withinCurrentBounds:true},tides:{available:false}};
  await assert.rejects(app.execute('uiAction',{action:'impact.simulateTides'}));
  state.contact.tides.available=true;let called=0;
  simulation.startImpact=(revision,event,tides)=>{assert.deepEqual([revision,event,tides],[25,1,true]);called++;state.impact={local:false,canReturn:true,preparing:true};state.state="preparing";};
@@ -1238,4 +1238,31 @@ test('source observation section shares UI actions and leaves physics untouched'
  await app.execute('uiAction',{action:'fragments.material'});assert.equal(app.fragmentFirst,false);
  assert.equal(JSON.stringify(state),before);assert.equal(calls.length,count);
  assert.equal(app.localImpactActionAllowed('fragments.inspect'),true);
+});
+
+test('primary control views completed results without restarting the solver or returning a parent world',async()=>{
+ const {page:app,state,calls}=page();app.choose(6);state.state='completed';state.time=800;state.frames=12;state.selected=-1;app.dirty=false;
+ const count=calls.filter(c=>c[0]==='start').length;const ui=JSON.parse(await app.execute('getUiState',{}));
+ assert.equal(ui.actions.find(a=>a.id==='simulation.primary').label,'查看回放');
+ assert.equal(ui.actions.find(a=>a.id==='simulation.toggle').label,'从头重跑');
+ await app.execute('uiAction',{action:'simulation.primary'});assert.equal(app.playing,true);assert.equal(state.selected,0);
+ assert.equal(calls.filter(c=>c[0]==='start').length,count);
+ await app.execute('uiAction',{action:'simulation.primary'});assert.equal(app.playing,false);assert.equal(calls.filter(c=>c[0]==='start').length,count);
+});
+test('old contact observations cannot enable either local collision entry in shared UI actions',async()=>{
+ const {page:app,state,simulation}=page();app.choose(5);await app.execute('uiAction',{action:'orbit.impact.demo'});
+ state.state='paused';state.frames=2;state.selected=-1;state.impactEntryReady=false;state.impactEntryReason='old event';state.contact={count:1,incoming:{available:true,withinCurrentBounds:true},tides:{available:true}};
+ simulation.startImpact=()=>{throw Error('must not invoke native transition');};
+ for(const action of ['impact.simulate','impact.simulateTides'])await assert.rejects(app.execute('uiAction',{action}));
+});
+test('cold local replay says observation only and primary playback never fabricates a return session',async()=>{
+ const {page:app,state,calls}=page();state.state='replay';state.frames=5;state.selected=-1;state.impact={local:true,canReturn:false,preparing:false};state.config={preset:0,count:600,speed:8,angle:0,duration:60,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,impactLocal:true};
+ await app.execute('getState',{});assert.match(app.notice,/仅供观看/);assert.doesNotMatch(app.notice,/原轨道.*保留/);
+ const starts=calls.filter(c=>c[0]==='start').length;await app.execute('uiAction',{action:'simulation.primary'});assert.equal(app.playing,true);
+ assert.equal(calls.filter(c=>c[0]==='start').length,starts);await assert.rejects(app.execute('uiAction',{action:'impact.return'}));
+});
+test('paused material simulation uses a continue label and a real pause toggle, not a replay action',async()=>{
+ const {page:app,state,calls}=page();state.state='paused';state.time=12;state.frames=8;state.selected=-1;app.dirty=false;
+ await app.execute('getState',{});assert.equal(app.primarySimulationLabel(),'继续模拟');
+ await app.execute('uiAction',{action:'simulation.primary'});assert.equal(app.playing,false);assert.equal(app.mainSimulationAction(),'simulation.toggle');
 });

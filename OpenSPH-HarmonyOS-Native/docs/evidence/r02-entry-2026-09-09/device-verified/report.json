@@ -1,0 +1,29 @@
+{
+  "version": "0.57.0",
+  "task": "R02-first-slice",
+  "startedAt": "2026-09-08T16:43:14.648Z",
+  "checks": [
+    "Galaxy primary playback preserves completed result and never restarts solver",
+    "Real local SPH reaches 60 seconds; completed primary plays results instead of returning old orbit",
+    "Continued orbit rejects old collision in both shared entry actions without changing world",
+    "Cold local replay keeps diagnostics, explains no continuation and permits only playback",
+    "Near-star action uses shared readiness, starts tidal branch and returns exact parent",
+    "Theme and save-setting labels exposed through the same UI catalog"
+  ],
+  "errors": [],
+  "restoration": {
+    "completed": true,
+    "themeId": true,
+    "exactRegeneratedReplay": true,
+    "mode": "completed",
+    "time": 800,
+    "camera": true,
+    "appearance": true,
+    "exactFiles": true,
+    "fileCount": 13
+  },
+  "hapSha256": "75cab96195033137a4685c4927f8484c82d6afb5ca37169428eff5f1dacd38f7",
+  "contactSeconds": 29.999433008110714,
+  "expiredReason": "轨道已离开这次接触，旧事件仅供查看；不能从当前世界重放旧撞击",
+  "completedAt": "2026-09-08T16:45:52.765Z"
+}

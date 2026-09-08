@@ -60,6 +60,7 @@ struct Status {
     OrbitContact contact;
     PreparationStatus preparation;
     bool impactReturnAvailable=false,impactPreparing=false;
+    bool impactEntryReady=false;std::string impactEntryReason;
     SphDiagnostics sph;double tidalPotentialJ=0;
     std::string state = "empty", error;
     int count = 0, frames = 0, selected = -1;
@@ -134,6 +135,7 @@ class Engine {
     struct ImpactReturn {Config config;Status status;std::deque<std::shared_ptr<Frame>> history;bool continuous;double rate;};
     std::shared_ptr<ImpactReturn> impactReturn;bool impactPreparing=false;
     void restoreImpactLocked(const std::string& error);
+    std::string impactEntryReasonLocked() const;
     std::shared_ptr<Frame> resumeOrbit;
     bool continuous=false;double daysPerSecond=1,lastPublishMs=0;
     void resumeOrbitLocked(std::shared_ptr<Frame> frame,bool run);

@@ -1,0 +1,9 @@
+{
+  "kind": "sanitized recovery verification failure",
+  "sceneRestored": true,
+  "fullReplayBytesMatch": true,
+  "themeIdRestored": true,
+  "reason": "HDC recv reused an existing local comparison directory and nested another files directory; this was a local comparison-path error, not additional files written on device",
+  "rawReport": "retained privately in build because it includes persistent filenames",
+  "correction": "each receive uses a new timestamped local path"
+}

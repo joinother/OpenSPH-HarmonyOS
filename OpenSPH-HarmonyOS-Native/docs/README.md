@@ -1,10 +1,10 @@
 # 文档目录
 
-> 类型：当前文档索引；源码版本：0.56.0；更新日期：2026-09-09（Asia/Shanghai）。
+> 类型：当前文档索引；源码版本：0.57.0；更新日期：2026-09-09（Asia/Shanghai）。
 
 先阅读 [项目概览](../README.md)，操作应用使用 [CLI 指南](CLI.md)，维护资料遵循 [文档流程](WORKFLOW.md) 和 [开发约定](../AGENTS.md)。本目录区分当前说明与历史记录；归档内容不覆盖当前规则。
 
-最新开发断点：[0.56.0 碎片来源质量与导出](releases/RELEASE-0.56.0.md)。2026-09-08 已将旧专题收敛为 [唯一执行路线](reference/PRODUCT-ROADMAP.md)：2026-09-09 已完成 R01 两轮固定验收，当前下一项为 R02 接触检查点；先完成同世界碰撞与残骸继续运行，R06 是首个核心玩法门槛。各次调研去向见 [映射表](reference/RESEARCH-IMPLEMENTATION.md)；R01 仅增加验收工具与证据，没有增加应用版本。视频的实际录制与导出仍待真机验收。
+最新开发断点：[0.57.0 接触入口与操作语义](releases/RELEASE-0.57.0.md)。[唯一执行路线](reference/PRODUCT-ROADMAP.md)中 R01 已完成，R02 进行中，事件检查点和持久恢复尚未完成，R03 仍受前置约束。R06 是首个连续碰撞玩法门槛。调研去向见 [映射表](reference/RESEARCH-IMPLEMENTATION.md)。视频的实际录制与导出仍待真机验收。
 
 ## 当前参考
 
@@ -20,7 +20,7 @@
 | [星系潮汐模型](reference/GALACTIC-TIDES.md) | 扩展引力势、受约束相遇预览、五条曲线、本地对照、CSV、kpc／Myr 与 v12 边界 |
 | [球体接触模型](reference/SPHERE-CONTACT.md) | 实体半径、扫掠接触、弹性响应、近距回放与 v11 边界 |
 | [主星图放置与碰撞接入](reference/VIEWPORT-PLACEMENT.md) | 屏幕坐标、倾斜平面、取消事务、定向发射及实体接触缺口 |
-| [交互设计契约](design/INTERACTION-DESIGN.md) | 当前混乱点、用户路径、23 项主题命名、布局与任务验收；拟采用方案，未接入应用 |
+| [交互设计契约](design/INTERACTION-DESIGN.md) | 当前混乱点、用户路径、23 项主题命名、布局与任务验收；0.57.0 已接入首批命名与状态按钮，布局和完整用户任务仍待验收 |
 | [连续碰撞验收](reference/CONTINUOUS-COLLISION-ACCEPTANCE.md) | R01 固定三场景、两轮实测、当前断点与恢复证据 |
 | [调研到执行的映射](reference/RESEARCH-IMPLEMENTATION.md) | 用户／同行／开源／运营研究对应 R01–R10 或明确后置；不另排第二套优先级 |
 | [星系、星云与宇宙尺度](research/GALAXIES-NEBULAE-UNIVERSE-2026-09-08.md) | Celestia／SpaceEngine 与科学引擎选读；潮汐相遇、自洽引力、气体和宇宙学回放路线，6 个实验提案；调研基线 0.42.0，后续实现见当前模型参考 |
