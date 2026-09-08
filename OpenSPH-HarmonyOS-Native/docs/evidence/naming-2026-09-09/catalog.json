@@ -1,0 +1,110 @@
+{
+  "titles": [
+    {
+      "id": "rock-slow",
+      "title": "岩石慢速相撞"
+    },
+    {
+      "id": "rock-fast",
+      "title": "岩石快速相撞"
+    },
+    {
+      "id": "rock-oblique",
+      "title": "岩石错身相撞"
+    },
+    {
+      "id": "rock-spin",
+      "title": "旋转的岩石"
+    },
+    {
+      "id": "ocean-world",
+      "title": "海洋行星"
+    },
+    {
+      "id": "three-worlds",
+      "title": "三种行星"
+    },
+    {
+      "id": "ring-world",
+      "title": "带环行星"
+    },
+    {
+      "id": "kepler-ring",
+      "title": "转动的行星环"
+    },
+    {
+      "id": "eccentric-ring",
+      "title": "加快行星环的转动"
+    },
+    {
+      "id": "moon-atlas",
+      "title": "月球表面"
+    },
+    {
+      "id": "resolution-coarse",
+      "title": "用少量粒子模拟碰撞"
+    },
+    {
+      "id": "resolution-fine",
+      "title": "用更多粒子模拟碰撞"
+    },
+    {
+      "id": "direct-impact",
+      "title": "直接撞击岩石"
+    },
+    {
+      "id": "prepared-impact",
+      "title": "先准备岩石，再撞击"
+    },
+    {
+      "id": "sphere-unprepared",
+      "title": "静置岩石"
+    },
+    {
+      "id": "sphere-release",
+      "title": "先准备岩石，再静置"
+    },
+    {
+      "id": "galaxy-tails",
+      "title": "两个星系相遇"
+    },
+    {
+      "id": "galaxy-retrograde",
+      "title": "让一个星系反向旋转"
+    },
+    {
+      "id": "galaxy-responsive",
+      "title": "恒星之间相互吸引"
+    },
+    {
+      "id": "galaxy-response-control",
+      "title": "忽略恒星之间的引力"
+    },
+    {
+      "id": "material-cold",
+      "title": "撞击完整岩石"
+    },
+    {
+      "id": "material-hot",
+      "title": "撞击加热后的岩石"
+    },
+    {
+      "id": "material-fractured",
+      "title": "撞击受损岩石"
+    }
+  ],
+  "actions": [
+    {
+      "id": "galaxy.retrograde",
+      "label": "让第二个星系反向旋转"
+    },
+    {
+      "id": "impact.simulate",
+      "label": "计算岩石撞击"
+    },
+    {
+      "id": "impact.simulateTides",
+      "label": "计入周围天体的引力"
+    }
+  ]
+}

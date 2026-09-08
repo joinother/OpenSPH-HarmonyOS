@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-09",
+  "timezone": "Asia/Shanghai",
+  "kind": "wording-only development revision after 0.57.0",
+  "installedHapSha256": "f7066358697654b2add6c7c18b25e9c6cd566fb7386120ac6c4575261ed91a87",
+  "titlesChanged": 23,
+  "hostChecksPassed": 108,
+  "configsAndIdsUnchanged": true,
+  "deviceCatalogChecked": true,
+  "libraryScreenshotReviewed": true,
+  "originalSceneAndFilesRestored": true,
+  "restorationNote": "Uses existing R02 recovery helper only; this wording revision does not rerun or claim the full collision acceptance suite",
+  "published0570ArtifactsUnchanged": true
+}

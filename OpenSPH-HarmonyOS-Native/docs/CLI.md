@@ -43,7 +43,7 @@ node scripts/analyze-collision-acceptance.mjs docs/evidence/r01-new-run/report.j
 
 查询 `getImpactPlan` 读取所选帧最近接触的反弹前三维向量、质量／半径及质心系动能；`withinCurrentBounds` 表示局部岩体尺寸、密度和撞速检查，`contact.tides` 另给冻结潮汐的可用性、原因、来源数量、空间范围与张量。
 
-`orbit.impact.demo` 创建 1 AU 小岩体初态；`orbit.impact.tidesDemo` 创建 0.02 AU 近恒星对照初态。启动后接触处自动暂停，在最新帧选择 `impact.simulate`（计算局部撞击）或 `impact.simulateTides`（使用外部引力近似）。只有无编辑／撤销历史、无独立环且来源合格时开放。两者均生成真实 SPH 粒子、局部初态暂停在 0 秒，再通过 `simulation.toggle` 运行约 60 秒。
+`orbit.impact.demo` 创建 1 AU 小岩体初态；`orbit.impact.tidesDemo` 创建 0.02 AU 近恒星对照初态。启动后接触处自动暂停，在最新帧选择 `impact.simulate`（计算岩石撞击）或 `impact.simulateTides`（计入周围天体的引力）。只有无编辑／撤销历史、无独立环且来源合格时开放。两者均生成真实 SPH 粒子、局部初态暂停在 0 秒，再通过 `simulation.toggle` 运行约 60 秒。
 
 `impact.return` 恢复进入前的原轨道、时间、历史和外观。期间可观察、保存回放，不能修改初值或保存会丢失来源的普通配方。潮汐状态模型为 `sph-orbit-impact-tides-v1`；`simulation.impact` 提供 `tides`、`tidalPotentialJ`、`trackedEnergyJ`、`energyScope`、`sourceTimeSeconds`、`elapsedSeconds` 与 `eventEpochPlusElapsedSeconds`。记录能量不含弹性应变能；时间相加不是父世界推进。
 
@@ -70,7 +70,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 ## 星系双向引力
 
-`uiAction` 的 `theme.galaxy-responsive` 载入 600 群／600 Myr 的“星系引力对照：恒星群参与引力”，`theme.compare` 在同参数的无质量对照之间切换。参数页 `galaxy.responsive` 切换草稿的恒星引力反馈；开启时若超过 800 群会将草稿预算降至 800，应用后生效。`setScene` 的 `galaxyResponsive:true` 仅允许 preset 6、count 200–800，非法输入直接拒绝；省略或 false 保持旧模型。参见 [双向引力定义](reference/GALAXY-RESPONSE.md)。
+`uiAction` 的 `theme.galaxy-responsive` 载入 600 群／600 Myr 的“恒星之间相互吸引”，`theme.compare` 在同参数的无质量对照之间切换。参数页 `galaxy.responsive` 切换草稿的恒星引力反馈；开启时若超过 800 群会将草稿预算降至 800，应用后生效。`setScene` 的 `galaxyResponsive:true` 仅允许 preset 6、count 200–800，非法输入直接拒绝；省略或 false 保持旧模型。参见 [双向引力定义](reference/GALAXY-RESPONSE.md)。
 
 新模型标识 `galaxy-responsive-v1`，回放 v13；旧模型仍为 `galaxy-tidal-restricted-v1`、v12。新记录的 `parameters.responsive:true`、命名实验及本地参照均保留身份；旧数据缺省 false。CSV 保持 18 列（双实验 19 列），计数标题改为 `stellar_sample_count`，误差标题为 `model_energy_normalized_error`／`model_angular_normalized_error`，按每行 model 解释。新模型误差涵盖恒星群及中心的封闭系统，旧模型仅含两中心。`getGalaxyDiagnostics` 提供 `energyError`、`angularError`、`energyScope`；旧 `centerEnergyError`／`centerAngularError` 仅在旧模型返回，避免误解。
 

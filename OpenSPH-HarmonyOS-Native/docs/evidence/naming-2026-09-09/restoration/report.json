@@ -1,0 +1,19 @@
+{
+  "version": "0.57.0",
+  "task": "R02-first-slice",
+  "startedAt": "2026-09-08T16:56:22.340Z",
+  "checks": [],
+  "errors": [],
+  "restoration": {
+    "completed": true,
+    "themeId": true,
+    "exactRegeneratedReplay": true,
+    "mode": "completed",
+    "time": 800,
+    "camera": true,
+    "appearance": true,
+    "exactFiles": true,
+    "fileCount": 13
+  },
+  "completedAt": "2026-09-08T16:56:46.865Z"
+}

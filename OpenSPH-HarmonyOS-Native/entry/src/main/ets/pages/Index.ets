@@ -408,7 +408,7 @@ struct Index {
     if(this.info.state==='paused'&&this.info.time>0)return compact?'继续':'继续模拟';
     return compact?'开始':'开始模拟';
   }
-  private impactActionLabel(tides:boolean=false):string {return tides?'使用外部引力近似':'计算局部撞击';}
+  private impactActionLabel(tides:boolean=false):string {return tides?'计入周围天体的引力':'计算岩石撞击';}
   private impactReturnLabel():string {return '返回原轨道';}
   private replayEndLabel():string {return this.info.state==='replay'||this.info.state==='completed'?'回放末尾':'当前状态';}
   private directory(): string { return (this.getUIContext().getHostContext() as common.UIAbilityContext).filesDir; }
@@ -1190,7 +1190,7 @@ struct Index {
     for(let i=0;i<5;i++)add('galaxy.metric.'+i,GALAXY_METRICS[i],this.preset===6,this.galaxyMetric===i);
     add('galaxy.minimum','记录最小',this.preset===6&&this.galaxyView().available);add('galaxy.maximum','记录最大',this.preset===6&&this.galaxyView().available);
     add('galaxy.responsive','恒星参与引力',this.preset===6,this.galaxyResponsive);
-    add('galaxy.retrograde','次星系反向旋转',this.preset===6,this.galaxyRetrograde);
+    add('galaxy.retrograde','让第二个星系反向旋转',this.preset===6,this.galaxyRetrograde);
     add('scene.stationary','设为静止初态',this.preset===2,this.speed===0&&this.targetSpin===0);
     add('scene.gravity','材料自引力',this.preset<3&&this.count<=1200,this.selfGravity);
     add('body.primary','主天体',this.preset<3,this.editedBody===0);add('body.impactor','撞击体',this.preset<2,this.editedBody===1);
@@ -2471,7 +2471,7 @@ struct Index {
       ChoiceChip({label:'在星图调整相遇',enabledAction:this.info.frames>0&&this.info.state!=='preparing',onPress:()=>{this.press('galaxy.place');}}).id('galaxy-place')
       ChoiceChip({label:'恒星参与引力',active:this.galaxyResponsive,onPress:()=>{this.press('galaxy.responsive');}}).id('galaxy-responsive')
       Text(this.galaxyResponsive?'恒星群占总质量 20%，互相吸引并拉动中心；扩展中心占 80%，无气体或完整暗晕。':'恒星仅受两个中心吸引，不反作用；适合潮汐形态对照。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
-      ChoiceChip({label:this.galaxyRetrograde?'次星系 · 逆行':'次星系 · 顺行',active:this.galaxyRetrograde,onPress:()=>{this.press('galaxy.retrograde');}}).id('galaxy-spin')
+      ChoiceChip({label:this.galaxyRetrograde?'第二个星系：反向旋转':'第二个星系：正常旋转',active:this.galaxyRetrograde,onPress:()=>{this.press('galaxy.retrograde');}}).id('galaxy-spin')
       MetricRow({label:this.galaxyResponsive?'带质量恒星群':'恒星示踪点',value:this.count.toString()})
       Slider({value:this.count,min:200,max:this.galaxyResponsive?800:2400,step:200}).onChange((v:number,mode:SliderChangeMode)=>{if(mode!==SliderChangeMode.Begin)this.input('scene.count',Math.round(v));})
       Text('主星系总质量 1000 亿太阳质量。点数改变采样精度，总质量不变；两种模型均未完成真实星系合并验证。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
