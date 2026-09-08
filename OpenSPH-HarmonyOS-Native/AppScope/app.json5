@@ -2,8 +2,8 @@
   "app": {
     "bundleName": "com.opensph.lab",
     "vendor": "OpenSPH Community",
-    "versionCode": 1000054,
-    "versionName": "0.53.0",
+    "versionCode": 1000055,
+    "versionName": "0.54.0",
     "icon": "$media:app_icon",
     "label": "$string:app_name"
   }

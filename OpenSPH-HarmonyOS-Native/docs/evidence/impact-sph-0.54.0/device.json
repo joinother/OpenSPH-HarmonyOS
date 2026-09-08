@@ -1,0 +1,457 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "real incoming state to SPH particles",
+    "initial mass and kinetic budget",
+    "60-second material evolution",
+    "lossy and duplicate actions rejected",
+    "v17 source and diagnostics",
+    "exact parent state/history/camera/surfaces restored",
+    "loaded replay can exit to new experiment"
+  ],
+  "source": {
+    "count": 1,
+    "a": 1,
+    "b": 2,
+    "timeSeconds": 29.999433008110714,
+    "normalSpeedKmS": 8.00042764898094,
+    "restitution": 1,
+    "incoming": {
+      "available": true,
+      "withinCurrentBounds": true,
+      "reason": "尺寸、密度与撞速可用于局部岩体初值；粒子化与外部引力耦合尚待接通",
+      "model": "orbital-incoming-com-v1",
+      "velocityConvention": "kick-drift-kick incoming half-step",
+      "timeSeconds": 29.999433008110714,
+      "relativeSpeedKmS": 8.00042764898094,
+      "contactAngleDegrees": 0,
+      "kineticEnergyJ": 6.429377975257107e+25,
+      "originAU": [
+        0.999999999975246,
+        0.000005671220964933703,
+        0
+      ],
+      "velocityKmS": [
+        -0.00017746668139695452,
+        32.5789473677704,
+        0
+      ],
+      "angularMomentumKgM2S": [
+        0,
+        0,
+        -825118392419.1656
+      ],
+      "bodies": [
+        {
+          "id": 1,
+          "massKg": 11309733552923255000,
+          "radiusKm": 100,
+          "densityKgM3": 2700,
+          "positionM": [
+            0,
+            -28421.052631578958,
+            0
+          ],
+          "velocityMS": [
+            -4.559780235748209e-13,
+            1421.128595542667,
+            0
+          ]
+        },
+        {
+          "id": 2,
+          "massKg": 2442902447431423000,
+          "radiusKm": 60,
+          "densityKgM3": 2700,
+          "positionM": [
+            0,
+            131578.9473684211,
+            0
+          ],
+          "velocityMS": [
+            2.111009368401949e-12,
+            -6579.2990534382725,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "initial": {
+    "state": "paused",
+    "error": "",
+    "preparation": {
+      "requestId": 4,
+      "stage": "ready",
+      "elapsedMs": 43.10145900398493,
+      "stageMs": 0,
+      "previousRequestId": 0,
+      "previousStage": "",
+      "slow": false,
+      "events": [
+        {
+          "stage": "queued",
+          "elapsedMs": 0
+        },
+        {
+          "stage": "starting",
+          "elapsedMs": 0.9928340017795563
+        },
+        {
+          "stage": "target",
+          "elapsedMs": 24.99787500500679
+        },
+        {
+          "stage": "impactor",
+          "elapsedMs": 26.949625000357628
+        },
+        {
+          "stage": "solver",
+          "elapsedMs": 28.144375003874302
+        },
+        {
+          "stage": "snapshot",
+          "elapsedMs": 43.098292000591755
+        },
+        {
+          "stage": "ready",
+          "elapsedMs": 43.10145900398493
+        }
+      ]
+    },
+    "count": 641,
+    "frames": 1,
+    "selected": -1,
+    "time": 0,
+    "duration": 60,
+    "continuous": false,
+    "daysPerSecond": 0.01,
+    "actualDaysPerSecond": 0,
+    "orbitRevision": 4,
+    "orbitState": [],
+    "stepMs": 106.984459,
+    "steps": 1,
+    "maxSpeed": 6.579299053438272,
+    "meanDensity": 2700,
+    "totalMass": 13752636000354623000,
+    "sph": {
+      "available": true,
+      "pressureMinGPa": 0,
+      "pressureMaxGPa": 0,
+      "pressureMeanGPa": 0,
+      "internalMinMJkg": 0,
+      "internalMaxMJkg": 0,
+      "internalMeanMJkg": 0,
+      "damageMean": 0,
+      "damageMax": 0,
+      "kineticJ": 6.429377975257086e+25,
+      "internalJ": 0,
+      "structure": [
+        -6.4668174730872465e+22,
+        6.42937797525708e+25,
+        95.26930343817317,
+        -1445.7081912673273
+      ],
+      "response": {
+        "softeningMean": 0,
+        "zeroShearMassFraction": 0,
+        "damagedMassFraction": 0,
+        "strengthMean": 1,
+        "model": "basalt-von-mises-response-v1",
+        "meltEnergyMJkg": 3.4,
+        "intactYieldGPa": 3.5
+      }
+    },
+    "energyError": 0,
+    "angularError": 0,
+    "model": "sph-orbit-impact-v1",
+    "contact": {
+      "count": 1,
+      "a": 1,
+      "b": 2,
+      "timeSeconds": 29.999433008110714,
+      "normalSpeedKmS": 8.00042764898094,
+      "restitution": 1,
+      "incoming": {
+        "available": true,
+        "withinCurrentBounds": true,
+        "reason": "尺寸、密度与撞速可用于局部岩体初值；粒子化与外部引力耦合尚待接通",
+        "model": "orbital-incoming-com-v1",
+        "velocityConvention": "kick-drift-kick incoming half-step",
+        "timeSeconds": 29.999433008110714,
+        "relativeSpeedKmS": 8.00042764898094,
+        "contactAngleDegrees": 0,
+        "kineticEnergyJ": 6.429377975257107e+25,
+        "originAU": [
+          0.999999999975246,
+          0.000005671220964933703,
+          0
+        ],
+        "velocityKmS": [
+          -0.00017746668139695452,
+          32.5789473677704,
+          0
+        ],
+        "angularMomentumKgM2S": [
+          0,
+          0,
+          -825118392419.1656
+        ],
+        "bodies": [
+          {
+            "id": 1,
+            "massKg": 11309733552923255000,
+            "radiusKm": 100,
+            "densityKgM3": 2700,
+            "positionM": [
+              0,
+              -28421.052631578958,
+              0
+            ],
+            "velocityMS": [
+              -4.559780235748209e-13,
+              1421.128595542667,
+              0
+            ]
+          },
+          {
+            "id": 2,
+            "massKg": 2442902447431423000,
+            "radiusKm": 60,
+            "densityKgM3": 2700,
+            "positionM": [
+              0,
+              131578.9473684211,
+              0
+            ],
+            "velocityMS": [
+              2.111009368401949e-12,
+              -6579.2990534382725,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    "impact": {
+      "local": true,
+      "canReturn": true,
+      "preparing": false,
+      "sourceTimeSeconds": 29.999433008110714,
+      "eventCount": 1,
+      "a": 1,
+      "b": 2,
+      "assumptions": "isolated cold basalt, zero spin, self gravity; world paused; no remnant reinsertion"
+    },
+    "timeUnit": "s",
+    "bodies": [],
+    "config": {
+      "preset": 0,
+      "count": 600,
+      "speed": 8.00042764898094,
+      "angle": 0,
+      "duration": 60,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "selfGravity": true,
+      "impactLocal": true,
+      "targetSpin": 0,
+      "seed": 1234
+    }
+  },
+  "final": {
+    "state": "completed",
+    "error": "",
+    "preparation": {
+      "requestId": 4,
+      "stage": "ready",
+      "elapsedMs": 43.10145900398493,
+      "stageMs": 0,
+      "previousRequestId": 0,
+      "previousStage": "",
+      "slow": false,
+      "events": [
+        {
+          "stage": "queued",
+          "elapsedMs": 0
+        },
+        {
+          "stage": "starting",
+          "elapsedMs": 0.9928340017795563
+        },
+        {
+          "stage": "target",
+          "elapsedMs": 24.99787500500679
+        },
+        {
+          "stage": "impactor",
+          "elapsedMs": 26.949625000357628
+        },
+        {
+          "stage": "solver",
+          "elapsedMs": 28.144375003874302
+        },
+        {
+          "stage": "snapshot",
+          "elapsedMs": 43.098292000591755
+        },
+        {
+          "stage": "ready",
+          "elapsedMs": 43.10145900398493
+        }
+      ]
+    },
+    "count": 641,
+    "frames": 240,
+    "selected": -1,
+    "time": 60.01999999999961,
+    "duration": 60,
+    "continuous": false,
+    "daysPerSecond": 0.01,
+    "actualDaysPerSecond": 0,
+    "orbitRevision": 4,
+    "orbitState": [],
+    "stepMs": 139.730167,
+    "steps": 402,
+    "maxSpeed": 10.850716029661454,
+    "meanDensity": 1377.8904974714687,
+    "totalMass": 13752636000354623000,
+    "sph": {
+      "available": true,
+      "pressureMinGPa": -1.1715397627107667,
+      "pressureMaxGPa": 14.338293360189578,
+      "pressureMeanGPa": 0.1626679411753018,
+      "internalMinMJkg": 0.19036986849545465,
+      "internalMaxMJkg": 6.475386055598638,
+      "internalMeanMJkg": 1.4042723559296513,
+      "damageMean": 0.9273542309088028,
+      "damageMax": 1,
+      "kineticJ": 4.495431174056382e+25,
+      "internalJ": 1.9312446556460885e+25,
+      "structure": [
+        -4.0183998053094565e+22,
+        4.495431174056383e+25,
+        179.51465478867001,
+        1919.8930440311865
+      ],
+      "response": {
+        "softeningMean": 0.40397234347410355,
+        "zeroShearMassFraction": 0.03870149565050891,
+        "damagedMassFraction": 0.9140484804136115,
+        "strengthMean": 0.0076923568458488025,
+        "model": "basalt-von-mises-response-v1",
+        "meltEnergyMJkg": 3.4,
+        "intactYieldGPa": 3.5
+      }
+    },
+    "energyError": 0,
+    "angularError": 0,
+    "model": "sph-orbit-impact-v1",
+    "contact": {
+      "count": 1,
+      "a": 1,
+      "b": 2,
+      "timeSeconds": 29.999433008110714,
+      "normalSpeedKmS": 8.00042764898094,
+      "restitution": 1,
+      "incoming": {
+        "available": true,
+        "withinCurrentBounds": true,
+        "reason": "尺寸、密度与撞速可用于局部岩体初值；粒子化与外部引力耦合尚待接通",
+        "model": "orbital-incoming-com-v1",
+        "velocityConvention": "kick-drift-kick incoming half-step",
+        "timeSeconds": 29.999433008110714,
+        "relativeSpeedKmS": 8.00042764898094,
+        "contactAngleDegrees": 0,
+        "kineticEnergyJ": 6.429377975257107e+25,
+        "originAU": [
+          0.999999999975246,
+          0.000005671220964933703,
+          0
+        ],
+        "velocityKmS": [
+          -0.00017746668139695452,
+          32.5789473677704,
+          0
+        ],
+        "angularMomentumKgM2S": [
+          0,
+          0,
+          -825118392419.1656
+        ],
+        "bodies": [
+          {
+            "id": 1,
+            "massKg": 11309733552923255000,
+            "radiusKm": 100,
+            "densityKgM3": 2700,
+            "positionM": [
+              0,
+              -28421.052631578958,
+              0
+            ],
+            "velocityMS": [
+              -4.559780235748209e-13,
+              1421.128595542667,
+              0
+            ]
+          },
+          {
+            "id": 2,
+            "massKg": 2442902447431423000,
+            "radiusKm": 60,
+            "densityKgM3": 2700,
+            "positionM": [
+              0,
+              131578.9473684211,
+              0
+            ],
+            "velocityMS": [
+              2.111009368401949e-12,
+              -6579.2990534382725,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    "impact": {
+      "local": true,
+      "canReturn": true,
+      "preparing": false,
+      "sourceTimeSeconds": 29.999433008110714,
+      "eventCount": 1,
+      "a": 1,
+      "b": 2,
+      "assumptions": "isolated cold basalt, zero spin, self gravity; world paused; no remnant reinsertion"
+    },
+    "timeUnit": "s",
+    "bodies": [],
+    "config": {
+      "preset": 0,
+      "count": 600,
+      "speed": 8.00042764898094,
+      "angle": 0,
+      "duration": 60,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "selfGravity": true,
+      "impactLocal": true,
+      "targetSpin": 0,
+      "seed": 1234
+    }
+  },
+  "returnChecks": {
+    "time": true,
+    "frames": true,
+    "vectors": true,
+    "camera": true,
+    "appearance": true,
+    "surfaces": true
+  }
+}

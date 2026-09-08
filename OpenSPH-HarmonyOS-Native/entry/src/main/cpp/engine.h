@@ -31,6 +31,7 @@ struct Config {
     bool selfGravity = false;
     double relaxationSeconds = 0;
     double initialEnergyMJkg=0, initialDamage=0;
+    OrbitContact impactContact;
     double galaxyMassRatio=.6,galaxyOffsetKpc=12;bool galaxyRetrograde=false;bool galaxyResponsive=false;
 };
 bool validConfig(const Config &c);
@@ -57,6 +58,7 @@ struct Status {
     GalaxyDiagnostics galaxy;
     OrbitContact contact;
     PreparationStatus preparation;
+    bool impactReturnAvailable=false,impactPreparing=false;
     SphDiagnostics sph;
     std::string state = "empty", error;
     int count = 0, frames = 0, selected = -1;
@@ -88,6 +90,8 @@ class Engine {
     ~Engine();
     void start(Config config, bool initiallyPaused = false);
     void pause(bool paused);
+    void startImpact(uint64_t revision,uint32_t event,int count=600,double duration=60);
+    void returnFromImpact();
     void orbitClock(double daysPerSecond);
     void freezeOrbit();
     void insertOrbit(OrbitSpec body,uint64_t revision,bool resume,bool physicalRadii=false);
@@ -126,6 +130,9 @@ class Engine {
     uint64_t workerRequestId=0;
     std::string workerStage="idle";
     Config config;
+    struct ImpactReturn {Config config;Status status;std::deque<std::shared_ptr<Frame>> history;bool continuous;double rate;};
+    std::shared_ptr<ImpactReturn> impactReturn;bool impactPreparing=false;
+    void restoreImpactLocked(const std::string& error);
     std::shared_ptr<Frame> resumeOrbit;
     bool continuous=false;double daysPerSecond=1,lastPublishMs=0;
     void resumeOrbitLocked(std::shared_ptr<Frame> frame,bool run);

@@ -1,5 +1,6 @@
 export interface OrbitBodyConfig { radiusKm?:number; name:string; massSolar:number; xAU:number; yAU:number; zAU:number; vxKmS:number; vyKmS:number; vzKmS:number; surface:number; }
 export interface SimulationConfig {
+  impactLocal?:boolean;
   galaxyMassRatio?:number;galaxyOffsetKpc?:number;galaxyRetrograde?:boolean;galaxyResponsive?:boolean;
   orbitBodies?: OrbitBodyConfig[];
   preset: number; count: number; speed: number; angle: number; duration: number;
@@ -23,6 +24,7 @@ export const setGalaxyPlacement:(enabled:boolean,count:number,seed:number,speed:
 export const placeGalaxyAt:(x:number,y:number)=>number;
 export interface GalaxyDiagnostics {separationKpc:number;primaryRmsKpc:number;secondaryRmsKpc:number;primaryOuterFraction:number;secondaryOuterFraction:number;energyScope:string;outerScope:string;}
 export interface SimulationStatus {
+  impact?:{local:boolean;canReturn:boolean;preparing:boolean;sourceTimeSeconds:number;eventCount:number;a:number;b:number;assumptions:string;};
   orbitState?:OrbitBodyConfig[];orbitRevision?:number;continuous?:boolean;daysPerSecond?:number;actualDaysPerSecond?:number;
   galaxy?:GalaxyDiagnostics;
   contact?:OrbitContactStatus;
@@ -107,3 +109,6 @@ export const videoOutputStatus:()=>VideoOutputStatus;
 export const orbitClock:(daysPerSecond:number)=>void;
 export const freezeOrbit:()=>void;
 export const insertOrbit:(body:OrbitBodyConfig,revision:number,resume:boolean,physicalRadii?:boolean)=>void;
+
+export const startImpact:(revision:number,eventCount:number)=>void;
+export const returnImpact:()=>void;

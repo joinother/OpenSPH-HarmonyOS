@@ -82,7 +82,7 @@ function page() {
   vm.runInNewContext(ts.transpileModule(transformed,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,context);
   const page=new context.exports.Index();
   page.getUIContext=()=>({px2vp:v=>v,getHostContext:()=>({filesDir:'/mock'}),animateTo:(opts,apply)=>{apply();opts.onFinish?.();}});
-  return {page,calls,state,initialPauses,projects};
+  return {page,calls,state,initialPauses,projects,simulation};
 }
 test('scene and camera reject partial invalid transactions without changing prior state',async()=>{
   const {page:app,calls}=page();
@@ -1176,4 +1176,20 @@ test('incoming collision plan shares the observation action, preserves state and
  await app.execute('uiAction',{action:'impact.inspect'});assert.equal(app.tab,1);assert.equal(app.panelOpen,true);
  assert.equal(JSON.stringify(state),before);assert.equal(calls.length,starts);
  const catalog=JSON.parse(await app.execute('listCommands',{}));assert.ok(catalog.commands.some(c=>c.name==='getImpactPlan'));
+});
+
+test('local impact shares native transition, locks lossy edits and restores presentation',async()=>{
+ const {page:app,state,simulation}=page();app.choose(5);app.contactDemo(true);state.state='paused';state.frames=2;state.selected=-1;state.orbitRevision=21;state.contact={count:1,incoming:{available:true,withinCurrentBounds:true}};
+ const originalConfig=structuredClone(app.config()),originalRecipe=structuredClone(app.captureRecipe()),originalTitle=app.title;
+ let returned=0,started=0;
+ simulation.startImpact=(revision,event)=>{assert.equal(revision,21);assert.equal(event,1);started++;state.impact={local:false,canReturn:true,preparing:true};state.state='preparing';};
+ simulation.returnImpact=()=>{returned++;state.impact=undefined;state.config=originalConfig;state.state='paused';};
+ await app.execute('uiAction',{action:'impact.simulate'});assert.equal(started,1);assert.ok(app.impactRecipe);
+ await assert.rejects(app.execute('uiAction',{action:'preset.4'}));await assert.rejects(app.execute('loadReplay',{}));
+ state.config={preset:0,count:600,speed:8,angle:0,duration:60,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,selfGravity:true,impactLocal:true};state.impact={local:true,canReturn:true,preparing:false,sourceTimeSeconds:30};state.sph={available:true,response:{strengthMean:1}};state.state='paused';
+ await app.execute('getState',{});assert.equal(app.preset,0);assert.equal(app.colorMode,7);assert.equal(app.definition().model,'sph-orbit-impact-v1');
+ await assert.rejects(app.execute('setUiValue',{field:'scene.speed',value:5}));await assert.rejects(app.execute('saveProject',{title:'lossy'}));
+ await app.execute('uiAction',{action:'color.8'});state.state='completed';await app.execute('getState',{});assert.equal(app.mainSimulationAction(),'impact.return');assert.equal(app.simulationLabel(),'返回轨道');await app.execute('uiAction',{action:'impact.return'});
+ assert.equal(returned,1);assert.equal(app.title,originalTitle);assert.equal(app.preset,5);assert.deepEqual(structuredClone(app.captureRecipe()),originalRecipe);
+ state.impact={local:true,canReturn:false,preparing:false};state.config={...state.config,preset:0};assert.equal(app.localImpactActionAllowed('preset.4'),true);assert.equal(app.localImpactActionAllowed('simulation.apply'),false);
 });

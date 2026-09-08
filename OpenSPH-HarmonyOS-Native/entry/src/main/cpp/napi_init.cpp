@@ -100,6 +100,8 @@ napi_value start(napi_env e, napi_callback_info i) {
     }
     return undef(e);
 }
+napi_value startImpact(napi_env e,napi_callback_info i){try{auto a=args(e,i,2);lab::Engine::instance().startImpact(integer(e,a[0]),integer(e,a[1]));}catch(const std::exception& ex){return fail(e,ex);}return undef(e);}
+napi_value returnImpact(napi_env e,napi_callback_info){try{lab::Engine::instance().returnFromImpact();}catch(const std::exception& ex){return fail(e,ex);}return undef(e);}
 napi_value startScene(napi_env e, napi_callback_info i) {
     try {
         std::vector<napi_value> a(2);size_t count=2;
@@ -110,6 +112,7 @@ napi_value startScene(napi_env e, napi_callback_info i) {
         auto id = [&](const char *name) { double v = field(name); if (std::trunc(v) != v) throw std::invalid_argument("Integer expected"); return int(v); };
         lab::Config c{id("preset"),id("count"),field("speed"),field("angle"),field("duration"),
           field("targetRadiusKm"),field("impactorRadiusKm"),field("targetDensity"),field("impactorDensity"),field("targetSpin"),id("seed")};
+        bool impactPresent=false;napi_has_named_property(e,a[0],"impactLocal",&impactPresent);if(impactPresent)throw std::invalid_argument("Impact context requires the captured event entry point");
         bool gravityPresent=false;napi_has_named_property(e,a[0],"selfGravity",&gravityPresent);
         if(gravityPresent){napi_value v;napi_get_named_property(e,a[0],"selfGravity",&v);
             if(napi_get_value_bool(e,v,&c.selfGravity)!=napi_ok)throw std::invalid_argument("Boolean selfGravity expected");}
@@ -372,8 +375,8 @@ napi_value status(napi_env e, napi_callback_info) {
         napi_set_named_property(e,diag,"response",response);}
     napi_set_named_property(e,o,"sph",diag);
     num(e,o,"energyError",s.energyError);num(e,o,"angularError",s.angularError);
-    str(e,o,"model",s.config.preset==6?(s.config.galaxyResponsive?"galaxy-responsive-v1":"galaxy-tidal-restricted-v1"):s.config.preset==5?(!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0?"nbody-hard-sphere-v1":"nbody-custom-v1"):(s.config.preset>=3?"nbody-v1":(s.config.relaxationSeconds>0?"sph-rock-prepared-v1":(s.config.selfGravity?"sph-rock-gravity-v1":"sph-rock-v1"))));
-    if(s.config.preset==5&&!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0){
+    str(e,o,"model",s.config.impactContact.hasIncoming?"sph-orbit-impact-v1":s.config.preset==6?(s.config.galaxyResponsive?"galaxy-responsive-v1":"galaxy-tidal-restricted-v1"):s.config.preset==5?(!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0?"nbody-hard-sphere-v1":"nbody-custom-v1"):(s.config.preset>=3?"nbody-v1":(s.config.relaxationSeconds>0?"sph-rock-prepared-v1":(s.config.selfGravity?"sph-rock-gravity-v1":"sph-rock-v1"))));
+    if(s.config.impactContact.hasIncoming||(s.config.preset==5&&!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0)){
         napi_value contact;napi_create_object(e,&contact);num(e,contact,"count",s.contact.count);num(e,contact,"a",s.contact.a);num(e,contact,"b",s.contact.b);num(e,contact,"timeSeconds",s.contact.time*lab::YEAR);num(e,contact,"normalSpeedKmS",s.contact.speed*lab::AU/lab::YEAR/1000);num(e,contact,"restitution",1);
         const auto plan=lab::makeImpactPlan(s.contact);napi_value incoming,flag;napi_create_object(e,&incoming);
         napi_get_boolean(e,plan.available,&flag);napi_set_named_property(e,incoming,"available",flag);
@@ -388,6 +391,9 @@ napi_value status(napi_env e, napi_callback_info) {
         }
         napi_set_named_property(e,contact,"incoming",incoming);napi_set_named_property(e,o,"contact",contact);
     }
+    if(s.impactReturnAvailable||s.config.impactContact.hasIncoming){napi_value impact,flag;napi_create_object(e,&impact);
+        napi_get_boolean(e,s.config.impactContact.hasIncoming,&flag);napi_set_named_property(e,impact,"local",flag);napi_get_boolean(e,s.impactReturnAvailable,&flag);napi_set_named_property(e,impact,"canReturn",flag);napi_get_boolean(e,s.impactPreparing,&flag);napi_set_named_property(e,impact,"preparing",flag);
+        num(e,impact,"sourceTimeSeconds",s.config.impactContact.time*lab::YEAR);num(e,impact,"eventCount",s.config.impactContact.count);num(e,impact,"a",s.config.impactContact.a);num(e,impact,"b",s.config.impactContact.b);str(e,impact,"assumptions","isolated cold basalt, zero spin, self gravity; world paused; no remnant reinsertion");napi_set_named_property(e,o,"impact",impact);}
     str(e,o,"timeUnit",s.config.preset==6?"Myr":s.config.preset>=3?"year":"s");
     if(s.galaxy.available){napi_value g;napi_create_object(e,&g);const char* keys[]={"separationKpc","primaryRmsKpc","secondaryRmsKpc","primaryOuterFraction","secondaryOuterFraction"};
         for(int k=0;k<5;k++)num(e,g,keys[k],s.galaxy.values[k]);str(e,g,"energyScope",s.config.galaxyResponsive?"closed system: massive stellar populations and two responsive extended cores":"two softened centers only; tracers exchange energy with the time-dependent field");str(e,g,"outerScope","fraction of origin tracers beyond 1.5 initial outer radii; not unbound mass");napi_set_named_property(e,o,"galaxy",g);}
@@ -409,6 +415,7 @@ napi_value status(napi_env e, napi_callback_info) {
       if(s.config.initialDamage>0)num(e,c,"initialDamage",s.config.initialDamage);
       if(s.config.relaxationSeconds>0)num(e,c,"relaxationSeconds",s.config.relaxationSeconds);
       if(s.config.selfGravity){napi_value g;napi_get_boolean(e,true,&g);napi_set_named_property(e,c,"selfGravity",g);}
+      if(s.config.impactContact.hasIncoming){napi_value flag;napi_get_boolean(e,true,&flag);napi_set_named_property(e,c,"impactLocal",flag);}
       num(e,c,"targetSpin",s.config.targetSpin);num(e,c,"seed",s.config.seed);
       if(s.config.preset==5){napi_value list;napi_create_array_with_length(e,s.config.orbitBodies.size(),&list);
         for(size_t i=0;i<s.config.orbitBodies.size();++i){const auto &b=s.config.orbitBodies[i];napi_value v;napi_create_object(e,&v);
@@ -476,6 +483,8 @@ napi_value load(napi_env e, napi_callback_info i) { return io(e, i, true); }
 napi_value Init(napi_env e, napi_value exports) {
     lab::Engine::instance();
     napi_property_descriptor props[] = {
+        {"startImpact",nullptr,startImpact,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"returnImpact",nullptr,returnImpact,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"configureRingTrace",nullptr,configureTrace,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setRingDisturbance",nullptr,traceDisturbance,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setRingParameters",nullptr,traceParameters,nullptr,nullptr,nullptr,napi_default,nullptr},
