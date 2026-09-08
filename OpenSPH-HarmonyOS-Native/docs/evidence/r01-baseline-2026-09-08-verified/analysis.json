@@ -1,0 +1,165 @@
+{
+  "verifiedAt": "2026-09-08T16:08:20.594Z",
+  "r01CollectionAccepted": true,
+  "workflowComplete": false,
+  "repeatInputsIdentical": true,
+  "repeatStatusesIdentical": true,
+  "offsetOnlyControl": true,
+  "worldTimeEvidence": [
+    {
+      "id": "G1",
+      "eventSeconds": 29.999433008110678,
+      "parentSeconds": 30.02642327078467,
+      "localElapsedSeconds": 60.01999999999961,
+      "returnedParentSeconds": 30.02642327078467
+    },
+    {
+      "id": "G3",
+      "eventSeconds": 29.999343822387708,
+      "parentSeconds": 30.026334953739795,
+      "localElapsedSeconds": 60.01999999999961,
+      "returnedParentSeconds": 30.026334953739795
+    }
+  ],
+  "restoration": {
+    "completed": true,
+    "persistentFiles": 13,
+    "exactFiles": true,
+    "initialPausedScene": true,
+    "camera": true,
+    "appearance": true
+  },
+  "cases": [
+    {
+      "id": "G1",
+      "firstBlocker": "continuousView",
+      "checks": [
+        {
+          "id": "placement",
+          "status": "passed"
+        },
+        {
+          "id": "contact",
+          "status": "passed"
+        },
+        {
+          "id": "materialEvolution",
+          "status": "passed"
+        },
+        {
+          "id": "continuousView",
+          "status": "unsupported"
+        },
+        {
+          "id": "worldEvolution",
+          "status": "unsupported"
+        },
+        {
+          "id": "commitRemnants",
+          "status": "unsupported"
+        },
+        {
+          "id": "addAfterImpact",
+          "status": "unsupported"
+        },
+        {
+          "id": "restartAndContinue",
+          "status": "unsupported"
+        }
+      ]
+    },
+    {
+      "id": "G2",
+      "firstBlocker": "materialEvolution",
+      "checks": [
+        {
+          "id": "placement",
+          "status": "passed"
+        },
+        {
+          "id": "contact",
+          "status": "passed"
+        },
+        {
+          "id": "materialEvolution",
+          "status": "not_tested"
+        },
+        {
+          "id": "continuousView",
+          "status": "passed"
+        },
+        {
+          "id": "worldEvolution",
+          "status": "passed"
+        },
+        {
+          "id": "commitRemnants",
+          "status": "not_tested"
+        },
+        {
+          "id": "addAfterImpact",
+          "status": "not_tested"
+        },
+        {
+          "id": "restartAndContinue",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "id": "G3",
+      "firstBlocker": "continuousView",
+      "checks": [
+        {
+          "id": "placement",
+          "status": "passed"
+        },
+        {
+          "id": "contact",
+          "status": "passed"
+        },
+        {
+          "id": "materialEvolution",
+          "status": "passed"
+        },
+        {
+          "id": "continuousView",
+          "status": "unsupported"
+        },
+        {
+          "id": "worldEvolution",
+          "status": "unsupported"
+        },
+        {
+          "id": "commitRemnants",
+          "status": "unsupported"
+        },
+        {
+          "id": "addAfterImpact",
+          "status": "unsupported"
+        },
+        {
+          "id": "restartAndContinue",
+          "status": "unsupported"
+        }
+      ]
+    }
+  ],
+  "wallSeconds": [
+    [
+      98.284,
+      26.715,
+      100.063
+    ],
+    [
+      99.185,
+      26.98,
+      97.378
+    ]
+  ],
+  "limits": [
+    "No new collision force or world handoff implemented",
+    "No physical convergence or cross-device performance claim",
+    "G2 is a no-contact control, remnant stages are not tested"
+  ]
+}

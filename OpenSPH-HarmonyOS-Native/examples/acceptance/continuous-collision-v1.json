@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "baselineVersion": "0.56.0",
+  "device": "127.0.0.1:5555",
+  "baseScene": {
+    "preset": 5,
+    "count": 600,
+    "speed": 1,
+    "angle": 0,
+    "duration": 1,
+    "targetRadiusKm": 100,
+    "impactorRadiusKm": 60,
+    "targetDensity": 2700,
+    "impactorDensity": 2700,
+    "targetSpin": 0,
+    "seed": 1234,
+    "selfGravity": false,
+    "relaxationSeconds": 0,
+    "orbitBodies": [
+      {
+        "name": "恒星",
+        "massSolar": 1,
+        "xAU": 0,
+        "yAU": 0,
+        "zAU": 0,
+        "vxKmS": 0,
+        "vyKmS": 0,
+        "vzKmS": 0,
+        "surface": 0,
+        "radiusKm": 695700
+      },
+      {
+        "name": "100 km 岩体",
+        "massSolar": 5.687828106302367e-12,
+        "xAU": 1,
+        "yAU": -1.3369174244536892e-06,
+        "zAU": 0,
+        "vxKmS": 0,
+        "vyKmS": 34,
+        "vzKmS": 0,
+        "surface": 3,
+        "radiusKm": 100
+      }
+    ]
+  },
+  "launch": {
+    "massKg": 2.442902447431423e+18,
+    "distanceKm": 400,
+    "azimuthDeg": 90,
+    "inclinationDeg": 0,
+    "relativeSpeedKmS": 8,
+    "radiusKm": 60,
+    "surface": 5
+  },
+  "cases": [
+    {
+      "id": "G1",
+      "xAU": 1,
+      "offsetKm": 0,
+      "contactExpected": true,
+      "tides": false
+    },
+    {
+      "id": "G2",
+      "xAU": 1,
+      "offsetKm": 400,
+      "contactExpected": false,
+      "observationMinimumSeconds": 90,
+      "tides": false
+    },
+    {
+      "id": "G3",
+      "xAU": 0.02,
+      "offsetKm": 0,
+      "contactExpected": true,
+      "tides": true
+    }
+  ],
+  "massConvention": "solar GM / G, matching the app; SI mass is volume times 2700 kg/m3"
+}

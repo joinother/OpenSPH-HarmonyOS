@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "task": "R01",
+  "device": "127.0.0.1:5555",
+  "fixtureSha256": "bb00d8e5db4b85dd068f6663b62ed8074cebc311953401f4c0a25e98e03442d0",
+  "collectionComplete": false,
+  "workflowComplete": false,
+  "runs": [],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: Only flat app files are supported for restoration\n    at file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-continuous-collision-emulator.mjs:23:96\n    at Array.map (<anonymous>)\n    at files (file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-continuous-collision-emulator.mjs:23:61)\n    at file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-continuous-collision-emulator.mjs:32:71"
+  ],
+  "restoration": {
+    "completed": false
+  }
+}

@@ -1,0 +1,493 @@
+{
+  "schemaVersion": 1,
+  "task": "R01",
+  "device": "127.0.0.1:5555",
+  "fixtureSha256": "83b4fa8e42cc84d7e624383b575a9f029da267934e0a122728abec8d2d4e9a1e",
+  "collectionComplete": false,
+  "workflowComplete": false,
+  "runs": [
+    {
+      "repeat": 1,
+      "fixtureSha256": "83b4fa8e42cc84d7e624383b575a9f029da267934e0a122728abec8d2d4e9a1e",
+      "collectionComplete": false,
+      "cases": [
+        {
+          "id": "G1",
+          "checks": [
+            {
+              "id": "placement",
+              "status": "passed",
+              "evidence": "Selected target → launch preview → cancel preserves original vectors → configure mass/distance/speed/radius → confirm preserves original bodies and time"
+            },
+            {
+              "id": "contact",
+              "status": "passed",
+              "evidence": "Actual surface contact captured after aimed insertion; incoming SPH bounds pass"
+            }
+          ],
+          "observations": {
+            "initialConfig": {
+              "preset": 5,
+              "count": 600,
+              "speed": 1,
+              "angle": 0,
+              "duration": 1,
+              "targetRadiusKm": 100,
+              "impactorRadiusKm": 60,
+              "targetDensity": 2700,
+              "impactorDensity": 2700,
+              "targetSpin": 0,
+              "seed": 1234,
+              "orbitBodies": [
+                {
+                  "name": "恒星",
+                  "massSolar": 1,
+                  "xAU": -5.687828106270015e-12,
+                  "yAU": 7.604156502569813e-18,
+                  "zAU": 0,
+                  "vxKmS": 0,
+                  "vyKmS": -1.933861556131805e-10,
+                  "vzKmS": 0,
+                  "surface": 0,
+                  "radiusKm": 695700
+                },
+                {
+                  "name": "100 km 岩体",
+                  "massSolar": 5.687828106302367e-12,
+                  "xAU": 0.9999999999943122,
+                  "yAU": -0.000001336917424446085,
+                  "zAU": 0,
+                  "vxKmS": 0,
+                  "vyKmS": 33.99999999980661,
+                  "vzKmS": 0,
+                  "surface": 3,
+                  "radiusKm": 100
+                },
+                {
+                  "name": "60 km 岩体",
+                  "massSolar": 1.2285708709613112e-12,
+                  "xAU": 0.9999999999943122,
+                  "yAU": 0.0000013369174244612935,
+                  "zAU": 0,
+                  "vxKmS": 0,
+                  "vyKmS": 25.99999999980661,
+                  "vzKmS": 0,
+                  "surface": 5,
+                  "radiusKm": 60
+                }
+              ]
+            },
+            "initialWorld": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": -5.687828106270015e-12,
+                "yAU": 7.604156502569813e-18,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": -1.933861556131805e-10,
+                "vzKmS": 0,
+                "surface": 0,
+                "radiusKm": 695700
+              },
+              {
+                "name": "100 km 岩体",
+                "massSolar": 5.687828106302367e-12,
+                "xAU": 0.9999999999943122,
+                "yAU": -0.000001336917424446085,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 33.99999999980661,
+                "vzKmS": 0,
+                "surface": 3,
+                "radiusKm": 100
+              },
+              {
+                "name": "60 km 岩体",
+                "massSolar": 1.2285708709613112e-12,
+                "xAU": 0.9999999999943122,
+                "yAU": 0.0000013369174244612935,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 25.99999999980661,
+                "vzKmS": 0,
+                "surface": 5,
+                "radiusKm": 60
+              }
+            ],
+            "contact": {
+              "count": 1,
+              "a": 1,
+              "b": 2,
+              "timeSeconds": 29.999433008110678,
+              "normalSpeedKmS": 8.000427648980935,
+              "restitution": 1,
+              "tides": {
+                "available": true,
+                "reason": "可加入同一事件快照的冻结线性潮汐；外部天体不响应",
+                "sourceCount": 1,
+                "radiusLimitKm": 1495978.706997373,
+                "motionRatio": 0.00001306660872220675,
+                "tensorS2": [
+                  7.928031986009371e-14,
+                  6.744243181733593e-19,
+                  0,
+                  6.744243181733593e-19,
+                  -3.964015992813445e-14,
+                  0,
+                  0,
+                  0,
+                  -3.9640159931959256e-14
+                ]
+              },
+              "incoming": {
+                "available": true,
+                "withinCurrentBounds": true,
+                "reason": "可用真实入射状态运行局部岩体 SPH；外部潮汐需另行检查",
+                "model": "orbital-incoming-com-v1",
+                "velocityConvention": "kick-drift-kick incoming half-step",
+                "timeSeconds": 29.999433008110678,
+                "relativeSpeedKmS": 8.000427648980935,
+                "contactAngleDegrees": 0,
+                "kineticEnergyJ": 6.4293779752571005e+25,
+                "originAU": [
+                  0.9999999999764746,
+                  0.000005671220964941743,
+                  0
+                ],
+                "velocityKmS": [
+                  -0.00017746668139695463,
+                  32.578947367802336,
+                  0
+                ],
+                "angularMomentumKgM2S": [
+                  0,
+                  0,
+                  -825128717756.9418
+                ],
+                "bodies": [
+                  {
+                    "id": 1,
+                    "massKg": 11309733552923255000,
+                    "radiusKm": 100,
+                    "densityKgM3": 2700,
+                    "positionM": [
+                      0,
+                      -28421.052631578936,
+                      0
+                    ],
+                    "velocityMS": [
+                      -4.559837295767177e-13,
+                      1421.128595542666,
+                      0
+                    ]
+                  },
+                  {
+                    "id": 2,
+                    "massKg": 2442902447431423000,
+                    "radiusKm": 60,
+                    "densityKgM3": 2700,
+                    "positionM": [
+                      0,
+                      131578.947368421,
+                      0
+                    ],
+                    "velocityMS": [
+                      2.1110357850773967e-12,
+                      -6579.299053438269,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            "parent": {
+              "state": "paused",
+              "error": "",
+              "preparation": {
+                "requestId": 10,
+                "stage": "ready",
+                "elapsedMs": 0.2182920000050217,
+                "stageMs": 0,
+                "previousRequestId": 0,
+                "previousStage": "",
+                "slow": false,
+                "events": [
+                  {
+                    "stage": "queued",
+                    "elapsedMs": 0
+                  },
+                  {
+                    "stage": "starting",
+                    "elapsedMs": 0.19583400001283735
+                  },
+                  {
+                    "stage": "orbits",
+                    "elapsedMs": 0.20016700000269338
+                  },
+                  {
+                    "stage": "snapshot",
+                    "elapsedMs": 0.21712500002468005
+                  },
+                  {
+                    "stage": "ready",
+                    "elapsedMs": 0.2182920000050217
+                  }
+                ]
+              },
+              "count": 3,
+              "frames": 94,
+              "selected": -1,
+              "time": 9.514799373458269e-7,
+              "duration": 1,
+              "continuous": true,
+              "daysPerSecond": 0.01,
+              "actualDaysPerSecond": 0,
+              "orbitRevision": 10,
+              "orbitState": [
+                {
+                  "name": "恒星",
+                  "massSolar": 1,
+                  "xAU": -5.687828106146419e-12,
+                  "yAU": -3.1211199197053995e-17,
+                  "zAU": 0,
+                  "vxKmS": 1.2315284535702857e-15,
+                  "vyKmS": -1.9338615561021548e-10,
+                  "vzKmS": 0,
+                  "surface": 0,
+                  "radiusKm": 695700
+                },
+                {
+                  "name": "100 km 岩体",
+                  "massSolar": 5.687828106302367e-12,
+                  "xAU": 0.9999999999764426,
+                  "yAU": 0.000005486859417618148,
+                  "zAU": 0,
+                  "vxKmS": -0.00017805919780247833,
+                  "vyKmS": 31.157819406914786,
+                  "vzKmS": 0,
+                  "surface": 3,
+                  "radiusKm": 100
+                },
+                {
+                  "name": "60 km 岩体",
+                  "massSolar": 1.2285708709613112e-12,
+                  "xAU": 0.9999999999764426,
+                  "yAU": 0.000006557836784435376,
+                  "zAU": 0,
+                  "vxKmS": -0.00017805919779989986,
+                  "vyKmS": 39.15824348300357,
+                  "vzKmS": 0,
+                  "surface": 5,
+                  "radiusKm": 60
+                }
+              ],
+              "stepMs": 0.024875,
+              "steps": 93,
+              "maxSpeed": 39.15824508666992,
+              "meanDensity": 0,
+              "totalMass": 1.9884098713302865e+30,
+              "sph": {
+                "available": false
+              },
+              "energyError": -1.1369324515995959e-8,
+              "angularError": -2.7190971951918604e-16,
+              "model": "nbody-hard-sphere-v1",
+              "contact": {
+                "count": 1,
+                "a": 1,
+                "b": 2,
+                "timeSeconds": 29.999433008110678,
+                "normalSpeedKmS": 8.000427648980935,
+                "restitution": 1,
+                "tides": {
+                  "available": true,
+                  "reason": "可加入同一事件快照的冻结线性潮汐；外部天体不响应",
+                  "sourceCount": 1,
+                  "radiusLimitKm": 1495978.706997373,
+                  "motionRatio": 0.00001306660872220675,
+                  "tensorS2": [
+                    7.928031986009371e-14,
+                    6.744243181733593e-19,
+                    0,
+                    6.744243181733593e-19,
+                    -3.964015992813445e-14,
+                    0,
+                    0,
+                    0,
+                    -3.9640159931959256e-14
+                  ]
+                },
+                "incoming": {
+                  "available": true,
+                  "withinCurrentBounds": true,
+                  "reason": "可用真实入射状态运行局部岩体 SPH；外部潮汐需另行检查",
+                  "model": "orbital-incoming-com-v1",
+                  "velocityConvention": "kick-drift-kick incoming half-step",
+                  "timeSeconds": 29.999433008110678,
+                  "relativeSpeedKmS": 8.000427648980935,
+                  "contactAngleDegrees": 0,
+                  "kineticEnergyJ": 6.4293779752571005e+25,
+                  "originAU": [
+                    0.9999999999764746,
+                    0.000005671220964941743,
+                    0
+                  ],
+                  "velocityKmS": [
+                    -0.00017746668139695463,
+                    32.578947367802336,
+                    0
+                  ],
+                  "angularMomentumKgM2S": [
+                    0,
+                    0,
+                    -825128717756.9418
+                  ],
+                  "bodies": [
+                    {
+                      "id": 1,
+                      "massKg": 11309733552923255000,
+                      "radiusKm": 100,
+                      "densityKgM3": 2700,
+                      "positionM": [
+                        0,
+                        -28421.052631578936,
+                        0
+                      ],
+                      "velocityMS": [
+                        -4.559837295767177e-13,
+                        1421.128595542666,
+                        0
+                      ]
+                    },
+                    {
+                      "id": 2,
+                      "massKg": 2442902447431423000,
+                      "radiusKm": 60,
+                      "densityKgM3": 2700,
+                      "positionM": [
+                        0,
+                        131578.947368421,
+                        0
+                      ],
+                      "velocityMS": [
+                        2.1110357850773967e-12,
+                        -6579.299053438269,
+                        0
+                      ]
+                    }
+                  ]
+                }
+              },
+              "timeUnit": "year",
+              "bodies": [
+                {
+                  "name": "恒星",
+                  "surface": 0,
+                  "id": 0,
+                  "xAU": -5.687828246586646e-12,
+                  "yAU": -3.121119872518554e-17,
+                  "zAU": 0,
+                  "radiusKm": 695700,
+                  "speedKmS": 1.933861543124138e-10,
+                  "massSolar": 1
+                },
+                {
+                  "name": "100 km 岩体",
+                  "surface": 3,
+                  "id": 1,
+                  "xAU": 1,
+                  "yAU": 0.000005486859208758688,
+                  "zAU": 0,
+                  "radiusKm": 100,
+                  "speedKmS": 31.157819747924805,
+                  "massSolar": 5.687828246586646e-12
+                },
+                {
+                  "name": "60 km 岩体",
+                  "surface": 5,
+                  "id": 2,
+                  "xAU": 1,
+                  "yAU": 0.000006557836968568154,
+                  "zAU": 0,
+                  "radiusKm": 60,
+                  "speedKmS": 39.15824508666992,
+                  "massSolar": 1.2285708474862878e-12
+                }
+              ],
+              "config": {
+                "preset": 5,
+                "count": 600,
+                "speed": 1,
+                "angle": 0,
+                "duration": 1,
+                "targetRadiusKm": 100,
+                "impactorRadiusKm": 60,
+                "targetDensity": 2700,
+                "impactorDensity": 2700,
+                "targetSpin": 0,
+                "seed": 1234,
+                "orbitBodies": [
+                  {
+                    "name": "恒星",
+                    "massSolar": 1,
+                    "xAU": -5.687828106270015e-12,
+                    "yAU": 7.604156502569813e-18,
+                    "zAU": 0,
+                    "vxKmS": 0,
+                    "vyKmS": -1.933861556131805e-10,
+                    "vzKmS": 0,
+                    "surface": 0,
+                    "radiusKm": 695700
+                  },
+                  {
+                    "name": "100 km 岩体",
+                    "massSolar": 5.687828106302367e-12,
+                    "xAU": 0.9999999999943122,
+                    "yAU": -0.000001336917424446085,
+                    "zAU": 0,
+                    "vxKmS": 0,
+                    "vyKmS": 33.99999999980661,
+                    "vzKmS": 0,
+                    "surface": 3,
+                    "radiusKm": 100
+                  },
+                  {
+                    "name": "60 km 岩体",
+                    "massSolar": 1.2285708709613112e-12,
+                    "xAU": 0.9999999999943122,
+                    "yAU": 0.0000013369174244612935,
+                    "zAU": 0,
+                    "vxKmS": 0,
+                    "vyKmS": 25.99999999980661,
+                    "vzKmS": 0,
+                    "surface": 5,
+                    "radiusKm": 60
+                  }
+                ]
+              }
+            },
+            "parentCamera": {
+              "yaw": 0,
+              "pitch": 0,
+              "zoom": 0.5,
+              "focus": 1,
+              "color": 0
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "errors": [
+    "Error: start: {\"ok\":false,\"error\":\"Error: 局部撞击中请先返回轨道，再创建或载入其他实验；局部结果可保存回放\"}\n    at call (file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-continuous-collision-emulator.mjs:21:271)\n    at async file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-continuous-collision-emulator.mjs:61:141"
+  ],
+  "restoration": {
+    "completed": true,
+    "persistentFiles": 13,
+    "exactFiles": true,
+    "initialPausedScene": true,
+    "camera": true,
+    "appearance": true
+  }
+}

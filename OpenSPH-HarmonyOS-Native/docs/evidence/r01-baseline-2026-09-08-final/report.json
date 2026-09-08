@@ -1,0 +1,2019 @@
+{
+  "schemaVersion": 1,
+  "task": "R01",
+  "device": "127.0.0.1:5555",
+  "fixtureSha256": "83b4fa8e42cc84d7e624383b575a9f029da267934e0a122728abec8d2d4e9a1e",
+  "collectionComplete": false,
+  "workflowComplete": false,
+  "runs": [
+    {
+      "repeat": 1,
+      "fixtureSha256": "83b4fa8e42cc84d7e624383b575a9f029da267934e0a122728abec8d2d4e9a1e",
+      "collectionComplete": false,
+      "cases": [
+        {
+          "id": "G1",
+          "checks": [
+            {
+              "id": "placement",
+              "status": "passed",
+              "evidence": "Selected target → launch preview → cancel preserves original vectors → configure mass/distance/speed/radius → confirm preserves original bodies and time"
+            },
+            {
+              "id": "contact",
+              "status": "passed",
+              "evidence": "Actual surface contact captured after aimed insertion; incoming SPH bounds pass"
+            },
+            {
+              "id": "materialEvolution",
+              "status": "passed",
+              "evidence": "Actual SPH reaches at least 60 seconds; internal energy rises and total mass is retained"
+            },
+            {
+              "id": "continuousView",
+              "status": "unsupported",
+              "evidence": "Local SPH replaces the displayed world/history and changes camera; R03 continuity contract is absent"
+            },
+            {
+              "id": "worldEvolution",
+              "status": "unsupported",
+              "evidence": "Isolated local solver; parent world is retained without advancing"
+            },
+            {
+              "id": "commitRemnants",
+              "status": "unsupported",
+              "evidence": "Only return is available; measured return restores exact original parent vectors and time, not SPH remnants"
+            },
+            {
+              "id": "addAfterImpact",
+              "status": "unsupported",
+              "evidence": "Adding while local impact is active is rejected; returning would add to unchanged parent, so it is not counted"
+            },
+            {
+              "id": "restartAndContinue",
+              "status": "unsupported",
+              "evidence": "Cold reload preserves local diagnostics, but has no parent session/solver continuation; it is observation replay only"
+            }
+          ],
+          "observations": {
+            "initialConfig": {
+              "preset": 5,
+              "count": 600,
+              "speed": 1,
+              "angle": 0,
+              "duration": 1,
+              "targetRadiusKm": 100,
+              "impactorRadiusKm": 60,
+              "targetDensity": 2700,
+              "impactorDensity": 2700,
+              "targetSpin": 0,
+              "seed": 1234,
+              "orbitBodies": [
+                {
+                  "name": "恒星",
+                  "massSolar": 1,
+                  "xAU": -5.687828106270015e-12,
+                  "yAU": 7.604156502569813e-18,
+                  "zAU": 0,
+                  "vxKmS": 0,
+                  "vyKmS": -1.933861556131805e-10,
+                  "vzKmS": 0,
+                  "surface": 0,
+                  "radiusKm": 695700
+                },
+                {
+                  "name": "100 km 岩体",
+                  "massSolar": 5.687828106302367e-12,
+                  "xAU": 0.9999999999943122,
+                  "yAU": -0.000001336917424446085,
+                  "zAU": 0,
+                  "vxKmS": 0,
+                  "vyKmS": 33.99999999980661,
+                  "vzKmS": 0,
+                  "surface": 3,
+                  "radiusKm": 100
+                },
+                {
+                  "name": "60 km 岩体",
+                  "massSolar": 1.2285708709613112e-12,
+                  "xAU": 0.9999999999943122,
+                  "yAU": 0.0000013369174244612935,
+                  "zAU": 0,
+                  "vxKmS": 0,
+                  "vyKmS": 25.99999999980661,
+                  "vzKmS": 0,
+                  "surface": 5,
+                  "radiusKm": 60
+                }
+              ]
+            },
+            "initialWorld": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": -5.687828106270015e-12,
+                "yAU": 7.604156502569813e-18,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": -1.933861556131805e-10,
+                "vzKmS": 0,
+                "surface": 0,
+                "radiusKm": 695700
+              },
+              {
+                "name": "100 km 岩体",
+                "massSolar": 5.687828106302367e-12,
+                "xAU": 0.9999999999943122,
+                "yAU": -0.000001336917424446085,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 33.99999999980661,
+                "vzKmS": 0,
+                "surface": 3,
+                "radiusKm": 100
+              },
+              {
+                "name": "60 km 岩体",
+                "massSolar": 1.2285708709613112e-12,
+                "xAU": 0.9999999999943122,
+                "yAU": 0.0000013369174244612935,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 25.99999999980661,
+                "vzKmS": 0,
+                "surface": 5,
+                "radiusKm": 60
+              }
+            ],
+            "contact": {
+              "count": 1,
+              "a": 1,
+              "b": 2,
+              "timeSeconds": 29.999433008110678,
+              "normalSpeedKmS": 8.000427648980935,
+              "restitution": 1,
+              "tides": {
+                "available": true,
+                "reason": "可加入同一事件快照的冻结线性潮汐；外部天体不响应",
+                "sourceCount": 1,
+                "radiusLimitKm": 1495978.706997373,
+                "motionRatio": 0.00001306660872220675,
+                "tensorS2": [
+                  7.928031986009371e-14,
+                  6.744243181733593e-19,
+                  0,
+                  6.744243181733593e-19,
+                  -3.964015992813445e-14,
+                  0,
+                  0,
+                  0,
+                  -3.9640159931959256e-14
+                ]
+              },
+              "incoming": {
+                "available": true,
+                "withinCurrentBounds": true,
+                "reason": "可用真实入射状态运行局部岩体 SPH；外部潮汐需另行检查",
+                "model": "orbital-incoming-com-v1",
+                "velocityConvention": "kick-drift-kick incoming half-step",
+                "timeSeconds": 29.999433008110678,
+                "relativeSpeedKmS": 8.000427648980935,
+                "contactAngleDegrees": 0,
+                "kineticEnergyJ": 6.4293779752571005e+25,
+                "originAU": [
+                  0.9999999999764746,
+                  0.000005671220964941743,
+                  0
+                ],
+                "velocityKmS": [
+                  -0.00017746668139695463,
+                  32.578947367802336,
+                  0
+                ],
+                "angularMomentumKgM2S": [
+                  0,
+                  0,
+                  -825128717756.9418
+                ],
+                "bodies": [
+                  {
+                    "id": 1,
+                    "massKg": 11309733552923255000,
+                    "radiusKm": 100,
+                    "densityKgM3": 2700,
+                    "positionM": [
+                      0,
+                      -28421.052631578936,
+                      0
+                    ],
+                    "velocityMS": [
+                      -4.559837295767177e-13,
+                      1421.128595542666,
+                      0
+                    ]
+                  },
+                  {
+                    "id": 2,
+                    "massKg": 2442902447431423000,
+                    "radiusKm": 60,
+                    "densityKgM3": 2700,
+                    "positionM": [
+                      0,
+                      131578.947368421,
+                      0
+                    ],
+                    "velocityMS": [
+                      2.1110357850773967e-12,
+                      -6579.299053438269,
+                      0
+                    ]
+                  }
+                ]
+              }
+            },
+            "parent": {
+              "state": "paused",
+              "error": "",
+              "preparation": {
+                "requestId": 17,
+                "stage": "ready",
+                "elapsedMs": 0.046667000045999885,
+                "stageMs": 0,
+                "previousRequestId": 0,
+                "previousStage": "",
+                "slow": false,
+                "events": [
+                  {
+                    "stage": "queued",
+                    "elapsedMs": 0
+                  },
+                  {
+                    "stage": "starting",
+                    "elapsedMs": 0.03370899998117238
+                  },
+                  {
+                    "stage": "orbits",
+                    "elapsedMs": 0.035417000064626336
+                  },
+                  {
+                    "stage": "snapshot",
+                    "elapsedMs": 0.04587500006891787
+                  },
+                  {
+                    "stage": "ready",
+                    "elapsedMs": 0.046667000045999885
+                  }
+                ]
+              },
+              "count": 3,
+              "frames": 94,
+              "selected": -1,
+              "time": 9.514799373458269e-7,
+              "duration": 1,
+              "continuous": true,
+              "daysPerSecond": 0.01,
+              "actualDaysPerSecond": 0,
+              "orbitRevision": 17,
+              "orbitState": [
+                {
+                  "name": "恒星",
+                  "massSolar": 1,
+                  "xAU": -5.687828106146419e-12,
+                  "yAU": -3.1211199197053995e-17,
+                  "zAU": 0,
+                  "vxKmS": 1.2315284535702857e-15,
+                  "vyKmS": -1.9338615561021548e-10,
+                  "vzKmS": 0,
+                  "surface": 0,
+                  "radiusKm": 695700
+                },
+                {
+                  "name": "100 km 岩体",
+                  "massSolar": 5.687828106302367e-12,
+                  "xAU": 0.9999999999764426,
+                  "yAU": 0.000005486859417618148,
+                  "zAU": 0,
+                  "vxKmS": -0.00017805919780247833,
+                  "vyKmS": 31.157819406914786,
+                  "vzKmS": 0,
+                  "surface": 3,
+                  "radiusKm": 100
+                },
+                {
+                  "name": "60 km 岩体",
+                  "massSolar": 1.2285708709613112e-12,
+                  "xAU": 0.9999999999764426,
+                  "yAU": 0.000006557836784435376,
+                  "zAU": 0,
+                  "vxKmS": -0.00017805919779989986,
+                  "vyKmS": 39.15824348300357,
+                  "vzKmS": 0,
+                  "surface": 5,
+                  "radiusKm": 60
+                }
+              ],
+              "stepMs": 0.011875,
+              "steps": 93,
+              "maxSpeed": 39.15824508666992,
+              "meanDensity": 0,
+              "totalMass": 1.9884098713302865e+30,
+              "sph": {
+                "available": false
+              },
+              "energyError": -1.1369324515995959e-8,
+              "angularError": -2.7190971951918604e-16,
+              "model": "nbody-hard-sphere-v1",
+              "contact": {
+                "count": 1,
+                "a": 1,
+                "b": 2,
+                "timeSeconds": 29.999433008110678,
+                "normalSpeedKmS": 8.000427648980935,
+                "restitution": 1,
+                "tides": {
+                  "available": true,
+                  "reason": "可加入同一事件快照的冻结线性潮汐；外部天体不响应",
+                  "sourceCount": 1,
+                  "radiusLimitKm": 1495978.706997373,
+                  "motionRatio": 0.00001306660872220675,
+                  "tensorS2": [
+                    7.928031986009371e-14,
+                    6.744243181733593e-19,
+                    0,
+                    6.744243181733593e-19,
+                    -3.964015992813445e-14,
+                    0,
+                    0,
+                    0,
+                    -3.9640159931959256e-14
+                  ]
+                },
+                "incoming": {
+                  "available": true,
+                  "withinCurrentBounds": true,
+                  "reason": "可用真实入射状态运行局部岩体 SPH；外部潮汐需另行检查",
+                  "model": "orbital-incoming-com-v1",
+                  "velocityConvention": "kick-drift-kick incoming half-step",
+                  "timeSeconds": 29.999433008110678,
+                  "relativeSpeedKmS": 8.000427648980935,
+                  "contactAngleDegrees": 0,
+                  "kineticEnergyJ": 6.4293779752571005e+25,
+                  "originAU": [
+                    0.9999999999764746,
+                    0.000005671220964941743,
+                    0
+                  ],
+                  "velocityKmS": [
+                    -0.00017746668139695463,
+                    32.578947367802336,
+                    0
+                  ],
+                  "angularMomentumKgM2S": [
+                    0,
+                    0,
+                    -825128717756.9418
+                  ],
+                  "bodies": [
+                    {
+                      "id": 1,
+                      "massKg": 11309733552923255000,
+                      "radiusKm": 100,
+                      "densityKgM3": 2700,
+                      "positionM": [
+                        0,
+                        -28421.052631578936,
+                        0
+                      ],
+                      "velocityMS": [
+                        -4.559837295767177e-13,
+                        1421.128595542666,
+                        0
+                      ]
+                    },
+                    {
+                      "id": 2,
+                      "massKg": 2442902447431423000,
+                      "radiusKm": 60,
+                      "densityKgM3": 2700,
+                      "positionM": [
+                        0,
+                        131578.947368421,
+                        0
+                      ],
+                      "velocityMS": [
+                        2.1110357850773967e-12,
+                        -6579.299053438269,
+                        0
+                      ]
+                    }
+                  ]
+                }
+              },
+              "timeUnit": "year",
+              "bodies": [
+                {
+                  "name": "恒星",
+                  "surface": 0,
+                  "id": 0,
+                  "xAU": -5.687828246586646e-12,
+                  "yAU": -3.121119872518554e-17,
+                  "zAU": 0,
+                  "radiusKm": 695700,
+                  "speedKmS": 1.933861543124138e-10,
+                  "massSolar": 1
+                },
+                {
+                  "name": "100 km 岩体",
+                  "surface": 3,
+                  "id": 1,
+                  "xAU": 1,
+                  "yAU": 0.000005486859208758688,
+                  "zAU": 0,
+                  "radiusKm": 100,
+                  "speedKmS": 31.157819747924805,
+                  "massSolar": 5.687828246586646e-12
+                },
+                {
+                  "name": "60 km 岩体",
+                  "surface": 5,
+                  "id": 2,
+                  "xAU": 1,
+                  "yAU": 0.000006557836968568154,
+                  "zAU": 0,
+                  "radiusKm": 60,
+                  "speedKmS": 39.15824508666992,
+                  "massSolar": 1.2285708474862878e-12
+                }
+              ],
+              "config": {
+                "preset": 5,
+                "count": 600,
+                "speed": 1,
+                "angle": 0,
+                "duration": 1,
+                "targetRadiusKm": 100,
+                "impactorRadiusKm": 60,
+                "targetDensity": 2700,
+                "impactorDensity": 2700,
+                "targetSpin": 0,
+                "seed": 1234,
+                "orbitBodies": [
+                  {
+                    "name": "恒星",
+                    "massSolar": 1,
+                    "xAU": -5.687828106270015e-12,
+                    "yAU": 7.604156502569813e-18,
+                    "zAU": 0,
+                    "vxKmS": 0,
+                    "vyKmS": -1.933861556131805e-10,
+                    "vzKmS": 0,
+                    "surface": 0,
+                    "radiusKm": 695700
+                  },
+                  {
+                    "name": "100 km 岩体",
+                    "massSolar": 5.687828106302367e-12,
+                    "xAU": 0.9999999999943122,
+                    "yAU": -0.000001336917424446085,
+                    "zAU": 0,
+                    "vxKmS": 0,
+                    "vyKmS": 33.99999999980661,
+                    "vzKmS": 0,
+                    "surface": 3,
+                    "radiusKm": 100
+                  },
+                  {
+                    "name": "60 km 岩体",
+                    "massSolar": 1.2285708709613112e-12,
+                    "xAU": 0.9999999999943122,
+                    "yAU": 0.0000013369174244612935,
+                    "zAU": 0,
+                    "vxKmS": 0,
+                    "vyKmS": 25.99999999980661,
+                    "vzKmS": 0,
+                    "surface": 5,
+                    "radiusKm": 60
+                  }
+                ]
+              }
+            },
+            "parentCamera": {
+              "yaw": 0,
+              "pitch": 0,
+              "zoom": 0.5,
+              "focus": 1,
+              "color": 0
+            },
+            "localInitial": {
+              "state": "paused",
+              "error": "",
+              "preparation": {
+                "requestId": 18,
+                "stage": "ready",
+                "elapsedMs": 12.055917000048794,
+                "stageMs": 0,
+                "previousRequestId": 0,
+                "previousStage": "",
+                "slow": false,
+                "events": [
+                  {
+                    "stage": "queued",
+                    "elapsedMs": 0
+                  },
+                  {
+                    "stage": "starting",
+                    "elapsedMs": 0.015957999974489212
+                  },
+                  {
+                    "stage": "target",
+                    "elapsedMs": 5.13820799998939
+                  },
+                  {
+                    "stage": "impactor",
+                    "elapsedMs": 5.755457999999635
+                  },
+                  {
+                    "stage": "solver",
+                    "elapsedMs": 6.2952920000534505
+                  },
+                  {
+                    "stage": "snapshot",
+                    "elapsedMs": 12.052332999999635
+                  },
+                  {
+                    "stage": "ready",
+                    "elapsedMs": 12.055917000048794
+                  }
+                ]
+              },
+              "count": 641,
+              "frames": 1,
+              "selected": -1,
+              "time": 0,
+              "duration": 60,
+              "continuous": false,
+              "daysPerSecond": 0.01,
+              "actualDaysPerSecond": 0,
+              "orbitRevision": 18,
+              "orbitState": [],
+              "stepMs": 45.69,
+              "steps": 1,
+              "maxSpeed": 6.579299053438269,
+              "meanDensity": 2700,
+              "totalMass": 13752636000354623000,
+              "sph": {
+                "available": true,
+                "pressureMinGPa": 0,
+                "pressureMaxGPa": 0,
+                "pressureMeanGPa": 0,
+                "internalMinMJkg": 0,
+                "internalMaxMJkg": 0,
+                "internalMeanMJkg": 0,
+                "damageMean": 0,
+                "damageMax": 0,
+                "kineticJ": 6.429377975257055e+25,
+                "internalJ": 0,
+                "structure": [
+                  -6.4668174730872465e+22,
+                  6.429377975257055e+25,
+                  95.26930343817314,
+                  -1445.7081912673264
+                ],
+                "response": {
+                  "softeningMean": 0,
+                  "zeroShearMassFraction": 0,
+                  "damagedMassFraction": 0,
+                  "strengthMean": 1,
+                  "model": "basalt-von-mises-response-v1",
+                  "meltEnergyMJkg": 3.4,
+                  "intactYieldGPa": 3.5
+                }
+              },
+              "energyError": 0,
+              "angularError": 0,
+              "model": "sph-orbit-impact-v1",
+              "contact": {
+                "count": 1,
+                "a": 1,
+                "b": 2,
+                "timeSeconds": 29.999433008110678,
+                "normalSpeedKmS": 8.000427648980935,
+                "restitution": 1,
+                "tides": {
+                  "available": true,
+                  "reason": "可加入同一事件快照的冻结线性潮汐；外部天体不响应",
+                  "sourceCount": 1,
+                  "radiusLimitKm": 1495978.706997373,
+                  "motionRatio": 0.00001306660872220675,
+                  "tensorS2": [
+                    7.928031986009371e-14,
+                    6.744243181733593e-19,
+                    0,
+                    6.744243181733593e-19,
+                    -3.964015992813445e-14,
+                    0,
+                    0,
+                    0,
+                    -3.9640159931959256e-14
+                  ]
+                },
+                "incoming": {
+                  "available": true,
+                  "withinCurrentBounds": true,
+                  "reason": "可用真实入射状态运行局部岩体 SPH；外部潮汐需另行检查",
+                  "model": "orbital-incoming-com-v1",
+                  "velocityConvention": "kick-drift-kick incoming half-step",
+                  "timeSeconds": 29.999433008110678,
+                  "relativeSpeedKmS": 8.000427648980935,
+                  "contactAngleDegrees": 0,
+                  "kineticEnergyJ": 6.4293779752571005e+25,
+                  "originAU": [
+                    0.9999999999764746,
+                    0.000005671220964941743,
+                    0
+                  ],
+                  "velocityKmS": [
+                    -0.00017746668139695463,
+                    32.578947367802336,
+                    0
+                  ],
+                  "angularMomentumKgM2S": [
+                    0,
+                    0,
+                    -825128717756.9418
+                  ],
+                  "bodies": [
+                    {
+                      "id": 1,
+                      "massKg": 11309733552923255000,
+                      "radiusKm": 100,
+                      "densityKgM3": 2700,
+                      "positionM": [
+                        0,
+                        -28421.052631578936,
+                        0
+                      ],
+                      "velocityMS": [
+                        -4.559837295767177e-13,
+                        1421.128595542666,
+                        0
+                      ]
+                    },
+                    {
+                      "id": 2,
+                      "massKg": 2442902447431423000,
+                      "radiusKm": 60,
+                      "densityKgM3": 2700,
+                      "positionM": [
+                        0,
+                        131578.947368421,
+                        0
+                      ],
+                      "velocityMS": [
+                        2.1110357850773967e-12,
+                        -6579.299053438269,
+                        0
+                      ]
+                    }
+                  ]
+                }
+              },
+              "impact": {
+                "local": true,
+                "canReturn": true,
+                "preparing": false,
+                "sourceTimeSeconds": 29.999433008110678,
+                "eventCount": 1,
+                "a": 1,
+                "b": 2,
+                "tides": false,
+                "elapsedSeconds": 0,
+                "eventEpochPlusElapsedSeconds": 29.999433008110678,
+                "tidalPotentialJ": 0,
+                "trackedEnergyJ": 6.422911157783968e+25,
+                "energyScope": "kinetic + internal + softened self gravity + frozen tide; excludes elastic strain energy and parent world",
+                "assumptions": "isolated cold basalt, zero spin, self gravity; world paused; no remnant reinsertion"
+              },
+              "timeUnit": "s",
+              "bodies": [],
+              "config": {
+                "preset": 0,
+                "count": 600,
+                "speed": 8.000427648980935,
+                "angle": 0,
+                "duration": 60,
+                "targetRadiusKm": 100,
+                "impactorRadiusKm": 60,
+                "targetDensity": 2700,
+                "impactorDensity": 2700,
+                "selfGravity": true,
+                "impactLocal": true,
+                "impactTides": false,
+                "targetSpin": 0,
+                "seed": 1234
+              }
+            },
+            "localFinal": {
+              "state": "completed",
+              "error": "",
+              "preparation": {
+                "requestId": 18,
+                "stage": "ready",
+                "elapsedMs": 12.055917000048794,
+                "stageMs": 0,
+                "previousRequestId": 0,
+                "previousStage": "",
+                "slow": false,
+                "events": [
+                  {
+                    "stage": "queued",
+                    "elapsedMs": 0
+                  },
+                  {
+                    "stage": "starting",
+                    "elapsedMs": 0.015957999974489212
+                  },
+                  {
+                    "stage": "target",
+                    "elapsedMs": 5.13820799998939
+                  },
+                  {
+                    "stage": "impactor",
+                    "elapsedMs": 5.755457999999635
+                  },
+                  {
+                    "stage": "solver",
+                    "elapsedMs": 6.2952920000534505
+                  },
+                  {
+                    "stage": "snapshot",
+                    "elapsedMs": 12.052332999999635
+                  },
+                  {
+                    "stage": "ready",
+                    "elapsedMs": 12.055917000048794
+                  }
+                ]
+              },
+              "count": 641,
+              "frames": 240,
+              "selected": -1,
+              "time": 60.01999999999961,
+              "duration": 60,
+              "continuous": false,
+              "daysPerSecond": 0.01,
+              "actualDaysPerSecond": 0,
+              "orbitRevision": 18,
+              "orbitState": [],
+              "stepMs": 104.810958,
+              "steps": 402,
+              "maxSpeed": 10.850716029661447,
+              "meanDensity": 1377.8904974710606,
+              "totalMass": 13752636000354623000,
+              "sph": {
+                "available": true,
+                "pressureMinGPa": -1.1715397627107471,
+                "pressureMaxGPa": 14.338293360189393,
+                "pressureMeanGPa": 0.16266794176104174,
+                "internalMinMJkg": 0.1903698684954542,
+                "internalMaxMJkg": 6.475386055598606,
+                "internalMeanMJkg": 1.4042723558572066,
+                "damageMean": 0.927354232224081,
+                "damageMax": 1,
+                "kineticJ": 4.4954311741559975e+25,
+                "internalJ": 1.9312446555464601e+25,
+                "structure": [
+                  -4.0183998053059006e+22,
+                  4.4954311741559975e+25,
+                  179.51465478876887,
+                  1919.8930440547167
+                ],
+                "response": {
+                  "softeningMean": 0.40397234347413125,
+                  "zeroShearMassFraction": 0.03870149565050891,
+                  "damagedMassFraction": 0.9140484804136115,
+                  "strengthMean": 0.007692356845842635,
+                  "model": "basalt-von-mises-response-v1",
+                  "meltEnergyMJkg": 3.4,
+                  "intactYieldGPa": 3.5
+                }
+              },
+              "energyError": 0,
+              "angularError": 0,
+              "model": "sph-orbit-impact-v1",
+              "contact": {
+                "count": 1,
+                "a": 1,
+                "b": 2,
+                "timeSeconds": 29.999433008110678,
+                "normalSpeedKmS": 8.000427648980935,
+                "restitution": 1,
+                "tides": {
+                  "available": true,
+                  "reason": "可加入同一事件快照的冻结线性潮汐；外部天体不响应",
+                  "sourceCount": 1,
+                  "radiusLimitKm": 1495978.706997373,
+                  "motionRatio": 0.00001306660872220675,
+                  "tensorS2": [
+                    7.928031986009371e-14,
+                    6.744243181733593e-19,
+                    0,
+                    6.744243181733593e-19,
+                    -3.964015992813445e-14,
+                    0,
+                    0,
+                    0,
+                    -3.9640159931959256e-14
+                  ]
+                },
+                "incoming": {
+                  "available": true,
+                  "withinCurrentBounds": true,
+                  "reason": "可用真实入射状态运行局部岩体 SPH；外部潮汐需另行检查",
+                  "model": "orbital-incoming-com-v1",
+                  "velocityConvention": "kick-drift-kick incoming half-step",
+                  "timeSeconds": 29.999433008110678,
+                  "relativeSpeedKmS": 8.000427648980935,
+                  "contactAngleDegrees": 0,
+                  "kineticEnergyJ": 6.4293779752571005e+25,
+                  "originAU": [
+                    0.9999999999764746,
+                    0.000005671220964941743,
+                    0
+                  ],
+                  "velocityKmS": [
+                    -0.00017746668139695463,
+                    32.578947367802336,
+                    0
+                  ],
+                  "angularMomentumKgM2S": [
+                    0,
+                    0,
+                    -825128717756.9418
+                  ],
+                  "bodies": [
+                    {
+                      "id": 1,
+                      "massKg": 11309733552923255000,
+                      "radiusKm": 100,
+                      "densityKgM3": 2700,
+                      "positionM": [
+                        0,
+                        -28421.052631578936,
+                        0
+                      ],
+                      "velocityMS": [
+                        -4.559837295767177e-13,
+                        1421.128595542666,
+                        0
+                      ]
+                    },
+                    {
+                      "id": 2,
+                      "massKg": 2442902447431423000,
+                      "radiusKm": 60,
+                      "densityKgM3": 2700,
+                      "positionM": [
+                        0,
+                        131578.947368421,
+                        0
+                      ],
+                      "velocityMS": [
+                        2.1110357850773967e-12,
+                        -6579.299053438269,
+                        0
+                      ]
+                    }
+                  ]
+                }
+              },
+              "impact": {
+                "local": true,
+                "canReturn": true,
+                "preparing": false,
+                "sourceTimeSeconds": 29.999433008110678,
+                "eventCount": 1,
+                "a": 1,
+                "b": 2,
+                "tides": false,
+                "elapsedSeconds": 60.01999999999961,
+                "eventEpochPlusElapsedSeconds": 90.0194330081103,
+                "tidalPotentialJ": 0,
+                "trackedEnergyJ": 6.422657429897151e+25,
+                "energyScope": "kinetic + internal + softened self gravity + frozen tide; excludes elastic strain energy and parent world",
+                "assumptions": "isolated cold basalt, zero spin, self gravity; world paused; no remnant reinsertion"
+              },
+              "timeUnit": "s",
+              "bodies": [],
+              "config": {
+                "preset": 0,
+                "count": 600,
+                "speed": 8.000427648980935,
+                "angle": 0,
+                "duration": 60,
+                "targetRadiusKm": 100,
+                "impactorRadiusKm": 60,
+                "targetDensity": 2700,
+                "impactorDensity": 2700,
+                "selfGravity": true,
+                "impactLocal": true,
+                "impactTides": false,
+                "targetSpin": 0,
+                "seed": 1234
+              }
+            },
+            "localCamera": {
+              "yaw": 0,
+              "pitch": 0.25,
+              "zoom": 3,
+              "focus": -1,
+              "color": 0
+            },
+            "fragments": {
+              "sceneRevision": 18,
+              "selected": -1,
+              "time": 60.01999999999961,
+              "frameIndex": 239,
+              "linkScale": 1.5,
+              "offset": 0,
+              "method": "symmetric-smoothing-connectivity-v1",
+              "available": true,
+              "originAvailable": true,
+              "originReason": "按本帧真实粒子质量汇总初始天体来源；单一玄武岩，非分层成分或束缚判定",
+              "originEventCount": 1,
+              "originEventTimeSeconds": 29.999433008110678,
+              "originTotalsKg": [
+                11309733552923271000,
+                2442902447431426000
+              ],
+              "originIds": [
+                1,
+                2
+              ],
+              "originNamespace": "orbit-contact-body-index",
+              "originModel": "initial-rock-body-mass-v1",
+              "originMaterial": "basalt-single-material-v1",
+              "originLabels": [
+                "轨道天体 1",
+                "轨道天体 2"
+              ],
+              "groupCount": 58,
+              "particleCount": 641,
+              "totalMassKg": 13752636000354623000,
+              "singletonCount": 51,
+              "singletonMassKg": 1001285275490860000,
+              "largestMassFraction": 0.9096742839752693,
+              "nextOffset": 32,
+              "reason": "",
+              "groups": [
+                {
+                  "originMassKg": [
+                    10510292927560684000,
+                    2000126378834478800
+                  ],
+                  "originFractions": [
+                    0.8401231541606291,
+                    0.15987684583937567
+                  ],
+                  "rank": 1,
+                  "anchor": 0,
+                  "count": 578,
+                  "massKg": 12510419306395103000,
+                  "massFraction": 0.9096742839752693,
+                  "rmsRadiusKm": 144.67685825388088,
+                  "centerKm": [
+                    0.9810205488512449,
+                    -8.728041702849069,
+                    -0.07727143254713618
+                  ],
+                  "velocityKmS": [
+                    0.010659700618616449,
+                    -0.08199171296514611,
+                    0.00154809507309588
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    47025919138973896,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 2,
+                  "anchor": 45,
+                  "count": 2,
+                  "massKg": 47025919138973896,
+                  "massFraction": 0.00341941131414816,
+                  "rmsRadiusKm": 25.738800741033806,
+                  "centerKm": [
+                    136.9446885226737,
+                    78.6097615118421,
+                    -268.3079387703016
+                  ],
+                  "velocityKmS": [
+                    2.2855913793664095,
+                    0.9247880609999811,
+                    -4.290186650557991
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    47025919138973896,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 3,
+                  "anchor": 409,
+                  "count": 2,
+                  "massKg": 47025919138973896,
+                  "massFraction": 0.00341941131414816,
+                  "rmsRadiusKm": 14.362179507749612,
+                  "centerKm": [
+                    118.50075011612624,
+                    81.05664172468317,
+                    330.25744534548994
+                  ],
+                  "velocityKmS": [
+                    1.8760112101557447,
+                    0.6750108626855421,
+                    5.348739543889348
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    15268140296446376
+                  ],
+                  "originFractions": [
+                    0.6062994512989961,
+                    0.3937005487010038
+                  ],
+                  "rank": 4,
+                  "anchor": 212,
+                  "count": 2,
+                  "massKg": 38781099865933330,
+                  "massFraction": 0.002819903025495136,
+                  "rmsRadiusKm": 18.286462502728718,
+                  "centerKm": [
+                    -324.41797438197284,
+                    77.04396986089365,
+                    -71.3283198884547
+                  ],
+                  "velocityKmS": [
+                    -5.092350680976699,
+                    0.42524563052517333,
+                    -1.0561033997044118
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    15268140296446376
+                  ],
+                  "originFractions": [
+                    0.6062994512989961,
+                    0.3937005487010038
+                  ],
+                  "rank": 5,
+                  "anchor": 287,
+                  "count": 2,
+                  "massKg": 38781099865933330,
+                  "massFraction": 0.002819903025495136,
+                  "rmsRadiusKm": 19.683368968171525,
+                  "centerKm": [
+                    292.2058854101276,
+                    94.8143549685621,
+                    71.40409982961522
+                  ],
+                  "velocityKmS": [
+                    4.877730827247438,
+                    1.1145861917936823,
+                    1.2983941700656425
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    15268140296446376
+                  ],
+                  "originFractions": [
+                    0.6062994512989961,
+                    0.3937005487010038
+                  ],
+                  "rank": 6,
+                  "anchor": 408,
+                  "count": 2,
+                  "massKg": 38781099865933330,
+                  "massFraction": 0.002819903025495136,
+                  "rmsRadiusKm": 20.384440280119687,
+                  "centerKm": [
+                    -67.99988436260732,
+                    97.4271481110765,
+                    284.7770790318517
+                  ],
+                  "velocityKmS": [
+                    -1.1911529739809503,
+                    1.1063267077323617,
+                    4.64049773999347
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    0,
+                    30536280592892750
+                  ],
+                  "originFractions": [
+                    0,
+                    1
+                  ],
+                  "rank": 7,
+                  "anchor": 602,
+                  "count": 2,
+                  "massKg": 30536280592892750,
+                  "massFraction": 0.0022203947368421113,
+                  "rmsRadiusKm": 18.456984517750858,
+                  "centerKm": [
+                    58.565350057481055,
+                    97.61289148556402,
+                    284.0766599225765
+                  ],
+                  "velocityKmS": [
+                    1.029681974667989,
+                    1.0835457338493366,
+                    4.6946301482443165
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 8,
+                  "anchor": 43,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    -95.54688730759067,
+                    48.5317926454269,
+                    -285.9563269760783
+                  ],
+                  "velocityKmS": [
+                    -1.5465780947934353,
+                    0.1923062913462989,
+                    -4.286544461979743
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 9,
+                  "anchor": 44,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    4.700400675800137,
+                    38.25119509332533,
+                    -330.68452762481746
+                  ],
+                  "velocityKmS": [
+                    -0.03214699179091946,
+                    0.005786568575962447,
+                    -5.111660916600699
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 10,
+                  "anchor": 90,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    -213.2790477427597,
+                    74.44708620283733,
+                    -293.64320285113024
+                  ],
+                  "velocityKmS": [
+                    -3.3497006798739046,
+                    0.48360131510575954,
+                    -4.677189473409495
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 11,
+                  "anchor": 91,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 7.275957614183426e-15,
+                  "centerKm": [
+                    -165.2344746021646,
+                    63.27611696990262,
+                    -352.9323037825613
+                  ],
+                  "velocityKmS": [
+                    -2.789927923559464,
+                    0.3136733652522503,
+                    -5.779543001466684
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 12,
+                  "anchor": 92,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    31.656245086519274,
+                    83.54478177101716,
+                    -357.65774371328865
+                  ],
+                  "velocityKmS": [
+                    0.44549539120393383,
+                    0.9221705654055601,
+                    -5.915666791510664
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 13,
+                  "anchor": 93,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    191.30038600975763,
+                    85.4780754606049,
+                    -341.39806911758296
+                  ],
+                  "velocityKmS": [
+                    3.13110603250793,
+                    0.7291095832814386,
+                    -5.577935281614544
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 14,
+                  "anchor": 143,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    -248.25976531185114,
+                    36.770216846375526,
+                    -136.52537064501476
+                  ],
+                  "velocityKmS": [
+                    -3.665692433423646,
+                    -0.11892907320666254,
+                    -2.078522075205558
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 15,
+                  "anchor": 150,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 2.9103830456733704e-14,
+                  "centerKm": [
+                    -312.28532337206724,
+                    72.96856414146578,
+                    -253.97067723386942
+                  ],
+                  "velocityKmS": [
+                    -4.897419065205057,
+                    0.3619682310380113,
+                    -4.1900311118097475
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 16,
+                  "anchor": 151,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    -194.74787120492448,
+                    101.05951356667651,
+                    -249.8040825131336
+                  ],
+                  "velocityKmS": [
+                    -3.1164094824160835,
+                    1.2575391808976355,
+                    -4.150877271170467
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 17,
+                  "anchor": 152,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    -31.23752551401192,
+                    86.84739022040694,
+                    -237.6923166842373
+                  ],
+                  "velocityKmS": [
+                    -0.46755217320098924,
+                    1.4667516565912477,
+                    -4.111335092596402
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 18,
+                  "anchor": 154,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    266.12542252660717,
+                    92.63864144454385,
+                    -270.87091182655377
+                  ],
+                  "velocityKmS": [
+                    4.363636751031475,
+                    0.9041457312215292,
+                    -4.470423768617952
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 19,
+                  "anchor": 218,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    -281.4875908412787,
+                    138.2810297647524,
+                    -160.3639149262841
+                  ],
+                  "velocityKmS": [
+                    -4.853054757366158,
+                    2.2032875683722666,
+                    -2.9183507854823816
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 20,
+                  "anchor": 221,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    383.6010599675133,
+                    152.7005887682499,
+                    -132.59091414304197
+                  ],
+                  "velocityKmS": [
+                    6.576609362896915,
+                    2.058921667076349,
+                    -2.3039003004763696
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 21,
+                  "anchor": 283,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    -372.1914217459827,
+                    60.097087661535696,
+                    -1.919103752750344
+                  ],
+                  "velocityKmS": [
+                    -6.081694081537476,
+                    0.19301189578825376,
+                    -0.1295289988918045
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 22,
+                  "anchor": 288,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 7.275957614183426e-15,
+                  "centerKm": [
+                    411.2274560932552,
+                    91.97237918586005,
+                    64.01495514657356
+                  ],
+                  "velocityKmS": [
+                    6.707147679824825,
+                    0.7291121624734688,
+                    1.1329254220232232
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 23,
+                  "anchor": 347,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    -361.75045492509287,
+                    55.841792133339,
+                    134.24237130417328
+                  ],
+                  "velocityKmS": [
+                    -5.731935899121922,
+                    0.045613094188550515,
+                    2.1582413366508786
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 24,
+                  "anchor": 352,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    363.1828108237148,
+                    8.05111490624007,
+                    200.56821605051206
+                  ],
+                  "velocityKmS": [
+                    6.02170674687331,
+                    -0.8221146207417616,
+                    3.478671053068992
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 25,
+                  "anchor": 353,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    -353.1426602995253,
+                    138.36606270922005,
+                    271.57300815648017
+                  ],
+                  "velocityKmS": [
+                    -6.047598054987475,
+                    1.8037428779041973,
+                    4.722969593361531
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 26,
+                  "anchor": 355,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 1.4551915228366852e-14,
+                  "centerKm": [
+                    174.0716576832869,
+                    119.17482980056158,
+                    209.14363459837506
+                  ],
+                  "velocityKmS": [
+                    3.1944048735453148,
+                    2.2556376522464303,
+                    3.68320819033025
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 27,
+                  "anchor": 401,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    -251.55024810282015,
+                    34.427365281342844,
+                    157.0600311141718
+                  ],
+                  "velocityKmS": [
+                    -3.697938116624138,
+                    -0.13516023690111154,
+                    2.250536771558094
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 28,
+                  "anchor": 407,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    -266.36314835714876,
+                    35.807956134499285,
+                    344.7595831549484
+                  ],
+                  "velocityKmS": [
+                    -4.5195886783897725,
+                    -0.32338970987383914,
+                    5.7125494242305175
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 29,
+                  "anchor": 410,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    364.49977062055245,
+                    56.34980038385122,
+                    272.2603755739828
+                  ],
+                  "velocityKmS": [
+                    6.147899759661331,
+                    0.06554169624268193,
+                    4.295039293971989
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 30,
+                  "anchor": 450,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 7.275957614183426e-15,
+                  "centerKm": [
+                    147.7654744537953,
+                    54.0344630581183,
+                    224.83367974518197
+                  ],
+                  "velocityKmS": [
+                    2.207802330322719,
+                    0.36749720843719424,
+                    3.497207525992734
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 31,
+                  "anchor": 451,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 0,
+                  "centerKm": [
+                    -66.23971341781527,
+                    104.37531080909362,
+                    342.7365601376855
+                  ],
+                  "velocityKmS": [
+                    -0.8079133728325276,
+                    1.0852118489117666,
+                    5.4045561000842754
+                  ]
+                },
+                {
+                  "originMassKg": [
+                    23512959569486948,
+                    0
+                  ],
+                  "originFractions": [
+                    1,
+                    0
+                  ],
+                  "rank": 32,
+                  "anchor": 452,
+                  "count": 1,
+                  "massKg": 23512959569486948,
+                  "massFraction": 0.00170970565707408,
+                  "rmsRadiusKm": 7.275957614183426e-15,
+                  "centerKm": [
+                    53.3925527440534,
+                    100.6259031582496,
+                    355.37205014071765
+                  ],
+                  "velocityKmS": [
+                    0.913893527274388,
+                    1.0761067600662708,
+                    5.681564204008575
+                  ]
+                }
+              ]
+            },
+            "impactActions": [
+              {
+                "id": "impact.inspect",
+                "label": "查看撞击初值",
+                "enabled": false,
+                "selected": false
+              },
+              {
+                "id": "impact.simulate",
+                "label": "模拟这次撞击",
+                "enabled": false,
+                "selected": false
+              },
+              {
+                "id": "impact.simulateTides",
+                "label": "含外部潮汐",
+                "enabled": false,
+                "selected": false
+              },
+              {
+                "id": "impact.return",
+                "label": "返回轨道",
+                "enabled": true,
+                "selected": false
+              },
+              {
+                "id": "orbit.add",
+                "label": "加入天体",
+                "enabled": false,
+                "selected": false
+              }
+            ],
+            "addRejected": {
+              "ok": false,
+              "error": "Error: Action unavailable: orbit.add"
+            },
+            "returnedWorld": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": -5.687828106146419e-12,
+                "yAU": -3.1211199197053995e-17,
+                "zAU": 0,
+                "vxKmS": 1.2315284535702857e-15,
+                "vyKmS": -1.9338615561021548e-10,
+                "vzKmS": 0,
+                "surface": 0,
+                "radiusKm": 695700
+              },
+              {
+                "name": "100 km 岩体",
+                "massSolar": 5.687828106302367e-12,
+                "xAU": 0.9999999999764426,
+                "yAU": 0.000005486859417618148,
+                "zAU": 0,
+                "vxKmS": -0.00017805919780247833,
+                "vyKmS": 31.157819406914786,
+                "vzKmS": 0,
+                "surface": 3,
+                "radiusKm": 100
+              },
+              {
+                "name": "60 km 岩体",
+                "massSolar": 1.2285708709613112e-12,
+                "xAU": 0.9999999999764426,
+                "yAU": 0.000006557836784435376,
+                "zAU": 0,
+                "vxKmS": -0.00017805919779989986,
+                "vyKmS": 39.15824348300357,
+                "vzKmS": 0,
+                "surface": 5,
+                "radiusKm": 60
+              }
+            ],
+            "returnedTime": 9.514799373458269e-7,
+            "loadedImpact": {
+              "local": true,
+              "canReturn": false,
+              "preparing": false,
+              "sourceTimeSeconds": 29.999433008110678,
+              "eventCount": 1,
+              "a": 1,
+              "b": 2,
+              "tides": false,
+              "elapsedSeconds": 60.01999999999961,
+              "eventEpochPlusElapsedSeconds": 90.0194330081103,
+              "tidalPotentialJ": 0,
+              "trackedEnergyJ": 6.422657429897151e+25,
+              "energyScope": "kinetic + internal + softened self gravity + frozen tide; excludes elastic strain energy and parent world",
+              "assumptions": "isolated cold basalt, zero spin, self gravity; world paused; no remnant reinsertion"
+            }
+          },
+          "workflowComplete": false,
+          "firstBlocker": "continuousView",
+          "wallSeconds": 99.209
+        },
+        {
+          "id": "G2",
+          "checks": [
+            {
+              "id": "placement",
+              "status": "passed",
+              "evidence": "G1 applied configuration copied, only projectile x offset changed"
+            }
+          ],
+          "observations": {
+            "changedField": {
+              "field": "orbitBodies[2].xAU",
+              "deltaKm": 400
+            },
+            "initialConfig": {
+              "preset": 5,
+              "count": 600,
+              "speed": 1,
+              "angle": 0,
+              "duration": 1,
+              "targetRadiusKm": 100,
+              "impactorRadiusKm": 60,
+              "targetDensity": 2700,
+              "impactorDensity": 2700,
+              "targetSpin": 0,
+              "seed": 1234,
+              "orbitBodies": [
+                {
+                  "name": "恒星",
+                  "massSolar": 1,
+                  "xAU": -5.687828106270015e-12,
+                  "yAU": 7.604156502569813e-18,
+                  "zAU": 0,
+                  "vxKmS": 0,
+                  "vyKmS": -1.933861556131805e-10,
+                  "vzKmS": 0,
+                  "surface": 0,
+                  "radiusKm": 695700
+                },
+                {
+                  "name": "100 km 岩体",
+                  "massSolar": 5.687828106302367e-12,
+                  "xAU": 0.9999999999943122,
+                  "yAU": -0.000001336917424446085,
+                  "zAU": 0,
+                  "vxKmS": 0,
+                  "vyKmS": 33.99999999980661,
+                  "vzKmS": 0,
+                  "surface": 3,
+                  "radiusKm": 100
+                },
+                {
+                  "name": "60 km 岩体",
+                  "massSolar": 1.2285708709613112e-12,
+                  "xAU": 1.0000026738291612,
+                  "yAU": 0.0000013369174244612935,
+                  "zAU": 0,
+                  "vxKmS": 0,
+                  "vyKmS": 25.99999999980661,
+                  "vzKmS": 0,
+                  "surface": 5,
+                  "radiusKm": 60
+                }
+              ]
+            },
+            "initialWorld": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": -6.9164022622114505e-12,
+                "yAU": 5.961658698007409e-18,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": -2.2532899825771607e-10,
+                "vzKmS": 0,
+                "surface": 0,
+                "radiusKm": 695700
+              },
+              {
+                "name": "100 km 岩体",
+                "massSolar": 5.687828106302367e-12,
+                "xAU": 0.9999999999930836,
+                "yAU": -0.0000013369174244477274,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 33.999999999774666,
+                "vzKmS": 0,
+                "surface": 3,
+                "radiusKm": 100
+              },
+              {
+                "name": "60 km 岩体",
+                "massSolar": 1.2285708709613112e-12,
+                "xAU": 1.0000026738279326,
+                "yAU": 0.000001336917424459651,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 25.999999999774666,
+                "vzKmS": 0,
+                "surface": 5,
+                "radiusKm": 60
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'nbody-hard-sphere-v1'\n- 'nbody-custom-v1'\n         ^\n\n    at file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-continuous-collision-emulator.mjs:56:426"
+  ],
+  "restoration": {
+    "completed": true,
+    "persistentFiles": 13,
+    "exactFiles": true,
+    "initialPausedScene": true,
+    "camera": true,
+    "appearance": true
+  },
+  "installedVersion": "0.56.0"
+}

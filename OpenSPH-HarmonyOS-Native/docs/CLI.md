@@ -1,8 +1,19 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.56.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.56.0；更新日期：2026-09-09（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
+
+## 连续碰撞验收基线
+
+[固定协议](reference/CONTINUOUS-COLLISION-ACCEPTANCE.md)使用 G1 迎面、G2 近掠、G3 近恒星三场景，各重复两轮。只接受指定模拟器上的 0.56.0 和无草稿、无录像、未运行的 SPH 初始暂停帧；其他会话在修改前拒绝。执行器备份原持久文件，结束恢复初始场景并逐文件核对，备份必须留在私有 build 目录。
+
+```sh
+node scripts/test-continuous-collision-emulator.mjs 127.0.0.1:5555 docs/evidence/r01-new-run build/r01-new-private-backup
+node scripts/analyze-collision-acceptance.mjs docs/evidence/r01-new-run/report.json examples/acceptance/continuous-collision-v1.json
+```
+
+两个输出目录须不存在。执行器退出 2 表示资料采集完成但产品流程仍不完整，退出 1 表示采集／断言／恢复错误，退出 0 才表示其完整判据通过。独立检查器核对实际输入、两轮分类与恢复，成功不等于产品玩法通关。未来模型升级须更新版本和判据，不沿用 0.56.0 的缺失断言。CLI 状态检查不能替代触摸、动画或科学数值验证。
 
 ## 碎片来源与质量表
 

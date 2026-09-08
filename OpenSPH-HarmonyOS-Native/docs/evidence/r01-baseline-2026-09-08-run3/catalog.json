@@ -1,0 +1,918 @@
+{
+  "commands": [
+    {
+      "name": "getState",
+      "payload": "{}"
+    },
+    {
+      "name": "getImpactPlan",
+      "payload": "{} - latest incoming orbital contact in the selected frame; local COM metres, m/s and kg; bounds check only, no SPH handoff"
+    },
+    {
+      "name": "getCameraMotion",
+      "payload": "{requestId?:number}; 0/current by default, last 32 terminal requests retained"
+    },
+    {
+      "name": "cancelCameraMotion",
+      "payload": "{requestId?:number}; stops only that request; stale cancellation cannot stop a newer flight"
+    },
+    {
+      "name": "navigateCamera",
+      "payload": "{focus:number,closeup?:boolean,yaw?:number,pitch?:number,zoom?:number,durationMs?:0..3000}; explicit continuous flight, request ID in cameraMotion"
+    },
+    {
+      "name": "getGalaxyObservation",
+      "payload": "{} - coherent recorded galaxy samples, applied parameters and selected curve; time Myr"
+    },
+    {
+      "name": "getGalaxyReference",
+      "payload": "{} - locally retained galaxy result with applied parameters and original samples"
+    },
+    {
+      "name": "getGalaxyComparison",
+      "payload": "{} - shared Myr axes, parameter differences and interpolated cursor delta; no extrapolation"
+    },
+    {
+      "name": "getGalaxyComparisonTable",
+      "payload": "{} - both raw series, 19-column CSV with applied parameters; outer fractions remain 0..1"
+    },
+    {
+      "name": "getGalaxyTable",
+      "payload": "{} - CSV of every retained galaxy frame with model, initial parameters, units and model-scoped normalized errors"
+    },
+    {
+      "name": "getGalaxyPlacement",
+      "payload": "{} - active constrained initial offset preview; original history remains untouched"
+    },
+    {
+      "name": "setGalaxyPlacementPoint",
+      "payload": "{x:0..1,y:0..1} - displayed viewport point projected onto XY offset rail; X separation fixed 60 kpc, offset clamped 0..30 kpc"
+    },
+    {
+      "name": "getGalaxyDiagnostics",
+      "payload": "{} - current frame separation/radii in kpc, outer fractions and model-scoped energy error; not unbound mass"
+    },
+    {
+      "name": "getRingTrace",
+      "payload": "{particles?:boolean}; 8192 massless particles drive ring density; returns first 192 when particles=true; controlled radial impulse 0–0.35; km/km/s; speedScale 1–1.2, rateHours 0.1–4, independent 0–24 hour clock"
+    },
+    {
+      "name": "setSky",
+      "payload": "{mode?:0 clean|1 stars|2 galaxy,brightness?:0..1}; photographic galaxy / procedural stars; fixed-direction background"
+    },
+    {
+      "name": "setWindowOrientation",
+      "payload": "{orientation:auto|portrait|landscape|reverse-landscape}; main window only; auto respects system rotation lock"
+    },
+    {
+      "name": "getSkyInfo",
+      "payload": "{} - provenance and sky rendering status"
+    },
+    {
+      "name": "getProjectedBodies",
+      "payload": "{} - last presented orbital frame; normalized top-left x/y, radius in viewport-height units; ignores UI occlusion"
+    },
+    {
+      "name": "pickBody",
+      "payload": "{x:0..1,y:0..1} - viewport hit test, shared focus action; hit=-1 leaves selection unchanged"
+    },
+    {
+      "name": "followSphFragment",
+      "payload": "{particle:0..9999,sceneRevision:number} - follow the current component containing a selected material particle; no reload"
+    },
+    {
+      "name": "getSphFragmentFollow",
+      "payload": "{} - last rendered follow state, current group identity and target center in km"
+    },
+    {
+      "name": "getSphFragments",
+      "payload": "{offset?:0..10000,limit?:1..32} - selected-frame geometric material groups, SI-derived units and frame identity; not binding/reaggregation"
+    },
+    {
+      "name": "getSphFragmentTable",
+      "payload": "{offset?:0..10000,limit?:1..32} - paged CSV of real particle source mass per geometric group; pause and check sceneRevision/frameIndex/time between pages"
+    },
+    {
+      "name": "getSphComparison",
+      "payload": "{} - shared axes, parameter differences, saved SPH provenance and interpolated cursor delta"
+    },
+    {
+      "name": "getSphReference",
+      "payload": "{} - full saved SPH reference or null; independent from orbital reference"
+    },
+    {
+      "name": "getSphComparisonTable",
+      "payload": "{} - selected metric raw current/reference CSV, seconds, no interpolated rows"
+    },
+    {
+      "name": "getSphWindowSummary",
+      "payload": "{} - read-only retained-window radius/kinetic/radial statistics; no equilibrium verdict"
+    },
+    {
+      "name": "getSphObservation",
+      "payload": "{} - retained double-precision SPH curve, metric, units, extrema and frame identity; read-only"
+    },
+    {
+      "name": "getSphTable",
+      "payload": "{} - raw SPH CSV and applied source configuration; no interpolation"
+    },
+    {
+      "name": "getSphDiagnostics",
+      "payload": "{} - selected SPH frame pressure GPa, specific internal energy MJ/kg, cubed scalar damage and mass-weighted statistics; no seek"
+    },
+    {
+      "name": "getObservationComparison",
+      "payload": "{} - shared axes, overlap, interpolated difference and saved reference provenance"
+    },
+    {
+      "name": "getObservationReference",
+      "payload": "{} - complete saved local reference or null; does not seek"
+    },
+    {
+      "name": "getObservationTable",
+      "payload": "{} - CSV rows for current and saved reference; no interpolation"
+    },
+    {
+      "name": "getOrbitObservation",
+      "payload": "{} - current planet (or first planet), retained-frame distance/speed curve; read-only"
+    },
+    {
+      "name": "getPlacementPreview",
+      "payload": "{} - candidate at frozen current time, exact source revision, two-body guide; no mutation"
+    },
+    {
+      "name": "setViewportPlacementPoint",
+      "payload": "{x:0..1,y:0..1} main viewport tap/drag; exact presented plane projection; requires active placement"
+    },
+    {
+      "name": "setPlacementPoint",
+      "payload": "{x:0..1,y:0..1} in the placement plot; same handler as tap/drag"
+    },
+    {
+      "name": "getOrbitPreview",
+      "payload": "{} - initial editor vector drafts, input coordinates, XY/XZ; does not change physics"
+    },
+    {
+      "name": "listExperiments",
+      "payload": "{} - built-in theme initial conditions, observation goals and default cameras"
+    },
+    {
+      "name": "getVideoCapabilities",
+      "payload": "{} - device encoder capabilities; unavailable during video operations"
+    },
+    {
+      "name": "getVideoState",
+      "payload": "{} - recording status, elapsed wall seconds, submitted frames and local MP4 clips; uiAction video.* controls"
+    },
+    {
+      "name": "getUiState",
+      "payload": "{} - editor drafts, body edit undo/redo history, action IDs/enabled/selected, input fields"
+    },
+    {
+      "name": "listUiActions",
+      "payload": "{} - same semantic control catalog"
+    },
+    {
+      "name": "uiAction",
+      "payload": "{action:string} - invoke a catalog action through the same ArkUI handler"
+    },
+    {
+      "name": "getGalaxyObserver",
+      "payload": "{} - solar-radius analogue observer, current frame and sky orientation; illustrative horizon"
+    },
+    {
+      "name": "setUiValue",
+      "payload": "{field:string,value:string|number} - edit a catalog field; orbital inputs stay draft until orbit.apply"
+    },
+    {
+      "name": "setScene",
+      "payload": "{preset:0..6,count:200..2400,speed:0.5..10 (preset 2 allows 0; total spin = targetSpin + speed*0.003),angle:0..70,duration:1..120; galaxy preset 6: duration 50..800 Myr, speed .75..1.25 of 156.45 km/s, angle 0..70 inclination degrees, galaxyMassRatio?:.2..1, galaxyOffsetKpc?:0..30 initial transverse offset, galaxyRetrograde?:boolean, galaxyResponsive?:boolean (massive stellar response, count<=800); custom preset 5 requires orbitBodies (2..8), speed=1; optional radiusKm:1..10000000 on every body enables ideal elastic sphere contact and auto-pause; orbit preset 3/4: speed 0.75..1.25 circular-velocity factor, duration 1..10 Julian years; count/rock fields ignored; optional initialEnergyMJkg:0..6.8, initialDamage:0..1 (SPH only, incompatible with relaxation; same initial material state for both bodies); optional selfGravity:boolean (SPH only, count<=1200, defaults false); relaxationSeconds?:0|16|64 (requires selfGravity, isolated stationary pre-relaxation); targetRadiusKm:40..200,impactorRadiusKm:20..120,targetDensity:2400..3000,impactorDensity:2400..3000,targetSpin:-0.01..0.01,seed:1..1000000}"
+    },
+    {
+      "name": "start",
+      "payload": "{}"
+    },
+    {
+      "name": "pause",
+      "payload": "{}"
+    },
+    {
+      "name": "reset",
+      "payload": "{}"
+    },
+    {
+      "name": "getPreparation",
+      "payload": "{}; monotonic phase timings, request ID, previous worker phase and bounded history; no mutation"
+    },
+    {
+      "name": "seek",
+      "payload": "{frame:-1 or retained frame index}"
+    },
+    {
+      "name": "setCamera",
+      "payload": "{yaw:-100..100,pitch:-1.5..1.5,zoom:0.5..15,focus:-1..1 (orbit preset 4: -1..3; custom: -1..bodyCount-1),color:0..8 (galaxy 0..1; 0 original,1 speed,2 density,3 pressure,4 specific internal energy,5 damage,6 geometric groups,7 thermal appearance,8 remaining yield strength; orbit 0..1)}"
+    },
+    {
+      "name": "getSurfaceInfo",
+      "payload": "{}; Moon source, loading state, upload count and bounded memory"
+    },
+    {
+      "name": "setSurfaceSeed",
+      "payload": "{body:1..7,surfaceSeed?:0..1000000,cloudSeed?:0..1000000}; custom planets; preserves simulation and camera; 0 = legacy"
+    },
+    {
+      "name": "setMaterial",
+      "payload": "{exposure?:-2..2 EV,ocean?:boolean,cloudShadows?:boolean}; original-color orbital surfaces only; no camera or solver reset"
+    },
+    {
+      "name": "setAppearance",
+      "payload": "{clouds?:boolean,atmosphere?:boolean,trails?:boolean,closeup?:boolean,autoSpin?:boolean,rings?:boolean} (visual settings only)"
+    },
+    {
+      "name": "setPanel",
+      "payload": "{panel:-1 close,0 parameters,1 observe,2 library}"
+    },
+    {
+      "name": "listProjects",
+      "payload": "{}"
+    },
+    {
+      "name": "saveProject",
+      "payload": "{title:string}"
+    },
+    {
+      "name": "loadProject",
+      "payload": "{id:string}"
+    },
+    {
+      "name": "saveReplay",
+      "payload": "{}"
+    },
+    {
+      "name": "loadReplay",
+      "payload": "{}"
+    }
+  ],
+  "actions": [
+    {
+      "id": "panel.parameters"
+    },
+    {
+      "id": "panel.observe"
+    },
+    {
+      "id": "panel.library"
+    },
+    {
+      "id": "panel.close"
+    },
+    {
+      "id": "ui.focus"
+    },
+    {
+      "id": "ui.restore"
+    },
+    {
+      "id": "ui.back"
+    },
+    {
+      "id": "theme.rock-slow"
+    },
+    {
+      "id": "theme.rock-fast"
+    },
+    {
+      "id": "theme.rock-oblique"
+    },
+    {
+      "id": "theme.rock-spin"
+    },
+    {
+      "id": "theme.ocean-world"
+    },
+    {
+      "id": "theme.three-worlds"
+    },
+    {
+      "id": "theme.ring-world"
+    },
+    {
+      "id": "theme.kepler-ring"
+    },
+    {
+      "id": "theme.eccentric-ring"
+    },
+    {
+      "id": "theme.moon-atlas"
+    },
+    {
+      "id": "theme.resolution-coarse"
+    },
+    {
+      "id": "theme.resolution-fine"
+    },
+    {
+      "id": "theme.direct-impact"
+    },
+    {
+      "id": "theme.prepared-impact"
+    },
+    {
+      "id": "theme.sphere-unprepared"
+    },
+    {
+      "id": "theme.sphere-release"
+    },
+    {
+      "id": "theme.galaxy-tails"
+    },
+    {
+      "id": "theme.galaxy-retrograde"
+    },
+    {
+      "id": "theme.galaxy-responsive"
+    },
+    {
+      "id": "theme.galaxy-response-control"
+    },
+    {
+      "id": "theme.material-cold"
+    },
+    {
+      "id": "theme.material-hot"
+    },
+    {
+      "id": "theme.material-fractured"
+    },
+    {
+      "id": "theme.restore"
+    },
+    {
+      "id": "theme.compare"
+    },
+    {
+      "id": "theme.observe"
+    },
+    {
+      "id": "library.collision"
+    },
+    {
+      "id": "library.explore"
+    },
+    {
+      "id": "library.saved"
+    },
+    {
+      "id": "presets.show"
+    },
+    {
+      "id": "preset.0"
+    },
+    {
+      "id": "preset.1"
+    },
+    {
+      "id": "preset.2"
+    },
+    {
+      "id": "preset.3"
+    },
+    {
+      "id": "preset.4"
+    },
+    {
+      "id": "preset.5"
+    },
+    {
+      "id": "preset.6"
+    },
+    {
+      "id": "time.rate.0.01"
+    },
+    {
+      "id": "time.rate.0.1"
+    },
+    {
+      "id": "time.rate.1"
+    },
+    {
+      "id": "time.rate.10"
+    },
+    {
+      "id": "time.rate.100"
+    },
+    {
+      "id": "simulation.toggle"
+    },
+    {
+      "id": "simulation.apply"
+    },
+    {
+      "id": "simulation.cancel"
+    },
+    {
+      "id": "replay.toggle"
+    },
+    {
+      "id": "replay.latest"
+    },
+    {
+      "id": "replay.save"
+    },
+    {
+      "id": "replay.load"
+    },
+    {
+      "id": "video.open"
+    },
+    {
+      "id": "video.close"
+    },
+    {
+      "id": "video.reload"
+    },
+    {
+      "id": "video.start"
+    },
+    {
+      "id": "video.stop"
+    },
+    {
+      "id": "video.preview"
+    },
+    {
+      "id": "video.preview.close"
+    },
+    {
+      "id": "video.export"
+    },
+    {
+      "id": "video.quality.1280"
+    },
+    {
+      "id": "video.quality.1920"
+    },
+    {
+      "id": "video.select.scene-1788847279549-688987.mp4"
+    },
+    {
+      "id": "surface.toggle"
+    },
+    {
+      "id": "selection.edit"
+    },
+    {
+      "id": "surface.previous"
+    },
+    {
+      "id": "surface.next"
+    },
+    {
+      "id": "focus.0"
+    },
+    {
+      "id": "focus.1"
+    },
+    {
+      "id": "orbit.plane.xy"
+    },
+    {
+      "id": "orbit.plane.xz"
+    },
+    {
+      "id": "sky.mode.0"
+    },
+    {
+      "id": "sky.mode.1"
+    },
+    {
+      "id": "sky.mode.2"
+    },
+    {
+      "id": "camera.cancel"
+    },
+    {
+      "id": "focus.all"
+    },
+    {
+      "id": "camera.out"
+    },
+    {
+      "id": "camera.in"
+    },
+    {
+      "id": "camera.reset"
+    },
+    {
+      "id": "color.0"
+    },
+    {
+      "id": "color.1"
+    },
+    {
+      "id": "color.2"
+    },
+    {
+      "id": "trace.disturb"
+    },
+    {
+      "id": "trace.clear"
+    },
+    {
+      "id": "trace.points"
+    },
+    {
+      "id": "trace.controls"
+    },
+    {
+      "id": "trace.circular"
+    },
+    {
+      "id": "trace.ellipse"
+    },
+    {
+      "id": "trace.apoapsis"
+    },
+    {
+      "id": "trace.toggle"
+    },
+    {
+      "id": "trace.play"
+    },
+    {
+      "id": "trace.reset"
+    },
+    {
+      "id": "sph.metric.pressure"
+    },
+    {
+      "id": "sph.metric.internal"
+    },
+    {
+      "id": "sph.metric.damage"
+    },
+    {
+      "id": "sph.metric.kinetic"
+    },
+    {
+      "id": "sph.metric.energy"
+    },
+    {
+      "id": "sph.metric.gravity"
+    },
+    {
+      "id": "sph.metric.relativeKinetic"
+    },
+    {
+      "id": "sph.metric.radius"
+    },
+    {
+      "id": "sph.metric.radial"
+    },
+    {
+      "id": "sph.minimum"
+    },
+    {
+      "id": "sph.maximum"
+    },
+    {
+      "id": "fragments.inspect"
+    },
+    {
+      "id": "fragments.material"
+    },
+    {
+      "id": "fragments.largest"
+    },
+    {
+      "id": "fragments.stop"
+    },
+    {
+      "id": "fragments.follow.0"
+    },
+    {
+      "id": "color.7"
+    },
+    {
+      "id": "color.8"
+    },
+    {
+      "id": "color.6"
+    },
+    {
+      "id": "fragments.previous"
+    },
+    {
+      "id": "fragments.next"
+    },
+    {
+      "id": "color.3"
+    },
+    {
+      "id": "color.4"
+    },
+    {
+      "id": "color.5"
+    },
+    {
+      "id": "sph.reference.capture"
+    },
+    {
+      "id": "sph.reference.toggle"
+    },
+    {
+      "id": "sph.reference.clear"
+    },
+    {
+      "id": "sph.reference.reload"
+    },
+    {
+      "id": "comparison.capture"
+    },
+    {
+      "id": "comparison.toggle"
+    },
+    {
+      "id": "comparison.clear"
+    },
+    {
+      "id": "comparison.reload"
+    },
+    {
+      "id": "observation.distance"
+    },
+    {
+      "id": "observation.speed"
+    },
+    {
+      "id": "observation.minimum"
+    },
+    {
+      "id": "observation.maximum"
+    },
+    {
+      "id": "moon.retry"
+    },
+    {
+      "id": "material.ocean"
+    },
+    {
+      "id": "material.cloudShadows"
+    },
+    {
+      "id": "material.reset"
+    },
+    {
+      "id": "terrain.new"
+    },
+    {
+      "id": "terrain.clouds"
+    },
+    {
+      "id": "terrain.undo"
+    },
+    {
+      "id": "terrain.redo"
+    },
+    {
+      "id": "appearance.rings"
+    },
+    {
+      "id": "appearance.clouds"
+    },
+    {
+      "id": "appearance.atmosphere"
+    },
+    {
+      "id": "appearance.trails"
+    },
+    {
+      "id": "appearance.spin"
+    },
+    {
+      "id": "scene.relax.0"
+    },
+    {
+      "id": "scene.relax.16"
+    },
+    {
+      "id": "scene.relax.64"
+    },
+    {
+      "id": "galaxy.place"
+    },
+    {
+      "id": "galaxy.place.cancel"
+    },
+    {
+      "id": "galaxy.place.confirm"
+    },
+    {
+      "id": "galaxy.observer.space"
+    },
+    {
+      "id": "galaxy.observer.ground"
+    },
+    {
+      "id": "galaxy.observer.exit"
+    },
+    {
+      "id": "galaxy.observer.primary"
+    },
+    {
+      "id": "galaxy.observer.secondary"
+    },
+    {
+      "id": "galaxy.reference.capture"
+    },
+    {
+      "id": "galaxy.reference.toggle"
+    },
+    {
+      "id": "galaxy.reference.clear"
+    },
+    {
+      "id": "galaxy.reference.reload"
+    },
+    {
+      "id": "galaxy.metric.0"
+    },
+    {
+      "id": "galaxy.metric.1"
+    },
+    {
+      "id": "galaxy.metric.2"
+    },
+    {
+      "id": "galaxy.metric.3"
+    },
+    {
+      "id": "galaxy.metric.4"
+    },
+    {
+      "id": "galaxy.minimum"
+    },
+    {
+      "id": "galaxy.maximum"
+    },
+    {
+      "id": "galaxy.responsive"
+    },
+    {
+      "id": "galaxy.retrograde"
+    },
+    {
+      "id": "scene.stationary"
+    },
+    {
+      "id": "scene.gravity"
+    },
+    {
+      "id": "body.primary"
+    },
+    {
+      "id": "body.impactor"
+    },
+    {
+      "id": "placement.options"
+    },
+    {
+      "id": "placement.align"
+    },
+    {
+      "id": "placement.target.0"
+    },
+    {
+      "id": "placement.target.1"
+    },
+    {
+      "id": "placement.cancel"
+    },
+    {
+      "id": "placement.confirm"
+    },
+    {
+      "id": "placement.circular"
+    },
+    {
+      "id": "placement.still"
+    },
+    {
+      "id": "placement.escape"
+    },
+    {
+      "id": "placement.reverse"
+    },
+    {
+      "id": "placement.units.physical"
+    },
+    {
+      "id": "placement.units.astro"
+    },
+    {
+      "id": "placement.units.center"
+    },
+    {
+      "id": "placement.units.altitude"
+    },
+    {
+      "id": "placement.units.radius"
+    },
+    {
+      "id": "placement.units.diameter"
+    },
+    {
+      "id": "placement.rock"
+    },
+    {
+      "id": "placement.surface.0"
+    },
+    {
+      "id": "placement.surface.1"
+    },
+    {
+      "id": "placement.surface.2"
+    },
+    {
+      "id": "placement.surface.3"
+    },
+    {
+      "id": "placement.surface.4"
+    },
+    {
+      "id": "placement.surface.5"
+    },
+    {
+      "id": "selection.satellite"
+    },
+    {
+      "id": "selection.launch"
+    },
+    {
+      "id": "selection.drop"
+    },
+    {
+      "id": "orbit.contact"
+    },
+    {
+      "id": "orbit.contact.demo"
+    },
+    {
+      "id": "orbit.impact.demo"
+    },
+    {
+      "id": "orbit.impact.tidesDemo"
+    },
+    {
+      "id": "impact.inspect"
+    },
+    {
+      "id": "impact.simulate"
+    },
+    {
+      "id": "impact.simulateTides"
+    },
+    {
+      "id": "impact.return"
+    },
+    {
+      "id": "orbit.copy"
+    },
+    {
+      "id": "orbit.add"
+    },
+    {
+      "id": "orbit.remove"
+    },
+    {
+      "id": "orbit.undo"
+    },
+    {
+      "id": "orbit.redo"
+    },
+    {
+      "id": "orbit.discard"
+    },
+    {
+      "id": "orbit.apply"
+    },
+    {
+      "id": "orbit.near"
+    },
+    {
+      "id": "orbit.surface.1"
+    },
+    {
+      "id": "orbit.surface.2"
+    },
+    {
+      "id": "orbit.surface.3"
+    },
+    {
+      "id": "orbit.surface.4"
+    },
+    {
+      "id": "orbit.surface.5"
+    }
+  ]
+}

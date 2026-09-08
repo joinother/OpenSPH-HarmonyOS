@@ -1,0 +1,8 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {score,steps,compareRuns} from '../scripts/collision-acceptance.mjs';
+const passed=()=>steps.map(id=>({id,status:'passed',evidence:'fixture observation'}));
+test('missing remainder cannot become a completed workflow',()=>{const r=score(passed().slice(0,3));assert.equal(r.workflowComplete,false);assert.equal(r.firstBlocker,'continuousView');});
+test('returning unchanged parent and saving local replay do not pass remnant submission',()=>{const c=passed();c[5]={id:'commitRemnants',status:'unsupported',evidence:'Parent unchanged; local replay only'};const r=score(c);assert.equal(r.workflowComplete,false);assert.equal(r.firstBlocker,'commitRemnants');});
+test('failed and untested work remain incomplete',()=>{for(const status of ['failed','not_tested','unsupported']){const c=passed();c[0].status=status;assert.equal(score(c).workflowComplete,false);}});
+test('all required observed steps and unique identities are necessary',()=>{assert.equal(score(passed()).workflowComplete,true);assert.throws(()=>score([...passed(),passed()[0]]));assert.throws(()=>score([{id:'placement',status:'passed'}]));});
+test('repeat comparison rejects changed fixture and incomplete run',()=>{const a={collectionComplete:true,fixtureSha256:'x',cases:[{id:'G1',...score(passed())}]};assert.equal(compareRuns(a,structuredClone(a)),true);assert.throws(()=>compareRuns(a,{...a,collectionComplete:false}));assert.throws(()=>compareRuns(a,{...a,fixtureSha256:'y'}));const b=structuredClone(a);b.cases[0].checks[5].status='unsupported';assert.equal(compareRuns(a,b),false);});

@@ -1,6 +1,6 @@
 # 星体实验室 GitHub 检查点
 
-> 类型：当前恢复入口；更新日期：2026-09-08（Asia/Shanghai）；源码版本：0.56.0。
+> 类型：当前恢复入口；更新日期：2026-09-09（Asia/Shanghai）；源码版本：0.56.0。
 
 本分支基于原仓库 main 的 `8b4230e607d07710064acd87fb708b566fff4d07`，保留旧 OpenSPH-DevEco、patches 和 tools；原生工程在 [OpenSPH-HarmonyOS-Native](OpenSPH-HarmonyOS-Native/README.md)。开发断点不修改 main。
 
@@ -10,7 +10,7 @@
 git clone --branch checkpoint/arkui-0.17.0-2026-09-06 https://github.com/joinother/OpenSPH-HarmonyOS.git
 cd OpenSPH-HarmonyOS/OpenSPH-HarmonyOS-Native
 python3 scripts/check-docs.py
-node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
+node --test tests/collision_acceptance.test.mjs tests/cli_transport.test.mjs tests/project_recipe.test.mjs tests/cli_wait.test.mjs
 ./scripts/build.sh
 ```
 
@@ -26,6 +26,6 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 
 ## 下一步
 
-2026-09-08 已把旧专题收敛为 [R01–R10 唯一执行路线](OpenSPH-HarmonyOS-Native/docs/reference/PRODUCT-ROADMAP.md)。下一项 R01 固定完整验收玩法，随后事件检查点、连续视口、双向时间／受力和残骸提交；R06 完成才算第一个核心玩法通过。来源与去向见 [调研映射](OpenSPH-HarmonyOS-Native/docs/reference/RESEARCH-IMPLEMENTATION.md)。此次只改计划与执行约定，应用仍为 0.56.0，已打包产物保持原字节。
+2026-09-08 已把旧专题收敛为 [R01–R10 唯一执行路线](OpenSPH-HarmonyOS-Native/docs/reference/PRODUCT-ROADMAP.md)。R01 已完成 [固定输入、判据与两轮模拟器证据](OpenSPH-HarmonyOS-Native/docs/reference/CONTINUOUS-COLLISION-ACCEPTANCE.md)，下一项为 R02 接触事件检查点，随后连续视口、双向时间／受力和残骸提交；R06 完成才算第一个核心玩法通过。来源与去向见 [调研映射](OpenSPH-HarmonyOS-Native/docs/reference/RESEARCH-IMPLEMENTATION.md)。2026-09-09 增加验收工具及证据，121 项主机检查通过；两轮实际初值与分类一致，完整碰撞玩法仍未通过。测试前初始暂停场景及 13 个持久文件已恢复。应用仍为 0.56.0，已打包产物保持原字节。
 
 新应用源码、OpenSPH 及第三方摄影素材分别保留许可证和署名；本检查点不包含同行私有实现或程序素材。

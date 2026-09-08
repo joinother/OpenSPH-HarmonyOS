@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "task": "R01",
+  "device": "127.0.0.1:5555",
+  "fixtureSha256": "bb00d8e5db4b85dd068f6663b62ed8074cebc311953401f4c0a25e98e03442d0",
+  "collectionComplete": false,
+  "workflowComplete": false,
+  "runs": [
+    {
+      "repeat": 1,
+      "fixtureSha256": "bb00d8e5db4b85dd068f6663b62ed8074cebc311953401f4c0a25e98e03442d0",
+      "collectionComplete": false,
+      "cases": [
+        {
+          "id": "G1",
+          "checks": [],
+          "observations": {}
+        }
+      ]
+    }
+  ],
+  "errors": [
+    "Error: setSurfaceSeed: {\"ok\":false,\"error\":\"Error: 恒星和真实月面保留原外观\"}\n    at call (file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-continuous-collision-emulator.mjs:21:271)\n    at async launch (file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-continuous-collision-emulator.mjs:41:37)\n    at async file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-continuous-collision-emulator.mjs:50:17"
+  ],
+  "restoration": {
+    "completed": true,
+    "persistentFiles": 13,
+    "exactFiles": true,
+    "initialPausedScene": true,
+    "camera": true,
+    "appearance": true
+  }
+}
