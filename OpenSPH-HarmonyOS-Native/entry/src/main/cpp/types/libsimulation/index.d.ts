@@ -10,6 +10,13 @@ export const startScene: (config: SimulationConfig, initiallyPaused?: boolean) =
 export interface OrbitBodyStatus { radiusKm?:number; id:number; name:string; surface?:number; xAU:number; yAU:number; zAU:number; speedKmS:number; massSolar:number; }
 export interface SphDiagnostics {structure?:number[];available:boolean;pressureMinGPa?:number;pressureMaxGPa?:number;pressureMeanGPa?:number;internalMinMJkg?:number;internalMaxMJkg?:number;internalMeanMJkg?:number;damageMean?:number;damageMax?:number;kineticJ?:number;internalJ?:number;}
 export interface OrbitContactStatus {count:number;a:number;b:number;timeSeconds:number;normalSpeedKmS:number;restitution:number;}
+export interface GalaxyParameters {count:number;seed:number;speed:number;inclination:number;duration:number;massRatio:number;offset:number;retrograde:boolean;}
+export interface GalaxySample {frame:number;time:number;values:number[];energyError:number;angularError:number;}
+export interface GalaxyObservation {available:boolean;sceneRevision:number;selected:number;parameters?:GalaxyParameters;samples:GalaxySample[];}
+export const galaxyObservation:()=>GalaxyObservation;
+export const seekGalaxyObservation:(frame:number,revision:number,time:number)=>void;
+export const setGalaxyPlacement:(enabled:boolean,count:number,seed:number,speed:number,inclination:number,massRatio:number,offset:number,retrograde:boolean)=>void;
+export const placeGalaxyAt:(x:number,y:number)=>number;
 export interface GalaxyDiagnostics {separationKpc:number;primaryRmsKpc:number;secondaryRmsKpc:number;primaryOuterFraction:number;secondaryOuterFraction:number;energyScope:string;outerScope:string;}
 export interface SimulationStatus {
   galaxy?:GalaxyDiagnostics;

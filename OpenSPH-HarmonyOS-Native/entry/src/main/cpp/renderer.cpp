@@ -34,6 +34,7 @@ class Renderer {
     RenderStatus stats;
     ProjectedScene projected;
     std::shared_ptr<const Frame> placementFrame;
+    double galaxyPlacementRatio=.6;
     int placementCandidate=-1;uint64_t placementRevision=0;
     uint64_t projectedRevision=0;
     std::atomic<bool> active{true};
@@ -263,7 +264,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 cx=cy=cz=0;
                 for(size_t i=0;i<frame->particles.size()&&i<8;++i){const auto &p=frame->particles[i];float weight=journey.tracking(int(i));cx+=p.x*weight;cy+=p.y*weight;cz+=p.z*weight;}
             }
-            if(placing){cx=frame->particles[0].x;cy=frame->particles[0].y;cz=frame->particles[0].z;}
+            if(placing){if(frame->galaxy.available){cx=cy=cz=0;}else{cx=frame->particles[0].x;cy=frame->particles[0].y;cz=frame->particles[0].z;}}
             shown.composition=compositionNow;
             FragmentFollowStatus followed;
             {std::lock_guard<std::mutex> lock(mutex);
@@ -320,6 +321,14 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                     }
                     glEnable(GL_DEPTH_TEST);
                 } else {
+                if(frame->galaxy.available&&placing){
+                    shown.ready=true;
+                    for(int i=0;i<2;i++){auto v=rotateView(c,frame->centers[i*3],frame->centers[i*3+1],frame->centers[i*3+2]);auto p=projectBody(c,i,v,w,h,0,0);
+                        p.x=compositionNow[0]+(p.x-.5f)*compositionNow[2];p.y=compositionNow[1]+(p.y-.5f)*compositionNow[2];shown.bodies.push_back(p);}
+                    glUniform1i(glGetUniformLocation(program,"trail"),1);glDepthMask(GL_FALSE);
+                    glBufferData(GL_ARRAY_BUFFER,frame->trails.size()*sizeof(Particle),frame->trails.data(),GL_STREAM_DRAW);
+                    glDrawArrays(GL_LINES,0,frame->trails.size());glUniform1i(glGetUniformLocation(program,"trail"),0);
+                }
                 if(frame->galaxy.available){size=std::clamp(float(std::min(w,h))*.006f,2.f,7.f);glBlendFunc(GL_SRC_ALPHA,GL_ONE);glDepthMask(GL_FALSE);}
                 glUniform1f(glGetUniformLocation(program, "size"), size);
                 glBufferData(GL_ARRAY_BUFFER, frame->particles.size() * sizeof(Particle),
@@ -373,6 +382,24 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         running = false;
         if (thread.joinable())
             thread.join();
+    }
+    void galaxyPlacement(bool enabled,const GalaxyParameters& parameters){
+        std::shared_ptr<Frame> f;
+        if(enabled){GalaxySystem system(parameters);f=std::make_shared<Frame>();f->galaxy=system.diagnostics();
+            for(int i=0;i<2;i++)for(int k=0;k<3;k++)f->centers[i*3+k]=system.cores[i].position[k]/GALAXY_VIEW_KPC;
+            for(const auto& p:system.points)f->particles.push_back({float(p.position[0]/GALAXY_VIEW_KPC),float(p.position[1]/GALAXY_VIEW_KPC),float(p.position[2]/GALAXY_VIEW_KPC),float(galaxyLength(p.velocity)*GALAXY_SPEED_KMS),0,float(p.origin)});
+            const float x=float(6/(1+parameters.massRatio)),y=float(parameters.offset/10/(1+parameters.massRatio));
+            // Allowed offset rail and incoming relative-velocity arrow. These are guides, not an integrated orbit.
+            auto point=[](float x,float y){return Particle{x,y,0,0,0,1};};
+            f->trails={point(x,0),point(x,float(3/(1+parameters.massRatio))),point(x,y),point(x-1,y),point(x-1,y),point(x-.8f,y+.12f),point(x-1,y),point(x-.8f,y-.12f)};
+        }
+        std::lock_guard<std::mutex> lock(mutex);placementFrame=std::move(f);placementCandidate=enabled?1:-1;placementRevision=Engine::instance().sceneRevision();galaxyPlacementRatio=parameters.massRatio;projected.ready=false;
+    }
+    double galaxyPlacementPoint(double x,double y){
+        std::lock_guard<std::mutex> lock(mutex);
+        if(!placementFrame||!placementFrame->galaxy.available||!projected.placement||!projected.ready||!active||!running||projectedRevision!=Engine::instance().sceneRevision()||placementRevision!=projectedRevision||projected.width!=width||projected.height!=height)
+            throw std::runtime_error("星系预览尚未就绪，请稍后重试");
+        return galaxyOffsetAt(projected.camera,projected.width,projected.height,projected.composition,x,y,galaxyPlacementRatio);
     }
     void placement(const std::vector<OrbitSpec>& bodies,int candidate) {
         std::shared_ptr<Frame> preview;
@@ -484,6 +511,8 @@ RenderStatus renderStatus(){return renderer().status();}
 uint64_t navigateCamera(Camera c,bool close,float duration,bool animatePose,bool force){return renderer().navigate(c,close,duration,animatePose,force);}
 CameraMotion cameraMotion(uint64_t id){return renderer().motion(id);}
 CameraMotion cancelCameraMotion(uint64_t id){return renderer().cancelMotion(id);}
+void setGalaxyPlacement(bool enabled,const GalaxyParameters& parameters){renderer().galaxyPlacement(enabled,parameters);}
+double placeGalaxyAt(double x,double y){return renderer().galaxyPlacementPoint(x,y);}
 void setOrbitPlacement(const std::vector<OrbitSpec>& bodies,int candidate){renderer().placement(bodies,candidate);}
 std::array<double,2> placeOrbitAt(double x,double y,double tilt){return renderer().placementPoint(x,y,tilt);}
 ProjectedScene projectedScene(){return renderer().projection();}

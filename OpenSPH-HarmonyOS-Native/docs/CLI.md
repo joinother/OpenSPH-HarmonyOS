@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.43.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.44.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -20,6 +20,23 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 `uiAction {"action":"theme.galaxy-tails"}` 与 `theme.galaxy-retrograde` 打开初始暂停的双星系旋转对照；`preset.6` 打开基础星系实验。`setScene` 的 preset 6 使用 200–2400 个示踪点、50–800 Myr 时长，speed 为 0.75–1.25 的接近速度倍率，angle 为次盘倾角 0–70°；可附加 `galaxyMassRatio:0.2..1`、`galaxyOffsetKpc:0..30`、`galaxyRetrograde:boolean`。完整定义和示例见 [星系潮汐指南](reference/GALACTIC-TIDES.md)。
 
 `setUiValue` 的 `galaxy.ratio`、`galaxy.offset` 与通用 scene 字段修改草稿，`galaxy.retrograde` 动作切换旋转方向；`simulation.apply` 才重算。`getGalaxyDiagnostics` 返回当前帧实际时间、kpc 尺度、外延示踪比例及仅对应两中心的守恒量偏差，非星系场景返回 `available:false`。`focus.0`／`focus.1` 连续跟随两个中心；暂停、取消、命名实验、保存／载入及时间轴通用，星系回放为 v12。表面近看、行星曲线和岩体损伤控件在此模型禁用。
+
+### 相遇预览、曲线与 CSV
+
+`galaxy.place` 动作进入初始条件预览，`galaxy.placement.offset` 字段设置 0–30 kpc 的预览偏移；`setGalaxyPlacementPoint {x,y}` 使用当前显示视口的归一化坐标，与真实触摸共用投影。初始 X 间距固定 60 kpc，超出偏移范围的手势停在端点；这是受约束偏移调整。`getGalaxyPlacement` 返回是否预览、预览值、原时间、约束和已显示的两中心位置。普通模拟／编辑命令在预览期间不可用，窗口方向调整仍可使用。
+
+`galaxy.place.cancel` 或返回取消预览并恢复镜头／面板／运行或回放状态，原历史和未应用草稿保留；`galaxy.place.confirm` 才采用预览偏移与当前参数草稿，从零生成初始暂停场景。坐标指针只用于放置，不代替按钮操作。
+
+`galaxy.metric.0`–`galaxy.metric.4` 对应间距、主盘尺度、次盘尺度、主盘外延、次盘外延；`galaxy.minimum`／`galaxy.maximum` 定位所显示曲线的采样极值。`getGalaxyObservation` 返回原始历史与选定指标曲线，`getGalaxyTable` 返回 18 列 CSV、已应用参数和模型说明；原生一次锁定获取参数与历史，未应用草稿不进入导出。Myr 为百万年，CSV 外延比例是 0–1；两项误差只对应两个软化中心，不能代表全部示踪点守恒。非星系场景返回 `available:false` 与空采样／仅 CSV 标题，不伪造数据。
+
+在项目根目录提取 CSV：
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getGalaxyTable > galaxy-table.json
+python3 -c 'import json,pathlib; d=json.loads(pathlib.Path("galaxy-table.json").read_text()); assert d["ok"] and d["available"]; pathlib.Path("galaxy-observation.csv").write_text(d["csv"])'
+```
+
+此导出包含记录中的诊断序列，没有逐恒星坐标／速度，也没有系统文件选择器。详细列定义和初态约束见 [星系参考](reference/GALACTIC-TIDES.md)。
 
 ## 状态与通用交互
 

@@ -74,6 +74,8 @@ struct OrbitObservation {
 };
 struct SphObservationSample {int frame;double time;std::array<double,10> values;SphStructure structure;};
 struct SphObservation {uint64_t sceneRevision=0;int selected=-1;std::vector<SphObservationSample> samples;};
+struct GalaxySample {int frame;double time;std::array<double,5> values;double energyError,angularError;};
+struct GalaxyObservation {bool available=false;uint64_t sceneRevision=0;int selected=-1;Config config;std::vector<GalaxySample> samples;};
 struct FragmentFrame {uint64_t sceneRevision=0;int selected=-1;std::shared_ptr<const Frame> frame;};
 class Engine {
   public:
@@ -87,6 +89,8 @@ class Engine {
     Status status();
     OrbitObservation observation(int body);
     SphObservation sphObservation();
+    GalaxyObservation galaxyObservation();
+    void seekGalaxyObservation(int index,uint64_t revision,double time);
     FragmentFrame fragmentFrame();
     void seekSphObservation(int index,uint64_t revision,double time);
     void seekObservation(int index, uint64_t revision, double time);

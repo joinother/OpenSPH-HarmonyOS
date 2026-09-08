@@ -1,0 +1,1 @@
+PASS galaxy placement: 288 projected point roundtrips across layouts, ratios, offsets, camera poses and compositions; endpoint clamp, invalid and edge-on rejection

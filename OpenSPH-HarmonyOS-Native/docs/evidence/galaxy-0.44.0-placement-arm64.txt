@@ -1,0 +1,2 @@
+FileTransfer finish, Size:4690536, File count = 1, time:41ms rate:114403.32kB/s
+PASS galaxy placement: 288 projected point roundtrips across layouts, ratios, offsets, camera poses and compositions; endpoint clamp, invalid and edge-on rejection

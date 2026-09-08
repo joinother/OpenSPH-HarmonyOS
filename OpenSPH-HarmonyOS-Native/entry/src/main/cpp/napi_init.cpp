@@ -241,6 +241,19 @@ napi_value observation(napi_env e, napi_callback_info i) {
         napi_set_named_property(e,o,"samples",list);return o;
     }catch(const std::exception &ex){return fail(e,ex);}
 }
+napi_value galaxyObservation(napi_env e,napi_callback_info){try{
+    const auto data=lab::Engine::instance().galaxyObservation();napi_value o,list,flag;napi_create_object(e,&o);napi_get_boolean(e,data.available,&flag);napi_set_named_property(e,o,"available",flag);
+    num(e,o,"sceneRevision",data.sceneRevision);num(e,o,"selected",data.selected);napi_create_array_with_length(e,data.samples.size(),&list);
+    if(data.available){const auto& c=data.config;napi_value p;napi_create_object(e,&p);num(e,p,"count",c.count);num(e,p,"seed",c.seed);num(e,p,"speed",c.speed);num(e,p,"inclination",c.angle);num(e,p,"duration",c.duration);num(e,p,"massRatio",c.galaxyMassRatio);num(e,p,"offset",c.galaxyOffsetKpc);napi_get_boolean(e,c.galaxyRetrograde,&flag);napi_set_named_property(e,p,"retrograde",flag);napi_set_named_property(e,o,"parameters",p);}
+    for(size_t i=0;i<data.samples.size();i++){const auto& s=data.samples[i];napi_value p,values;napi_create_object(e,&p);num(e,p,"frame",s.frame);num(e,p,"time",s.time);num(e,p,"energyError",s.energyError);num(e,p,"angularError",s.angularError);napi_create_array_with_length(e,5,&values);for(int k=0;k<5;k++){napi_value v;napi_create_double(e,s.values[k],&v);napi_set_element(e,values,k,v);}napi_set_named_property(e,p,"values",values);napi_set_element(e,list,i,p);}
+    napi_set_named_property(e,o,"samples",list);return o;
+}catch(const std::exception& ex){return fail(e,ex);}}
+napi_value seekGalaxyObservation(napi_env e,napi_callback_info i){try{auto a=args(e,i,3);lab::Engine::instance().seekGalaxyObservation(integer(e,a[0]),integer(e,a[1]),number(e,a[2]));return undef(e);}catch(const std::exception& ex){return fail(e,ex);}}
+napi_value galaxyPlacement(napi_env e,napi_callback_info i){try{auto a=args(e,i,8);bool on,retro;
+    if(napi_get_value_bool(e,a[0],&on)!=napi_ok||napi_get_value_bool(e,a[7],&retro)!=napi_ok)throw std::invalid_argument("Boolean expected");
+    lab::setGalaxyPlacement(on,{integer(e,a[1]),integer(e,a[2]),number(e,a[3]),number(e,a[4]),number(e,a[5]),number(e,a[6]),retro});return undef(e);
+}catch(const std::exception& ex){return fail(e,ex);}}
+napi_value galaxyPlacementAt(napi_env e,napi_callback_info i){try{auto a=args(e,i,2);napi_value v;napi_create_double(e,lab::placeGalaxyAt(number(e,a[0]),number(e,a[1])),&v);return v;}catch(const std::exception& ex){return fail(e,ex);}}
 napi_value sphObservation(napi_env e,napi_callback_info) {
     try{const auto data=lab::Engine::instance().sphObservation();napi_value o,list;napi_create_object(e,&o);napi_create_array_with_length(e,data.samples.size(),&list);
         num(e,o,"sceneRevision",data.sceneRevision);num(e,o,"selected",data.selected);
@@ -424,6 +437,10 @@ napi_value Init(napi_env e, napi_value exports) {
         {"getCameraMotion", nullptr, getCameraMotion, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"cancelCameraMotion", nullptr, cancelCameraMotion, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"sphFragments", nullptr, sphFragments, nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"galaxyObservation",nullptr,galaxyObservation,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"seekGalaxyObservation",nullptr,seekGalaxyObservation,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"setGalaxyPlacement",nullptr,galaxyPlacement,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"placeGalaxyAt",nullptr,galaxyPlacementAt,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"sphObservation", nullptr, sphObservation, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"seekSphObservation", nullptr, seekSphObservation, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"orbitObservation", nullptr, observation, nullptr, nullptr, nullptr, napi_default, nullptr},

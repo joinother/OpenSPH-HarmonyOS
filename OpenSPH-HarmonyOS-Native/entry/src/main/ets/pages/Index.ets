@@ -4,7 +4,8 @@ import { sphPlot, sphCsv, sphMetricLabel, sphMetricIndex, sphMetricValue, sphWin
 import { ObservationReference, ReferenceSummary, ComparisonPlot, comparisonPlot, referenceSummary, observationCsv } from '../common/ObservationComparison';
 import { ObservationStore } from '../common/ObservationStore';
 import { observationPlot, ObservationPlot } from '../common/ObservationModel';
-import simulation, { SphFragmentSnapshot, SphMaterialGroup, SphObservationSample, SphObservation, OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
+import { GALAXY_METRICS, galaxyPlot, galaxyCsv } from '../common/GalaxyObservationModel';
+import simulation, { GalaxyObservation, SphFragmentSnapshot, SphMaterialGroup, SphObservationSample, SphObservation, OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
 import { finiteOrbitBodies, estimatedOrbitRadius, contactDemoBodies, SurfaceRecipe, legacySurfaces, copySurfaces, validateSurfaces, copiedPlanetDraft, PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
 import { themeExperiments, themeConfigMatches, ThemeExperiment } from '../common/ExperimentCatalog';
@@ -44,7 +45,8 @@ interface ObservationReply {ok:boolean;metric:string;data:OrbitObservation;plot:
 interface ThemeState { id:string; title:string; goal:string; limit:string; modified:boolean; compareId:string; }
 interface MoonAssetInfo {source:string;asset:string;credit:string;width:number;height:number;requested:boolean;ready:boolean;uploads:number;blend:number;error:string;decodedBudgetBytes:number;gpuBudgetBytes:number;}
 interface MoonAssetReply {ok:boolean;moon:MoonAssetInfo;}
-interface AppSnapshot { surfaces:SurfaceRecipe[];surfaceUndoCount:number;surfaceRedoCount:number; material:RecipeMaterial; cameraMotion:CameraMotionStatus; ringTrace:RingTraceStatus; theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
+interface GalaxyPlacementState {active:boolean;offsetKpc:number;sourceTime:number;constraint:string;}
+interface AppSnapshot {galaxyPlacement:GalaxyPlacementState; surfaces:SurfaceRecipe[];surfaceUndoCount:number;surfaceRedoCount:number; material:RecipeMaterial; cameraMotion:CameraMotionStatus; ringTrace:RingTraceStatus; theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
 interface CommandDescription { name: string; payload: string; }
 interface CommandCatalog { ok: boolean; commands: CommandDescription[]; }
 interface ExperimentInfo { title: string; caption: string; symbol: string; }
@@ -139,6 +141,16 @@ struct Index {
   @State targetSpin: number = 0;
   @State selfGravity: boolean = false;
   @State relaxationSeconds: number = 0;
+  @State galaxyPlacing:boolean=false;
+  @State galaxyPlacementOffset:number=12;
+  @State galaxyMetric:number=0;
+  @State galaxyObserved:GalaxyObservation={available:false,sceneRevision:0,selected:-1,samples:[]};
+  private galaxyPlacementView:CameraState|undefined=undefined;
+  private galaxyPlacementRunning:boolean=false;
+  private galaxyPlacementPlaying:boolean=false;
+  private galaxyPlacementPanel:number=-1;
+  private galaxyPlacementTime:number=0;
+  private galaxyPlacementOverview:CameraState|undefined=undefined;
   @State galaxyMassRatio:number=.6;
   @State galaxyOffsetKpc:number=12;
   @State galaxyRetrograde:boolean=false;
@@ -295,6 +307,7 @@ struct Index {
   private refreshObservation():void {
     const fragments=simulation.sphFragments(this.fragmentOffset,8);
     if(fragments.sceneRevision!==this.fragments.sceneRevision||(fragments.available&&this.fragmentOffset>=fragments.groupCount!)){this.fragmentOffset=0;this.fragments=simulation.sphFragments(0,8);}else this.fragments=fragments;
+    this.galaxyObserved=simulation.galaxyObservation();
     this.sphObserved=simulation.sphObservation();
     this.observed=simulation.orbitObservation(this.focus>0?this.focus:1);
   }
@@ -699,6 +712,40 @@ struct Index {
     validateConfig(c);this.applyConfig(c);this.title='球体接触 · 理想弹性';if(!this.prepare(false))throw new Error(this.notice);
     this.focus=1;this.yaw=0;this.pitch=0;this.zoom=4.2;this.closeup=true;this.autoSpin=false;this.camera(0,true,true);this.setPanel(-1);this.notice='启动后在接触响应处暂停 · 球体保持完整，不模拟行星破裂';
   }
+  private galaxyPlacementState():GalaxyPlacementState {return {active:this.galaxyPlacing,offsetKpc:this.galaxyPlacementOffset,sourceTime:this.galaxyPlacementTime,constraint:'initial X separation fixed at 60 kpc; transverse offset 0..30 kpc; confirmation regenerates initial conditions'};}
+  private updateGalaxyPlacement():void {
+    simulation.setGalaxyPlacement(this.galaxyPlacing,this.count,this.seed,this.speed,this.angle,this.galaxyMassRatio,this.galaxyPlacementOffset,this.galaxyRetrograde);
+  }
+  private beginGalaxyPlacement():void {
+    if(this.preset!==6||this.ioBusy||this.info.state==='preparing'||this.info.frames===0)throw new Error('请等待星系初态就绪');
+    validateConfig(this.config());this.stopCameraMotion();
+    this.galaxyPlacementView={yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode};this.galaxyPlacementOverview=this.overviewCamera;
+    this.galaxyPlacementRunning=simulation.status().state==='running';this.galaxyPlacementPlaying=this.playing;
+    this.galaxyPlacementPanel=this.panelOpen?this.tab:-1;this.galaxyPlacementTime=simulation.status().time;
+    if(this.galaxyPlacementRunning)simulation.pause(true);this.playing=false;
+    this.galaxyPlacementOffset=this.galaxyOffsetKpc;this.galaxyPlacing=true;this.updateGalaxyPlacement();
+    this.yaw=0;this.pitch=0;this.zoom=5.2;this.focus=-1;this.colorMode=0;this.camera();this.setPanel(-1);
+    this.notice='上下拖动次星系，调整错身距离 · 确认后从初始时刻重算';
+  }
+  private cancelGalaxyPlacement():void {
+    this.galaxyPlacing=false;this.updateGalaxyPlacement();const c=this.galaxyPlacementView;this.galaxyPlacementView=undefined;
+    if(c){this.yaw=c.yaw;this.pitch=c.pitch;this.zoom=c.zoom;this.focus=c.focus;this.colorMode=c.color;this.camera();}this.overviewCamera=this.galaxyPlacementOverview;
+    if(this.galaxyPlacementRunning)simulation.pause(false);this.playing=this.galaxyPlacementPlaying;this.setPanel(this.galaxyPlacementPanel);this.notice='已取消 · 原实验、参数草稿和视角保留';
+  }
+  private confirmGalaxyPlacement():void {
+    const c=this.config();c.galaxyOffsetKpc=this.galaxyPlacementOffset;validateConfig(c);simulation.startScene(c,true);simulation.pause(true);
+    this.applyConfig(c);this.galaxyPlacing=false;this.updateGalaxyPlacement();this.galaxyPlacementView=undefined;this.overviewCamera=undefined;this.playing=false;this.dirty=false;this.camera();this.info=simulation.status();this.notice='新的相遇初态已建立 · 点击开始实验';
+  }
+  private moveGalaxyPlacement(x:number,y:number):void {
+    if(!this.galaxyPlacing||this.ioBusy)throw new Error('尚未打开星系相遇预览');
+    const offset=simulation.placeGalaxyAt(x,y);this.galaxyPlacementOffset=offset;this.updateGalaxyPlacement();
+  }
+  private dragGalaxyPlacement(e:GestureEvent):void {const f=e.fingerList[0];if(e.fingerList.length!==1||!f||this.viewportWidth<=0||this.viewportHeight<=0)return;try{this.moveGalaxyPlacement(f.localX/this.viewportWidth,f.localY/this.viewportHeight);}catch(error){this.notice=String(error);}}
+  private galaxyView():ObservationPlot {return galaxyPlot(this.galaxyObserved,this.galaxyMetric);}
+  private seekGalaxyExtreme(maximum:boolean):void {
+    const p=this.galaxyView();if(!p.available)throw new Error('暂无星系记录');
+    simulation.seekGalaxyObservation(maximum?p.maxFrame:p.minFrame,this.galaxyObserved.sceneRevision,maximum?p.maxTime:p.minTime);this.playing=false;this.info=simulation.status();this.refreshObservation();this.notice='已定位保留记录的'+(maximum?'最大值':'最小值');
+  }
   private placementPreview():PlacementPreview {return planPlanet(this.orbitBodies,this.placementName,this.placementFields,this.placementSurface,this.placementDirection,this.placementScale,this.placementTarget);}
   private beginPlacement(sourceIndex:number=-1):void {
     if(this.placing)return;
@@ -835,6 +882,7 @@ struct Index {
     finally { this.ioBusy = false; }
   }
   onBackPress(): boolean {
+    if(this.galaxyPlacing){this.cancelGalaxyPlacement();return true;}
     if(this.placing){this.cancelPlacement();return true;}
     if(this.panelOpen) {this.setPanel(-1);return true;}
     if(simulation.renderStatus().fragmentFollow.active){simulation.clearSphFragmentFollow();return true;}
@@ -870,7 +918,7 @@ struct Index {
   }
   private snapshot(): string {
     this.info=simulation.status();
-    const snapshot: AppSnapshot = {surfaces:copySurfaces(this.surfaces),surfaceUndoCount:this.surfaceUndo.length,surfaceRedoCount:this.surfaceRedo.length,ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{target:this.placementTarget,sourceIndex:this.placing?this.placementSource:-1,sourceName:this.placing&&this.placementSource>0?this.orbitBodies[this.placementSource].name:'',active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
+    const snapshot: AppSnapshot = {galaxyPlacement:this.galaxyPlacementState(),surfaces:copySurfaces(this.surfaces),surfaceUndoCount:this.surfaceUndo.length,surfaceRedoCount:this.surfaceRedo.length,ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{target:this.placementTarget,sourceIndex:this.placing?this.placementSource:-1,sourceName:this.placing&&this.placementSource>0?this.orbitBodies[this.placementSource].name:'',active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
       material:this.materialState(),appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},rendering:simulation.renderStatus(),
       simulation:this.info,
       scene:{preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,dirty:this.dirty},
@@ -890,7 +938,7 @@ struct Index {
     const a:UiActionInfo[]=[];
     const add=(id:string,label:string,enabled:boolean=true,selected:boolean=false):void=>{a.push({id:id,label:label,enabled:enabled&&!this.ioBusy,selected:selected});};
     add('panel.parameters','参数',true,this.panelOpen&&this.tab===0);add('panel.observe','观察',true,this.panelOpen&&this.tab===1);add('panel.library','实验库',true,this.panelOpen&&this.tab===2);
-    add('panel.close','收起');add('ui.focus','专注');add('ui.restore','显示工具');add('ui.back','返回',this.panelOpen||this.closeup||this.focus>=0||!this.toolsVisible||this.rendering.fragmentFollow.active);
+    add('panel.close','收起');add('ui.focus','专注');add('ui.restore','显示工具');add('ui.back','返回',this.galaxyPlacing||this.panelOpen||this.closeup||this.focus>=0||!this.toolsVisible||this.rendering.fragmentFollow.active);
     for(const t of this.themes)add('theme.'+t.id,t.title,true,this.activeThemeId===t.id);
     add('theme.restore','恢复主题初始条件',this.activeThemeId!=='');
     add('theme.compare','切换对照实验',this.themeState().compareId!=='');
@@ -938,6 +986,10 @@ struct Index {
     add('terrain.undo','撤销外观',this.preset===5&&!this.placing&&this.surfaceUndo.length>0);add('terrain.redo','重做外观',this.preset===5&&!this.placing&&this.surfaceRedo.length>0);
     add('appearance.rings','环带',this.isOrbit(),this.rings);add('appearance.clouds','云层',this.isOrbit(),this.clouds);add('appearance.atmosphere','大气',this.isOrbit(),this.atmosphere);add('appearance.trails','轨迹',this.isOrbit(),this.trails);add('appearance.spin','外观自转',this.isOrbit(),this.autoSpin);
     for(const seconds of [0,16,64])add('scene.relax.'+seconds,seconds===0?'直接生成':'预松弛 '+seconds+' 秒',this.preset<3&&(seconds===0||this.selfGravity),this.relaxationSeconds===seconds);
+    add('galaxy.place','在星图调整相遇',this.preset===6&&this.info.frames>0&&this.info.state!=='preparing');
+    add('galaxy.place.cancel','取消相遇调整',this.galaxyPlacing);add('galaxy.place.confirm','确认相遇初态',this.galaxyPlacing);
+    for(let i=0;i<5;i++)add('galaxy.metric.'+i,GALAXY_METRICS[i],this.preset===6,this.galaxyMetric===i);
+    add('galaxy.minimum','记录最小',this.preset===6&&this.galaxyView().available);add('galaxy.maximum','记录最大',this.preset===6&&this.galaxyView().available);
     add('galaxy.retrograde','反转次星系旋转',this.preset===6,this.galaxyRetrograde);
     add('scene.stationary','设为静止初态',this.preset===2,this.speed===0&&this.targetSpin===0);
     add('scene.gravity','材料自引力',this.preset<3&&this.count<=1200,this.selfGravity);
@@ -955,6 +1007,7 @@ struct Index {
     add('orbit.apply','应用天体 · 重新生成',this.preset===5&&this.orbitDraft);add('orbit.near','近看这颗天体',this.preset===5);
     if(this.preset===5)for(let i=0;i<this.orbitBodies.length;i++)add('orbit.select.'+i,this.orbitBodies[i].name,true,this.orbitEdit===i);
     for(let i=1;i<=5;i++)add('orbit.surface.'+i,['海洋','厚云','荒漠','带环','月面'][i-1],this.preset===5&&this.orbitEdit>0,this.orbitSurface===i);
+    if(this.galaxyPlacing)for(const action of a)if(!action.id.startsWith('galaxy.place.')&&action.id!=='ui.back')action.enabled=false;
     if(this.placing)for(const action of a)if(!action.id.startsWith('placement.')&&action.id!=='ui.back'&&action.id!=='panel.close')action.enabled=false;
     return a;
   }
@@ -971,6 +1024,8 @@ struct Index {
       {field:'time.frame',value:this.info.selected,enabled:active&&this.info.frames>1}];
     for(let i=0;i<(this.contactMode()?8:7);i++)fields.push({field:'orbit.value.'+i,value:this.orbitFields[i],enabled:active&&this.preset===5});
     if(this.placing)for(const f of fields)f.enabled=false;
+    if(this.galaxyPlacing)for(const f of fields)f.enabled=false;
+    fields.push({field:'galaxy.placement.offset',value:this.galaxyPlacementOffset,enabled:active&&this.galaxyPlacing});
     fields.push({field:'placement.name',value:this.placementName,enabled:active&&this.placing});
     for(let i=0;i<(this.contactMode()?6:5);i++)fields.push({field:'placement.value.'+i,value:this.placementFields[i],enabled:active&&this.placing});
     return fields;
@@ -980,6 +1035,7 @@ struct Index {
     if(!descriptor||!descriptor.enabled)throw new Error('Field unavailable: '+field);
     // ArkUI can echo programmatic text updates through onChange. Only a changed value is an edit.
     if(value===descriptor.value)return;
+    if(field==='galaxy.placement.offset'){if(typeof value!=='number')throw new Error('需要数值');this.galaxyPlacementOffset=this.checked(value,0,30);this.updateGalaxyPlacement();return;}
     if(field.startsWith('placement.')){
       if(typeof value!=='string'||value.length>48)throw new Error('Expected bounded text');
       if(field==='placement.name')this.placementName=value;else{const index=Number(field.slice(16));this.placementFields=this.placementFields.map((v:string,i:number):string=>i===index?value:v);if(index===1&&Number.isFinite(Number(value)))this.placementScale=Math.max(this.placementScale,Math.min(13,Number(value)*1.3));}
@@ -1030,6 +1086,11 @@ struct Index {
     else if(action.startsWith('theme.'))this.chooseTheme(action.slice(6));
     else if(action.startsWith('library.')){this.librarySection=action.slice(8);this.scroller.scrollEdge(Edge.Top);}
     else if(action.startsWith('preset.'))this.choose(Number(action.slice(7)));
+    else if(action==='galaxy.place')this.beginGalaxyPlacement();
+    else if(action==='galaxy.place.cancel')this.cancelGalaxyPlacement();
+    else if(action==='galaxy.place.confirm')this.confirmGalaxyPlacement();
+    else if(action.startsWith('galaxy.metric.')){this.galaxyMetric=Number(action.slice(14));this.refreshObservation();}
+    else if(action==='galaxy.minimum'||action==='galaxy.maximum')this.seekGalaxyExtreme(action==='galaxy.maximum');
     else if(action==='galaxy.retrograde'){this.galaxyRetrograde=!this.galaxyRetrograde;this.dirty=true;}
     else if(action==='scene.stationary'){this.speed=0;this.targetSpin=0;this.dirty=true;}
     else if(action==='scene.gravity'){this.selfGravity=!this.selfGravity;if(!this.selfGravity)this.relaxationSeconds=0;this.dirty=true;}
@@ -1133,6 +1194,7 @@ struct Index {
     return id;
   }
   private tapViewport(e:GestureEvent):void {
+    if(this.galaxyPlacing){this.dragGalaxyPlacement(e);return;}
     const finger=e.fingerList[0];if(!finger||this.viewportWidth<=0||this.viewportHeight<=0||!this.isOrbit())return;
     if(this.placing){this.dragViewportPlacement(e);return;}
     this.pickViewport(finger.localX/this.viewportWidth,finger.localY/this.viewportHeight).catch((error:Error)=>{this.notice=String(error);});
@@ -1153,12 +1215,17 @@ struct Index {
     simulation.setSky(mode,brightness);this.skyMode=mode;this.skyBrightness=brightness;
   }
   private async execute(command: string, p: CommandPayload): Promise<string> {
+    if(this.galaxyPlacing&&!command.startsWith('get')&&!command.startsWith('list')&&!['uiAction','setUiValue','setGalaxyPlacementPoint','setWindowOrientation'].includes(command))throw new Error('请先确认或取消星系相遇调整');
     if(command==='listCommands') {
       const catalog: CommandCatalog = {ok:true,commands:[
       {name:'getState',payload:'{}'},
       {name:'getCameraMotion',payload:'{requestId?:number}; 0/current by default, last 32 terminal requests retained'},
       {name:'cancelCameraMotion',payload:'{requestId?:number}; stops only that request; stale cancellation cannot stop a newer flight'},
       {name:'navigateCamera',payload:'{focus:number,closeup?:boolean,yaw?:number,pitch?:number,zoom?:number,durationMs?:0..3000}; explicit continuous flight, request ID in cameraMotion'},
+      {name:'getGalaxyObservation',payload:'{} - coherent recorded galaxy samples, applied parameters and selected curve; time Myr'},
+      {name:'getGalaxyTable',payload:'{} - CSV of every retained galaxy frame with model, initial parameters, units and center-only normalized errors'},
+      {name:'getGalaxyPlacement',payload:'{} - active constrained initial offset preview; original history remains untouched'},
+      {name:'setGalaxyPlacementPoint',payload:'{x:0..1,y:0..1} - displayed viewport point projected onto XY offset rail; X separation fixed 60 kpc, offset clamped 0..30 kpc'},
       {name:'getGalaxyDiagnostics',payload:'{} - current frame separation/radii in kpc, outer tracer fractions and center-only energy error; not unbound mass'},
       {name:'getRingTrace',payload:'{particles?:boolean}; 8192 massless particles drive ring density; returns first 192 when particles=true; controlled radial impulse 0–0.35; km/km/s; speedScale 1–1.2, rateHours 0.1–4, independent 0–24 hour clock'},
       {name:'setSky',payload:'{mode?:0 clean|1 stars|2 galaxy,brightness?:0..1}; photographic galaxy / procedural stars; fixed-direction background'},
@@ -1229,6 +1296,10 @@ struct Index {
     if(command==='getSphWindowSummary'){this.refreshObservation();return JSON.stringify({ok:true,config:simulation.status().config,summary:this.sphSummary()});}
     if(command==='getSphObservation'){this.refreshObservation();const reply:SphCurveReply={ok:true,metric:this.sphMetric,label:this.sphLabel(),data:{sceneRevision:this.sphObserved.sceneRevision,selected:this.sphObserved.selected,samples:(this.sphView().available?this.sphObserved.samples.map((s:SphObservationSample):SphCurveSample=>({frame:s.frame,time:s.time,value:sphMetricValue(s,sphMetricIndex(this.sphMetric))})):[])},plot:this.sphView()};return JSON.stringify(reply);}
     if(command==='getSphTable'){const data:SphObservation=simulation.sphObservation(),config:SimulationConfig|undefined=simulation.status().config;if(simulation.sphObservation().sceneRevision!==data.sceneRevision)throw new Error('场景已变化，请重试导出');return JSON.stringify({ok:true,rows:data.samples.length,timeUnit:'s',sceneRevision:data.sceneRevision,config,csv:sphCsv(data)});}
+    if(command==='getGalaxyPlacement')return JSON.stringify({ok:true,placement:this.galaxyPlacementState(),projection:simulation.projectedScene()});
+    if(command==='setGalaxyPlacementPoint'){this.moveGalaxyPlacement(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,placement:this.galaxyPlacementState()});}
+    if(command==='getGalaxyObservation'){this.galaxyObserved=simulation.galaxyObservation();return JSON.stringify({ok:true,timeUnit:'Myr',data:this.galaxyObserved,metric:this.galaxyMetric,label:GALAXY_METRICS[this.galaxyMetric],plot:this.galaxyView()});}
+    if(command==='getGalaxyTable'){const data=simulation.galaxyObservation();return JSON.stringify({ok:true,available:data.available,sceneRevision:data.sceneRevision,selected:data.selected,model:data.available?'galaxy-tidal-restricted-v1':undefined,parameters:data.parameters,timeUnit:'Myr',rows:data.samples.length,csv:galaxyCsv(data),scope:'two softened centers and massless origin tracers; outer fractions are not unbound mass; recorded samples without interpolation'});}
     if(command==='getGalaxyDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,available:state.galaxy!==undefined,model:state.model,time:state.time,timeUnit:state.timeUnit,selected:state.selected,frames:state.frames,config:state.config,diagnostics:state.galaxy,centerEnergyError:state.galaxy?state.energyError:undefined,centerAngularError:state.galaxy?state.angularError:undefined});}
     if(command==='getSphDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,time:state.time,timeUnit:state.timeUnit??'s',selected:state.selected,frameCount:state.frames,model:state.model,config:state.config,diagnostics:state.sph??{available:false},source:'OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted'});}
     if(command==='getObservationComparison'){this.refreshObservation();const reply:ComparisonReply={ok:true,visible:this.comparisonShown,reference:this.comparisonReference?referenceSummary(this.comparisonReference):undefined,currentName:this.observed.name,currentCount:this.observed.samples.length,currentConfig:simulation.status().config,chart:this.comparisonView(),error:this.comparisonError};return JSON.stringify(reply);}
@@ -1583,13 +1654,14 @@ struct Index {
         .width('100%').height('100%')
         .gesture(GestureGroup(GestureMode.Parallel,
           TapGesture({count:1,fingers:1}).onAction((e:GestureEvent)=>{this.tapViewport(e);}),
-          PanGesture({fingers:1}).onActionStart(() => {if(this.placing)return;this.stopCameraMotion();this.dragYaw=this.yaw;this.dragPitch=this.pitch;})
-            .onActionUpdate((e:GestureEvent) => {if(this.placing){this.dragViewportPlacement(e);return;}this.yaw=Math.max(-100,Math.min(100,this.dragYaw+e.offsetX*0.006));this.pitch=Math.max(-1.5,Math.min(1.5,this.dragPitch+e.offsetY*0.006));this.camera();}),
+          PanGesture({fingers:1}).onActionStart(() => {if(this.placing||this.galaxyPlacing)return;this.stopCameraMotion();this.dragYaw=this.yaw;this.dragPitch=this.pitch;})
+            .onActionUpdate((e:GestureEvent) => {if(this.galaxyPlacing){this.dragGalaxyPlacement(e);return;}if(this.placing){this.dragViewportPlacement(e);return;}this.yaw=Math.max(-100,Math.min(100,this.dragYaw+e.offsetX*0.006));this.pitch=Math.max(-1.5,Math.min(1.5,this.dragPitch+e.offsetY*0.006));this.camera();}),
           PinchGesture({fingers:2}).onActionStart(() => {this.stopCameraMotion();this.pinchZoom=this.zoom;})
             .onActionUpdate((e:GestureEvent) => {this.zoom=Math.max(0.5,Math.min(15,this.pinchZoom/e.scale));this.camera();})
         ))
+      if(this.galaxyPlacing){this.galaxyPlacementDock()}
       if(this.placing&&!this.panelOpen) {this.placementDock()}
-      if(this.toolsVisible&&!this.placing&&!(this.closeup&&this.panelOpen)) {
+      if(this.toolsVisible&&!this.placing&&!this.galaxyPlacing&&!(this.closeup&&this.panelOpen)&&!(this.preset===6&&this.panelOpen&&!this.layout().sidePanel)) {
         Column({space:5}) {
           Text(this.closeup?this.surfaceName()+' · 近看':this.title).fontColor('#F1EDFC').fontSize(14).fontWeight(FontWeight.Medium).maxLines(1)
           Text(this.stateLabel()+' · '+(this.trace.enabled?this.trace.count+' 个环粒子':this.info.count+(this.preset===6?' 个恒星示踪点':this.isOrbit()?' 个天体':' 粒子'))).fontSize(11).fontColor('#A5A0B7')
@@ -1938,6 +2010,44 @@ struct Index {
     }.width('100%')
   }
   @Builder
+  galaxyPlacementDock() {
+    Column({space:8}) {
+      Text('调整相遇 · '+this.galaxyPlacementOffset.toFixed(1)+' kpc').fontSize(15).fontColor('#E5E7FF')
+      Text('上下拖动蓝色星系 · 双指缩放').fontSize(11).fontColor('#C1CCE0')
+      Text('前后距离固定 60 kpc；错身距离 0–30 kpc').fontSize(10).fontColor('#A9A9BE')
+      Slider({value:this.galaxyPlacementOffset,min:0,max:30,step:.5}).selectedColor('#AADFFF').onChange((v:number,mode:SliderChangeMode)=>{if(mode!==SliderChangeMode.Begin)this.input('galaxy.placement.offset',v);})
+      Row({space:8}) {
+        ChoiceChip({label:'取消',onPress:()=>{this.press('galaxy.place.cancel');}}).id('galaxy-placement-cancel')
+        ChoiceChip({label:'确认 · 重建初态',onPress:()=>{this.press('galaxy.place.confirm');}}).id('galaxy-placement-confirm')
+      }
+    }.id('galaxy-placement-dock').padding(12).borderRadius(22).backgroundColor('#8820283A').width(Math.min(this.layout().safe.width-24,this.layout().safe.width>this.layout().safe.height?232:292))
+      .position({x:this.layout().safe.x+(this.layout().safe.width>this.layout().safe.height?12:Math.max(12,(this.layout().safe.width-292)/2)),y:this.layout().safe.y+10})
+  }
+  @Builder
+  galaxyCurveControls() {
+    Column({space:7}) {
+      Text('随时间变化 · '+GALAXY_METRICS[this.galaxyMetric]).fontSize(13).fontColor('#D9CCF5').width('100%')
+      Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(6)}}) {
+        ForEach(GALAXY_METRICS,(label:string,i:number)=>{ChoiceChip({label:label,active:this.galaxyMetric===i,onPress:()=>{this.press('galaxy.metric.'+i);}})})
+      }
+      if(this.galaxyView().available){
+        Text(this.galaxyView().current.toPrecision(4)+' '+this.galaxyView().unit+' · '+this.galaxyView().currentTime.toFixed(1)+' Myr').id('galaxy-curve-current').fontSize(12).fontColor('#A9E1EF')
+        Text(this.galaxyView().high.toPrecision(4)+' '+this.galaxyView().unit).fontSize(10).fontColor('#ABA6C0')
+        Stack({alignContent:Alignment.TopStart}) {
+          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath('M0 0 L240 0 M0 50 L240 50 M0 100 L240 100')).stroke('#414055').strokeWidth(1).fillOpacity(0)
+          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.galaxyView().path)).stroke('#A9E1EF').strokeWidth(2).fillOpacity(0)
+          Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.galaxyView().cursorPath)).stroke('#CDB9F0').strokeWidth(1).fillOpacity(0)
+        }.id('galaxy-curve-plot').width(this.observationWidth()).height(this.observationWidth()*100/240).clip(true)
+        Text(this.galaxyView().low.toPrecision(4)+' '+this.galaxyView().unit+' · '+this.galaxyView().firstTime.toFixed(1)+'–'+this.galaxyView().lastTime.toFixed(1)+' Myr').fontSize(10).fontColor('#ABA6C0')
+        Row({space:8}) {
+          ChoiceChip({label:'记录最小',onPress:()=>{this.press('galaxy.minimum');}})
+          ChoiceChip({label:'记录最大',onPress:()=>{this.press('galaxy.maximum');}})
+        }
+        Text('仅定位已记录的采样极值；外延比例不等于逃逸质量。').fontSize(10).fontColor('#ABA6C0')
+      }
+    }.width('100%')
+  }
+  @Builder
   galaxyControls() {
     Column({space:10}) {
       Text('两片恒星盘相遇。改变方向与偏移，看看长尾向哪里延伸。').fontSize(12).fontColor('#CBBDEE').lineHeight(19)
@@ -1947,6 +2057,7 @@ struct Index {
       Slider({value:this.galaxyOffsetKpc,min:0,max:30,step:1}).onChange((v:number,mode:SliderChangeMode)=>{if(mode!==SliderChangeMode.Begin)this.input('galaxy.offset',v);})
       MetricRow({label:'次星系盘倾角',value:this.angle.toFixed(0)+'°'})
       Slider({value:this.angle,min:0,max:70,step:5}).onChange((v:number,mode:SliderChangeMode)=>{if(mode!==SliderChangeMode.Begin)this.input('scene.angle',v);})
+      ChoiceChip({label:'在星图调整相遇',enabledAction:this.info.frames>0&&this.info.state!=='preparing',onPress:()=>{this.press('galaxy.place');}}).id('galaxy-place')
       ChoiceChip({label:this.galaxyRetrograde?'次星系 · 逆行':'次星系 · 顺行',active:this.galaxyRetrograde,onPress:()=>{this.press('galaxy.retrograde');}}).id('galaxy-spin')
       MetricRow({label:'恒星示踪点',value:this.count.toString()})
       Slider({value:this.count,min:200,max:2400,step:200}).onChange((v:number,mode:SliderChangeMode)=>{if(mode!==SliderChangeMode.Begin)this.input('scene.count',Math.round(v));})
@@ -1956,6 +2067,7 @@ struct Index {
   @Builder
   galaxyObservation() {
     Column({space:8}) {
+      this.galaxyCurveControls()
       Text('潮汐正在改变什么').fontSize(15).fontColor('#E2EEF5').width('100%')
       if(this.info.galaxy){
         MetricRow({label:'两个中心相距',value:this.info.galaxy.separationKpc.toFixed(2)+' kpc'})
@@ -2210,10 +2322,10 @@ struct Index {
     Stack({alignContent:Alignment.TopStart}) {
       this.viewport()
       if(this.toolsVisible) {
-        if(!this.placing){this.header()}
+        if(!this.placing&&!this.galaxyPlacing){this.header()}
         if(this.isOrbit()&&!this.panelOpen&&!this.placing) {this.surfaceBar()}
         if(this.panelOpen) {this.drawer()}
-        if(!this.placing){this.transport()}
+        if(!this.placing&&!this.galaxyPlacing){this.transport()}
       } else {
         Button('显示工具',{type:ButtonType.Normal}).id('restore-tools').fontSize(12).fontColor('#E2D7FC')
           .backgroundColor('#A6222438').backgroundBlurStyle(BlurStyle.COMPONENT_ULTRA_THIN,{colorMode:ThemeColorMode.DARK}).height(42).borderRadius(24).padding({left:14,right:14})

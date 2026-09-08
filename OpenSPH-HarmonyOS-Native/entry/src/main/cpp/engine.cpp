@@ -425,6 +425,19 @@ SphObservation Engine::sphObservation() {
     }
     return result;
 }
+GalaxyObservation Engine::galaxyObservation(){
+    std::lock_guard<std::mutex> lock(mutex);GalaxyObservation out;out.sceneRevision=generation.load();out.selected=current.selected;out.config=config;
+    if(!current.configKnown||config.preset!=6||history.empty())return out;
+    for(size_t i=0;i<history.size();i++){const auto& f=*history[i];if(!validGalaxyDiagnostics(f.galaxy)){out.samples.clear();return out;}
+        out.samples.push_back({int(i),f.time,f.galaxy.values,f.energyError,f.angularError});}
+    out.available=true;return out;
+}
+void Engine::seekGalaxyObservation(int index,uint64_t revision,double time){
+    std::lock_guard<std::mutex> lock(mutex);
+    if(revision!=generation.load()||index<0||size_t(index)>=history.size()||!std::isfinite(time)||history[index]->time!=time||!history[index]->galaxy.available)
+        throw std::invalid_argument("Galaxy observation changed; refresh and try again");
+    paused=true;if(current.state=="running")current.state="paused";current.selected=index;
+}
 FragmentFrame Engine::fragmentFrame(){
     std::lock_guard<std::mutex> lock(mutex);FragmentFrame result;result.sceneRevision=generation.load();result.selected=current.selected;
     if(!history.empty())result.frame=current.selected<0?history.back():history[std::min(size_t(current.selected),history.size()-1)];return result;
