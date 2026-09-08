@@ -12,7 +12,7 @@ SPH 新增初始比内能、初始损伤、热软化外观与剩余强度；冷�
 
 从 [文档目录](docs/README.md) 查找指南和记录；操作应用见 [CLI 指南](docs/CLI.md)，继续开发前阅读 [开发约定](AGENTS.md) 和 [文档流程](docs/WORKFLOW.md)。
 
-开发只按 [唯一执行路线](docs/reference/PRODUCT-ROADMAP.md)推进：固定整条验收流程 → 同一世界撞击 → 残骸继续运动 → 连贯表面与热状态 → 卫星摄动环与分层行星。R01 已完成 [两轮固定验收基线](docs/reference/CONTINUOUS-COLLISION-ACCEPTANCE.md)，当前下一项为 R02 接触检查点；R06 完成才算首个连续碰撞玩法通过，期间不扩展星系、贴图或统计面板。2026-09-09 更新仅包含验收工具、测试和证据，应用及已打包的 0.56.0 产物不变。
+开发只按 [唯一执行路线](docs/reference/PRODUCT-ROADMAP.md)推进：固定整条验收流程 → 同一世界撞击 → 残骸继续运动 → 连贯表面与热状态 → 卫星摄动环与分层行星。R01 已完成 [两轮固定验收基线](docs/reference/CONTINUOUS-COLLISION-ACCEPTANCE.md)，当前下一项为 R02 接触检查点；R06 完成才算首个连续碰撞玩法通过，期间不扩展星系、贴图或统计面板。2026-09-09 更新包含验收工具、测试、证据与 [交互设计契约](docs/design/INTERACTION-DESIGN.md)。操作命名、时间／保存语义和布局整改纳入 R02／R03／R07，尚未接入应用；已打包的 0.56.0 产物不变。
 
 ## 当前能力
 

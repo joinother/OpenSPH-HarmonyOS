@@ -1,6 +1,6 @@
 # 文档目录
 
-> 类型：当前文档索引；源码版本：0.56.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前文档索引；源码版本：0.56.0；更新日期：2026-09-09（Asia/Shanghai）。
 
 先阅读 [项目概览](../README.md)，操作应用使用 [CLI 指南](CLI.md)，维护资料遵循 [文档流程](WORKFLOW.md) 和 [开发约定](../AGENTS.md)。本目录区分当前说明与历史记录；归档内容不覆盖当前规则。
 
@@ -20,6 +20,7 @@
 | [星系潮汐模型](reference/GALACTIC-TIDES.md) | 扩展引力势、受约束相遇预览、五条曲线、本地对照、CSV、kpc／Myr 与 v12 边界 |
 | [球体接触模型](reference/SPHERE-CONTACT.md) | 实体半径、扫掠接触、弹性响应、近距回放与 v11 边界 |
 | [主星图放置与碰撞接入](reference/VIEWPORT-PLACEMENT.md) | 屏幕坐标、倾斜平面、取消事务、定向发射及实体接触缺口 |
+| [交互设计契约](design/INTERACTION-DESIGN.md) | 当前混乱点、用户路径、23 项主题命名、布局与任务验收；拟采用方案，未接入应用 |
 | [连续碰撞验收](reference/CONTINUOUS-COLLISION-ACCEPTANCE.md) | R01 固定三场景、两轮实测、当前断点与恢复证据 |
 | [调研到执行的映射](reference/RESEARCH-IMPLEMENTATION.md) | 用户／同行／开源／运营研究对应 R01–R10 或明确后置；不另排第二套优先级 |
 | [星系、星云与宇宙尺度](research/GALAXIES-NEBULAE-UNIVERSE-2026-09-08.md) | Celestia／SpaceEngine 与科学引擎选读；潮汐相遇、自洽引力、气体和宇宙学回放路线，6 个实验提案；调研基线 0.42.0，后续实现见当前模型参考 |

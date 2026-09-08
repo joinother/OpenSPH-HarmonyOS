@@ -1,0 +1,49 @@
+{
+  "date": "2026-09-09",
+  "timezone": "Asia/Shanghai",
+  "kind": "read-only UX audit; proposals are not implemented or user-tested",
+  "baseline": "0.56.0",
+  "device": "127.0.0.1:5555",
+  "actionsInvoked": [
+    "listCommands",
+    "getUiState",
+    "getState"
+  ],
+  "sceneMutations": false,
+  "publicActionCatalogCount": 217,
+  "catalogCountIsNotVisibleButtonCount": true,
+  "observed": {
+    "simulationState": "completed",
+    "time": 800,
+    "preset": 6,
+    "panelOpen": false,
+    "widthVp": 707.2,
+    "heightVp": 773.12,
+    "immersive": true
+  },
+  "sourceHashes": {
+    "entry/src/main/ets/pages/Index.ets": "e04c8877c8dd262235e31da2d0a404f734b893b8d06b72fef9d9e53f3130c5b5",
+    "entry/src/main/ets/common/ExperimentCatalog.ets": "8a7a2ee390ebc8d12e3441ba26c93a3591fa76c98ba91e7503107f4378ca1efb",
+    "entry/src/main/ets/common/WorkspaceLayout.ets": "445db2f941a469de10f6d2128b155281ac7f842a9a90fdee71433b10a90e3277"
+  },
+  "layoutDerivedExample": {
+    "inputWidthVp": 360,
+    "inputHeightVp": 780,
+    "insets": 0,
+    "panelOpen": true,
+    "drawerHeightVp": 390,
+    "sceneCompositionHeightVp": 144,
+    "note": "Derived from current WorkspaceLayout formula; not an on-device phone screenshot or rendering clipping claim"
+  },
+  "sourceAccess": {
+    "huaweiMcp": "search request returned 400; no document obtained",
+    "huaweiWebLayout": "read full official page",
+    "huaweiWebLanguageToolbarSheet": "individual pages failed to load; not counted as read"
+  },
+  "verificationLimits": [
+    "No app code changed",
+    "No touch or animation test",
+    "No new user study",
+    "Current screenshot and full state retained privately under build"
+  ]
+}

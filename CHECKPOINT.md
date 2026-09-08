@@ -28,4 +28,6 @@ node --test tests/collision_acceptance.test.mjs tests/cli_transport.test.mjs tes
 
 2026-09-08 已把旧专题收敛为 [R01–R10 唯一执行路线](OpenSPH-HarmonyOS-Native/docs/reference/PRODUCT-ROADMAP.md)。R01 已完成 [固定输入、判据与两轮模拟器证据](OpenSPH-HarmonyOS-Native/docs/reference/CONTINUOUS-COLLISION-ACCEPTANCE.md)，下一项为 R02 接触事件检查点，随后连续视口、双向时间／受力和残骸提交；R06 完成才算第一个核心玩法通过。来源与去向见 [调研映射](OpenSPH-HarmonyOS-Native/docs/reference/RESEARCH-IMPLEMENTATION.md)。2026-09-09 增加验收工具及证据，121 项主机检查通过；两轮实际初值与分类一致，完整碰撞玩法仍未通过。测试前初始暂停场景及 13 个持久文件已恢复。应用仍为 0.56.0，已打包产物保持原字节。
 
+2026-09-09 另完成 [整体交互设计](OpenSPH-HarmonyOS-Native/docs/design/INTERACTION-DESIGN.md)：从用户任务审视名称、布局、时间与保存，包含 23 项主题标题建议和 8 项使用任务。这里只读检查现有应用，设计尚未接入；R02／R03 必须同时落实基础操作整改，不全部后推到 R07。
+
 新应用源码、OpenSPH 及第三方摄影素材分别保留许可证和署名；本检查点不包含同行私有实现或程序素材。
