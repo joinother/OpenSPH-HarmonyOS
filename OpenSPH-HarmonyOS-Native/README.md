@@ -1,6 +1,8 @@
 # 星体实验室 · OpenSPH HarmonyOS Native
 
-> 类型：当前项目概览；源码版本：0.51.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前项目概览；源码版本：0.52.0；更新日期：2026-09-08（Asia/Shanghai）。
+
+SPH 新增初始比内能、初始损伤、热软化外观与剩余强度；冷岩、预热岩体和裂隙岩体可作对照，材料参数参与求解并随 v15 回放保存。尚非液态熔融或冷却模型。见 [破坏与热软化](docs/reference/SPH-MATERIAL-RESPONSE.md)。
 
 鸿蒙原生科学探索应用，使用 ArkTS/ArkUI 构建交互界面，以 OpenSPH C++ 计算岩质碰撞，以独立的 C++ 多体引力模型计算行星轨道，通过 XComponent/OpenGL ES 显示。包名为 `com.opensph.lab`。
 

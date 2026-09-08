@@ -17,9 +17,12 @@ cmake="$sdk/native/build-tools/cmake/bin/cmake"
   -pthread -static-libstdc++ -o "$build_dir/engine_smoke"
 hdc_bin="$sdk/toolchains/hdc"
 target="${1:-127.0.0.1:5555}"
+[[ "$target" == "127.0.0.1:5555" ]] || exit 1
+scope="${2:-}"
+[[ -z "$scope" || "$scope" == "--sph-only" ]] || exit 1
 "$hdc_bin" -t "$target" file send "$build_dir/engine_smoke" /data/local/tmp/opensph_engine_smoke
 "$hdc_bin" -t "$target" shell chmod 755 /data/local/tmp/opensph_engine_smoke
-result="$("$hdc_bin" -t "$target" shell /data/local/tmp/opensph_engine_smoke /data/local/tmp/sph-lab-tests)"
+result="$("$hdc_bin" -t "$target" shell /data/local/tmp/opensph_engine_smoke /data/local/tmp/sph-lab-tests "$scope")"
 printf '%s\n' "$result"
 # hdc may return success even when the remote program returns nonzero.
 [[ "$result" == *"PASS pause/resume"* && "$result" != *"FAIL "* ]]

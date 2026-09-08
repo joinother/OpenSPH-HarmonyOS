@@ -93,3 +93,12 @@ test('kilometre-scale asteroid masses survive project serialization and reject b
   s.config.orbitBodies[3].massSolar=model.MIN_ORBIT_MASS_SOLAR;model.validateScene(s);
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+test('material energy, effective damage and new views survive recipes; incompatible states are rejected',()=>{
+ const dir=fs.mkdtempSync(join(tmpdir(),'sph-response-recipe-'));try{
+  const s={schemaVersion:1,model:'sph-rock-v1',title:'材料实验',bodies:[{id:'primary',name:'岩石',kind:'rock',radiusKm:100,density:2700}],config:{preset:2,count:200,speed:0,angle:0,duration:12,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,initialEnergyMJkg:1.7,initialDamage:.9}};
+  const r=model.defaultRecipe(s);r.camera.color=8;const saved=ProjectStore.save(dir,s,r),loaded=ProjectStore.load(dir,saved.id);assert.equal(loaded.scene.config.initialDamage,.9);assert.equal(loaded.scene.config.initialEnergyMJkg,1.7);assert.equal(loaded.recipe.camera.color,8);
+  for(const mutate of [s=>s.config.initialEnergyMJkg=null,s=>s.config.initialDamage=null,s=>s.config.initialEnergyMJkg=Infinity,s=>s.config.initialDamage='0',s=>s.config.initialDamage=-.1,s=>{s.config.selfGravity=true;s.config.relaxationSeconds=16;s.model='sph-rock-prepared-v1';}]){const bad=structuredClone(s);mutate(bad);assert.throws(()=>ProjectStore.save(dir,bad));}
+  assert.equal(fs.readdirSync(dir).length,1);
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

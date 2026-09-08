@@ -37,7 +37,8 @@ int main(int argc, char **argv) {
         std::string dir = argc > 1 ? argv[1] : ".";
         mkdir(dir.c_str(), 0700);
         Engine e;
-        {
+        const bool sphOnly=argc>2&&std::string(argv[2])=="--sph-only";
+        if(!sphOnly){
             const double earth=398600.435507e9/SOLAR_GM;Config c{5,200,1,0,1};
             c.orbitBodies={{"Star",1,0,0,0,0,0,0,0,695700},{"A",earth,1,-.00012,0,0,35,0,1,6371},{"B",.4*earth,1,.00012,0,0,25,0,3,6371*std::cbrt(.4)}};
             require(validConfig(c),"contact config");auto badConfig=c;badConfig.orbitBodies[1].radiusKm=0;require(!validConfig(badConfig),"mixed radius accepted");
@@ -69,15 +70,15 @@ int main(int argc, char **argv) {
         {
             for(int mode=0;mode<3;mode++){Config c{0,200,5,0,1};c.selfGravity=mode>0;c.relaxationSeconds=mode==2?16:0;e.start(c,true);awaitState(e,"paused");auto original=e.frame();
                 require(validSphFragments(original->fragments,original->particles.size(),original->totalMass),"initial fragment summary invalid");std::cout<<"initial fragment mode="<<mode<<" groups="<<original->fragments.groups.size()<<" largest_count="<<original->fragments.groups[0].count<<std::endl;
-                require(e.saveReplay(dir),"v10 save failed");const std::string path=dir+"/last-replay.osphr";std::ifstream in(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(in)),{});in.close();require(bytes[4]==10,"missing v10 fragments");
-                require(e.loadReplay(dir)&&e.status().config.selfGravity==c.selfGravity&&e.status().config.relaxationSeconds==c.relaxationSeconds,"v10 model identity changed");require(e.frame()->fragments.labels==original->fragments.labels,"v10 labels changed");require(e.frame()->fragments.groups[0].mass==original->fragments.groups[0].mass,"v10 mass changed");
-                uint32_t count=0;std::memcpy(&count,bytes.data()+120,4);const size_t groupsAt=120+84+size_t(count)*sizeof(Particle)+80+size_t(count)*sizeof(SphScalar)+32;
+                require(e.saveReplay(dir),"v15 save failed");const std::string path=dir+"/last-replay.osphr";std::ifstream in(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(in)),{});in.close();require(bytes[4]==15,"missing v15 fragments");
+                require(e.loadReplay(dir)&&e.status().config.selfGravity==c.selfGravity&&e.status().config.relaxationSeconds==c.relaxationSeconds,"v15 model identity changed");require(e.frame()->fragments.labels==original->fragments.labels,"v15 labels changed");require(e.frame()->fragments.groups[0].mass==original->fragments.groups[0].mass,"v15 mass changed");
+                uint32_t count=0;std::memcpy(&count,bytes.data()+136,4);const size_t groupsAt=136+84+size_t(count)*sizeof(Particle)+80+size_t(count)*sizeof(SphScalar)+32;
                 for(int badCase=0;badCase<5;badCase++){auto bad=bytes;uint32_t value=badCase==0?0:count+1;double nan=std::numeric_limits<double>::quiet_NaN();
                     if(badCase==0)std::memcpy(&bad[groupsAt],&value,4);if(badCase==1)std::memcpy(&bad[groupsAt+4],&value,4);if(badCase==2)std::memcpy(&bad[groupsAt+4+4*count+8],&nan,8);if(badCase==3)bad.pop_back();if(badCase==4){value=2;std::memcpy(&bad[108],&value,4);}
-                    {std::ofstream out(path,std::ios::binary);out.write(bad.data(),bad.size());}const auto current=e.frame();require(!e.loadReplay(dir)&&e.frame()==current,"corrupt v10 replaced active history");}
-                {std::ofstream out(path,std::ios::binary);out.write(bytes.data(),bytes.size());}require(e.loadReplay(dir),"v10 recovery failed");require(e.saveReplay(dir,false)&&e.loadReplay(dir)&&!e.frame()->fragments.available,"legacy replay fabricated groups");
+                    {std::ofstream out(path,std::ios::binary);out.write(bad.data(),bad.size());}const auto current=e.frame();require(!e.loadReplay(dir)&&e.frame()==current,"corrupt v15 replaced active history");}
+                {std::ofstream out(path,std::ios::binary);out.write(bytes.data(),bytes.size());}require(e.loadReplay(dir),"v15 recovery failed");require(e.saveReplay(dir,false)&&e.loadReplay(dir)&&!e.frame()->fragments.available,"legacy replay fabricated groups");
             }
-            std::cout<<"PASS fragments: initial geometry, v10 three model identities and exact labels/mass, malformed data rejection, legacy absence"<<std::endl;
+            std::cout<<"PASS fragments: initial geometry, v15 three model identities and exact labels/mass, malformed data rejection, legacy absence"<<std::endl;
         }
         {
             Config stationary{2,200,0,0,1};stationary.selfGravity=true;stationary.relaxationSeconds=16;
@@ -266,7 +267,7 @@ int main(int argc, char **argv) {
             require(e.status().state=="replay","invalid transaction changed scene");
             std::cout<<"PASS edited bodies mass, v2 config restoration, v1 compatibility, invalid radius atomicity"<<std::endl;
         }
-        for(int preset:{3,4}) {
+        if(!sphOnly)for(int preset:{3,4}) {
             Config c{preset,600,1,0,2};e.start(c);e.pause(true);awaitState(e,"paused");
             auto first=e.frame();require(first->orbital&&first->time==0,"orbit initial frame");
             auto steps=e.status().steps;std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -303,7 +304,7 @@ int main(int argc, char **argv) {
             e.start({0,200,5,0,1});awaitState(e,"completed");require(!e.frame()->orbital,"orbit to SPH switching failed");require(e.observation(1).samples.empty(),"SPH leaked orbital observation");
             std::cout<<"PASS orbit preset="<<preset<<" observation units/read-only/guarded seek/history eviction/replay, pause, 2 years, conserved energy, bounded trails/history, v3 roundtrip, truncation atomicity, cancel and SPH switching"<<std::endl;
         }
-        {
+        if(!sphOnly){
             Config c{5,600,1,0,1};c.orbitBodies.push_back({"中央恒星",1,0,0,0,0,0,0,0});
             for(int i=1;i<8;++i){double r=.6+i*.35,phase=i*.8,v=std::sqrt(SOLAR_GM*(1+3.e-6)/(r*AU))/1000;
                 c.orbitBodies.push_back({"行星 "+std::to_string(i),3.e-6,r*std::cos(phase),r*std::sin(phase),i==7?.2:0,-v*std::sin(phase),v*std::cos(phase),i==7?1.:0.,1+i%4});}

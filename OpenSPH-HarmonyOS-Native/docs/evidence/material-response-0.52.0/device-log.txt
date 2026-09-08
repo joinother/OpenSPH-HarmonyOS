@@ -1,0 +1,1 @@
+PASS cold/hot/fractured collisions, live material inputs, thermal/strength views, exact v15 replay, recipe and invalid-input rollback

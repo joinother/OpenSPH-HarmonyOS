@@ -16,9 +16,11 @@ const action=a=>call('uiAction',{action:a});
  call('setUiValue',{field:'scene.title',value:before.definition.title});call('setAppearance',before.appearance);call('setMaterial',before.material);call('setCamera',before.camera);
  for(let i=1;i<before.surfaces.length;i++){const s=before.surfaces[i];call('setSurfaceSeed',{body:i,surfaceSeed:s.seed,cloudSeed:s.cloudSeed});}
  action(before.ui.toolsVisible?'ui.restore':'ui.focus');call('setPanel',{panel:before.ui.panelOpen?before.ui.panel:-1});
- const restored=call('getState');assert.deepEqual(restored.simulation.orbitState,frozen.simulation.orbitState);assert.equal(restored.simulation.time,frozen.simulation.time);assert.equal(restored.simulation.frames,frozen.simulation.frames);
+ if(!backup.wasRunning)action('time.rate.'+before.simulation.daysPerSecond);
+ const restored=call('getState');
+ if(!backup.wasRunning){assert.equal(restored.simulation.state,'paused');assert.equal(restored.simulation.selected,-1);} assert.deepEqual(restored.simulation.orbitState,frozen.simulation.orbitState);assert.equal(restored.simulation.time,frozen.simulation.time);assert.equal(restored.simulation.frames,frozen.simulation.frames);
  assert.deepEqual(restored.camera,before.camera);assert.deepEqual(restored.appearance,before.appearance);assert.deepEqual(restored.surfaces,before.surfaces);
  h('file','send',recovery+'/original-files/last-replay.osphr',remote+'last-replay.osphr');h('shell','rm','-f',remote+backup.projectId+'.json');
  if(backup.wasRunning)call('start');
- writeFileSync(out+'/restoration.json',JSON.stringify({ok:true,restoredTime:restored.simulation.time,frames:restored.simulation.frames,exactBodies:true,camera:true,appearance:true,surfaceSeeds:true,originalReplayRestored:true,resumed:backup.wasRunning},null,2));
+ writeFileSync(out+'/restoration.json',JSON.stringify({ok:true,restoredTime:restored.simulation.time,frames:restored.simulation.frames,bodyCount:restored.simulation.orbitState.length,pausedSessionReady:!backup.wasRunning&&restored.simulation.state==='paused',exactBodies:true,camera:true,appearance:true,surfaceSeeds:true,originalReplayRestored:true,resumed:backup.wasRunning},null,2));
  console.log('PASS restored original live system, presentation and previous replay slot');

@@ -112,6 +112,7 @@ napi_value startScene(napi_env e, napi_callback_info i) {
         bool gravityPresent=false;napi_has_named_property(e,a[0],"selfGravity",&gravityPresent);
         if(gravityPresent){napi_value v;napi_get_named_property(e,a[0],"selfGravity",&v);
             if(napi_get_value_bool(e,v,&c.selfGravity)!=napi_ok)throw std::invalid_argument("Boolean selfGravity expected");}
+        for(const char* key:{"initialEnergyMJkg","initialDamage"}){bool present=false;napi_has_named_property(e,a[0],key,&present);if(present){if(std::string(key)=="initialEnergyMJkg")c.initialEnergyMJkg=field(key);else c.initialDamage=field(key);}}
         bool relaxPresent=false;napi_has_named_property(e,a[0],"relaxationSeconds",&relaxPresent);
         if(relaxPresent)c.relaxationSeconds=field("relaxationSeconds");
         for(const char* name:{"galaxyMassRatio","galaxyOffsetKpc"}){bool present=false;napi_has_named_property(e,a[0],name,&present);if(present){if(c.preset!=6)throw std::invalid_argument("Galaxy fields require preset 6");if(std::string(name)=="galaxyMassRatio")c.galaxyMassRatio=field(name);else c.galaxyOffsetKpc=field(name);}}
@@ -363,6 +364,11 @@ napi_value status(napi_env e, napi_callback_info) {
     const char *keys[]={"pressureMinGPa","pressureMaxGPa","pressureMeanGPa","internalMinMJkg","internalMaxMJkg","internalMeanMJkg","damageMean","damageMax","kineticJ","internalJ"};
     if(s.sph.available)for(int k=0;k<10;++k)num(e,diag,keys[k],s.sph.values[k]);
     if(s.sph.structure.available){napi_value a;napi_create_array_with_length(e,4,&a);for(size_t j=0;j<4;j++){napi_value n;napi_create_double(e,s.sph.structure.values[j],&n);napi_set_element(e,a,j,n);}napi_set_named_property(e,diag,"structure",a);}
+    if(s.sph.response.available){napi_value response;napi_create_object(e,&response);
+        const char* keys[]={"softeningMean","zeroShearMassFraction","damagedMassFraction","strengthMean"};
+        for(int k=0;k<4;k++)num(e,response,keys[k],s.sph.response.values[k]);
+        str(e,response,"model","basalt-von-mises-response-v1");num(e,response,"meltEnergyMJkg",lab::ROCK_MELT_ENERGY_JKG/1e6);num(e,response,"intactYieldGPa",lab::ROCK_YIELD_PA/1e9);
+        napi_set_named_property(e,diag,"response",response);}
     napi_set_named_property(e,o,"sph",diag);
     num(e,o,"energyError",s.energyError);num(e,o,"angularError",s.angularError);
     str(e,o,"model",s.config.preset==6?(s.config.galaxyResponsive?"galaxy-responsive-v1":"galaxy-tidal-restricted-v1"):s.config.preset==5?(!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0?"nbody-hard-sphere-v1":"nbody-custom-v1"):(s.config.preset>=3?"nbody-v1":(s.config.relaxationSeconds>0?"sph-rock-prepared-v1":(s.config.selfGravity?"sph-rock-gravity-v1":"sph-rock-v1"))));
@@ -386,6 +392,8 @@ napi_value status(napi_env e, napi_callback_info) {
       num(e,c,"angle",s.config.angle);num(e,c,"duration",s.config.duration);
       num(e,c,"targetRadiusKm",s.config.targetRadiusKm);num(e,c,"impactorRadiusKm",s.config.impactorRadiusKm);
       num(e,c,"targetDensity",s.config.targetDensity);num(e,c,"impactorDensity",s.config.impactorDensity);
+      if(s.config.initialEnergyMJkg>0)num(e,c,"initialEnergyMJkg",s.config.initialEnergyMJkg);
+      if(s.config.initialDamage>0)num(e,c,"initialDamage",s.config.initialDamage);
       if(s.config.relaxationSeconds>0)num(e,c,"relaxationSeconds",s.config.relaxationSeconds);
       if(s.config.selfGravity){napi_value g;napi_get_boolean(e,true,&g);napi_set_named_property(e,c,"selfGravity",g);}
       num(e,c,"targetSpin",s.config.targetSpin);num(e,c,"seed",s.config.seed);

@@ -44,9 +44,15 @@ class Experiment : public IRun, public IRunCallbacks {
         settings.set(RunSettingsId::TIMESTEPPING_MAX_TIMESTEP, 0.15_f);
         logWriter = makeAuto<NullLogWriter>();
     }
+    void configureMaterial(BodySettings& body){
+        body.set(BodySettingsId::ENERGY,Float(cfg.initialEnergyMJkg*1e6));
+        body.set(BodySettingsId::DAMAGE,Float(std::cbrt(cfg.initialDamage)));
+        body.set(BodySettingsId::MELT_ENERGY,Float(ROCK_MELT_ENERGY_JKG));
+        body.set(BodySettingsId::ELASTICITY_LIMIT,Float(ROCK_YIELD_PA));
+    }
     void setUp(SharedPtr<Storage> storage) override {
         if(cfg.relaxationSeconds>0){
-            InitialConditions ic(settings);BodySettings body;
+            InitialConditions ic(settings);BodySettings body;configureMaterial(body);
             body.set(BodySettingsId::PARTICLE_COUNT,cfg.preset==2?cfg.count:cfg.count*3/4);
             body.set(BodySettingsId::DENSITY,Float(cfg.targetDensity));
             preparationPoint(engine,generation,"target");Storage primary;
@@ -71,7 +77,7 @@ class Experiment : public IRun, public IRunCallbacks {
         }
         preparationPoint(engine,generation,"target");
         InitialConditions ic(settings);
-        BodySettings body;
+        BodySettings body;configureMaterial(body);
         body.set(BodySettingsId::PARTICLE_COUNT, cfg.preset == 2 ? cfg.count : cfg.count * 3 / 4);
         body.set(BodySettingsId::DENSITY, Float(cfg.targetDensity));
         auto target = ic.addMonolithicBody(*storage, SphericalDomain(Vector(0._f), Float(cfg.targetRadiusKm * 1000)), body);
@@ -105,7 +111,7 @@ class Experiment : public IRun, public IRunCallbacks {
         const auto &pressure=storage.getValue<Float>(QuantityId::PRESSURE);
         const auto &internal=storage.getValue<Float>(QuantityId::ENERGY);
         const auto &damage=storage.getValue<Float>(QuantityId::DAMAGE);
-        SphAccumulator diagnostics;f->scalars.reserve(r.size());
+        SphAccumulator diagnostics;ResponseAccumulator response;f->scalars.reserve(r.size());
         std::vector<StructureParticle> structure;structure.reserve(r.size());
         std::vector<double> smoothing;smoothing.reserve(r.size());
         double weights[2] = {};
@@ -118,6 +124,7 @@ class Experiment : public IRun, public IRunCallbacks {
             smoothing.push_back(double(r[i][H]));
             structure.push_back({double(mass[i]),{double(r[i][X]),double(r[i][Y]),double(r[i][Z])},{double(v[i][X]),double(v[i][Y]),double(v[i][Z])}});
             f->scalars.push_back(diagnostics.add(pressure[i],internal[i],damage[i],mass[i],speed));
+            response.add(internal[i],std::pow(std::clamp(double(damage[i]),0.,1.),3),mass[i]);
             int body = i < split ? 0 : 1;
             f->particles.push_back({float(r[i][X] / 1.e5), float(r[i][Y] / 1.e5), float(r[i][Z] / 1.e5),
                                     float(speed / 1000), float(rho[i]), float(body)});
@@ -132,7 +139,7 @@ class Experiment : public IRun, public IRunCallbacks {
             for (int j = 0; j < 3; ++j)
                 if (weights[b] > 0)
                     f->centers[b * 3 + j] /= weights[b];
-        f->meanDensity /= r.size();f->sph=diagnostics.finish();
+        f->meanDensity /= r.size();f->sph=diagnostics.finish();f->sph.response=response.finish();
         double potential=0;
         if(energyGravity){Statistics stats;energyGravity->build(*scheduler,storage);potential=energyGravity->evalEnergy(*scheduler,stats);}
         f->sph.structure=measureSphStructure(structure,potential);
@@ -263,6 +270,8 @@ static bool validOrbitName(const std::string &name) {
 }
 bool validConfig(const Config &c) {
     auto range = [](double x, double low, double high) { return std::isfinite(x) && x >= low && x <= high; };
+    if(!range(c.initialEnergyMJkg,0,6.8)||!range(c.initialDamage,0,1))return false;
+    if((c.initialEnergyMJkg>0||c.initialDamage>0)&&(c.preset>=3||c.relaxationSeconds>0))return false;
     if(c.relaxationSeconds!=0&&c.relaxationSeconds!=16&&c.relaxationSeconds!=64)return false;
     if(c.relaxationSeconds>0&&(!c.selfGravity||c.preset>=3))return false;
     if(c.preset==5){
@@ -579,9 +588,11 @@ bool Engine::saveReplay(const std::string &dir,bool includeFragments) {
     const bool diagnostics=known&&saved.preset<3&&std::all_of(frames.begin(),frames.end(),[](const auto &f){return f->sph.available&&f->scalars.size()==f->particles.size();});
     const bool structure=diagnostics&&std::all_of(frames.begin(),frames.end(),[](const auto& f){return validSphStructure(f->sph.structure);});
     const bool fragments=includeFragments&&structure&&std::all_of(frames.begin(),frames.end(),[](const auto&f){return validSphFragments(f->fragments,f->particles.size(),f->totalMass);});
+    const bool response=fragments&&std::all_of(frames.begin(),frames.end(),[](const auto& f){return validSphResponse(f->sph.response);});
+    if((saved.initialEnergyMJkg>0||saved.initialDamage>0)&&!response)return false;
     if ((saved.selfGravity && !diagnostics)||(saved.relaxationSeconds>0&&!structure)) return false;
     std::ofstream out(temp, std::ios::binary);
-    uint32_t magic = 0x4c485053, version = known&&saved.preset==6?(saved.galaxyResponsive?13:12):known&&saved.preset==5&&!saved.orbitBodies.empty()&&saved.orbitBodies[0].radiusKm>0?11:fragments?10:saved.relaxationSeconds>0?9:diagnostics?(structure?(saved.selfGravity?8:7):(saved.selfGravity?6:5)):(known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1), n = frames.size();
+    uint32_t magic = 0x4c485053, version = response?15:known&&saved.preset==6?(saved.galaxyResponsive?13:12):known&&saved.preset==5&&!saved.orbitBodies.empty()&&saved.orbitBodies[0].radiusKm>0?11:fragments?10:saved.relaxationSeconds>0?9:diagnostics?(structure?(saved.selfGravity?8:7):(saved.selfGravity?6:5)):(known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1), n = frames.size();
     out.write(reinterpret_cast<char *>(&magic), 4);
     out.write(reinterpret_cast<char *>(&version), 4);
     out.write(reinterpret_cast<char *>(&n), 4);
@@ -591,8 +602,9 @@ bool Engine::saveReplay(const std::string &dir,bool includeFragments) {
             saved.targetRadiusKm,saved.impactorRadiusKm,saved.targetDensity,saved.impactorDensity,saved.targetSpin,double(saved.seed)};
         out.write(reinterpret_cast<char *>(values),sizeof(values));
     }
-    if(version>=12){double g[]={saved.galaxyMassRatio,saved.galaxyOffsetKpc,saved.galaxyRetrograde?1.:0.};out.write(reinterpret_cast<const char*>(g),sizeof(g));}
-    if(version==10){uint32_t gravity=saved.selfGravity?1:0;out.write(reinterpret_cast<const char*>(&gravity),4);out.write(reinterpret_cast<const char*>(&saved.relaxationSeconds),8);}
+    if((version==12||version==13)){double g[]={saved.galaxyMassRatio,saved.galaxyOffsetKpc,saved.galaxyRetrograde?1.:0.};out.write(reinterpret_cast<const char*>(g),sizeof(g));}
+    if((version==10||version==15)){uint32_t gravity=saved.selfGravity?1:0;out.write(reinterpret_cast<const char*>(&gravity),4);out.write(reinterpret_cast<const char*>(&saved.relaxationSeconds),8);}
+    if(version==15){double material[]={saved.initialEnergyMJkg,saved.initialDamage};out.write(reinterpret_cast<const char*>(material),16);}
     if(version==9)out.write(reinterpret_cast<const char*>(&saved.relaxationSeconds),8);
     if(version==4||version==11){uint32_t count=saved.orbitBodies.size();out.write(reinterpret_cast<char *>(&count),4);
         for(const auto &b:saved.orbitBodies){uint32_t len=b.name.size();out.write(reinterpret_cast<char *>(&len),4);out.write(b.name.data(),len);
@@ -604,11 +616,12 @@ bool Engine::saveReplay(const std::string &dir,bool includeFragments) {
         out.write(reinterpret_cast<char *>(values), sizeof(values));
         out.write(reinterpret_cast<char *>(f->centers), sizeof(f->centers));
         out.write(reinterpret_cast<char *>(f->particles.data()), count * sizeof(Particle));
-        if(version>=5&&version<=10){out.write(reinterpret_cast<const char *>(f->sph.values.data()),sizeof(double)*10);out.write(reinterpret_cast<const char *>(f->scalars.data()),count*sizeof(SphScalar));}
-        if(version>=7&&version<=10)out.write(reinterpret_cast<const char*>(f->sph.structure.values.data()),sizeof(double)*4);
-        if(version==10){const auto& fragments=f->fragments;uint32_t groups=fragments.groups.size();out.write(reinterpret_cast<const char*>(&groups),4);out.write(reinterpret_cast<const char*>(fragments.labels.data()),count*4);
+        if(((version>=5&&version<=10)||version==15)){out.write(reinterpret_cast<const char *>(f->sph.values.data()),sizeof(double)*10);out.write(reinterpret_cast<const char *>(f->scalars.data()),count*sizeof(SphScalar));}
+        if(((version>=7&&version<=10)||version==15))out.write(reinterpret_cast<const char*>(f->sph.structure.values.data()),sizeof(double)*4);
+        if((version==10||version==15)){const auto& fragments=f->fragments;uint32_t groups=fragments.groups.size();out.write(reinterpret_cast<const char*>(&groups),4);out.write(reinterpret_cast<const char*>(fragments.labels.data()),count*4);
             for(const auto&g:fragments.groups){out.write(reinterpret_cast<const char*>(&g.anchor),4);out.write(reinterpret_cast<const char*>(&g.count),4);out.write(reinterpret_cast<const char*>(&g.mass),8);out.write(reinterpret_cast<const char*>(g.center.data()),24);out.write(reinterpret_cast<const char*>(g.velocity.data()),24);out.write(reinterpret_cast<const char*>(&g.rmsRadius),8);}}
-        if(version>=12){out.write(reinterpret_cast<const char*>(f->galaxy.values.data()),40);double errors[]={f->energyError,f->angularError};out.write(reinterpret_cast<const char*>(errors),16);}
+        if(version==15)out.write(reinterpret_cast<const char*>(f->sph.response.values.data()),32);
+        if((version==12||version==13)){out.write(reinterpret_cast<const char*>(f->galaxy.values.data()),40);double errors[]={f->energyError,f->angularError};out.write(reinterpret_cast<const char*>(errors),16);}
         if(version==11){out.write(reinterpret_cast<const char*>(&f->contact.count),4);int32_t a=f->contact.a,b=f->contact.b;out.write(reinterpret_cast<const char*>(&a),4);out.write(reinterpret_cast<const char*>(&b),4);out.write(reinterpret_cast<const char*>(&f->contact.time),8);out.write(reinterpret_cast<const char*>(&f->contact.speed),8);}
         if(version==3||version==4||version==11){uint32_t ntrail=f->trails.size();double d[]={f->energyError,f->angularError};
             out.write(reinterpret_cast<char *>(d),sizeof(d));out.write(reinterpret_cast<char *>(&ntrail),4);
@@ -634,8 +647,8 @@ bool Engine::loadReplay(const std::string &dir) {
         current=Status{};current.state="replay";current.duration=config.duration;current.selected=int(history.size())-1;preparation=PreparationTracker{};cv.notify_all();return true;}
     in.read(reinterpret_cast<char *>(&n), 4);
     in.read(reinterpret_cast<char *>(&duration), 8);
-    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4 && version != 5 && version != 6 && version != 7 && version != 8 && version != 9 && version != 10 && version != 11 && version != 12 && version != 13) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
-        duration <= 0 || duration > (version>=12?800:120))
+    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4 && version != 5 && version != 6 && version != 7 && version != 8 && version != 9 && version != 10 && version != 11 && version != 12 && version != 13 && version != 15) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
+        duration <= 0 || duration > ((version==12||version==13)?800:120))
         return false;
     Config saved;
     if (version >= 2) {
@@ -644,9 +657,10 @@ bool Engine::loadReplay(const std::string &dir) {
         for (double x : v) if (!std::isfinite(x) || std::abs(x) > 1.e7) return false;
         for (int i : {0,1,10}) if (std::trunc(v[i]) != v[i]) return false;
         saved = {int(v[0]),int(v[1]),v[2],v[3],v[4],v[5],v[6],v[7],v[8],v[9],int(v[10])};
-        if(version>=12){double g[3];in.read(reinterpret_cast<char*>(g),sizeof(g));if(!in||(g[2]!=0&&g[2]!=1))return false;saved.galaxyMassRatio=g[0];saved.galaxyOffsetKpc=g[1];saved.galaxyRetrograde=g[2]==1;saved.galaxyResponsive=version==13;}
+        if((version==12||version==13)){double g[3];in.read(reinterpret_cast<char*>(g),sizeof(g));if(!in||(g[2]!=0&&g[2]!=1))return false;saved.galaxyMassRatio=g[0];saved.galaxyOffsetKpc=g[1];saved.galaxyRetrograde=g[2]==1;saved.galaxyResponsive=version==13;}
         saved.selfGravity = version == 6 || version == 8 || version == 9;
-        if(version==10){uint32_t gravity=2;in.read(reinterpret_cast<char*>(&gravity),4);in.read(reinterpret_cast<char*>(&saved.relaxationSeconds),8);if(!in||gravity>1)return false;saved.selfGravity=gravity==1;}
+        if((version==10||version==15)){uint32_t gravity=2;in.read(reinterpret_cast<char*>(&gravity),4);in.read(reinterpret_cast<char*>(&saved.relaxationSeconds),8);if(!in||gravity>1)return false;saved.selfGravity=gravity==1;}
+        if(version==15){double material[2];in.read(reinterpret_cast<char*>(material),16);if(!in)return false;saved.initialEnergyMJkg=material[0];saved.initialDamage=material[1];}
         if(version==9){in.read(reinterpret_cast<char*>(&saved.relaxationSeconds),8);if(!in||saved.relaxationSeconds<=0)return false;}
         if(version==4||version==11){uint32_t count=0;in.read(reinterpret_cast<char *>(&count),4);if(!in||count<2||count>8)return false;
             for(uint32_t i=0;i<count;++i){uint32_t len=0;in.read(reinterpret_cast<char *>(&len),4);if(!in||len<1||len>192)return false;
@@ -654,7 +668,7 @@ bool Engine::loadReplay(const std::string &dir) {
                 for(double x:d)if(!std::isfinite(x))return false;
                 if(d[7]<0||d[7]>5||std::trunc(d[7])!=d[7])return false;
                 saved.orbitBodies.push_back({name,d[0],d[1],d[2],d[3],d[4],d[5],d[6],int(d[7])});if(version==11){in.read(reinterpret_cast<char*>(&saved.orbitBodies.back().radiusKm),8);if(!in||saved.orbitBodies.back().radiusKm<=0)return false;}}}
-        if (!validConfig(saved) || saved.duration != duration || ((version==3||version==4||version==11)!=(saved.preset>=3&&saved.preset<=5)) || ((version>=12)!=(saved.preset==6)) || (version==4||version==11)!=(saved.preset==5)) return false;
+        if (!validConfig(saved) || saved.duration != duration || ((version==3||version==4||version==11)!=(saved.preset>=3&&saved.preset<=5)) || (((version==12||version==13))!=(saved.preset==6)) || (version==4||version==11)!=(saved.preset==5)) return false;
     }
     std::deque<std::shared_ptr<Frame>> frames;
     for (uint32_t k = 0; k < n; ++k) {
@@ -686,19 +700,20 @@ bool Engine::loadReplay(const std::string &dir) {
             if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z) ||
                 !std::isfinite(p.speed) || !std::isfinite(p.density) || (p.body < 0 || p.body > ((version==3||version==4||version==11)?7:1) || std::trunc(p.body)!=p.body))
                 return false;
-        if(version>=5&&version<=10){
+        if(((version>=5&&version<=10)||version==15)){
             f->sph.available=true;in.read(reinterpret_cast<char *>(f->sph.values.data()),sizeof(double)*10);
             f->scalars.resize(count);in.read(reinterpret_cast<char *>(f->scalars.data()),count*sizeof(SphScalar));
             if(!in||!validSphDiagnostics(f->sph))return false;
             for(const auto &p:f->scalars)if(!validSphScalar(p))return false;
         }
-        if(version>=7&&version<=10){f->sph.structure.available=true;in.read(reinterpret_cast<char*>(f->sph.structure.values.data()),sizeof(double)*4);
+        if(((version>=7&&version<=10)||version==15)){f->sph.structure.available=true;in.read(reinterpret_cast<char*>(f->sph.structure.values.data()),sizeof(double)*4);
             if(!in||!validSphStructure(f->sph.structure)||(!saved.selfGravity&&f->sph.structure.values[0]!=0))return false;}
-        if(version==10){uint32_t groups=0;in.read(reinterpret_cast<char*>(&groups),4);if(!in||groups==0||groups>count)return false;
+        if((version==10||version==15)){uint32_t groups=0;in.read(reinterpret_cast<char*>(&groups),4);if(!in||groups==0||groups>count)return false;
             f->fragments.available=true;f->fragments.labels.resize(count);f->fragments.groups.resize(groups);in.read(reinterpret_cast<char*>(f->fragments.labels.data()),count*4);
             for(auto&g:f->fragments.groups){in.read(reinterpret_cast<char*>(&g.anchor),4);in.read(reinterpret_cast<char*>(&g.count),4);in.read(reinterpret_cast<char*>(&g.mass),8);in.read(reinterpret_cast<char*>(g.center.data()),24);in.read(reinterpret_cast<char*>(g.velocity.data()),24);in.read(reinterpret_cast<char*>(&g.rmsRadius),8);}
             if(!in||!validSphFragments(f->fragments,count,f->totalMass))return false;}
-        if(version>=12){
+        if(version==15){f->sph.response.available=true;in.read(reinterpret_cast<char*>(f->sph.response.values.data()),32);if(!in||!validSphResponse(f->sph.response))return false;}
+        if((version==12||version==13)){
             if(count!=uint32_t(saved.count))return false;
             f->galaxy.available=true;in.read(reinterpret_cast<char*>(f->galaxy.values.data()),40);double errors[2];in.read(reinterpret_cast<char*>(errors),16);
             if(!in||!validGalaxyDiagnostics(f->galaxy)||!std::isfinite(errors[0])||!std::isfinite(errors[1]))return false;

@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "records": [
+    {
+      "field": "initialEnergyMJkg",
+      "result": {
+        "ok": false,
+        "error": "Error: 参数超出范围 0…6.8"
+      },
+      "unchanged": true
+    },
+    {
+      "field": "initialDamage",
+      "result": {
+        "ok": false,
+        "error": "Error: 参数超出范围 0…1"
+      },
+      "unchanged": true
+    }
+  ]
+}

@@ -71,9 +71,19 @@ export function themeExperiments():ThemeExperiment[] {
       config:{preset:6,count:600,speed:.75,angle:25,duration:600,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,galaxyMassRatio:.6,galaxyOffsetKpc:12,galaxyRetrograde:false,galaxyResponsive:responsive},
       yaw:.15,pitch:.25,zoom:5.2,focus:-1,closeup:false});
   }
+  for(const variant of ['cold','hot','fractured']){
+    result.push({id:'material-'+variant,title:variant==='cold'?'完整冷岩，相撞之后':variant==='hot'?'预热岩体，同样一撞':'已有裂隙，还能撑住吗',category:'collision',
+      question:'同样的撞击，岩石的初始状态会改变破坏过程吗？',goal:'运行后切换热软化、材料损伤和团块；冷岩与预热岩体保持撞速一致。预热会产生初始压力膨胀。',
+      limit:'百公里均质岩体，无自引力；热软化降低屈服强度，不代表液相比例或真实温度。裂隙使用标量损伤，未解析具体裂纹面。',
+      badge:variant==='hot'?'初始内能 1.7 MJ/kg':variant==='fractured'?'初始损伤 90%':'初始内能 0 · 无损伤',cover:variant==='hot'?'rock-fast':'rock-oblique',
+      compareId:variant==='cold'?'material-hot':'material-cold',
+      config:{preset:1,count:600,speed:8,angle:45,duration:60,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,initialEnergyMJkg:variant==='hot'?1.7:0,initialDamage:variant==='fractured'?.9:0},
+      yaw:.15,pitch:.25,zoom:4.6,focus:-1,closeup:false});
+  }
   return result;
 }
 export function themeConfigMatches(a:SimulationConfig,b:SimulationConfig):boolean {
+  if((a.initialEnergyMJkg??0)!==(b.initialEnergyMJkg??0)||(a.initialDamage??0)!==(b.initialDamage??0))return false;
   if((a.galaxyResponsive??false)!==(b.galaxyResponsive??false))return false;
   if((a.galaxyMassRatio??.6)!==(b.galaxyMassRatio??.6)||(a.galaxyOffsetKpc??12)!==(b.galaxyOffsetKpc??12)||(a.galaxyRetrograde??false)!==(b.galaxyRetrograde??false))return false;
   if((a.relaxationSeconds??0)!==(b.relaxationSeconds??0)||(a.selfGravity===true)!==(b.selfGravity===true)||a.preset!==b.preset||a.count!==b.count||a.speed!==b.speed||a.angle!==b.angle||a.duration!==b.duration||

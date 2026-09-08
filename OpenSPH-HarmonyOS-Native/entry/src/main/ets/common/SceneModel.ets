@@ -61,10 +61,13 @@ export function validateRecipe(r:ExperimentRecipe,scene:SceneDefinition):void {
 function validateRecipeCamera(c:RecipeCamera,maxFocus:number,preset:number):void {
   if(!c)throw new Error('缺少观察视角');
   check(c.yaw,-Number.MAX_VALUE,Number.MAX_VALUE);check(c.pitch,-1.5,1.5);check(c.zoom,.5,15);
-  check(c.focus,-1,maxFocus,true);check(c.color,0,preset>=3?1:6,true);
+  check(c.focus,-1,maxFocus,true);check(c.color,0,preset>=3?1:8,true);
 }
 export function validateConfig(c: SimulationConfig): void {
   if(!c || typeof c !== 'object') throw new Error('缺少场景配置');
+  if(c.initialEnergyMJkg!==undefined)check(c.initialEnergyMJkg,0,6.8);
+  if(c.initialDamage!==undefined)check(c.initialDamage,0,1);
+  if(((c.initialEnergyMJkg??0)>0||(c.initialDamage??0)>0)&&(c.preset>=3||(c.relaxationSeconds??0)>0))throw new Error('预热／预损伤实验需要直接生成岩体');
   if(c.relaxationSeconds!==undefined&&![0,16,64].includes(c.relaxationSeconds))throw new Error('预松弛时长只支持 0、16、64 秒');
   if((c.relaxationSeconds??0)>0&&(!c.selfGravity||c.preset>=3))throw new Error('预松弛需要岩质模型与材料自引力');
   if(c.selfGravity!==undefined&&typeof c.selfGravity!=='boolean')throw new Error('自引力必须为布尔值');

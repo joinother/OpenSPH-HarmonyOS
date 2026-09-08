@@ -1,0 +1,4 @@
+{
+  "error": "Error: Command failed: /opt/homebrew/Cellar/node/26.7.0/bin/node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --timeout 180000 --batch /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/build/thermal-batch-1.json\n{\"ok\":false,\"error\":\"Timeout must be 1000..120000 ms\"}\n",
+  "records": []
+}

@@ -1,0 +1,8 @@
+ninja: no work to do.
+FileTransfer finish, Size:8689800, File count = 1, time:70ms rate:124140.00kB/s
+{"rheologyCases":18,"massWeighted":true}
+{"variant":0,"time":12.020000000000017,"count":212,"internalMJkg":1.4501183479122013,"damage":2.0337805192204949e-05,"softening":0.20548390662641478,"zeroShearMassFraction":0.10433008603238823,"strength":0.79449961578789985}
+{"variant":1,"time":12.020000000000017,"count":212,"internalMJkg":2.9067304046893536,"damage":0,"softening":0.56650558750374969,"zeroShearMassFraction":0.1522804908906876,"strength":0.43349441249624499}
+{"variant":2,"time":12.020000000000017,"count":212,"internalMJkg":1.4298690035610646,"damage":0.90522860201395194,"softening":0.20156181963231379,"zeroShearMassFraction":0.10433008603238823,"strength":0.076730269960518668}
+{"variant":3,"time":12.020000000000017,"count":212,"internalMJkg":3.9556111715932105,"damage":0,"softening":0.79794309015501952,"zeroShearMassFraction":0.24467042004048431,"strength":0.20205690984497673}
+PASS SPH material response: actual rheology, evolving fracture/energy, four material conditions, v15 roundtrip, corruption rollback and legacy loading

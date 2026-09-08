@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "date": "2026-09-08",
+  "timezone": "Asia/Shanghai",
+  "images": [
+    "material-inputs.jpeg",
+    "hot-impact.jpeg",
+    "threshold-inspector.jpeg"
+  ],
+  "review": [
+    "Material sliders visible at top of parameter panel",
+    "Response values and legend visible at top of observation panel",
+    "Current thermal appearance is a particle visualization, not a continuous liquid surface",
+    "Hot color is illustrative; no calibrated temperature or phase fraction",
+    "No rendering error reported by semantic snapshots"
+  ],
+  "scope": "Screenshot review only; no touch, animation frame-rate or real-device claims"
+}

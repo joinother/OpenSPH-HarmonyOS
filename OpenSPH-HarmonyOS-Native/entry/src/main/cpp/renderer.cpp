@@ -111,8 +111,11 @@ uniform int mode;
 uniform int orbital;
 uniform highp int galactic;
 uniform int surfaces[8];
+uniform float meltEnergyMJkg;
 out vec3 tint;
+out float heat;
 void main(){
+ heat=0.;
  vec3 p=position-center;
  float a=camera.x,b=camera.y;
  p=vec3(cos(a)*p.x+sin(a)*p.z,p.y,-sin(a)*p.x+cos(a)*p.z);
@@ -129,6 +132,13 @@ void main(){
  if(mode==4)tint=mix(vec3(.18,.25,.48),vec3(1.,.74,.22),clamp(diagnostic.y/10.,0.,1.));
  if(mode==6){float hue=fract((groupAnchor+1.)*.61803398875);tint=.55+.38*cos(6.2831853*(hue+vec3(0.,.333333,.666667)));}
  if(mode==5)tint=mix(vec3(.30,.74,.76),vec3(.96,.28,.35),clamp(diagnostic.z,0.,1.));
+ if(mode==7||mode==8){
+   float ratio=diagnostic.y/meltEnergyMJkg;
+   float softening=ratio<.00001?0.:clamp(ratio,0.,1.);
+   float strength=(1.-diagnostic.z)*(1.-softening);
+   if(mode==7){heat=softening;vec3 rock=tint*(1.-.55*diagnostic.z);vec3 hot=mix(vec3(.72,.055,.008),vec3(1.,.85,.38),softening*softening);tint=mix(rock,hot,smoothstep(.02,1.,softening));}
+   else tint=mix(vec3(.97,.29,.18),vec3(.35,.78,.92),strength);
+ }
  if(orbital==1&&data.z>=0.0){
    float style=float(surfaces[clamp(int(data.z),0,7)]);
    tint=style<0.5?vec3(1.0,0.80,0.40):(style<1.5?vec3(0.35,0.72,1.0):(style<2.5?vec3(0.90,0.65,0.35):vec3(1.0,0.40,0.40)));
@@ -141,6 +151,7 @@ void main(){
         const char *fs = R"(#version 300 es
 precision mediump float;
 in vec3 tint;
+in float heat;
 out vec4 color;
 uniform int trail;
 uniform highp int galactic;
@@ -148,7 +159,7 @@ uniform float trailOpacity;
 void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCoord*2.0-1.0;float d=dot(p,p);if(d>1.0)discard;
  if(galactic==1){color=vec4(tint,exp(-4.0*d)*.7);return;}
  float light=0.42+0.58*max(0.0,dot(normalize(vec3(p,sqrt(1.0-d))),normalize(vec3(-0.4,0.6,1.0))));
- color=vec4(tint*light,(1.0-smoothstep(0.7,1.0,d)));})";
+ color=vec4(tint*mix(light,1.,heat),(1.0-smoothstep(0.7,1.0,d)));})";
         GLuint vert = shader(GL_VERTEX_SHADER, vs), frag = shader(GL_FRAGMENT_SHADER, fs);
         GLuint program = glCreateProgram();
         glAttachShader(program, vert);
@@ -288,6 +299,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             glUniform1f(glGetUniformLocation(program, "aspect"), aspect);
             glUniform3f(glGetUniformLocation(program,"composition"),compositionNow[0],compositionNow[1],compositionNow[2]);
             glUniform1i(glGetUniformLocation(program, "mode"), c.color);
+            glUniform1f(glGetUniformLocation(program,"meltEnergyMJkg"),float(ROCK_MELT_ENERGY_JKG/1e6));
             int styles[8]={0,1,2,3,1,1,1,1};if(frame&&frame->orbital)for(size_t i=0;i<frame->surfaces.size();++i)styles[i]=frame->surfaces[i];
             glUniform1iv(glGetUniformLocation(program,"surfaces"),8,styles);
             glUniform1i(glGetUniformLocation(program,"orbital"),frame&&frame->orbital?1:0);
@@ -297,8 +309,8 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             glUniform1f(glGetUniformLocation(program, "size"), 2);
             if(observing){galaxySky.draw(*frame,observerView,w,h);}
             if (frame&&!observing) {
-                float size = std::clamp(float(h) / projectionZoom / std::cbrt(float(frame->particles.size())) * ((c.color==0||c.color==6)?0.9f:0.32f),
-                                        3.0f, (c.color==0||c.color==6)?96.0f:18.0f);
+                float size = std::clamp(float(h) / projectionZoom / std::cbrt(float(frame->particles.size())) * ((c.color==0||c.color==6||c.color==7)?0.9f:0.32f),
+                                        3.0f, (c.color==0||c.color==6||c.color==7)?96.0f:18.0f);
                 if(frame->orbital){
                     size=std::clamp(float(std::min(w,h))*0.011f,8.0f,24.0f);
                     glUniform1i(glGetUniformLocation(program,"trail"),1);glDepthMask(GL_FALSE);
@@ -350,6 +362,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                     glBindBuffer(GL_ARRAY_BUFFER,diagnosticVbo);glBufferData(GL_ARRAY_BUFFER,frame->scalars.size()*sizeof(SphScalar),frame->scalars.data(),GL_STREAM_DRAW);
                     glEnableVertexAttribArray(2);glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,sizeof(SphScalar),nullptr);
                 }else {glDisableVertexAttribArray(2);glVertexAttrib3f(2,0,0,0);if(c.color>=3)glUniform1i(glGetUniformLocation(program,"mode"),0);}
+                if(c.color>=7&&!frame->sph.response.available)glUniform1i(glGetUniformLocation(program,"mode"),0);
                 if(c.color==6&&frame->fragments.available&&frame->fragments.labels.size()==frame->particles.size()){
                     glBindBuffer(GL_ARRAY_BUFFER,fragmentVbo);glBufferData(GL_ARRAY_BUFFER,frame->fragments.labels.size()*sizeof(uint32_t),frame->fragments.labels.data(),GL_STREAM_DRAW);glEnableVertexAttribArray(3);glVertexAttribPointer(3,1,GL_UNSIGNED_INT,GL_FALSE,sizeof(uint32_t),nullptr);
                 }else{glDisableVertexAttribArray(3);glVertexAttrib1f(3,0);if(c.color==6)glUniform1i(glGetUniformLocation(program,"mode"),0);}

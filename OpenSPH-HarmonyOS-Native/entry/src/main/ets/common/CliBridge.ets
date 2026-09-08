@@ -3,6 +3,7 @@ import { Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 
 export interface CommandPayload {
+  initialEnergyMJkg?:number;initialDamage?:number;
   galaxyMassRatio?:number;galaxyOffsetKpc?:number;galaxyRetrograde?:boolean;galaxyResponsive?:boolean;
   offset?:number;limit?:number;
   particle?:number;sceneRevision?:number;

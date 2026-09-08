@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.51.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.52.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -320,7 +320,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getRingTrace --pa
 
 ## SPH 碰撞诊断
 
-预设 0–2 的观察面板提供压力、比内能与材料损伤。`uiAction` 的 `color.3`、`color.4`、`color.5` 与三个界面按钮共用处理；无诊断帧时这些动作禁用。0 为原色、1 速度、2 密度。切换着色不重算、不移动时间轴；所选颜色随命名实验配方保存，切入轨道模式时 2–6 恢复为 0。
+预设 0–2 的观察面板提供压力、比内能与材料损伤。`uiAction` 的 `color.3`、`color.4`、`color.5` 与三个界面按钮共用处理；无诊断帧时这些动作禁用。0 为原色、1 速度、2 密度。切换着色不重算、不移动时间轴；所选颜色随命名实验配方保存，切入轨道模式时 2–8 恢复为 0。
 
 ```sh
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getSphDiagnostics
@@ -416,7 +416,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command setAppearance --p
 
 `setSky` 接受 mode（0 干净背景、1 星空、2 银河）与 brightness（0–1）；UI 字段 `sky.brightness` 使用 0–100 百分比，不能混用。`getSkyInfo` 返回当前资源来源：摄影就绪时 reference 为 `photographic-panorama`，否则为 `procedural-fallback`；同时返回 ESO/S. Brunier 署名、素材／许可链接、纹理尺寸、loadError 与 rendering。银河摄影为 2048×1024，星空模式仍使用 6500 个程序星点；`proceduralStarsVisible` 描述稳定模式下是否使用程序星点。切换动画中的混合权重另看渲染状态。这不是可定位的星表。
 
-`setCamera` 需要完整 yaw（-100–100）、pitch（-1.5–1.5）、zoom（0.5–15）、focus（-1 或有效天体索引）、color（0–6，轨道模式为 0/1）。普通导航优先使用语义动作。
+`setCamera` 需要完整 yaw（-100–100）、pitch（-1.5–1.5）、zoom（0.5–15）、focus（-1 或有效天体索引）、color（0–8，轨道模式为 0/1）。普通导航优先使用语义动作。
 
 摄影资源需等待 `rendering.panoramaReady`，载入淡入完成需 `panoramaBlend === 1`；`skyReady` 仅证明背景渲染器可用。摄影加载失败时保留程序背景，检查 loadError；GPU 上传错误见 rendering.error。
 
@@ -593,7 +593,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 每团返回本帧质量排名 `rank`、最小粒子序号 `anchor`、`count`、`massKg`、`massFraction`、`centerKm[3]`、`velocityKmS[3]`、`rmsRadiusKm`。翻页期间应核对场景修订、所选帧与时间，运行中不同查询可能对应不同帧。排名和 anchor 都不是永久碎片身份。
 
-新计算的材料回放为 v10，保存各帧分组及自引力／预松弛配置。v1–v9 没有团块数据，不能仅凭绘制位置重建；再次保存仍保留旧版，不补零或捏造分组。连接规则固定为距离不超过 1.5 倍平均光滑长度，低分辨率下相邻材料可能提前连通。完整定义、上游参考和格式见 [材料团块](reference/SPH-FRAGMENTS.md)。
+新计算的材料回放为 v15，保留 v10 的分组及自引力／预松弛配置，并增加材料初态与响应。v1–v9 没有团块数据，不能仅凭绘制位置重建；再次保存仍保留旧版，不补零或捏造分组。连接规则固定为距离不超过 1.5 倍平均光滑长度，低分辨率下相邻材料可能提前连通。几何定义见 [材料团块](reference/SPH-FRAGMENTS.md)，新字段见 [材料响应](reference/SPH-MATERIAL-RESPONSE.md)。
 
 ## 连续跟随材料团块
 
@@ -611,8 +611,18 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 改变颜色、旋转、缩放、翻页、折叠与屏幕方向保留跟随。`fragments.stop` 平滑返回选择前的常规观察目标；`focus.all` 返回全景，普通天体选择／视角复位结束团块跟随。返回键先关闭面板，之后结束团块跟随，再按既有逻辑处理。显式 `setCamera`、重新加载回放或更换实验结束跟随，防止粒子序号被用于另一场景。
 
-跟随是当前观察状态，不写入实验配方或回放；回放仍为 v10，无格式变化。分裂时跟随包含种子材料点的分支，连接时跟随合并团块；这不代表完整碎片谱系、引力束缚或再聚合。见 [定义与验证](reference/FRAGMENT-FOLLOW.md)。
+跟随是当前观察状态，不写入实验配方或回放；跟随本身不增加回放字段；当前新 SPH 回放为 v15。分裂时跟随包含种子材料点的分支，连接时跟随合并团块；这不代表完整碎片谱系、引力束缚或再聚合。见 [定义与验证](reference/FRAGMENT-FOLLOW.md)。
 
 ## 命令返回的丢段恢复
 
 回复经过有界日志通道分段传输。客户端收到部分回复但超过 2 秒没有新片段时，会使用同一请求 ID 请求 `retryReply`，最多 3 次；应用只重发最近 8 份缓存结果，不重新执行动作。此命令是传输内部恢复机制，普通操作继续使用语义动作。没有收到任何片段或缓存已过期时仍可能超时；此时先查询当前状态，不能盲目重复加入天体等操作。
+
+## 破坏与热软化实验
+
+`setScene` 新增可选 `initialEnergyMJkg:0..6.8` 与 `initialDamage:0..1`，省略为 0，对两颗岩体生效。它们参与实际材料求解。非零时仅支持 SPH 直接生成初态，拒绝轨道／星系／预松弛组合。
+
+UI／CLI 共用 `scene.energy` 和 `scene.damage` 数值字段；编辑后 `simulation.apply` 重新生成。主题为 `theme.material-cold`、`theme.material-hot`、`theme.material-fractured`；`theme.compare` 切换对照会从初态重新开始。
+
+观察动作 `color.7` 为热软化外观，`color.8` 为剩余屈服强度，均不重算。`getSphDiagnostics` 的 `diagnostics.response` 包含 `model`、`meltEnergyMJkg`、`intactYieldGPa`、质量加权的 `softeningMean`、`zeroShearMassFraction`、`damagedMassFraction` 和 `strengthMean`。旧回放缺少 response 时这两个动作禁用；颜色来自配方或 setCamera 时回退原色。
+
+这不是温度／液相比例，零剪切屈服也不意味着压力消失。新 SPH 回放 v15 保存材料初态与逐帧响应，仍不能恢复完整求解器。详见 [模型、单位与验证](reference/SPH-MATERIAL-RESPONSE.md)。

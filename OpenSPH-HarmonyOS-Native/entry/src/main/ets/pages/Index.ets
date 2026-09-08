@@ -250,6 +250,8 @@ struct Index {
   @State trace:RingTraceStatus={impulse:0,points:false,speedScale:1,rateHours:1,eccentricity:0,innerApoapsisKm:76800,outerApoapsisKm:133200,referenceXKm:76800,referenceYKm:0,referenceRadiusKm:76800,referenceSpeedKmS:0,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:8192,innerPeriodHours:0,outerPeriodHours:0,model:'restricted-impulse-ring-v3'};
   @State skyLoadError:string='';
   @State rendering: RenderStatus = {fragmentFollow:{active:false,moving:false,seed:-1,anchor:-1,rank:0,count:0,sceneRevision:0,time:0,centerKm:[0,0,0]},surfacePending:0,surfaceGenerated:0,surfaceError:'',moonReady:false,moonUploads:0,moonBlend:0,moonError:'',materialExposure:0,materialOcean:true,materialCloudShadows:true,panoramaReady:false,panoramaBlend:0,compositionX:.5,compositionY:.5,compositionScale:1,sceneRevision:0,surfaceStarts:0,cameraMoving:false,centerX:0,centerY:0,centerZ:0,skyReady:false,skyStars:0,skyGalaxy:0,ready:false,texturesReady:false,active:true,frames:0,submitMs:0,previewSeconds:0,error:''};
+  @State initialEnergyMJkg:number=0;
+  @State initialDamage:number=0;
   @State colorMode: number = 0;
   @State cameraFlight:string='idle';
   @State focus: number = -1;
@@ -629,14 +631,14 @@ struct Index {
     this.placing=false;this.placementView=undefined;this.playing=false;this.selectingPreset=false;
     this.activeThemeId=t.id;this.title=t.title;this.targetName='玄岩';this.impactorName='赭岩';
     this.yaw=t.yaw;this.pitch=t.pitch;this.zoom=t.zoom;this.focus=t.focus;
-    this.rings=true;this.clouds=true;this.atmosphere=true;this.trails=true;this.closeup=t.closeup;this.autoSpin=t.closeup;this.colorMode=0;
+    this.rings=true;this.clouds=true;this.atmosphere=true;this.trails=true;this.closeup=t.closeup;this.autoSpin=t.closeup;this.colorMode=t.id.startsWith('material-')?7:0;
     this.dirty=false;this.toolsVisible=true;this.info=simulation.status();this.camera();this.setPanel(-1);
     if(t.id==='kepler-ring'||t.id==='eccentric-ring'){this.toggleTrace();if(t.id==='eccentric-ring')this.traceParameter('trace.speed',1.12);}
     this.notice=t.question+((t.id==='kepler-ring'||t.id==='eccentric-ring')?' · 点击运行环，调轨可改发射速度':' · 点击开始实验');
   }
   private choose(i: number): void {
     if (this.ioBusy) return;
-    this.activeThemeId='';this.clearOrbitHistory();
+    this.initialEnergyMJkg=0;this.initialDamage=0;this.activeThemeId='';this.clearOrbitHistory();
     this.targetRadiusKm=100;this.impactorRadiusKm=60;this.targetDensity=2700;this.impactorDensity=2700;this.targetSpin=0;this.selfGravity=false;this.relaxationSeconds=0;
     this.editedBody=0;this.title=i>=3?(i===3?'双体轨道':'行星系统'):(i===2?'旋转实验':'碰撞实验');
     this.duration=i===6?600:i>=3?3:60;this.colorMode=0;this.galaxyMassRatio=.6;this.galaxyOffsetKpc=12;this.galaxyRetrograde=false;this.galaxyResponsive=false;
@@ -663,6 +665,8 @@ struct Index {
     const c: SimulationConfig={preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,
       targetRadiusKm:this.targetRadiusKm,impactorRadiusKm:this.impactorRadiusKm,targetDensity:this.targetDensity,
       impactorDensity:this.impactorDensity,targetSpin:this.targetSpin,seed:this.seed};
+    if(this.initialEnergyMJkg>0)c.initialEnergyMJkg=this.initialEnergyMJkg;
+    if(this.initialDamage>0)c.initialDamage=this.initialDamage;
     if(this.selfGravity)c.selfGravity=true;
     if(this.relaxationSeconds>0)c.relaxationSeconds=this.relaxationSeconds;
     if(this.preset===6){c.galaxyMassRatio=this.galaxyMassRatio;c.galaxyOffsetKpc=this.galaxyOffsetKpc;c.galaxyRetrograde=this.galaxyRetrograde;if(this.galaxyResponsive)c.galaxyResponsive=true;}
@@ -670,7 +674,7 @@ struct Index {
     return c; // State inspection must also work after bodies evolve beyond initial editor bounds.
   }
   private applyConfig(c: SimulationConfig,live:boolean=false): void {
-    if(!live)validateConfig(c);this.stopTrace();this.activeThemeId='';this.clearOrbitHistory();
+    if(!live)validateConfig(c);this.initialEnergyMJkg=c.initialEnergyMJkg??0;this.initialDamage=c.initialDamage??0;this.stopTrace();this.activeThemeId='';this.clearOrbitHistory();
     if(c.preset!==this.preset){this.closeup=false;this.autoSpin=false;}
     if(c.preset===6&&this.preset!==6){this.zoom=5.2;this.focus=-1;this.changeSky(1,.35);}
     this.galaxyMassRatio=c.galaxyMassRatio??.6;this.galaxyOffsetKpc=c.galaxyOffsetKpc??12;this.galaxyRetrograde=c.galaxyRetrograde??false;this.galaxyResponsive=c.galaxyResponsive??false;
@@ -745,7 +749,7 @@ struct Index {
   }
   private contactMode():boolean {return this.preset===5&&finiteOrbitBodies(this.orbitBodies);}
   private contactDemo():void {
-    const c=this.config();c.preset=5;c.speed=1;c.duration=1;c.orbitBodies=contactDemoBodies();c.selfGravity=false;c.relaxationSeconds=0;
+    const c=this.config();c.preset=5;c.speed=1;c.duration=1;c.orbitBodies=contactDemoBodies();c.initialEnergyMJkg=undefined;c.initialDamage=undefined;c.selfGravity=false;c.relaxationSeconds=0;
     validateConfig(c);this.applyConfig(c);this.title='球体接触 · 理想弹性';if(!this.prepare(false))throw new Error(this.notice);
     this.focus=1;this.yaw=0;this.pitch=0;this.zoom=4.2;this.closeup=true;this.autoSpin=false;this.camera(0,true,true);this.setPanel(-1);this.notice='启动后在接触响应处暂停 · 球体保持完整，不模拟行星破裂';
   }
@@ -1108,6 +1112,7 @@ struct Index {
     add('fragments.largest','跟随最大团块',this.fragments.available);
     add('fragments.stop','停止团块跟随',this.rendering.fragmentFollow.active);
     for(const g of this.fragments.groups)add('fragments.follow.'+g.anchor,'跟随第 '+g.rank+' 团',this.fragments.available,this.rendering.fragmentFollow.active&&this.rendering.fragmentFollow.anchor===g.anchor);
+    add('color.7','热软化外观',this.preset<3&&this.info.sph?.response!==undefined,this.colorMode===7);add('color.8','剩余强度',this.preset<3&&this.info.sph?.response!==undefined,this.colorMode===8);
     add('color.6','材料团块',this.preset<3&&this.fragments.available,this.colorMode===6);
     add('fragments.previous','上一组团块',this.fragments.available&&this.fragmentOffset>0);add('fragments.next','下一组团块',this.fragments.available&&(this.fragments.nextOffset??-1)>=0);
     add('color.3','压力',this.preset<3&&this.info.sph?.available===true,this.colorMode===3);add('color.4','比内能',this.preset<3&&this.info.sph?.available===true,this.colorMode===4);add('color.5','材料损伤',this.preset<3&&this.info.sph?.available===true,this.colorMode===5);
@@ -1124,7 +1129,7 @@ struct Index {
     add('terrain.new','新地貌',this.canGenerateSurface());add('terrain.clouds','换云层',this.canGenerateSurface());
     add('terrain.undo','撤销外观',this.preset===5&&!this.placing&&this.surfaceUndo.length>0);add('terrain.redo','重做外观',this.preset===5&&!this.placing&&this.surfaceRedo.length>0);
     add('appearance.rings','环带',this.isOrbit(),this.rings);add('appearance.clouds','云层',this.isOrbit(),this.clouds);add('appearance.atmosphere','大气',this.isOrbit(),this.atmosphere);add('appearance.trails','轨迹',this.isOrbit(),this.trails);add('appearance.spin','外观自转',this.isOrbit(),this.autoSpin);
-    for(const seconds of [0,16,64])add('scene.relax.'+seconds,seconds===0?'直接生成':'预松弛 '+seconds+' 秒',this.preset<3&&(seconds===0||this.selfGravity),this.relaxationSeconds===seconds);
+    for(const seconds of [0,16,64])add('scene.relax.'+seconds,seconds===0?'直接生成':'预松弛 '+seconds+' 秒',this.preset<3&&(seconds===0||(this.selfGravity&&this.initialEnergyMJkg===0&&this.initialDamage===0)),this.relaxationSeconds===seconds);
     add('galaxy.place','在星图调整相遇',this.preset===6&&this.info.frames>0&&this.info.state!=='preparing');
     add('galaxy.place.cancel','取消相遇调整',this.galaxyPlacing);add('galaxy.place.confirm','确认相遇初态',this.galaxyPlacing);
     const observer:GalaxyObserverStatus=simulation.galaxyObserverStatus();
@@ -1170,7 +1175,7 @@ struct Index {
   }
   private uiFields():UiFieldInfo[] {
     const active:boolean=!this.ioBusy,rock:boolean=this.preset<3;
-    const fields:UiFieldInfo[]=[{field:'galaxy.ratio',value:this.galaxyMassRatio,enabled:active&&this.preset===6},{field:'galaxy.offset',value:this.galaxyOffsetKpc,enabled:active&&this.preset===6},{field:'trace.impulse',value:this.trace.impulse,enabled:active&&this.trace.enabled},{field:'material.exposure',value:this.exposure,enabled:active&&this.isOrbit()},{field:'trace.speed',value:this.trace.speedScale,enabled:active&&this.trace.enabled},{field:'trace.rate',value:this.trace.rateHours,enabled:active&&this.trace.enabled},{field:'trace.hours',value:this.trace.timeHours,enabled:active&&this.trace.enabled},{field:'sky.brightness',value:this.skyBrightness*100,enabled:active&&this.observerMode===0},{field:'scene.title',value:this.title,enabled:active},
+    const fields:UiFieldInfo[]=[{field:'scene.energy',value:this.initialEnergyMJkg,enabled:active&&rock&&this.relaxationSeconds===0},{field:'scene.damage',value:this.initialDamage,enabled:active&&rock&&this.relaxationSeconds===0},{field:'galaxy.ratio',value:this.galaxyMassRatio,enabled:active&&this.preset===6},{field:'galaxy.offset',value:this.galaxyOffsetKpc,enabled:active&&this.preset===6},{field:'trace.impulse',value:this.trace.impulse,enabled:active&&this.trace.enabled},{field:'material.exposure',value:this.exposure,enabled:active&&this.isOrbit()},{field:'trace.speed',value:this.trace.speedScale,enabled:active&&this.trace.enabled},{field:'trace.rate',value:this.trace.rateHours,enabled:active&&this.trace.enabled},{field:'trace.hours',value:this.trace.timeHours,enabled:active&&this.trace.enabled},{field:'sky.brightness',value:this.skyBrightness*100,enabled:active&&this.observerMode===0},{field:'scene.title',value:this.title,enabled:active},
       {field:'scene.count',value:this.count,enabled:active&&(rock||this.preset===6)},{field:'scene.speed',value:this.speed,enabled:active&&this.preset!==5},
       {field:'scene.angle',value:this.angle,enabled:active&&(this.preset<2||this.preset===6)},{field:'scene.duration',value:this.duration,enabled:active},
       {field:'body.name',value:this.editedBody===0?this.targetName:this.impactorName,enabled:active&&rock},
@@ -1222,7 +1227,9 @@ struct Index {
     if(field==='material.exposure'){this.changeMaterial({exposure:value});return;}
     if(field==='sky.brightness'){this.checked(value,0,100);this.changeSky(this.skyMode,value/100);return;}
     if(field==='time.frame'){this.checked(value,-1,this.info.frames-1,true);this.stopTrace();this.playing=false;simulation.seek(value);this.info=simulation.status();return;}
-    if(field==='scene.count'){this.checked(value,200,this.preset===6&&this.galaxyResponsive?800:(this.selfGravity?1200:2400),true);this.count=value;}
+    if(field==='scene.energy'){this.checked(value,0,6.8);this.initialEnergyMJkg=value;}
+    else if(field==='scene.damage'){this.checked(value,0,1);this.initialDamage=value;}
+    else if(field==='scene.count'){this.checked(value,200,this.preset===6&&this.galaxyResponsive?800:(this.selfGravity?1200:2400),true);this.count=value;}
     else if(field==='scene.speed'){this.checked(value,this.preset>=3?.75:(this.preset===2?0:.5),this.preset>=3?1.25:10);this.speed=value;}
     else if(field==='scene.angle'){this.checked(value,0,70);this.angle=value;}
     else if(field==='scene.duration'){this.checked(value,this.preset===6?50:1,this.preset===6?800:(this.isOrbit()?10:120));this.duration=value;}
@@ -1461,11 +1468,11 @@ struct Index {
       {name:'uiAction',payload:'{action:string} - invoke a catalog action through the same ArkUI handler'},
       {name:'getGalaxyObserver',payload:'{} - solar-radius analogue observer, current frame and sky orientation; illustrative horizon'},
       {name:'setUiValue',payload:'{field:string,value:string|number} - edit a catalog field; orbital inputs stay draft until orbit.apply'},
-      {name:'setScene',payload:'{preset:0..6,count:200..2400,speed:0.5..10 (preset 2 allows 0; total spin = targetSpin + speed*0.003),angle:0..70,duration:1..120; galaxy preset 6: duration 50..800 Myr, speed .75..1.25 of 156.45 km/s, angle 0..70 inclination degrees, galaxyMassRatio?:.2..1, galaxyOffsetKpc?:0..30 initial transverse offset, galaxyRetrograde?:boolean, galaxyResponsive?:boolean (massive stellar response, count<=800); custom preset 5 requires orbitBodies (2..8), speed=1; optional radiusKm:1..10000000 on every body enables ideal elastic sphere contact and auto-pause; orbit preset 3/4: speed 0.75..1.25 circular-velocity factor, duration 1..10 Julian years; count/rock fields ignored; optional selfGravity:boolean (SPH only, count<=1200, defaults false); relaxationSeconds?:0|16|64 (requires selfGravity, isolated stationary pre-relaxation); targetRadiusKm:40..200,impactorRadiusKm:20..120,targetDensity:2400..3000,impactorDensity:2400..3000,targetSpin:-0.01..0.01,seed:1..1000000}'},
+      {name:'setScene',payload:'{preset:0..6,count:200..2400,speed:0.5..10 (preset 2 allows 0; total spin = targetSpin + speed*0.003),angle:0..70,duration:1..120; galaxy preset 6: duration 50..800 Myr, speed .75..1.25 of 156.45 km/s, angle 0..70 inclination degrees, galaxyMassRatio?:.2..1, galaxyOffsetKpc?:0..30 initial transverse offset, galaxyRetrograde?:boolean, galaxyResponsive?:boolean (massive stellar response, count<=800); custom preset 5 requires orbitBodies (2..8), speed=1; optional radiusKm:1..10000000 on every body enables ideal elastic sphere contact and auto-pause; orbit preset 3/4: speed 0.75..1.25 circular-velocity factor, duration 1..10 Julian years; count/rock fields ignored; optional initialEnergyMJkg:0..6.8, initialDamage:0..1 (SPH only, incompatible with relaxation; same initial material state for both bodies); optional selfGravity:boolean (SPH only, count<=1200, defaults false); relaxationSeconds?:0|16|64 (requires selfGravity, isolated stationary pre-relaxation); targetRadiusKm:40..200,impactorRadiusKm:20..120,targetDensity:2400..3000,impactorDensity:2400..3000,targetSpin:-0.01..0.01,seed:1..1000000}'},
       {name:'start',payload:'{}'}, {name:'pause',payload:'{}'}, {name:'reset',payload:'{}'},
       {name:'getPreparation',payload:'{}; monotonic phase timings, request ID, previous worker phase and bounded history; no mutation'},
       {name:'seek',payload:'{frame:-1 or retained frame index}'},
-      {name:'setCamera',payload:'{yaw:-100..100,pitch:-1.5..1.5,zoom:0.5..15,focus:-1..1 (orbit preset 4: -1..3; custom: -1..bodyCount-1),color:0..6 (galaxy 0..1; 0 original,1 speed,2 density,3 pressure,4 specific internal energy,5 damage; orbit 0..1)}'},
+      {name:'setCamera',payload:'{yaw:-100..100,pitch:-1.5..1.5,zoom:0.5..15,focus:-1..1 (orbit preset 4: -1..3; custom: -1..bodyCount-1),color:0..8 (galaxy 0..1; 0 original,1 speed,2 density,3 pressure,4 specific internal energy,5 damage,6 geometric groups,7 thermal appearance,8 remaining yield strength; orbit 0..1)}'},
       {name:'getSurfaceInfo',payload:'{}; Moon source, loading state, upload count and bounded memory'},
       {name:'setSurfaceSeed',payload:'{body:1..7,surfaceSeed?:0..1000000,cloudSeed?:0..1000000}; custom planets; preserves simulation and camera; 0 = legacy'},
       {name:'setMaterial',payload:'{exposure?:-2..2 EV,ocean?:boolean,cloudShadows?:boolean}; original-color orbital surfaces only; no camera or solver reset'},
@@ -1510,7 +1517,7 @@ struct Index {
     if(command==='getGalaxyComparisonTable'){const data=simulation.galaxyObservation(),csv=galaxyComparisonCsv(data,this.galaxyReference?.data);return JSON.stringify({ok:true,timeUnit:'Myr',timeAlignment:'simulation-start',csv,rows:data.samples.length+(this.galaxyReference?.data.samples.length??0),currentAvailable:data.available,currentSceneRevision:data.sceneRevision,currentParameters:data.parameters,reference:this.galaxyReference??null,error:this.galaxyReferenceError,scope:'raw recorded samples; outer fractions 0..1; no interpolation or extrapolation'});}
     if(command==='getGalaxyTable'){const data=simulation.galaxyObservation();return JSON.stringify({ok:true,available:data.available,sceneRevision:data.sceneRevision,selected:data.selected,model:data.available?galaxyModel(data):undefined,parameters:data.parameters,timeUnit:'Myr',rows:data.samples.length,csv:galaxyCsv(data),scope:data.parameters?.responsive?'massive stars and responsive extended centers; total system energy; outer fractions are not unbound mass':'two softened centers and massless tracers; center energy only; outer fractions are not unbound mass'});}
     if(command==='getGalaxyDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,available:state.galaxy!==undefined,model:state.model,time:state.time,timeUnit:state.timeUnit,selected:state.selected,frames:state.frames,config:state.config,diagnostics:state.galaxy,energyError:state.galaxy?state.energyError:undefined,angularError:state.galaxy?state.angularError:undefined,energyScope:state.galaxy?.energyScope,centerEnergyError:state.galaxy&&!state.config?.galaxyResponsive?state.energyError:undefined,centerAngularError:state.galaxy&&!state.config?.galaxyResponsive?state.angularError:undefined});}
-    if(command==='getSphDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,time:state.time,timeUnit:state.timeUnit??'s',selected:state.selected,frameCount:state.frames,model:state.model,config:state.config,diagnostics:state.sph??{available:false},source:'OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted'});}
+    if(command==='getSphDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,time:state.time,timeUnit:state.timeUnit??'s',selected:state.selected,frameCount:state.frames,model:state.model,config:state.config,diagnostics:state.sph??{available:false},source:'OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted; response uses fixed basalt von Mises strength, not temperature or liquid phase fraction'});}
     if(command==='getObservationComparison'){this.refreshObservation();const reply:ComparisonReply={ok:true,visible:this.comparisonShown,reference:this.comparisonReference?referenceSummary(this.comparisonReference):undefined,currentName:this.observed.name,currentCount:this.observed.samples.length,currentConfig:simulation.status().config,chart:this.comparisonView(),error:this.comparisonError};return JSON.stringify(reply);}
     if(command==='getObservationReference')return JSON.stringify({ok:true,reference:this.comparisonReference??null,error:this.comparisonError});
     if(command==='getObservationTable'){this.refreshObservation();const ref=this.comparisonReference;const reply:ObservationTableReply={ok:true,csv:observationCsv(this.observed,ref?.data),rows:this.observed.samples.length+(ref?.data.samples.length??0),timeAlignment:'simulation-start',reference:ref?referenceSummary(ref):undefined,currentName:this.observed.name,currentConfig:simulation.status().config};return JSON.stringify(reply);}
@@ -1547,6 +1554,8 @@ struct Index {
         targetDensity:p.targetDensity===undefined?this.targetDensity:p.targetDensity,
         impactorDensity:p.impactorDensity===undefined?this.impactorDensity:p.impactorDensity,
         targetSpin:p.targetSpin===undefined?this.targetSpin:p.targetSpin,seed:p.seed===undefined?this.seed:p.seed};
+      if(p.initialEnergyMJkg!==undefined)c.initialEnergyMJkg=p.initialEnergyMJkg;
+      if(p.initialDamage!==undefined)c.initialDamage=p.initialDamage;
       if(p.selfGravity!==undefined)c.selfGravity=p.selfGravity;
       if(p.relaxationSeconds!==undefined)c.relaxationSeconds=p.relaxationSeconds;
       if(p.orbitBodies!==undefined)c.orbitBodies=p.orbitBodies;
@@ -1591,7 +1600,7 @@ struct Index {
     } else if(command==='setCamera') {
       const yaw: number=this.checked(p.yaw,-100,100);const pitch: number=this.checked(p.pitch,-1.5,1.5);
       const zoom: number=this.checked(p.zoom,0.5,15);const focus: number=this.checked(p.focus,-1,this.maxFocus(),true);
-      const color: number=this.checked(p.color,0,this.preset>=3?1:6,true);
+      const color: number=this.checked(p.color,0,this.preset>=3?1:8,true);
       simulation.clearSphFragmentFollow();this.stopCameraMotion();if(focus>=0)this.rememberOverview();else this.overviewCamera=undefined;this.yaw=yaw;this.pitch=pitch;this.zoom=zoom;this.focus=focus;if(this.preset===5&&focus>=0)this.selectOrbit(focus);this.colorMode=color;if(focus<0){this.closeup=false;this.autoSpin=false;}this.camera();
     } else if(command==='setMaterial'){this.changeMaterial(p);
     } else if(command==='setAppearance'){this.changeAppearance(p);
@@ -1611,6 +1620,9 @@ struct Index {
   }
   private sphLegend():string {
     if(this.colorMode>=3&&!this.info.sph?.available)return '当前记录不含 SPH 诊断 · 暂显示原色';
+    if(this.colorMode>=7&&!this.info.sph?.response)return '旧记录不含材料响应 · 暂显示原色';
+    if(this.colorMode===7)return '热软化外观：内能越高越亮，损伤区变暗；颜色不是温度，软化不是液相比例';
+    if(this.colorMode===8)return '剩余屈服强度：红 0 → 青 100%；同时计入损伤与热软化';
     if(this.colorMode===3)return '压力：蓝 −10 / 白 0 / 红 +10 GPa';
     if(this.colorMode===4)return '比内能：深蓝 0 → 金色 10 MJ/kg';
     if(this.colorMode===6)return this.fragments.available?'按当前几何团块着色，列表颜色与画面对应；不是引力束缚判定':'此回放无团块记录 · 暂显示原色';
@@ -1742,12 +1754,24 @@ struct Index {
       Text('SPH 诊断 · '+this.info.time.toFixed(2)+' s').fontSize(11).fontColor('#B7C5D5').width('100%')
       if(this.info.sph?.available) {
         Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(6)}}) {
+          if(this.info.sph?.response){
+            ChoiceChip({label:'热软化外观',active:this.colorMode===7,onPress:()=>{this.press('color.7');}}).id('sph-thermal')
+            ChoiceChip({label:'剩余强度',active:this.colorMode===8,onPress:()=>{this.press('color.8');}}).id('sph-strength')
+          }
           ChoiceChip({label:'压力',active:this.colorMode===3,onPress:()=>{this.press('color.3');}}).id('sph-pressure')
           ChoiceChip({label:'比内能',active:this.colorMode===4,onPress:()=>{this.press('color.4');}}).id('sph-internal')
           ChoiceChip({label:'材料损伤',active:this.colorMode===5,onPress:()=>{this.press('color.5');}}).id('sph-damage')
           if(this.fragments.available){ChoiceChip({label:'材料团块',active:this.colorMode===6,onPress:()=>{this.press('color.6');}}).id('sph-fragments-color')}
         }.width('100%')
         Text(this.sphLegend()+(this.colorMode===6?'。':'；超出色标的值仅在显示时饱和。')).id('sph-legend').fontSize(11).fontColor('#D2C3E9').lineHeight(16).width('100%')
+        if(this.info.sph?.response){
+          Text('破坏与热软化').fontSize(13).fontColor('#FFD1A5').width('100%')
+          MetricRow({label:'严重损伤质量 · D ≥ 0.9',value:((this.info.sph?.response?.damagedMassFraction??0)*100).toFixed(2)+' %'})
+          MetricRow({label:'平均热软化',value:((this.info.sph?.response?.softeningMean??0)*100).toFixed(2)+' %'})
+          MetricRow({label:'热致零屈服强度质量',value:((this.info.sph?.response?.zeroShearMassFraction??0)*100).toFixed(2)+' %'})
+          MetricRow({label:'平均剩余屈服强度',value:((this.info.sph?.response?.strengthMean??0)*100).toFixed(2)+' %'})
+          Text('内能达到 3.4 MJ/kg 后，本材料模型不再承受剪切屈服应力。压缩压力与引力仍可作用；未计算液相比例、潜热或冷却结壳。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+        }
         this.fragmentControls()
         this.sphCurveControls()
         if(this.sphSummary().available){
@@ -2395,6 +2419,19 @@ struct Index {
     }.width('100%')
   }
   @Builder
+  sphMaterialInputs() {
+    Column({space:6}){
+      Text('两颗岩体的初始比内能 · '+this.initialEnergyMJkg.toFixed(2)+' MJ/kg').fontSize(12).fontColor('#DBCEEC').width('100%')
+      Slider({value:this.initialEnergyMJkg,min:0,max:6.8,step:.1}).enabled(this.relaxationSeconds===0).selectedColor('#F7A669')
+        .onChange((v:number,mode:SliderChangeMode)=>{if(mode!==SliderChangeMode.Begin)this.input('scene.energy',v);})
+      Text('两颗岩体的初始损伤 · '+(this.initialDamage*100).toFixed(0)+' %').fontSize(12).fontColor('#DBCEEC').width('100%')
+      Slider({value:this.initialDamage,min:0,max:1,step:.05}).enabled(this.relaxationSeconds===0).selectedColor('#DA8192')
+        .onChange((v:number,mode:SliderChangeMode)=>{if(mode!==SliderChangeMode.Begin)this.input('scene.damage',v);})
+      Text(this.relaxationSeconds>0?'预松弛实验保留冷态、无初始损伤；切换直接生成后可调整。':'初态实验参数，应用后重新生成。预热会产生压力膨胀，并非平衡熔岩球。').fontSize(10).fontColor('#ABA6C0').width('100%')
+      ChoiceChip({label:'应用材料初态',onPress:()=>{this.press('simulation.apply');}}).id('material-initial-apply')
+    }.width('100%')
+  }
+  @Builder
   bodyControls() {
     Column({space:10}) {
       Row({space:8}) {
@@ -2503,6 +2540,7 @@ struct Index {
   inspector() {
     Column({space:14}) {
       if(this.placing){this.placementControls()} else if(this.tab===0) {
+        if(this.preset<3){this.sphMaterialInputs()}
         this.themeGuide()
         if(this.preset!==5||this.selectingPreset){this.presets()}else{
           Row(){Text('自定义系统 · '+this.orbitBodies.length+' 个天体').fontSize(13).fontColor('#DCCEF3');Blank();ChoiceChip({label:'切换实验',onPress:()=>{this.press('presets.show');}})}.width('100%')

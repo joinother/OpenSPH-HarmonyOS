@@ -43,8 +43,8 @@ export function sphComparisonPlot(current:SphObservation,metric:string,reference
 }
 export function sphParameterDifferences(current:SimulationConfig|undefined,reference:SimulationConfig):string[] {
   if(!current||current.preset>=3)return ['当前没有岩质 SPH 配置'];
-  const labels:string[]=['实验类型','粒子预算','速度系数','偏移角 °','时长 s','主天体半径 km','撞击体半径 km','主天体密度 kg/m³','撞击体密度 kg/m³','附加自转 rad/s','随机种子','材料自引力','预松弛 s'];
-  const values=(c:SimulationConfig):number[]=>[c.preset,c.count,c.speed,c.angle,c.duration,c.targetRadiusKm,c.impactorRadiusKm,c.targetDensity,c.impactorDensity,c.targetSpin,c.seed,c.selfGravity?1:0,c.relaxationSeconds??0];
+  const labels:string[]=['实验类型','粒子预算','速度系数','偏移角 °','时长 s','主天体半径 km','撞击体半径 km','主天体密度 kg/m³','撞击体密度 kg/m³','附加自转 rad/s','随机种子','材料自引力','预松弛 s','初始比内能 MJ/kg','初始损伤'];
+  const values=(c:SimulationConfig):number[]=>[c.preset,c.count,c.speed,c.angle,c.duration,c.targetRadiusKm,c.impactorRadiusKm,c.targetDensity,c.impactorDensity,c.targetSpin,c.seed,c.selfGravity?1:0,c.relaxationSeconds??0,c.initialEnergyMJkg??0,c.initialDamage??0];
   const a=values(reference),b=values(current),differences:string[]=[];
   for(let i=0;i<a.length;i++)if(a[i]!==b[i])differences.push(labels[i]+'：'+a[i]+' → '+b[i]);
   return differences;

@@ -4,11 +4,13 @@ export interface SimulationConfig {
   orbitBodies?: OrbitBodyConfig[];
   preset: number; count: number; speed: number; angle: number; duration: number;
   targetRadiusKm: number; impactorRadiusKm: number; targetDensity: number; impactorDensity: number;
+  initialEnergyMJkg?:number; initialDamage?:number;
   targetSpin: number; seed: number; selfGravity?: boolean; relaxationSeconds?: number;
 }
 export const startScene: (config: SimulationConfig, initiallyPaused?: boolean) => void;
 export interface OrbitBodyStatus { radiusKm?:number; id:number; name:string; surface?:number; xAU:number; yAU:number; zAU:number; speedKmS:number; massSolar:number; }
-export interface SphDiagnostics {structure?:number[];available:boolean;pressureMinGPa?:number;pressureMaxGPa?:number;pressureMeanGPa?:number;internalMinMJkg?:number;internalMaxMJkg?:number;internalMeanMJkg?:number;damageMean?:number;damageMax?:number;kineticJ?:number;internalJ?:number;}
+export interface SphMaterialResponse {model:string;meltEnergyMJkg:number;intactYieldGPa:number;softeningMean:number;zeroShearMassFraction:number;damagedMassFraction:number;strengthMean:number;}
+export interface SphDiagnostics {response?:SphMaterialResponse;structure?:number[];available:boolean;pressureMinGPa?:number;pressureMaxGPa?:number;pressureMeanGPa?:number;internalMinMJkg?:number;internalMaxMJkg?:number;internalMeanMJkg?:number;damageMean?:number;damageMax?:number;kineticJ?:number;internalJ?:number;}
 export interface OrbitContactStatus {count:number;a:number;b:number;timeSeconds:number;normalSpeedKmS:number;restitution:number;}
 export interface GalaxyParameters {count:number;seed:number;speed:number;inclination:number;duration:number;massRatio:number;offset:number;retrograde:boolean;responsive?:boolean;}
 export interface GalaxySample {frame:number;time:number;values:number[];energyError:number;angularError:number;}

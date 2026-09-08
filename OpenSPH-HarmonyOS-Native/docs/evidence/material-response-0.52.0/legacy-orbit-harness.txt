@@ -1,0 +1,6 @@
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/build/native-test
+ninja: no work to do.
+FileTransfer finish, Size:8735160, File count = 1, time:47ms rate:185854.47kB/s
+FAIL not v11

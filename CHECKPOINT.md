@@ -1,6 +1,6 @@
 # 星体实验室 GitHub 检查点
 
-> 类型：当前恢复入口；更新日期：2026-09-08（Asia/Shanghai）；源码版本：0.51.0。
+> 类型：当前恢复入口；更新日期：2026-09-08（Asia/Shanghai）；源码版本：0.52.0。
 
 本分支基于原仓库 main 的 `8b4230e607d07710064acd87fb708b566fff4d07`，保留旧 OpenSPH-DevEco、patches 和 tools；原生工程在 [OpenSPH-HarmonyOS-Native](OpenSPH-HarmonyOS-Native/README.md)。开发断点不修改 main。
 
@@ -18,9 +18,9 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 
 ## 当前行为与证据
 
-0.51.0 增加公里级小岩体质量范围、公斤／公里／公里每秒输入、中心距离／表面高度与半径／直径换算、15 km 岩体快捷项、小母体卫星默认值，并修复命令回复丢段后的安全重取。当前时刻插入与 v14 续算保留原有时间、位置和速度。验收与限制见 [0.51.0 记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.51.0.md)。
+0.52.0 增加参与实际求解的初始比内能与损伤、冷岩／预热／裂隙三组对照、热软化外观、剩余强度和 v15 回放。117 项主机检查、18 组上游应力检查、四组原生演化、SPH 专项回归与模拟器材料流程通过。验收与限制见 [0.52.0 记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.52.0.md)。
 
-仍为最多 8 体、最小实体半径 1 km；接触为理想弹性反弹。没有把放置完成算成 SPH 破碎、熔融或月球形成完成。录像沿用系统编码，实际录制与导出待真机测试。
+轨道仍为最多 8 体、最小实体半径 1 km，接触为理想弹性反弹。独立 SPH 已能实验材料破坏与热软化，但没有连续液态表面、相变潜热、冷却或轨道撞击接入。录像沿用系统编码，实际录制与导出待真机测试。
 
 此前版本及研究按原日期保存在[文档目录](OpenSPH-HarmonyOS-Native/docs/README.md)。公开创作者的 215 个视频目录与代表内容已归纳为[目标用户样本](OpenSPH-HarmonyOS-Native/docs/research/TARGET-CREATOR-651227816-2026-09-08.md)，研究不代表功能已实现。
 
