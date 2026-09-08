@@ -1,0 +1,2382 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "initial": {
+    "surfaces": [
+      {
+        "version": 1,
+        "seed": 0,
+        "cloudSeed": 0
+      },
+      {
+        "version": 1,
+        "seed": 105964,
+        "cloudSeed": 195174
+      },
+      {
+        "version": 1,
+        "seed": 210693,
+        "cloudSeed": 389113
+      }
+    ],
+    "surfaceUndoCount": 0,
+    "surfaceRedoCount": 0,
+    "ringTrace": {
+      "enabled": false,
+      "running": false,
+      "target": -1,
+      "timeHours": 0,
+      "massSolar": 0.0002857,
+      "radiusKm": 60000,
+      "count": 8192,
+      "impulse": 0,
+      "points": false,
+      "returnedCount": 0,
+      "sampling": "first-192-of-8192; coordinates used by density map",
+      "speedScale": 1,
+      "rateHours": 1,
+      "eccentricity": 0,
+      "innerApoapsisKm": 76800,
+      "outerApoapsisKm": 133200,
+      "referenceXKm": 76800,
+      "referenceYKm": 0,
+      "referenceRadiusKm": 76800,
+      "referenceSpeedKmS": 22.219297672514575,
+      "innerPeriodHours": 6.032651820447706,
+      "outerPeriodHours": 13.779160777118495,
+      "model": "restricted-impulse-ring-v3"
+    },
+    "theme": {
+      "id": "",
+      "title": "",
+      "goal": "",
+      "limit": "",
+      "modified": false,
+      "compareId": ""
+    },
+    "placement": {
+      "target": -1,
+      "sourceIndex": -1,
+      "sourceName": "",
+      "active": false,
+      "name": "新行星",
+      "fields": [
+        "1",
+        "2.5",
+        "45",
+        "0",
+        "1"
+      ],
+      "surface": 1,
+      "direction": 1,
+      "preview": {
+        "valid": false,
+        "error": "Error: 请填写全部放置参数",
+        "speedKmS": 0,
+        "circularKmS": 0,
+        "escapeKmS": 0,
+        "nearestAU": 0,
+        "bound": false,
+        "plotScale": 1,
+        "orbitPath": "",
+        "candidateX": 120,
+        "candidateY": 120,
+        "markerPath": "",
+        "velocityPath": ""
+      }
+    },
+    "sky": {
+      "mode": 2,
+      "brightness": 0.65,
+      "reference": "photographic-panorama"
+    },
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "nbody-hard-sphere-v1",
+      "title": "球体接触 · 理想弹性",
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 1,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0,
+            "radiusKm": 695700
+          },
+          {
+            "name": "接触球 A",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": -0.00012,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 35,
+            "vzKmS": 0,
+            "surface": 1,
+            "radiusKm": 6371
+          },
+          {
+            "name": "接触球 B",
+            "massSolar": 0.0000012013958461859875,
+            "xAU": 1,
+            "yAU": 0.00012,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 25,
+            "vzKmS": 0,
+            "surface": 3,
+            "radiusKm": 4694.19293556758
+          }
+        ]
+      },
+      "bodies": []
+    },
+    "editor": {
+      "drafts": [],
+      "history": {
+        "undoCount": 0,
+        "redoCount": 0,
+        "undoLabel": "",
+        "redoLabel": "",
+        "limit": 20,
+        "scope": "custom-body-initial-conditions"
+      },
+      "vectorPlane": "XY",
+      "orbitIndex": 1,
+      "orbitName": "接触球 A",
+      "orbitFields": [
+        "1",
+        "1",
+        "-0.00012",
+        "0",
+        "0",
+        "35",
+        "0",
+        "6371"
+      ],
+      "orbitSurface": 1,
+      "orbitDraft": false,
+      "editedBody": 0,
+      "targetName": "主天体",
+      "impactorName": "撞击体",
+      "title": "球体接触 · 理想弹性",
+      "selectingPreset": false
+    },
+    "material": {
+      "exposure": 0,
+      "ocean": true,
+      "cloudShadows": true
+    },
+    "appearance": {
+      "clouds": true,
+      "atmosphere": true,
+      "trails": true,
+      "closeup": true,
+      "autoSpin": false,
+      "rings": true
+    },
+    "rendering": {
+      "fragmentFollow": {
+        "active": false,
+        "moving": false,
+        "seed": -1,
+        "anchor": -1,
+        "rank": 0,
+        "count": 0,
+        "sceneRevision": 0,
+        "time": 0,
+        "centerKm": [
+          0,
+          0,
+          0
+        ]
+      },
+      "surfacePending": 3,
+      "surfaceGenerated": 0,
+      "surfaceError": "",
+      "moonReady": false,
+      "moonUploads": 0,
+      "moonBlend": 0,
+      "moonError": "",
+      "materialExposure": 0,
+      "materialOcean": true,
+      "materialCloudShadows": true,
+      "compositionX": 0.5,
+      "compositionY": 0.5,
+      "compositionScale": 1,
+      "sceneRevision": 2,
+      "surfaceStarts": 1,
+      "cameraMoving": false,
+      "centerX": 0.5,
+      "centerY": 0,
+      "centerZ": 0,
+      "panoramaReady": true,
+      "panoramaBlend": 1,
+      "skyReady": true,
+      "skyStars": 0.6499999761581421,
+      "skyGalaxy": 0.6499999761581421,
+      "ready": true,
+      "texturesReady": false,
+      "active": true,
+      "frames": 2061,
+      "submitMs": 0.294,
+      "previewSeconds": 0,
+      "error": ""
+    },
+    "simulation": {
+      "state": "paused",
+      "error": "",
+      "preparation": {
+        "requestId": 3,
+        "stage": "ready",
+        "elapsedMs": 0.35312499990686774,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 0.3055419996380806
+          },
+          {
+            "stage": "orbits",
+            "elapsedMs": 0.30720899999141693
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 0.33224999997764826
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 0.35312499990686774
+          }
+        ]
+      },
+      "count": 3,
+      "frames": 1,
+      "selected": -1,
+      "time": 0,
+      "duration": 1,
+      "stepMs": 0,
+      "steps": 1,
+      "maxSpeed": 34.9998664855957,
+      "meanDensity": 0,
+      "totalMass": 1.9884182323522935e+30,
+      "sph": {
+        "available": false
+      },
+      "energyError": 0,
+      "angularError": 0,
+      "model": "nbody-hard-sphere-v1",
+      "contact": {
+        "count": 0,
+        "a": -1,
+        "b": -1,
+        "timeSeconds": 0,
+        "normalSpeedKmS": 0,
+        "restitution": 1
+      },
+      "timeUnit": "year",
+      "bodies": [
+        {
+          "name": "恒星",
+          "surface": 0,
+          "id": 0,
+          "xAU": -0.000004204867764201481,
+          "yAU": 2.162503370817248e-10,
+          "zAU": 0,
+          "radiusKm": 695700,
+          "speedKmS": 0.00013515647151507437,
+          "massSolar": 1
+        },
+        {
+          "name": "接触球 A",
+          "surface": 1,
+          "id": 1,
+          "xAU": 0.999995768070221,
+          "yAU": -0.00011999978596577421,
+          "zAU": 0,
+          "radiusKm": 6371,
+          "speedKmS": 34.9998664855957,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "接触球 B",
+          "surface": 3,
+          "id": 2,
+          "xAU": 0.999995768070221,
+          "yAU": 0.00012000021524727345,
+          "zAU": 0,
+          "radiusKm": 4694.19293556758,
+          "speedKmS": 24.99986457824707,
+          "massSolar": 0.0000012013958894385723
+        }
+      ],
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 1,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0,
+            "radiusKm": 695700
+          },
+          {
+            "name": "接触球 A",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": -0.00012,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 35,
+            "vzKmS": 0,
+            "surface": 1,
+            "radiusKm": 6371
+          },
+          {
+            "name": "接触球 B",
+            "massSolar": 0.0000012013958461859875,
+            "xAU": 1,
+            "yAU": 0.00012,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 25,
+            "vzKmS": 0,
+            "surface": 3,
+            "radiusKm": 4694.19293556758
+          }
+        ]
+      }
+    },
+    "scene": {
+      "preset": 5,
+      "count": 600,
+      "speed": 1,
+      "angle": 0,
+      "duration": 1,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0,
+      "pitch": 0,
+      "zoom": 4.2,
+      "focus": 1,
+      "color": 0
+    },
+    "cameraMotion": {
+      "requestId": 1,
+      "sceneRevision": 3,
+      "targetFocus": 1,
+      "progress": 0,
+      "state": "queued",
+      "reason": "",
+      "targetCloseup": true,
+      "yaw": 0.15000000596046448,
+      "pitch": 0.25,
+      "zoom": 2.700000047683716
+    },
+    "ui": {
+      "panelOpen": false,
+      "toolsVisible": true,
+      "panel": 0,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "启动后在接触响应处暂停 · 球体保持完整，不模拟行星破裂"
+    },
+    "window": {
+      "layout": {
+        "safe": {
+          "x": 0,
+          "y": 20.48,
+          "width": 345.6,
+          "height": 761.6
+        },
+        "compact": false,
+        "sidePanel": false,
+        "headerHeight": 66,
+        "drawer": {
+          "x": 12,
+          "y": 243.28,
+          "width": 321.6,
+          "height": 380.8
+        },
+        "dock": {
+          "x": 16,
+          "y": 644.08,
+          "width": 313.6,
+          "height": 130
+        },
+        "scene": {
+          "x": 12,
+          "y": 96.48,
+          "width": 321.6,
+          "height": 535.6
+        }
+      },
+      "geometry": {
+        "widthPx": 1080,
+        "heightPx": 2444,
+        "topPx": 64,
+        "bottomPx": 0,
+        "leftPx": 0,
+        "rightPx": 0,
+        "revision": 8
+      },
+      "viewportWidthVp": 345.6,
+      "viewportHeightVp": 782.08,
+      "widthVp": 345.6,
+      "heightVp": 782.08,
+      "immersive": true,
+      "safePx": {
+        "top": 64,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      }
+    }
+  },
+  "response": {
+    "surfaces": [
+      {
+        "version": 1,
+        "seed": 0,
+        "cloudSeed": 0
+      },
+      {
+        "version": 1,
+        "seed": 105964,
+        "cloudSeed": 195174
+      },
+      {
+        "version": 1,
+        "seed": 210693,
+        "cloudSeed": 389113
+      }
+    ],
+    "surfaceUndoCount": 0,
+    "surfaceRedoCount": 0,
+    "ringTrace": {
+      "enabled": false,
+      "running": false,
+      "target": -1,
+      "timeHours": 0,
+      "massSolar": 0.0002857,
+      "radiusKm": 60000,
+      "count": 8192,
+      "impulse": 0,
+      "points": false,
+      "returnedCount": 0,
+      "sampling": "first-192-of-8192; coordinates used by density map",
+      "speedScale": 1,
+      "rateHours": 1,
+      "eccentricity": 0,
+      "innerApoapsisKm": 76800,
+      "outerApoapsisKm": 133200,
+      "referenceXKm": 76800,
+      "referenceYKm": 0,
+      "referenceRadiusKm": 76800,
+      "referenceSpeedKmS": 22.219297672514575,
+      "innerPeriodHours": 6.032651820447706,
+      "outerPeriodHours": 13.779160777118495,
+      "model": "restricted-impulse-ring-v3"
+    },
+    "theme": {
+      "id": "",
+      "title": "",
+      "goal": "",
+      "limit": "",
+      "modified": false,
+      "compareId": ""
+    },
+    "placement": {
+      "target": -1,
+      "sourceIndex": -1,
+      "sourceName": "",
+      "active": false,
+      "name": "新行星",
+      "fields": [
+        "1",
+        "2.5",
+        "45",
+        "0",
+        "1"
+      ],
+      "surface": 1,
+      "direction": 1,
+      "preview": {
+        "valid": false,
+        "error": "Error: 请填写全部放置参数",
+        "speedKmS": 0,
+        "circularKmS": 0,
+        "escapeKmS": 0,
+        "nearestAU": 0,
+        "bound": false,
+        "plotScale": 1,
+        "orbitPath": "",
+        "candidateX": 120,
+        "candidateY": 120,
+        "markerPath": "",
+        "velocityPath": ""
+      }
+    },
+    "sky": {
+      "mode": 2,
+      "brightness": 0.65,
+      "reference": "photographic-panorama"
+    },
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "nbody-hard-sphere-v1",
+      "title": "球体接触 · 理想弹性",
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 1,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0,
+            "radiusKm": 695700
+          },
+          {
+            "name": "接触球 A",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": -0.00012,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 35,
+            "vzKmS": 0,
+            "surface": 1,
+            "radiusKm": 6371
+          },
+          {
+            "name": "接触球 B",
+            "massSolar": 0.0000012013958461859875,
+            "xAU": 1,
+            "yAU": 0.00012,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 25,
+            "vzKmS": 0,
+            "surface": 3,
+            "radiusKm": 4694.19293556758
+          }
+        ]
+      },
+      "bodies": []
+    },
+    "editor": {
+      "drafts": [],
+      "history": {
+        "undoCount": 0,
+        "redoCount": 0,
+        "undoLabel": "",
+        "redoLabel": "",
+        "limit": 20,
+        "scope": "custom-body-initial-conditions"
+      },
+      "vectorPlane": "XY",
+      "orbitIndex": 1,
+      "orbitName": "接触球 A",
+      "orbitFields": [
+        "1",
+        "1",
+        "-0.00012",
+        "0",
+        "0",
+        "35",
+        "0",
+        "6371"
+      ],
+      "orbitSurface": 1,
+      "orbitDraft": false,
+      "editedBody": 0,
+      "targetName": "主天体",
+      "impactorName": "撞击体",
+      "title": "球体接触 · 理想弹性",
+      "selectingPreset": false
+    },
+    "material": {
+      "exposure": 0,
+      "ocean": true,
+      "cloudShadows": true
+    },
+    "appearance": {
+      "clouds": true,
+      "atmosphere": true,
+      "trails": true,
+      "closeup": true,
+      "autoSpin": false,
+      "rings": true
+    },
+    "rendering": {
+      "fragmentFollow": {
+        "active": false,
+        "moving": false,
+        "seed": -1,
+        "anchor": -1,
+        "rank": 0,
+        "count": 0,
+        "sceneRevision": 3,
+        "time": 0.00007189444369471602,
+        "centerKm": [
+          0,
+          0,
+          0
+        ]
+      },
+      "surfacePending": 0,
+      "surfaceGenerated": 2,
+      "surfaceError": "",
+      "moonReady": false,
+      "moonUploads": 0,
+      "moonBlend": 0,
+      "moonError": "",
+      "materialExposure": 0,
+      "materialOcean": true,
+      "materialCloudShadows": true,
+      "compositionX": 0.5,
+      "compositionY": 0.5,
+      "compositionScale": 1,
+      "sceneRevision": 3,
+      "surfaceStarts": 1,
+      "cameraMoving": false,
+      "centerX": 0.9999957084655762,
+      "centerY": 0.00041490967851132154,
+      "centerZ": 0,
+      "panoramaReady": true,
+      "panoramaBlend": 1,
+      "skyReady": true,
+      "skyStars": 0.6499999761581421,
+      "skyGalaxy": 0.6499999761581421,
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 2198,
+      "submitMs": 0.592625,
+      "previewSeconds": 0,
+      "error": ""
+    },
+    "simulation": {
+      "state": "paused",
+      "error": "",
+      "preparation": {
+        "requestId": 3,
+        "stage": "ready",
+        "elapsedMs": 0.35312499990686774,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 0.3055419996380806
+          },
+          {
+            "stage": "orbits",
+            "elapsedMs": 0.30720899999141693
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 0.33224999997764826
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 0.35312499990686774
+          }
+        ]
+      },
+      "count": 3,
+      "frames": 174,
+      "selected": -1,
+      "time": 0.00007189444369471602,
+      "duration": 1,
+      "stepMs": 0.010834,
+      "steps": 174,
+      "maxSpeed": 41.44582748413086,
+      "meanDensity": 0,
+      "totalMass": 1.9884182323522935e+30,
+      "sph": {
+        "available": false
+      },
+      "energyError": -0.000029365540211226037,
+      "angularError": -2.376702993268414e-16,
+      "model": "nbody-hard-sphere-v1",
+      "contact": {
+        "count": 1,
+        "a": 1,
+        "b": 2,
+        "timeSeconds": 2268.476533394943,
+        "normalSpeedKmS": 13.027904957188701,
+        "restitution": 1
+      },
+      "timeUnit": "year",
+      "bodies": [
+        {
+          "name": "恒星",
+          "surface": 0,
+          "id": 0,
+          "xAU": -0.00000420486730945413,
+          "yAU": -1.8335458706886243e-9,
+          "zAU": 0,
+          "radiusKm": 695700,
+          "speedKmS": 0.00013515647151507437,
+          "massSolar": 1
+        },
+        {
+          "name": "接触球 A",
+          "surface": 1,
+          "id": 1,
+          "xAU": 0.9999957084655762,
+          "yAU": 0.00041490967851132154,
+          "zAU": 0,
+          "radiusKm": 6371,
+          "speedKmS": 28.421480178833008,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "接触球 B",
+          "surface": 3,
+          "id": 2,
+          "xAU": 0.9999957084655762,
+          "yAU": 0.000488905468955636,
+          "zAU": 0,
+          "radiusKm": 4694.19293556758,
+          "speedKmS": 41.44582748413086,
+          "massSolar": 0.0000012013958894385723
+        }
+      ],
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 1,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0,
+            "radiusKm": 695700
+          },
+          {
+            "name": "接触球 A",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": -0.00012,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 35,
+            "vzKmS": 0,
+            "surface": 1,
+            "radiusKm": 6371
+          },
+          {
+            "name": "接触球 B",
+            "massSolar": 0.0000012013958461859875,
+            "xAU": 1,
+            "yAU": 0.00012,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 25,
+            "vzKmS": 0,
+            "surface": 3,
+            "radiusKm": 4694.19293556758
+          }
+        ]
+      }
+    },
+    "scene": {
+      "preset": 5,
+      "count": 600,
+      "speed": 1,
+      "angle": 0,
+      "duration": 1,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0,
+      "pitch": 0,
+      "zoom": 4.2,
+      "focus": 1,
+      "color": 0
+    },
+    "cameraMotion": {
+      "requestId": 1,
+      "sceneRevision": 3,
+      "targetFocus": 1,
+      "progress": 1,
+      "state": "completed",
+      "reason": "",
+      "targetCloseup": true,
+      "yaw": 0,
+      "pitch": 0,
+      "zoom": 4.199999809265137
+    },
+    "ui": {
+      "panelOpen": false,
+      "toolsVisible": true,
+      "panel": 0,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "实体接触已响应 · 可继续查看分离过程，或回放接近过程"
+    },
+    "window": {
+      "layout": {
+        "safe": {
+          "x": 0,
+          "y": 22.4,
+          "width": 707.2,
+          "height": 750.72
+        },
+        "compact": false,
+        "sidePanel": true,
+        "headerHeight": 66,
+        "drawer": {
+          "x": 383.20000000000005,
+          "y": 98.4,
+          "width": 308,
+          "height": 516.72
+        },
+        "dock": {
+          "x": 143.60000000000002,
+          "y": 635.12,
+          "width": 420,
+          "height": 130
+        },
+        "scene": {
+          "x": 12,
+          "y": 98.4,
+          "width": 683.2,
+          "height": 524.72
+        }
+      },
+      "geometry": {
+        "widthPx": 2210,
+        "heightPx": 2416,
+        "topPx": 70,
+        "bottomPx": 0,
+        "leftPx": 0,
+        "rightPx": 0,
+        "revision": 11
+      },
+      "viewportWidthVp": 707.2,
+      "viewportHeightVp": 773.12,
+      "widthVp": 707.2,
+      "heightVp": 773.12,
+      "immersive": true,
+      "safePx": {
+        "top": 70,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      }
+    }
+  },
+  "continuation": {
+    "surfaces": [
+      {
+        "version": 1,
+        "seed": 0,
+        "cloudSeed": 0
+      },
+      {
+        "version": 1,
+        "seed": 105964,
+        "cloudSeed": 195174
+      },
+      {
+        "version": 1,
+        "seed": 210693,
+        "cloudSeed": 389113
+      }
+    ],
+    "surfaceUndoCount": 0,
+    "surfaceRedoCount": 0,
+    "ringTrace": {
+      "enabled": false,
+      "running": false,
+      "target": -1,
+      "timeHours": 0,
+      "massSolar": 0.0002857,
+      "radiusKm": 60000,
+      "count": 8192,
+      "impulse": 0,
+      "points": false,
+      "returnedCount": 0,
+      "sampling": "first-192-of-8192; coordinates used by density map",
+      "speedScale": 1,
+      "rateHours": 1,
+      "eccentricity": 0,
+      "innerApoapsisKm": 76800,
+      "outerApoapsisKm": 133200,
+      "referenceXKm": 76800,
+      "referenceYKm": 0,
+      "referenceRadiusKm": 76800,
+      "referenceSpeedKmS": 22.219297672514575,
+      "innerPeriodHours": 6.032651820447706,
+      "outerPeriodHours": 13.779160777118495,
+      "model": "restricted-impulse-ring-v3"
+    },
+    "theme": {
+      "id": "",
+      "title": "",
+      "goal": "",
+      "limit": "",
+      "modified": false,
+      "compareId": ""
+    },
+    "placement": {
+      "target": -1,
+      "sourceIndex": -1,
+      "sourceName": "",
+      "active": false,
+      "name": "新行星",
+      "fields": [
+        "1",
+        "2.5",
+        "45",
+        "0",
+        "1"
+      ],
+      "surface": 1,
+      "direction": 1,
+      "preview": {
+        "valid": false,
+        "error": "Error: 请填写全部放置参数",
+        "speedKmS": 0,
+        "circularKmS": 0,
+        "escapeKmS": 0,
+        "nearestAU": 0,
+        "bound": false,
+        "plotScale": 1,
+        "orbitPath": "",
+        "candidateX": 120,
+        "candidateY": 120,
+        "markerPath": "",
+        "velocityPath": ""
+      }
+    },
+    "sky": {
+      "mode": 2,
+      "brightness": 0.65,
+      "reference": "photographic-panorama"
+    },
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "nbody-hard-sphere-v1",
+      "title": "球体接触 · 理想弹性",
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 1,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0,
+            "radiusKm": 695700
+          },
+          {
+            "name": "接触球 A",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": -0.00012,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 35,
+            "vzKmS": 0,
+            "surface": 1,
+            "radiusKm": 6371
+          },
+          {
+            "name": "接触球 B",
+            "massSolar": 0.0000012013958461859875,
+            "xAU": 1,
+            "yAU": 0.00012,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 25,
+            "vzKmS": 0,
+            "surface": 3,
+            "radiusKm": 4694.19293556758
+          }
+        ]
+      },
+      "bodies": []
+    },
+    "editor": {
+      "drafts": [],
+      "history": {
+        "undoCount": 0,
+        "redoCount": 0,
+        "undoLabel": "",
+        "redoLabel": "",
+        "limit": 20,
+        "scope": "custom-body-initial-conditions"
+      },
+      "vectorPlane": "XY",
+      "orbitIndex": 1,
+      "orbitName": "接触球 A",
+      "orbitFields": [
+        "1",
+        "1",
+        "-0.00012",
+        "0",
+        "0",
+        "35",
+        "0",
+        "6371"
+      ],
+      "orbitSurface": 1,
+      "orbitDraft": false,
+      "editedBody": 0,
+      "targetName": "主天体",
+      "impactorName": "撞击体",
+      "title": "球体接触 · 理想弹性",
+      "selectingPreset": false
+    },
+    "material": {
+      "exposure": 0,
+      "ocean": true,
+      "cloudShadows": true
+    },
+    "appearance": {
+      "clouds": true,
+      "atmosphere": true,
+      "trails": true,
+      "closeup": true,
+      "autoSpin": false,
+      "rings": true
+    },
+    "rendering": {
+      "fragmentFollow": {
+        "active": false,
+        "moving": false,
+        "seed": -1,
+        "anchor": -1,
+        "rank": 0,
+        "count": 0,
+        "sceneRevision": 3,
+        "time": 0.00007948755902922747,
+        "centerKm": [
+          0,
+          0,
+          0
+        ]
+      },
+      "surfacePending": 0,
+      "surfaceGenerated": 2,
+      "surfaceError": "",
+      "moonReady": false,
+      "moonUploads": 0,
+      "moonBlend": 0,
+      "moonError": "",
+      "materialExposure": 0,
+      "materialOcean": true,
+      "materialCloudShadows": true,
+      "compositionX": 0.5,
+      "compositionY": 0.5,
+      "compositionScale": 1,
+      "sceneRevision": 3,
+      "surfaceStarts": 1,
+      "cameraMoving": false,
+      "centerX": 0.9999956488609314,
+      "centerY": 0.00046064562047831714,
+      "centerZ": 0,
+      "panoramaReady": true,
+      "panoramaBlend": 1,
+      "skyReady": true,
+      "skyStars": 0.6499999761581421,
+      "skyGalaxy": 0.6499999761581421,
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 2254,
+      "submitMs": 1.691291,
+      "previewSeconds": 0,
+      "error": ""
+    },
+    "simulation": {
+      "state": "paused",
+      "error": "",
+      "preparation": {
+        "requestId": 3,
+        "stage": "ready",
+        "elapsedMs": 0.35312499990686774,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 0.3055419996380806
+          },
+          {
+            "stage": "orbits",
+            "elapsedMs": 0.30720899999141693
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 0.33224999997764826
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 0.35312499990686774
+          }
+        ]
+      },
+      "count": 3,
+      "frames": 211,
+      "selected": -1,
+      "time": 0.00007948755902922747,
+      "duration": 1,
+      "stepMs": 0.019708,
+      "steps": 211,
+      "maxSpeed": 40.83467102050781,
+      "meanDensity": 0,
+      "totalMass": 1.9884182323522935e+30,
+      "sph": {
+        "available": false
+      },
+      "energyError": -0.000029377796775757992,
+      "angularError": -8.318460476439448e-16,
+      "model": "nbody-hard-sphere-v1",
+      "contact": {
+        "count": 1,
+        "a": 1,
+        "b": 2,
+        "timeSeconds": 2268.476533394943,
+        "normalSpeedKmS": 13.027904957188701,
+        "restitution": 1
+      },
+      "timeUnit": "year",
+      "bodies": [
+        {
+          "name": "恒星",
+          "surface": 0,
+          "id": 0,
+          "xAU": -0.00000420486730945413,
+          "yAU": -2.050034586531524e-9,
+          "zAU": 0,
+          "radiusKm": 695700,
+          "speedKmS": 0.00013515647151507437,
+          "massSolar": 1
+        },
+        {
+          "name": "接触球 A",
+          "surface": 1,
+          "id": 1,
+          "xAU": 0.9999956488609314,
+          "yAU": 0.00046064562047831714,
+          "zAU": 0,
+          "radiusKm": 6371,
+          "speedKmS": 28.66594123840332,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "接触球 B",
+          "surface": 3,
+          "id": 2,
+          "xAU": 0.9999956488609314,
+          "yAU": 0.0005547633045352995,
+          "zAU": 0,
+          "radiusKm": 4694.19293556758,
+          "speedKmS": 40.83467102050781,
+          "massSolar": 0.0000012013958894385723
+        }
+      ],
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 1,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0,
+            "radiusKm": 695700
+          },
+          {
+            "name": "接触球 A",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": -0.00012,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 35,
+            "vzKmS": 0,
+            "surface": 1,
+            "radiusKm": 6371
+          },
+          {
+            "name": "接触球 B",
+            "massSolar": 0.0000012013958461859875,
+            "xAU": 1,
+            "yAU": 0.00012,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 25,
+            "vzKmS": 0,
+            "surface": 3,
+            "radiusKm": 4694.19293556758
+          }
+        ]
+      }
+    },
+    "scene": {
+      "preset": 5,
+      "count": 600,
+      "speed": 1,
+      "angle": 0,
+      "duration": 1,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0,
+      "pitch": 0,
+      "zoom": 4.2,
+      "focus": 1,
+      "color": 0
+    },
+    "cameraMotion": {
+      "requestId": 1,
+      "sceneRevision": 3,
+      "targetFocus": 1,
+      "progress": 1,
+      "state": "completed",
+      "reason": "",
+      "targetCloseup": true,
+      "yaw": 0,
+      "pitch": 0,
+      "zoom": 4.199999809265137
+    },
+    "ui": {
+      "panelOpen": false,
+      "toolsVisible": true,
+      "panel": 0,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "已暂停，可回看时间轴或调整视角"
+    },
+    "window": {
+      "layout": {
+        "safe": {
+          "x": 0,
+          "y": 22.4,
+          "width": 707.2,
+          "height": 750.72
+        },
+        "compact": false,
+        "sidePanel": true,
+        "headerHeight": 66,
+        "drawer": {
+          "x": 383.20000000000005,
+          "y": 98.4,
+          "width": 308,
+          "height": 516.72
+        },
+        "dock": {
+          "x": 143.60000000000002,
+          "y": 635.12,
+          "width": 420,
+          "height": 130
+        },
+        "scene": {
+          "x": 12,
+          "y": 98.4,
+          "width": 683.2,
+          "height": 524.72
+        }
+      },
+      "geometry": {
+        "widthPx": 2210,
+        "heightPx": 2416,
+        "topPx": 70,
+        "bottomPx": 0,
+        "leftPx": 0,
+        "rightPx": 0,
+        "revision": 11
+      },
+      "viewportWidthVp": 707.2,
+      "viewportHeightVp": 773.12,
+      "widthVp": 707.2,
+      "heightVp": 773.12,
+      "immersive": true,
+      "safePx": {
+        "top": 70,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      }
+    }
+  },
+  "layouts": [
+    {
+      "name": "phone",
+      "state": {
+        "surfaces": [
+          {
+            "version": 1,
+            "seed": 0,
+            "cloudSeed": 0
+          },
+          {
+            "version": 1,
+            "seed": 105964,
+            "cloudSeed": 195174
+          },
+          {
+            "version": 1,
+            "seed": 210693,
+            "cloudSeed": 389113
+          }
+        ],
+        "surfaceUndoCount": 0,
+        "surfaceRedoCount": 0,
+        "ringTrace": {
+          "enabled": false,
+          "running": false,
+          "target": -1,
+          "timeHours": 0,
+          "massSolar": 0.0002857,
+          "radiusKm": 60000,
+          "count": 8192,
+          "impulse": 0,
+          "points": false,
+          "returnedCount": 0,
+          "sampling": "first-192-of-8192; coordinates used by density map",
+          "speedScale": 1,
+          "rateHours": 1,
+          "eccentricity": 0,
+          "innerApoapsisKm": 76800,
+          "outerApoapsisKm": 133200,
+          "referenceXKm": 76800,
+          "referenceYKm": 0,
+          "referenceRadiusKm": 76800,
+          "referenceSpeedKmS": 22.219297672514575,
+          "innerPeriodHours": 6.032651820447706,
+          "outerPeriodHours": 13.779160777118495,
+          "model": "restricted-impulse-ring-v3"
+        },
+        "theme": {
+          "id": "",
+          "title": "",
+          "goal": "",
+          "limit": "",
+          "modified": false,
+          "compareId": ""
+        },
+        "placement": {
+          "target": -1,
+          "sourceIndex": -1,
+          "sourceName": "",
+          "active": false,
+          "name": "新行星",
+          "fields": [
+            "1",
+            "2.5",
+            "45",
+            "0",
+            "1"
+          ],
+          "surface": 1,
+          "direction": 1,
+          "preview": {
+            "valid": false,
+            "error": "Error: 请填写全部放置参数",
+            "speedKmS": 0,
+            "circularKmS": 0,
+            "escapeKmS": 0,
+            "nearestAU": 0,
+            "bound": false,
+            "plotScale": 1,
+            "orbitPath": "",
+            "candidateX": 120,
+            "candidateY": 120,
+            "markerPath": "",
+            "velocityPath": ""
+          }
+        },
+        "sky": {
+          "mode": 2,
+          "brightness": 0.65,
+          "reference": "photographic-panorama"
+        },
+        "ok": true,
+        "protocol": 1,
+        "definition": {
+          "schemaVersion": 1,
+          "model": "nbody-hard-sphere-v1",
+          "title": "球体接触 · 理想弹性",
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 1,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0,
+                "radiusKm": 695700
+              },
+              {
+                "name": "接触球 A",
+                "massSolar": 0.0000030034896154649684,
+                "xAU": 1,
+                "yAU": -0.00012,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 35,
+                "vzKmS": 0,
+                "surface": 1,
+                "radiusKm": 6371
+              },
+              {
+                "name": "接触球 B",
+                "massSolar": 0.0000012013958461859875,
+                "xAU": 1,
+                "yAU": 0.00012,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 25,
+                "vzKmS": 0,
+                "surface": 3,
+                "radiusKm": 4694.19293556758
+              }
+            ]
+          },
+          "bodies": []
+        },
+        "editor": {
+          "drafts": [],
+          "history": {
+            "undoCount": 0,
+            "redoCount": 0,
+            "undoLabel": "",
+            "redoLabel": "",
+            "limit": 20,
+            "scope": "custom-body-initial-conditions"
+          },
+          "vectorPlane": "XY",
+          "orbitIndex": 1,
+          "orbitName": "接触球 A",
+          "orbitFields": [
+            "1",
+            "1",
+            "-0.00012",
+            "0",
+            "0",
+            "35",
+            "0",
+            "6371"
+          ],
+          "orbitSurface": 1,
+          "orbitDraft": false,
+          "editedBody": 0,
+          "targetName": "主天体",
+          "impactorName": "撞击体",
+          "title": "球体接触 · 理想弹性",
+          "selectingPreset": false
+        },
+        "material": {
+          "exposure": 0,
+          "ocean": true,
+          "cloudShadows": true
+        },
+        "appearance": {
+          "clouds": true,
+          "atmosphere": true,
+          "trails": true,
+          "closeup": true,
+          "autoSpin": false,
+          "rings": true
+        },
+        "rendering": {
+          "fragmentFollow": {
+            "active": false,
+            "moving": false,
+            "seed": -1,
+            "anchor": -1,
+            "rank": 0,
+            "count": 0,
+            "sceneRevision": 3,
+            "time": 0.00007189444369471602,
+            "centerKm": [
+              0,
+              0,
+              0
+            ]
+          },
+          "surfacePending": 0,
+          "surfaceGenerated": 2,
+          "surfaceError": "",
+          "moonReady": false,
+          "moonUploads": 0,
+          "moonBlend": 0,
+          "moonError": "",
+          "materialExposure": 0,
+          "materialOcean": true,
+          "materialCloudShadows": true,
+          "compositionX": 0.5,
+          "compositionY": 0.5,
+          "compositionScale": 1,
+          "sceneRevision": 3,
+          "surfaceStarts": 1,
+          "cameraMoving": false,
+          "centerX": 0.9999957084655762,
+          "centerY": 0.00041490967851132154,
+          "centerZ": 0,
+          "panoramaReady": true,
+          "panoramaBlend": 1,
+          "skyReady": true,
+          "skyStars": 0.6499999761581421,
+          "skyGalaxy": 0.6499999761581421,
+          "ready": true,
+          "texturesReady": true,
+          "active": true,
+          "frames": 2332,
+          "submitMs": 1.075209,
+          "previewSeconds": 0,
+          "error": ""
+        },
+        "simulation": {
+          "state": "paused",
+          "error": "",
+          "preparation": {
+            "requestId": 3,
+            "stage": "ready",
+            "elapsedMs": 0.35312499990686774,
+            "stageMs": 0,
+            "previousRequestId": 0,
+            "previousStage": "",
+            "slow": false,
+            "events": [
+              {
+                "stage": "queued",
+                "elapsedMs": 0
+              },
+              {
+                "stage": "starting",
+                "elapsedMs": 0.3055419996380806
+              },
+              {
+                "stage": "orbits",
+                "elapsedMs": 0.30720899999141693
+              },
+              {
+                "stage": "snapshot",
+                "elapsedMs": 0.33224999997764826
+              },
+              {
+                "stage": "ready",
+                "elapsedMs": 0.35312499990686774
+              }
+            ]
+          },
+          "count": 3,
+          "frames": 211,
+          "selected": 173,
+          "time": 0.00007189444369471602,
+          "duration": 1,
+          "stepMs": 0.019708,
+          "steps": 211,
+          "maxSpeed": 41.44582748413086,
+          "meanDensity": 0,
+          "totalMass": 1.9884182323522935e+30,
+          "sph": {
+            "available": false
+          },
+          "energyError": -0.000029365540211226037,
+          "angularError": -2.376702993268414e-16,
+          "model": "nbody-hard-sphere-v1",
+          "contact": {
+            "count": 1,
+            "a": 1,
+            "b": 2,
+            "timeSeconds": 2268.476533394943,
+            "normalSpeedKmS": 13.027904957188701,
+            "restitution": 1
+          },
+          "timeUnit": "year",
+          "bodies": [
+            {
+              "name": "恒星",
+              "surface": 0,
+              "id": 0,
+              "xAU": -0.00000420486730945413,
+              "yAU": -1.8335458706886243e-9,
+              "zAU": 0,
+              "radiusKm": 695700,
+              "speedKmS": 0.00013515647151507437,
+              "massSolar": 1
+            },
+            {
+              "name": "接触球 A",
+              "surface": 1,
+              "id": 1,
+              "xAU": 0.9999957084655762,
+              "yAU": 0.00041490967851132154,
+              "zAU": 0,
+              "radiusKm": 6371,
+              "speedKmS": 28.421480178833008,
+              "massSolar": 0.000003003489609909593
+            },
+            {
+              "name": "接触球 B",
+              "surface": 3,
+              "id": 2,
+              "xAU": 0.9999957084655762,
+              "yAU": 0.000488905468955636,
+              "zAU": 0,
+              "radiusKm": 4694.19293556758,
+              "speedKmS": 41.44582748413086,
+              "massSolar": 0.0000012013958894385723
+            }
+          ],
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 1,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0,
+                "radiusKm": 695700
+              },
+              {
+                "name": "接触球 A",
+                "massSolar": 0.0000030034896154649684,
+                "xAU": 1,
+                "yAU": -0.00012,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 35,
+                "vzKmS": 0,
+                "surface": 1,
+                "radiusKm": 6371
+              },
+              {
+                "name": "接触球 B",
+                "massSolar": 0.0000012013958461859875,
+                "xAU": 1,
+                "yAU": 0.00012,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 25,
+                "vzKmS": 0,
+                "surface": 3,
+                "radiusKm": 4694.19293556758
+              }
+            ]
+          }
+        },
+        "scene": {
+          "preset": 5,
+          "count": 600,
+          "speed": 1,
+          "angle": 0,
+          "duration": 1,
+          "dirty": false
+        },
+        "camera": {
+          "yaw": 0,
+          "pitch": 0,
+          "zoom": 4.2,
+          "focus": 1,
+          "color": 0
+        },
+        "cameraMotion": {
+          "requestId": 1,
+          "sceneRevision": 3,
+          "targetFocus": 1,
+          "progress": 1,
+          "state": "completed",
+          "reason": "",
+          "targetCloseup": true,
+          "yaw": 0,
+          "pitch": 0,
+          "zoom": 4.199999809265137
+        },
+        "ui": {
+          "panelOpen": false,
+          "toolsVisible": true,
+          "panel": 0,
+          "playing": false,
+          "ioBusy": false,
+          "foreground": true,
+          "notice": "已暂停，可回看时间轴或调整视角"
+        },
+        "window": {
+          "layout": {
+            "safe": {
+              "x": 0,
+              "y": 20.48,
+              "width": 345.6,
+              "height": 761.6
+            },
+            "compact": false,
+            "sidePanel": false,
+            "headerHeight": 66,
+            "drawer": {
+              "x": 12,
+              "y": 243.28,
+              "width": 321.6,
+              "height": 380.8
+            },
+            "dock": {
+              "x": 16,
+              "y": 644.08,
+              "width": 313.6,
+              "height": 130
+            },
+            "scene": {
+              "x": 12,
+              "y": 96.48,
+              "width": 321.6,
+              "height": 535.6
+            }
+          },
+          "geometry": {
+            "widthPx": 1080,
+            "heightPx": 2444,
+            "topPx": 64,
+            "bottomPx": 0,
+            "leftPx": 0,
+            "rightPx": 0,
+            "revision": 14
+          },
+          "viewportWidthVp": 345.6,
+          "viewportHeightVp": 782.08,
+          "widthVp": 345.6,
+          "heightVp": 782.08,
+          "immersive": true,
+          "safePx": {
+            "top": 64,
+            "bottom": 0,
+            "left": 0,
+            "right": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "landscape",
+      "state": {
+        "surfaces": [
+          {
+            "version": 1,
+            "seed": 0,
+            "cloudSeed": 0
+          },
+          {
+            "version": 1,
+            "seed": 105964,
+            "cloudSeed": 195174
+          },
+          {
+            "version": 1,
+            "seed": 210693,
+            "cloudSeed": 389113
+          }
+        ],
+        "surfaceUndoCount": 0,
+        "surfaceRedoCount": 0,
+        "ringTrace": {
+          "enabled": false,
+          "running": false,
+          "target": -1,
+          "timeHours": 0,
+          "massSolar": 0.0002857,
+          "radiusKm": 60000,
+          "count": 8192,
+          "impulse": 0,
+          "points": false,
+          "returnedCount": 0,
+          "sampling": "first-192-of-8192; coordinates used by density map",
+          "speedScale": 1,
+          "rateHours": 1,
+          "eccentricity": 0,
+          "innerApoapsisKm": 76800,
+          "outerApoapsisKm": 133200,
+          "referenceXKm": 76800,
+          "referenceYKm": 0,
+          "referenceRadiusKm": 76800,
+          "referenceSpeedKmS": 22.219297672514575,
+          "innerPeriodHours": 6.032651820447706,
+          "outerPeriodHours": 13.779160777118495,
+          "model": "restricted-impulse-ring-v3"
+        },
+        "theme": {
+          "id": "",
+          "title": "",
+          "goal": "",
+          "limit": "",
+          "modified": false,
+          "compareId": ""
+        },
+        "placement": {
+          "target": -1,
+          "sourceIndex": -1,
+          "sourceName": "",
+          "active": false,
+          "name": "新行星",
+          "fields": [
+            "1",
+            "2.5",
+            "45",
+            "0",
+            "1"
+          ],
+          "surface": 1,
+          "direction": 1,
+          "preview": {
+            "valid": false,
+            "error": "Error: 请填写全部放置参数",
+            "speedKmS": 0,
+            "circularKmS": 0,
+            "escapeKmS": 0,
+            "nearestAU": 0,
+            "bound": false,
+            "plotScale": 1,
+            "orbitPath": "",
+            "candidateX": 120,
+            "candidateY": 120,
+            "markerPath": "",
+            "velocityPath": ""
+          }
+        },
+        "sky": {
+          "mode": 2,
+          "brightness": 0.65,
+          "reference": "photographic-panorama"
+        },
+        "ok": true,
+        "protocol": 1,
+        "definition": {
+          "schemaVersion": 1,
+          "model": "nbody-hard-sphere-v1",
+          "title": "球体接触 · 理想弹性",
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 1,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0,
+                "radiusKm": 695700
+              },
+              {
+                "name": "接触球 A",
+                "massSolar": 0.0000030034896154649684,
+                "xAU": 1,
+                "yAU": -0.00012,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 35,
+                "vzKmS": 0,
+                "surface": 1,
+                "radiusKm": 6371
+              },
+              {
+                "name": "接触球 B",
+                "massSolar": 0.0000012013958461859875,
+                "xAU": 1,
+                "yAU": 0.00012,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 25,
+                "vzKmS": 0,
+                "surface": 3,
+                "radiusKm": 4694.19293556758
+              }
+            ]
+          },
+          "bodies": []
+        },
+        "editor": {
+          "drafts": [],
+          "history": {
+            "undoCount": 0,
+            "redoCount": 0,
+            "undoLabel": "",
+            "redoLabel": "",
+            "limit": 20,
+            "scope": "custom-body-initial-conditions"
+          },
+          "vectorPlane": "XY",
+          "orbitIndex": 1,
+          "orbitName": "接触球 A",
+          "orbitFields": [
+            "1",
+            "1",
+            "-0.00012",
+            "0",
+            "0",
+            "35",
+            "0",
+            "6371"
+          ],
+          "orbitSurface": 1,
+          "orbitDraft": false,
+          "editedBody": 0,
+          "targetName": "主天体",
+          "impactorName": "撞击体",
+          "title": "球体接触 · 理想弹性",
+          "selectingPreset": false
+        },
+        "material": {
+          "exposure": 0,
+          "ocean": true,
+          "cloudShadows": true
+        },
+        "appearance": {
+          "clouds": true,
+          "atmosphere": true,
+          "trails": true,
+          "closeup": true,
+          "autoSpin": false,
+          "rings": true
+        },
+        "rendering": {
+          "fragmentFollow": {
+            "active": false,
+            "moving": false,
+            "seed": -1,
+            "anchor": -1,
+            "rank": 0,
+            "count": 0,
+            "sceneRevision": 3,
+            "time": 0.00007189444369471602,
+            "centerKm": [
+              0,
+              0,
+              0
+            ]
+          },
+          "surfacePending": 0,
+          "surfaceGenerated": 2,
+          "surfaceError": "",
+          "moonReady": false,
+          "moonUploads": 0,
+          "moonBlend": 0,
+          "moonError": "",
+          "materialExposure": 0,
+          "materialOcean": true,
+          "materialCloudShadows": true,
+          "compositionX": 0.5,
+          "compositionY": 0.5,
+          "compositionScale": 1,
+          "sceneRevision": 3,
+          "surfaceStarts": 1,
+          "cameraMoving": false,
+          "centerX": 0.9999957084655762,
+          "centerY": 0.00041490967851132154,
+          "centerZ": 0,
+          "panoramaReady": true,
+          "panoramaBlend": 1,
+          "skyReady": true,
+          "skyStars": 0.6499999761581421,
+          "skyGalaxy": 0.6499999761581421,
+          "ready": true,
+          "texturesReady": true,
+          "active": true,
+          "frames": 2409,
+          "submitMs": 0.725583,
+          "previewSeconds": 0,
+          "error": ""
+        },
+        "simulation": {
+          "state": "paused",
+          "error": "",
+          "preparation": {
+            "requestId": 3,
+            "stage": "ready",
+            "elapsedMs": 0.35312499990686774,
+            "stageMs": 0,
+            "previousRequestId": 0,
+            "previousStage": "",
+            "slow": false,
+            "events": [
+              {
+                "stage": "queued",
+                "elapsedMs": 0
+              },
+              {
+                "stage": "starting",
+                "elapsedMs": 0.3055419996380806
+              },
+              {
+                "stage": "orbits",
+                "elapsedMs": 0.30720899999141693
+              },
+              {
+                "stage": "snapshot",
+                "elapsedMs": 0.33224999997764826
+              },
+              {
+                "stage": "ready",
+                "elapsedMs": 0.35312499990686774
+              }
+            ]
+          },
+          "count": 3,
+          "frames": 211,
+          "selected": 173,
+          "time": 0.00007189444369471602,
+          "duration": 1,
+          "stepMs": 0.019708,
+          "steps": 211,
+          "maxSpeed": 41.44582748413086,
+          "meanDensity": 0,
+          "totalMass": 1.9884182323522935e+30,
+          "sph": {
+            "available": false
+          },
+          "energyError": -0.000029365540211226037,
+          "angularError": -2.376702993268414e-16,
+          "model": "nbody-hard-sphere-v1",
+          "contact": {
+            "count": 1,
+            "a": 1,
+            "b": 2,
+            "timeSeconds": 2268.476533394943,
+            "normalSpeedKmS": 13.027904957188701,
+            "restitution": 1
+          },
+          "timeUnit": "year",
+          "bodies": [
+            {
+              "name": "恒星",
+              "surface": 0,
+              "id": 0,
+              "xAU": -0.00000420486730945413,
+              "yAU": -1.8335458706886243e-9,
+              "zAU": 0,
+              "radiusKm": 695700,
+              "speedKmS": 0.00013515647151507437,
+              "massSolar": 1
+            },
+            {
+              "name": "接触球 A",
+              "surface": 1,
+              "id": 1,
+              "xAU": 0.9999957084655762,
+              "yAU": 0.00041490967851132154,
+              "zAU": 0,
+              "radiusKm": 6371,
+              "speedKmS": 28.421480178833008,
+              "massSolar": 0.000003003489609909593
+            },
+            {
+              "name": "接触球 B",
+              "surface": 3,
+              "id": 2,
+              "xAU": 0.9999957084655762,
+              "yAU": 0.000488905468955636,
+              "zAU": 0,
+              "radiusKm": 4694.19293556758,
+              "speedKmS": 41.44582748413086,
+              "massSolar": 0.0000012013958894385723
+            }
+          ],
+          "config": {
+            "preset": 5,
+            "count": 600,
+            "speed": 1,
+            "angle": 0,
+            "duration": 1,
+            "targetRadiusKm": 100,
+            "impactorRadiusKm": 60,
+            "targetDensity": 2700,
+            "impactorDensity": 2700,
+            "targetSpin": 0,
+            "seed": 1234,
+            "orbitBodies": [
+              {
+                "name": "恒星",
+                "massSolar": 1,
+                "xAU": 0,
+                "yAU": 0,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 0,
+                "vzKmS": 0,
+                "surface": 0,
+                "radiusKm": 695700
+              },
+              {
+                "name": "接触球 A",
+                "massSolar": 0.0000030034896154649684,
+                "xAU": 1,
+                "yAU": -0.00012,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 35,
+                "vzKmS": 0,
+                "surface": 1,
+                "radiusKm": 6371
+              },
+              {
+                "name": "接触球 B",
+                "massSolar": 0.0000012013958461859875,
+                "xAU": 1,
+                "yAU": 0.00012,
+                "zAU": 0,
+                "vxKmS": 0,
+                "vyKmS": 25,
+                "vzKmS": 0,
+                "surface": 3,
+                "radiusKm": 4694.19293556758
+              }
+            ]
+          }
+        },
+        "scene": {
+          "preset": 5,
+          "count": 600,
+          "speed": 1,
+          "angle": 0,
+          "duration": 1,
+          "dirty": false
+        },
+        "camera": {
+          "yaw": 0,
+          "pitch": 0,
+          "zoom": 4.2,
+          "focus": 1,
+          "color": 0
+        },
+        "cameraMotion": {
+          "requestId": 1,
+          "sceneRevision": 3,
+          "targetFocus": 1,
+          "progress": 1,
+          "state": "completed",
+          "reason": "",
+          "targetCloseup": true,
+          "yaw": 0,
+          "pitch": 0,
+          "zoom": 4.199999809265137
+        },
+        "ui": {
+          "panelOpen": false,
+          "toolsVisible": true,
+          "panel": 0,
+          "playing": false,
+          "ioBusy": false,
+          "foreground": true,
+          "notice": "已暂停，可回看时间轴或调整视角"
+        },
+        "window": {
+          "layout": {
+            "safe": {
+              "x": 20.48,
+              "y": 0,
+              "width": 761.6,
+              "height": 345.6
+            },
+            "compact": true,
+            "sidePanel": true,
+            "headerHeight": 54,
+            "drawer": {
+              "x": 458.08000000000004,
+              "y": 64,
+              "width": 308,
+              "height": 269.6
+            },
+            "dock": {
+              "x": 121.28000000000002,
+              "y": 271.6,
+              "width": 560,
+              "height": 66
+            },
+            "scene": {
+              "x": 32.480000000000004,
+              "y": 64,
+              "width": 737.6,
+              "height": 195.60000000000002
+            }
+          },
+          "geometry": {
+            "widthPx": 2444,
+            "heightPx": 1080,
+            "topPx": 0,
+            "bottomPx": 0,
+            "leftPx": 64,
+            "rightPx": 0,
+            "revision": 17
+          },
+          "viewportWidthVp": 782.08,
+          "viewportHeightVp": 345.6,
+          "widthVp": 782.08,
+          "heightVp": 345.6,
+          "immersive": true,
+          "safePx": {
+            "top": 0,
+            "bottom": 0,
+            "left": 64,
+            "right": 0
+          }
+        }
+      }
+    }
+  ]
+}

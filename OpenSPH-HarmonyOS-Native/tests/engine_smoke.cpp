@@ -38,6 +38,35 @@ int main(int argc, char **argv) {
         mkdir(dir.c_str(), 0700);
         Engine e;
         {
+            const double earth=398600.435507e9/SOLAR_GM;Config c{5,200,1,0,1};
+            c.orbitBodies={{"Star",1,0,0,0,0,0,0,0,695700},{"A",earth,1,-.00012,0,0,35,0,1,6371},{"B",.4*earth,1,.00012,0,0,25,0,3,6371*std::cbrt(.4)}};
+            require(validConfig(c),"contact config");auto badConfig=c;badConfig.orbitBodies[1].radiusKm=0;require(!validConfig(badConfig),"mixed radius accepted");
+            e.start(c,true);awaitState(e,"paused");require(e.status().contact.count==0,"initial contact fabricated");e.pause(false);
+            for(int i=0;i<1500&&e.status().contact.count==0;i++){require(e.status().state!="failed","contact run failed");std::this_thread::sleep_for(std::chrono::milliseconds(20));}
+            awaitState(e,"paused");require(e.status().contact.count==1,"contact not paused");auto response=e.frame();
+            require(response->contact.a==1&&response->contact.b==2&&std::abs(response->energyError)<1e-4,"response diagnostics");require(response->radiiAU.size()==3,"physical radii missing");
+            require(e.saveReplay(dir),"v11 save");const auto path=dir+"/last-replay.osphr";std::ifstream in(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(in)),{});in.close();require(bytes[4]==11,"not v11");
+            require(e.loadReplay(dir),"v11 load");e.seek(-1);require(e.frame()->contact.time==response->contact.time&&e.status().contact.count==1&&e.frame()->radiiAU==response->radiiAU,"v11 response changed");
+            require(e.saveReplay(dir),"v11 resave");std::ifstream in2(path,std::ios::binary);require(std::string((std::istreambuf_iterator<char>(in2)),{})==bytes,"v11 bytes changed");in2.close();
+            uint32_t n=0;std::memcpy(&n,bytes.data()+8,4);size_t at=112;std::vector<size_t> radiusOffsets,contactOffsets;
+            for(int i=0;i<3;i++){uint32_t len;std::memcpy(&len,bytes.data()+at,4);at+=4+len+64;radiusOffsets.push_back(at);at+=8;}
+            for(uint32_t i=0;i<n;i++){uint32_t count;std::memcpy(&count,bytes.data()+at,4);at+=84+count*sizeof(Particle);contactOffsets.push_back(at);at+=28;uint32_t trails;std::memcpy(&trails,bytes.data()+at+16,4);at+=20+trails*sizeof(Particle);}
+            require(at==bytes.size(),"independent v11 parse size");
+            for(int fault=0;fault<9;fault++){auto bad=bytes;double value=0;int32_t index=9;uint32_t count=0;
+                if(fault==0)std::memcpy(&bad[radiusOffsets[1]],&value,8);
+                if(fault==1){value=std::numeric_limits<double>::quiet_NaN();std::memcpy(&bad[radiusOffsets[2]],&value,8);}
+                if(fault==2)std::memcpy(&bad[contactOffsets.back()+4],&index,4);
+                if(fault==3){value=2;std::memcpy(&bad[contactOffsets.back()+12],&value,8);}
+                if(fault==4)std::memcpy(&bad[contactOffsets.back()+20],&value,8);
+                if(fault==5)std::memcpy(&bad[contactOffsets.back()],&count,4);
+                if(fault==6)bad.pop_back();if(fault==7)bad.push_back('x');if(fault==8)bad[4]=4;
+                {std::ofstream out(path,std::ios::binary);out.write(bad.data(),bad.size());}auto current=e.frame();require(!e.loadReplay(dir)&&e.frame()==current,"malformed v11 replaced state");
+            }
+            {std::ofstream out(path,std::ios::binary);out.write(bytes.data(),bytes.size());}require(e.loadReplay(dir),"v11 recovery");
+            std::cout<<"PASS finite contact: auto pause, radius identity, v11 byte roundtrip, independent parse, nine malformed files rejected atomically"<<std::endl;
+        }
+
+        {
             for(int mode=0;mode<3;mode++){Config c{0,200,5,0,1};c.selfGravity=mode>0;c.relaxationSeconds=mode==2?16:0;e.start(c,true);awaitState(e,"paused");auto original=e.frame();
                 require(validSphFragments(original->fragments,original->particles.size(),original->totalMass),"initial fragment summary invalid");std::cout<<"initial fragment mode="<<mode<<" groups="<<original->fragments.groups.size()<<" largest_count="<<original->fragments.groups[0].count<<std::endl;
                 require(e.saveReplay(dir),"v10 save failed");const std::string path=dir+"/last-replay.osphr";std::ifstream in(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(in)),{});in.close();require(bytes[4]==10,"missing v10 fragments");

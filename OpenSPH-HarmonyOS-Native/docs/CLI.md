@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.41.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.42.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -28,6 +28,28 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 | `setPanel` | `{ "panel": -1 }` 关闭，0 参数、1 观察、2 实验库 |
 
 常用动作包括 `panel.parameters`、`panel.observe`、`panel.library`、`panel.close`、`ui.back`、`ui.focus`、`ui.restore`、`camera.in`、`camera.out`、`camera.reset`。命令返回表示处理完成，不保证界面动画已结束。
+
+## 实体半径与球体接触
+
+在自定义系统的参数页选择“启用接触”，或选择“球体接触实验”直接查看演示。所有天体必须同时具备 `radiusKm`（1–10000000 km），全部省略仍为旧点质量模型；混用、零值与初始实体重叠会拒绝。质量与半径独立编辑，表面外观不决定材料。
+
+| 动作／字段 | 当前行为 |
+| --- | --- |
+| `orbit.contact` | 给当前系统估算初始半径并启用接触，支持撤销；已有草稿保留 |
+| `orbit.contact.demo` | 加载三个天体的接近实验，暂停并进入局部实体比例视图 |
+| `orbit.value.7` | 当前天体的半径字符串，应用后重算初始条件 |
+| `placement.value.5` | 接触模式候选天体的半径字符串，确认／取消遵循放置事务 |
+| `getState.simulation.contact` | 累计 count、最近一对索引 a/b、timeSeconds、normalSpeedKmS、restitution=1；无事件时 count=0、a/b=-1 |
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"preset.5"}' --wait-state paused
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"orbit.contact.demo"}' --wait-state paused
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command start --wait-state paused
+```
+
+确认返回 `simulation.contact.count>0` 才表示接触已发生。接触后自动暂停在响应子步末尾，时间字段仍以儒略年为底层单位，事件额外提供秒；UI 的接触 HUD 与时间轴显示秒。继续会从当前积分状态前进，读取已保存回放后再开始则从初始条件重算。
+
+模型标识为 `nbody-hard-sphere-v1`；v11 保存配置半径及每帧累计次数／最近接触，旧格式仍按原模型载入。局部近看按实体半径绘制，概览仍放大标记；局部隐藏无碰撞含义的装饰环。理想弹性响应不是流体行星破裂，详见 [球体接触模型](reference/SPHERE-CONTACT.md)。
 
 ## 准备、取消与等待
 
@@ -248,7 +270,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 | `damageMean`、`damageMax` | 上游标量 DAMAGE 的三次方，0–1；Mean 为质量加权 |
 | `kineticJ`、`internalJ` | 所有粒子的动能、内能总量，J；不包含完整弹性／引力能量预算 |
 
-压力色标为蓝 −10／白 0／红 +10 GPa，比内能为深蓝 0 至金色 10 MJ/kg，损伤为青色 0 至红色 1。色标固定且显示饱和；原始读数不裁切。比内能不换算为温度，损伤不代表碎片计数。旧 v7/v8 保存结构记录（分别关闭／开启自引力）；v5/v6 只有原十项材料诊断；v1/v2 缺少此数据时提示重新运行，选择新色号时渲染回退原色。轨道仍使用 v3/v4。详情见 [诊断与复现](reference/SPH-DIAGNOSTICS.md)。
+压力色标为蓝 −10／白 0／红 +10 GPa，比内能为深蓝 0 至金色 10 MJ/kg，损伤为青色 0 至红色 1。色标固定且显示饱和；原始读数不裁切。比内能不换算为温度，损伤不代表碎片计数。旧 v7/v8 保存结构记录（分别关闭／开启自引力）；v5/v6 只有原十项材料诊断；v1/v2 缺少此数据时提示重新运行，选择新色号时渲染回退原色。点质量轨道使用 v3/v4，实体接触轨道使用 v11。详情见 [诊断与复现](reference/SPH-DIAGNOSTICS.md)。
 
 ### SPH 曲线与原始数据导出
 
@@ -279,7 +301,7 @@ node scripts/export-sph.mjs --device 127.0.0.1:5555 --output /tmp/sph-run.csv
 | `reset` | 重新初始化并暂停 |
 | `seek` | `{ "frame": -1 }` 回最新帧，或指定保留帧索引；暂停求解并停止自动回放 |
 | `listProjects` / `saveProject` / `loadProject` | 列表／按 title 保存／按 id 载入命名实验配方，最多 50 个 |
-| `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v10 |
+| `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v11 |
 
 预设 0–2 为 SPH，3 为双体，4 为四体，5 为自定义。完整配置范围以命令目录和应用校验为准。`getState.definition` 是初始条件，`simulation.bodies` 为当前显示的质心参考系数据；SPH 时间单位为秒，轨道为儒略年。
 

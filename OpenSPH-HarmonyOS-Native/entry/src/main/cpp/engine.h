@@ -1,5 +1,6 @@
 #pragma once
 #include "sph_fragments.h"
+#include "orbit.h"
 #include "sph_diagnostics.h"
 #include "preparation.h"
 #include <atomic>
@@ -16,6 +17,7 @@ struct OrbitSpec {
     std::string name;
     double massSolar, xAU, yAU, zAU, vxKmS, vyKmS, vzKmS;
     int surface;
+    double radiusKm=0;
 };
 struct Config {
     int preset = 0, count = 600;
@@ -33,6 +35,7 @@ struct Particle {
     float x, y, z, speed, density, body;
 };
 struct Frame {
+    OrbitContact contact;std::vector<double> radiiAU;
     SphFragments fragments;
     SphDiagnostics sph;
     std::vector<SphScalar> scalars;
@@ -45,6 +48,7 @@ struct Frame {
     double centers[6] = {};
 };
 struct Status {
+    OrbitContact contact;
     PreparationStatus preparation;
     SphDiagnostics sph;
     std::string state = "empty", error;
@@ -73,6 +77,7 @@ class Engine {
     ~Engine();
     void start(Config config, bool initiallyPaused = false);
     void pause(bool paused);
+    void pauseOnContact(uint64_t request);
     void cancel();
     void seek(int index);
     Status status();

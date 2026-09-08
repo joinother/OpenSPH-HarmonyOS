@@ -1,4 +1,4 @@
-export interface OrbitBodyConfig { name:string; massSolar:number; xAU:number; yAU:number; zAU:number; vxKmS:number; vyKmS:number; vzKmS:number; surface:number; }
+export interface OrbitBodyConfig { radiusKm?:number; name:string; massSolar:number; xAU:number; yAU:number; zAU:number; vxKmS:number; vyKmS:number; vzKmS:number; surface:number; }
 export interface SimulationConfig {
   orbitBodies?: OrbitBodyConfig[];
   preset: number; count: number; speed: number; angle: number; duration: number;
@@ -6,9 +6,11 @@ export interface SimulationConfig {
   targetSpin: number; seed: number; selfGravity?: boolean; relaxationSeconds?: number;
 }
 export const startScene: (config: SimulationConfig, initiallyPaused?: boolean) => void;
-export interface OrbitBodyStatus { id:number; name:string; surface?:number; xAU:number; yAU:number; zAU:number; speedKmS:number; massSolar:number; }
+export interface OrbitBodyStatus { radiusKm?:number; id:number; name:string; surface?:number; xAU:number; yAU:number; zAU:number; speedKmS:number; massSolar:number; }
 export interface SphDiagnostics {structure?:number[];available:boolean;pressureMinGPa?:number;pressureMaxGPa?:number;pressureMeanGPa?:number;internalMinMJkg?:number;internalMaxMJkg?:number;internalMeanMJkg?:number;damageMean?:number;damageMax?:number;kineticJ?:number;internalJ?:number;}
+export interface OrbitContactStatus {count:number;a:number;b:number;timeSeconds:number;normalSpeedKmS:number;restitution:number;}
 export interface SimulationStatus {
+  contact?:OrbitContactStatus;
   preparation?:PreparationStatus;
   sph?:SphDiagnostics;
   model?:string; timeUnit?:string; energyError?:number; angularError?:number; bodies?:OrbitBodyStatus[];

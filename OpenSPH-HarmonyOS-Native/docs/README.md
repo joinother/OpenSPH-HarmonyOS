@@ -1,15 +1,16 @@
 # 文档目录
 
-> 类型：当前文档索引；源码版本：0.41.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前文档索引；源码版本：0.42.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 先阅读 [项目概览](../README.md)，操作应用使用 [CLI 指南](CLI.md)，维护资料遵循 [文档流程](WORKFLOW.md) 和 [开发约定](../AGENTS.md)。本目录区分当前说明与历史记录；归档内容不覆盖当前规则。
 
-最新版本：[0.41.0 主星图放置与定向发射](releases/RELEASE-0.41.0.md)。
+最新版本：[0.42.0 实体半径与弹性接触](releases/RELEASE-0.42.0.md)。
 
 ## 当前参考
 
 | 文档 | 用途 |
 | --- | --- |
+| [球体接触模型](reference/SPHERE-CONTACT.md) | 实体半径、扫掠接触、弹性响应、近距回放与 v11 边界 |
 | [主星图放置与碰撞接入](reference/VIEWPORT-PLACEMENT.md) | 屏幕坐标、倾斜平面、取消事务、定向发射及实体接触缺口 |
 | [预研实施核对](reference/RESEARCH-IMPLEMENTATION.md) | 预研建议与已交付能力、部分实现和未完成主线的对应 |
 | [材料团块跟随](reference/FRAGMENT-FOLLOW.md) | 材料点身份、实时质心镜头、切换／停止与回放连续性 |
@@ -48,6 +49,8 @@
 
 | 版本 | 主题 |
 | --- | --- |
+| [0.42.0](releases/RELEASE-0.42.0.md) | 实体半径与理想弹性接触 |
+| [0.41.0](releases/RELEASE-0.41.0.md) | 主星图放置与定向发射 |
 | [0.40.0](releases/RELEASE-0.40.0.md) | 材料团块连续跟随 |
 | [0.39.0](releases/RELEASE-0.39.0.md) | SPH 几何团块、质量统计与 v10 回放 |
 | [0.38.0](releases/RELEASE-0.38.0.md) | SPH 跨实验参照、共轴曲线与原始导出 |

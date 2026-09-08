@@ -86,7 +86,7 @@ napi_value startScene(napi_env e, napi_callback_info i) {
                 std::string s(len+1,'\0');napi_get_value_string_utf8(e,name,&s[0],len+1,&len);s.resize(len);
                 auto f=[&](const char *key){napi_value v;napi_get_named_property(e,b,key,&v);return number(e,v);};
                 double style=f("surface");if(std::trunc(style)!=style)throw std::invalid_argument("Integer surface expected");
-                c.orbitBodies.push_back({s,f("massSolar"),f("xAU"),f("yAU"),f("zAU"),f("vxKmS"),f("vyKmS"),f("vzKmS"),int(style)});}}
+                c.orbitBodies.push_back({s,f("massSolar"),f("xAU"),f("yAU"),f("zAU"),f("vxKmS"),f("vyKmS"),f("vzKmS"),int(style)});bool hasRadius=false;napi_has_named_property(e,b,"radiusKm",&hasRadius);if(hasRadius){double radius=f("radiusKm");if(radius<=0)throw std::invalid_argument("Positive radius expected");c.orbitBodies.back().radiusKm=radius;}}}
         lab::Engine::instance().start(c,initiallyPaused);
     } catch (const std::exception &ex) { return fail(e,ex); }
     return undef(e);
@@ -302,13 +302,16 @@ napi_value status(napi_env e, napi_callback_info) {
     if(s.sph.structure.available){napi_value a;napi_create_array_with_length(e,4,&a);for(size_t j=0;j<4;j++){napi_value n;napi_create_double(e,s.sph.structure.values[j],&n);napi_set_element(e,a,j,n);}napi_set_named_property(e,diag,"structure",a);}
     napi_set_named_property(e,o,"sph",diag);
     num(e,o,"energyError",s.energyError);num(e,o,"angularError",s.angularError);
-    str(e,o,"model",s.config.preset==5?"nbody-custom-v1":(s.config.preset>=3?"nbody-v1":(s.config.relaxationSeconds>0?"sph-rock-prepared-v1":(s.config.selfGravity?"sph-rock-gravity-v1":"sph-rock-v1"))));
+    str(e,o,"model",s.config.preset==5?(!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0?"nbody-hard-sphere-v1":"nbody-custom-v1"):(s.config.preset>=3?"nbody-v1":(s.config.relaxationSeconds>0?"sph-rock-prepared-v1":(s.config.selfGravity?"sph-rock-gravity-v1":"sph-rock-v1"))));
+    if(s.config.preset==5&&!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0){
+        napi_value contact;napi_create_object(e,&contact);num(e,contact,"count",s.contact.count);num(e,contact,"a",s.contact.a);num(e,contact,"b",s.contact.b);num(e,contact,"timeSeconds",s.contact.time*lab::YEAR);num(e,contact,"normalSpeedKmS",s.contact.speed*lab::AU/lab::YEAR/1000);num(e,contact,"restitution",1);napi_set_named_property(e,o,"contact",contact);
+    }
     str(e,o,"timeUnit",s.config.preset>=3?"year":"s");
     napi_value bodies;napi_create_array_with_length(e,s.bodies.size(),&bodies);
     const char *names[]={"恒星","蓝色行星","金色行星","红色行星"};
     for(size_t i=0;i<s.bodies.size();++i){const auto &p=s.bodies[i];napi_value b;napi_create_object(e,&b);
         str(e,b,"name",s.config.preset==5?s.config.orbitBodies[i].name:names[i]);num(e,b,"surface",s.config.preset==5?s.config.orbitBodies[i].surface:int(i));num(e,b,"id",i);num(e,b,"xAU",p.x);num(e,b,"yAU",p.y);num(e,b,"zAU",p.z);
-        num(e,b,"speedKmS",p.speed);num(e,b,"massSolar",p.density);napi_set_element(e,bodies,i,b);}
+        if(s.config.preset==5&&s.config.orbitBodies[i].radiusKm>0)num(e,b,"radiusKm",s.config.orbitBodies[i].radiusKm);num(e,b,"speedKmS",p.speed);num(e,b,"massSolar",p.density);napi_set_element(e,bodies,i,b);}
     napi_set_named_property(e,o,"bodies",bodies);
     if (s.configKnown) {
       napi_value c; napi_create_object(e,&c);
@@ -322,7 +325,7 @@ napi_value status(napi_env e, napi_callback_info) {
       if(s.config.preset==5){napi_value list;napi_create_array_with_length(e,s.config.orbitBodies.size(),&list);
         for(size_t i=0;i<s.config.orbitBodies.size();++i){const auto &b=s.config.orbitBodies[i];napi_value v;napi_create_object(e,&v);
           str(e,v,"name",b.name);num(e,v,"massSolar",b.massSolar);num(e,v,"xAU",b.xAU);num(e,v,"yAU",b.yAU);num(e,v,"zAU",b.zAU);
-          num(e,v,"vxKmS",b.vxKmS);num(e,v,"vyKmS",b.vyKmS);num(e,v,"vzKmS",b.vzKmS);num(e,v,"surface",b.surface);napi_set_element(e,list,i,v);}
+          num(e,v,"vxKmS",b.vxKmS);num(e,v,"vyKmS",b.vyKmS);num(e,v,"vzKmS",b.vzKmS);num(e,v,"surface",b.surface);if(b.radiusKm>0)num(e,v,"radiusKm",b.radiusKm);napi_set_element(e,list,i,v);}
         napi_set_named_property(e,c,"orbitBodies",list);}
       napi_set_named_property(e,o,"config",c);
     }

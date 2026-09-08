@@ -238,7 +238,9 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             {std::lock_guard<std::mutex> lock(mutex);
              navigation.step(revision,float(dt));c=navigation.displayed();journey=navigation.journey();cameraRequest=navigation.status().requestId;
             }
-            float blend=placing?0:journey.totalDetail();
+            const bool contactDetail=!placing&&frame&&frame->radiiAU.size()==frame->particles.size()&&!frame->radiiAU.empty()&&a.closeup;
+            if(contactDetail)c.zoom*=.0001f;
+            float blend=placing||contactDetail?0:journey.totalDetail();
             shown.placement=placing;shown.candidate=candidate;shown.camera=c;
             framing.step(compositionTarget,float(dt));const auto compositionNow=framing.current();
             if(detail&&a.autoSpin)previewTime+=dt;
@@ -293,21 +295,22 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                     auto rotate=[&](float x,float y,float z){return rotateView(c,x,y,z);};
                     shown.ready=true;
                     std::vector<size_t> order;for(size_t i=0;i<frame->particles.size();++i)order.push_back(i);
-                    auto drawDepth=[&](size_t i){const auto &p=frame->particles[i];return projectBody(c,int(i),rotate(p.x-cx,p.y-cy,p.z-cz),w,h,blend,placing?0:journey.detail(int(i))).depth;};
+                    auto drawDepth=[&](size_t i){const auto &p=frame->particles[i];return projectBody(c,int(i),rotate(p.x-cx,p.y-cy,p.z-cz),w,h,blend,placing||contactDetail?0:journey.detail(int(i))).depth;};
                     std::stable_sort(order.begin(),order.end(),[&](size_t i,size_t j){return drawDepth(i)<drawDepth(j);});
                     glDisable(GL_DEPTH_TEST);
                     for(size_t i:order){const auto &p=frame->particles[i];auto v=rotate(p.x-cx,p.y-cy,p.z-cz);
                         const auto &star=frame->particles[0];auto light=rotate(star.x-p.x,star.y-p.y,star.z-p.z);
                         float len=std::sqrt(light[0]*light[0]+light[1]*light[1]+light[2]*light[2]);if(len<1.e-6f)light={-.4f,.5f,1.f};else for(auto &x:light)x/=len;
-                        auto projectedBody=projectBody(c,int(i),v,w,h,blend,placing?0:journey.detail(int(i)));
+                        auto projectedBody=projectBody(c,int(i),v,w,h,blend,placing||contactDetail?0:journey.detail(int(i)));
+                        if(contactDetail)projectedBody.radius=float(frame->radiiAU[i])/(2*projectionZoom);
                         if(placing&&int(i)==candidate){projectedBody.opacity=.82f;projectedBody.radius=std::max(projectedBody.radius*1.4f,float(std::min(w,h))*.025f/h);}
                         // Reserve the ring envelope through the existing continuous detail transition.
-                        if(frame->surfaces[i]==4&&!placing)projectedBody.radius/=1.f+1.26f*journey.detail(int(i));
+                        if(frame->surfaces[i]==4&&!placing&&!contactDetail)projectedBody.radius/=1.f+1.26f*journey.detail(int(i));
                         projectedBody.x=compositionNow[0]+(projectedBody.x-.5f)*compositionNow[2];projectedBody.y=compositionNow[1]+(projectedBody.y-.5f)*compositionNow[2];projectedBody.radius*=compositionNow[2];shown.bodies.push_back(projectedBody);
                         float phase=float(std::fmod(frame->time*.75+previewTime*.012,1.0));
                         SurfaceView view{projectedBody.x*2-1,1-projectedBody.y*2,-projectedBody.depth/100,
                             projectedBody.radius*2,aspect,c.yaw,c.pitch,phase,float(std::fmod(frame->time*.78+previewTime*.014+.07,1.0)),
-                            {light[0],light[1],light[2]},frame->surfaces[i],c.color,p.speed,a.clouds,a.atmosphere,a.rings,projectedBody.opacity,m.exposure,m.ocean,m.cloudShadows,moonBlend,int(i)};
+                            {light[0],light[1],light[2]},frame->surfaces[i],c.color,p.speed,a.clouds,a.atmosphere,a.rings&&!contactDetail,projectedBody.opacity,m.exposure,m.ocean,m.cloudShadows,moonBlend,int(i)};
                         if(view.opacity>.001f){view.activeRing=trace.enabled&&trace.target==int(i);material.draw(view);if(view.activeRing&&trace.points&&view.rings)material.drawRingGrains(view);}
                     }
                     glEnable(GL_DEPTH_TEST);

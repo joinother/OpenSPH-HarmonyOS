@@ -83,10 +83,10 @@ export function validName(name: string): string {
   return name.trim();
 }
 export function validateScene(s: SceneDefinition): void {
-  if(!s || s.schemaVersion!==1 || (s.model!=='sph-rock-v1'&&s.model!=='sph-rock-gravity-v1'&&s.model!=='sph-rock-prepared-v1'&&s.model!=='nbody-v1'&&s.model!=='nbody-custom-v1')) throw new Error('不支持的场景版本或物理模型');
+  if(!s || s.schemaVersion!==1 || (s.model!=='sph-rock-v1'&&s.model!=='sph-rock-gravity-v1'&&s.model!=='sph-rock-prepared-v1'&&s.model!=='nbody-v1'&&s.model!=='nbody-custom-v1'&&s.model!=='nbody-hard-sphere-v1')) throw new Error('不支持的场景版本或物理模型');
   validName(s.title);validateConfig(s.config);
   if(s.config.preset>=3){
-    if(s.model!==(s.config.preset===5?'nbody-custom-v1':'nbody-v1')||!Array.isArray(s.bodies)||s.bodies.length!==0)throw new Error('引力预设由原生模型定义，不接受岩质天体配置');
+    if(s.model!==(s.config.preset===5?(finiteOrbitBodies(s.config.orbitBodies!)?'nbody-hard-sphere-v1':'nbody-custom-v1'):'nbody-v1')||!Array.isArray(s.bodies)||s.bodies.length!==0)throw new Error('引力预设由原生模型定义，不接受岩质天体配置');
     return;
   }
   if(s.model!==((s.config.relaxationSeconds??0)>0?'sph-rock-prepared-v1':(s.config.selfGravity?'sph-rock-gravity-v1':'sph-rock-v1')))throw new Error('物理模型与预设不匹配');
@@ -102,17 +102,25 @@ export function sphereMass(radiusKm: number, density: number): number { return 4
 
 // Initial values use AU, km/s and solar mass; the solver shifts the whole system to its barycentre.
 export const EARTH_MASS_SOLAR: number = 398600.435507e9/1.32712440041279419e20;
+export function finiteOrbitBodies(bodies:OrbitBodyConfig[]):boolean {return bodies.length>0&&bodies[0].radiusKm!==undefined;}
+export function estimatedOrbitRadius(massSolar:number,star:boolean):number {return star?695700*Math.cbrt(massSolar):6371*Math.cbrt(massSolar/EARTH_MASS_SOLAR);}
+export function contactDemoBodies():OrbitBodyConfig[] {
+  return [{name:'恒星',massSolar:1,xAU:0,yAU:0,zAU:0,vxKmS:0,vyKmS:0,vzKmS:0,surface:0,radiusKm:695700},
+    {name:'接触球 A',massSolar:EARTH_MASS_SOLAR,xAU:1,yAU:-.00012,zAU:0,vxKmS:0,vyKmS:35,vzKmS:0,surface:1,radiusKm:6371},
+    {name:'接触球 B',massSolar:EARTH_MASS_SOLAR*.4,xAU:1,yAU:.00012,zAU:0,vxKmS:0,vyKmS:25,vzKmS:0,surface:3,radiusKm:6371*Math.cbrt(.4)}];
+}
 export function validateOrbitBodies(bodies: OrbitBodyConfig[]): void {
   if(!Array.isArray(bodies)||bodies.length<2||bodies.length>8)throw new Error('需要 1 颗恒星与 1–7 颗行星');
   for(let i=0;i<bodies.length;i++) {
     const b:OrbitBodyConfig=bodies[i];if(!b||typeof b!=='object')throw new Error('缺少天体参数');
+    if(finiteOrbitBodies(bodies)){check(b.radiusKm!,1,1e7);}else if(b.radiusKm!==undefined)throw new Error('全部天体须使用一致的接触模型');
     validName(b.name);if(/[\x00-\x1f\x7f]/.test(b.name))throw new Error('名称不能包含控制字符');
     for(let k=0;k<b.name.length;k++){const u=b.name.charCodeAt(k);if(u>=0xd800&&u<=0xdbff){const next=b.name.charCodeAt(++k);if(!(next>=0xdc00&&next<=0xdfff))throw new Error('名称包含无效字符');}else if(u>=0xdc00&&u<=0xdfff)throw new Error('名称包含无效字符');}
     check(b.massSolar,i===0?0.1:1e-8,i===0?2:0.01);check(b.surface,i===0?0:1,i===0?0:5,true);
     check(b.xAU,-10,10);check(b.yAU,-10,10);check(b.zAU,-10,10);
     check(b.vxKmS,-100,100);check(b.vyKmS,-100,100);check(b.vzKmS,-100,100);
     check(Math.sqrt(b.vxKmS*b.vxKmS+b.vyKmS*b.vyKmS+b.vzKmS*b.vzKmS),0,100);
-    for(let j=0;j<i;j++){const a=bodies[j];if(Math.sqrt((b.xAU-a.xAU)**2+(b.yAU-a.yAU)**2+(b.zAU-a.zAU)**2)<0.05)throw new Error('初始天体间距至少为 0.05 AU');}
+    for(let j=0;j<i;j++){const a=bodies[j];if(Math.sqrt((b.xAU-a.xAU)**2+(b.yAU-a.yAU)**2+(b.zAU-a.zAU)**2)<(finiteOrbitBodies(bodies)?(b.radiusKm!+a.radiusKm!)/149597870.7:.05))throw new Error(finiteOrbitBodies(bodies)?'天体实体半径重叠，请增大间距':'初始天体间距至少为 0.05 AU');}
   }
 }
 export function circularBody(name:string,radius:number,phase:number,surface:number,starMass:number=1):OrbitBodyConfig {
@@ -125,7 +133,7 @@ export function defaultOrbitBodies():OrbitBodyConfig[] {
   return [star,circularBody('蔚蓝',1,0,1),circularBody('暮云',0.72,2.1,2),circularBody('赤砂',1.52,4.2,3)];
 }
 export function copyOrbitBodies(bodies:OrbitBodyConfig[]):OrbitBodyConfig[] {
-  return bodies.map((b:OrbitBodyConfig):OrbitBodyConfig=>{return {name:b.name,massSolar:b.massSolar,xAU:b.xAU,yAU:b.yAU,zAU:b.zAU,vxKmS:b.vxKmS,vyKmS:b.vyKmS,vzKmS:b.vzKmS,surface:b.surface};});
+  return bodies.map((b:OrbitBodyConfig):OrbitBodyConfig=>{const result:OrbitBodyConfig={name:b.name,massSolar:b.massSolar,xAU:b.xAU,yAU:b.yAU,zAU:b.zAU,vxKmS:b.vxKmS,vyKmS:b.vyKmS,vzKmS:b.vzKmS,surface:b.surface};if(b.radiusKm!==undefined)result.radiusKm=b.radiusKm;return result;});
 }
 
 export interface OrbitPreview {
@@ -142,7 +150,7 @@ function vectorArrow(v:number[],axis:number,scale:number):string {
 export function previewOrbit(fields:string[],plane:string):OrbitPreview {
   const p:OrbitPreview={valid:false,error:'请填写有效的位置和速度',plane:plane,positionAU:[],velocityKmS:[],positionPath:'',velocityPath:'',positionScale:1,velocityScale:1};
   if(fields.length!==7||!['XY','XZ'].includes(plane))return p;
-  const values:number[]=fields.slice(1).map((s:string):number=>s.trim()===''?Number.NaN:Number(s));
+  const values:number[]=fields.slice(1,7).map((s:string):number=>s.trim()===''?Number.NaN:Number(s));
   if(values.some((v:number):boolean=>!Number.isFinite(v)))return p;
   if(values.slice(0,3).some((v:number):boolean=>Math.abs(v)>10)||Math.hypot(values[3],values[4],values[5])>100)return p;
   p.positionAU=values.slice(0,3);p.velocityKmS=values.slice(3);const axis=plane==='XY'?1:2;
@@ -161,7 +169,7 @@ export interface PlacementPreview {
 export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],surface:number,direction:number,plotExtent:number=0,target:number=-1):PlacementPreview {
   const result:PlacementPreview={valid:false,error:'填写有效的放置参数',body:undefined,speedKmS:0,circularKmS:0,escapeKmS:0,nearestAU:0,bound:false,plotScale:1,orbitPath:'',candidateX:120,candidateY:120,markerPath:'',velocityPath:''};
   try {
-    if(fields.length!==5||fields.some((v:string):boolean=>v.trim()===''))throw new Error('请填写全部放置参数');
+    if(fields.length!==(finiteOrbitBodies(bodies)?6:5)||fields.some((v:string):boolean=>v.trim()===''))throw new Error('请填写全部放置参数');
     validateOrbitBodies(bodies);if(bodies.length>=8)throw new Error('最多支持 8 个天体');
     const v:number[]=fields.map((s:string):number=>Number(s));
     check(v[0],1e-8/EARTH_MASS_SOLAR,.01/EARTH_MASS_SOLAR);check(v[1],.05,10);check(v[2],0,360);check(v[3],-90,90);check(v[4],0,2);
@@ -172,10 +180,11 @@ export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],
     const b:OrbitBodyConfig={name:validName(name),massSolar:mass,surface:surface,
       xAU:star.xAU+r*cs,yAU:star.yAU+r*sn*ci,zAU:star.zAU+r*sn*si,
       vxKmS:star.vxKmS-speed*sn*direction,vyKmS:star.vyKmS+speed*cs*ci*direction,vzKmS:star.vzKmS+speed*cs*si*direction};
+    if(finiteOrbitBodies(bodies)){check(v[5],1,1e7);b.radiusKm=v[5];}
     if(target!==-1){
       check(target,0,bodies.length-1,true);const aim=bodies[target];
       const dx=aim.xAU-b.xAU,dy=aim.yAU-b.yAU,dz=aim.zAU-b.zAU,d=Math.hypot(dx,dy,dz);
-      if(d<.02)throw new Error('瞄准对象距离过近，请移动待放天体');
+      if(d<(b.radiusKm!==undefined?(b.radiusKm+aim.radiusKm!)/149597870.7:.02))throw new Error('瞄准对象距离过近，请移动待放天体');
       b.vxKmS=star.vxKmS+speed*dx/d*direction;b.vyKmS=star.vyKmS+speed*dy/d*direction;b.vzKmS=star.vzKmS+speed*dz/d*direction;
     }
     result.body=b;result.circularKmS=circular;result.speedKmS=speed;result.escapeKmS=circular*Math.SQRT2;result.bound=v[4]<Math.SQRT2;
@@ -230,9 +239,11 @@ export function copiedPlanetDraft(bodies:OrbitBodyConfig[],index:number):CopiedP
   const radius=Math.max(.1,Math.min(8,Math.hypot(source.xAU-star.xAU,source.yAU-star.yAU,source.zAU-star.zAU)));
   const phase=(Math.atan2(source.yAU-star.yAU,source.xAU-star.xAU)*180/Math.PI+405)%360;
   const draft:CopiedPlanetDraft={name:name,fields:[String(source.massSolar/EARTH_MASS_SOLAR),String(radius),String(phase),'0','1'],surface:source.surface};
+  if(finiteOrbitBodies(bodies))draft.fields.push(String(source.radiusKm));
   // Prefer a displaced position at the same distance; use validated alternatives near boundaries.
   for(const r of [radius,.5,1,2,4,6,8])for(let step=0;step<16;step++){
     const fields=[draft.fields[0],String(r),String((phase+step*22.5)%360),'0','1'];
+    if(finiteOrbitBodies(bodies))fields.push(String(source.radiusKm));
     if(planPlanet(bodies,name,fields,source.surface,1).valid){draft.fields=fields;return draft;}
   }
   // An editable invalid preview is preferable to silently changing mass or relaxing limits.

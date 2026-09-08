@@ -1,0 +1,10 @@
+FileTransfer finish, Size:4702592, File count = 1, time:34ms rate:138311.53kB/s
+PASS analytic circular orbit: position errors AU=5.90849e-07,1.47712e-07 ratio=4
+PASS 10 years preset=3 velocity=0.75 max relative E=1.08915e-05 L=1.80966e-14 momentum=4.25889e-19
+PASS 10 years preset=3 velocity=1 max relative E=1.37802e-12 L=4.88498e-14 momentum=3.5427e-19
+PASS 10 years preset=3 velocity=1.25 max relative E=9.80146e-07 L=1.96509e-14 momentum=4.73131e-19
+PASS 10 years preset=4 velocity=1 max relative E=1.24551e-10 L=1.85407e-14 momentum=5.75871e-19
+PASS 10 years preset=4 velocity=1.25 max relative E=1.79734e-06 L=9.99201e-15 momentum=5.563e-19
+PASS custom constructor, 3D circular orbit, one-year energy, barycentric transformation
+PASS crossing preset=4 velocity=0.75 encounter stop
+PASS reversibility, close encounter stop, timestep validation

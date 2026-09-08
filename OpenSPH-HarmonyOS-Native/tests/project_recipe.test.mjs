@@ -69,3 +69,17 @@ test('self-gravitating rock projects retain model identity and reject mismatched
   }
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+test('finite spheres preserve radii, model identity, copied placement and atomic project validation',()=>{
+ const dir=fs.mkdtempSync(join(tmpdir(),'sph-contact-'));try{
+  const s=scene();s.model='nbody-hard-sphere-v1';s.config.orbitBodies=model.contactDemoBodies();
+  model.validateScene(s);const copy=model.copyOrbitBodies(s.config.orbitBodies);assert.equal(copy[1].radiusKm,6371);copy[1].radiusKm=6000;assert.equal(s.config.orbitBodies[1].radiusKm,6371);
+  const draft=model.copiedPlanetDraft(s.config.orbitBodies,1);assert.equal(draft.fields.length,6);assert.equal(Number(draft.fields[5]),6371);assert.equal(model.planPlanet(s.config.orbitBodies,draft.name,draft.fields,draft.surface,1).valid,true);
+  const saved=ProjectStore.save(dir,s,model.defaultRecipe(s));assert.deepEqual(JSON.parse(JSON.stringify(ProjectStore.load(dir,saved.id).scene)),JSON.parse(JSON.stringify(s)));
+  const original=fs.readdirSync(dir);
+  for(const mutate of [v=>v.model='nbody-custom-v1',v=>delete v.config.orbitBodies[1].radiusKm,v=>v.config.orbitBodies[1].radiusKm=0,v=>v.config.orbitBodies[1].radiusKm=NaN,v=>v.config.orbitBodies[1].radiusKm='6371',v=>v.config.orbitBodies[1].radiusKm=1e8,v=>v.config.orbitBodies[1].yAU=v.config.orbitBodies[2].yAU]){
+   const v=structuredClone(s);mutate(v);assert.throws(()=>ProjectStore.save(dir,v));assert.deepEqual(fs.readdirSync(dir),original);
+  }
+  const old=scene();model.validateScene(old);assert.equal(model.copyOrbitBodies(old.config.orbitBodies)[1].radiusKm,undefined);
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
