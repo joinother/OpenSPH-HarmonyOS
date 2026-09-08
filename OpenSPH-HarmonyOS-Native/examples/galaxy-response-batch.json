@@ -1,0 +1,8 @@
+[
+  {"command":"listCommands"},
+  {"command":"getUiState"},
+  {"command":"uiAction","payload":{"action":"theme.galaxy-responsive"},"waitForState":"paused"},
+  {"command":"start","waitForState":"completed"},
+  {"command":"getGalaxyDiagnostics"},
+  {"command":"getGalaxyTable"}
+]

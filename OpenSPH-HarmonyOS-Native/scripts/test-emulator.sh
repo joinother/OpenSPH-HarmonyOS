@@ -13,7 +13,7 @@ cmake="$sdk/native/build-tools/cmake/bin/cmake"
 "$sdk/native/llvm/bin/clang++" --target=aarch64-linux-ohos --sysroot="$sdk/native/sysroot" \
   -std=c++17 -O2 -DNDEBUG -I"$project_dir/third_party/opensph/core" \
   -I"$project_dir/entry/src/main/cpp" "$project_dir/tests/engine_smoke.cpp" \
-  "$project_dir/entry/src/main/cpp/engine.cpp" "$project_dir/entry/src/main/cpp/orbit.cpp" "$build_dir/core/libcore.a" \
+  "$project_dir/entry/src/main/cpp/engine.cpp" "$project_dir/entry/src/main/cpp/galaxy_simulation.cpp" "$project_dir/entry/src/main/cpp/orbit.cpp" "$build_dir/core/libcore.a" \
   -pthread -static-libstdc++ -o "$build_dir/engine_smoke"
 hdc_bin="$sdk/toolchains/hdc"
 target="${1:-127.0.0.1:5555}"

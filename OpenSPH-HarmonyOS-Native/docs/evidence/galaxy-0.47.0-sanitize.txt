@@ -1,0 +1,11 @@
+PASS deterministic odd-count mass allocation: stellar=32000000000 total=160000000000 solar masses
+PASS core and both stellar populations respond to gradient of the same total potential
+PASS moving a massive stellar population changes core motion (backreaction)
+PASS 360 Myr dt=0.125 normalized total energy=6.59789988949e-06 separation=15.9092626478 kpc
+PASS 360 Myr dt=0.0625 normalized total energy=1.71944397688e-06 separation=15.9092659223 kpc
+PASS 360 Myr dt=0.03125 normalized total energy=4.29860082763e-07 separation=15.9092667424 kpc
+PASS stellar trajectory step refinement RMS 0.000614621630765 -> 0.000123055585804 kpc
+PASS reversible closed gravitational system, without imposed drag or merging
+PASS isolated numerical conservation; NOT equilibrium validation: 800 Myr RMS radius 7.74668240135 -> 9.89495317281 kpc; energy=1.79860798981e-08
+PASS eight parameter corners through 800 Myr worst normalized energy=2.08218812943e-06
+PASS 800-population budget to 50 Myr

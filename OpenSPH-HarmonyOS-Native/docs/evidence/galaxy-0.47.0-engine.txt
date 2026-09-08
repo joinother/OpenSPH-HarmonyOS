@@ -1,0 +1,4 @@
+ninja: no work to do.
+FileTransfer finish, Size:8656336, File count = 1, time:39ms rate:221957.33kB/s
+PASS responsive galaxy engine: v13 exact roundtrip, closed-system diagnostics, malformed rejection and v12 model identity retained
+PASS galaxy engine: initial pause, 50 Myr cadence, odd count, v12 exact roundtrip, malformed atomic rejection, coherent whole-history observation, guarded seek, seek/cancel/replacement and legacy orbit

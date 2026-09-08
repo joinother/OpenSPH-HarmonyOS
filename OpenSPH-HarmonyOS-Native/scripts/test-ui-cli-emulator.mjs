@@ -9,7 +9,7 @@ import {fileURLToPath} from 'node:url';
 const device=process.argv[2];if(!device)throw Error('Explicit device required');
 const cli=fileURLToPath(new URL('./opensph-cli.mjs',import.meta.url));
 const temp=mkdtempSync(join(tmpdir(),'opensph-ui-cli-'));
-function call(command,payload={},wait){const args=[cli,'--device',device,'--command',command,'--payload-json',JSON.stringify(payload)];if(wait)args.push('--wait-state',wait);return JSON.parse(execFileSync(process.execPath,args,{encoding:'utf8',timeout:35000}));}
+function call(command,payload={},wait){const args=[cli,'--device',device,'--timeout','60000','--command',command,'--payload-json',JSON.stringify(payload)];if(wait)args.push('--wait-state',wait);return JSON.parse(execFileSync(process.execPath,args,{encoding:'utf8',timeout:70000}));}
 const action=(id,wait)=>call('uiAction',{action:id},wait);
 try{
   action('preset.5','paused');let catalog=call('getUiState');assert.ok(catalog.actions.length>45);assert.equal(catalog.fields.length,38);assert.ok(catalog.fields.some(f=>f.field==='trace.impulse'));assert.ok(catalog.fields.some(f=>f.field==='material.exposure'));

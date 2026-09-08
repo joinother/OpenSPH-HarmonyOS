@@ -12,7 +12,7 @@ fi
 "$sdk/native/build-tools/cmake/bin/cmake" --build "$core_build" -j 6
 "$sdk/native/llvm/bin/clang++" --target=aarch64-linux-ohos --sysroot="$sdk/native/sysroot" \
  -std=c++17 -O2 -DNDEBUG -I"$project_dir/third_party/opensph/core" -I"$project_dir/entry/src/main/cpp" \
- "$project_dir/tests/galaxy_engine_test.cpp" "$project_dir/entry/src/main/cpp/engine.cpp" "$project_dir/entry/src/main/cpp/orbit.cpp" "$core_build/core/libcore.a" \
+ "$project_dir/tests/galaxy_engine_test.cpp" "$project_dir/entry/src/main/cpp/engine.cpp" "$project_dir/entry/src/main/cpp/galaxy_simulation.cpp" "$project_dir/entry/src/main/cpp/orbit.cpp" "$core_build/core/libcore.a" \
  -pthread -static-libstdc++ -o "$core_build/galaxy_engine_test"
 hdc="$sdk/toolchains/hdc"
 "$hdc" -t "$device" file send "$core_build/galaxy_engine_test" /data/local/tmp/sph-galaxy-engine-test

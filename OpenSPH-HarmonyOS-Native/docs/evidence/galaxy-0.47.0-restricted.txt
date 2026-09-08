@@ -1,0 +1,10 @@
+PASS isolated disk: 3000 Myr max relative radius 6.60352749282e-06 relative energy 9.06550968504e-12
+PASS reversibility 3.14269606125e-14 kpc
+PASS pair dt 0.125 core energy 0.000288819037192 angular 8.881784197e-16 separation 67.4426314547 outer fractions 0.22 0.47
+PASS pair dt 0.0625 core energy 7.22045771653e-05 angular 4.4408920985e-16 separation 67.4426329903 outer fractions 0.22 0.47
+PASS pair dt 0.03125 core energy 1.80511330659e-05 angular 4.7517545454e-14 separation 67.4426333742 outer fractions 0.22 0.47
+PASS tracer step refinement RMS 0.000548190028069 -> 0.000109634017867 kpc
+PASS spin comparison retro outer fractions 0.22 0.26 mean secondary displacement 28.1413722142 kpc
+PASS 8 parameter corners to 800 Myr; worst normalized core energy 1.02379913534e-05
+PASS tracer count does not change mass or core trajectory
+PASS galaxy model

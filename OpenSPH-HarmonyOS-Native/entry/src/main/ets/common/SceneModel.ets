@@ -72,8 +72,8 @@ export function validateConfig(c: SimulationConfig): void {
   check(c.preset,0,6,true);check(c.count,200,2400,true);check(c.speed,c.preset>=3?0.75:(c.preset===2?0:0.5),c.preset>=3?1.25:10);check(c.angle,0,70);check(c.duration,c.preset===6?50:1,c.preset===6?800:(c.preset>=3?10:120));
   check(c.targetRadiusKm,40,200);check(c.impactorRadiusKm,20,120);check(c.targetDensity,2400,3000);
   check(c.impactorDensity,2400,3000);check(c.targetSpin,-0.01,0.01);check(c.seed,1,1000000,true);
-  if(c.preset===6){check(c.galaxyMassRatio??.6,.2,1);check(c.galaxyOffsetKpc??12,0,30);if(c.galaxyRetrograde!==undefined&&typeof c.galaxyRetrograde!=='boolean')throw new Error('星系旋转方向需要布尔值');}
-  else if(c.galaxyMassRatio!==undefined||c.galaxyOffsetKpc!==undefined||c.galaxyRetrograde!==undefined)throw new Error('星系参数需要星系预设');
+  if(c.preset===6){if(c.galaxyResponsive!==undefined&&typeof c.galaxyResponsive!=='boolean')throw new Error('星系引力反馈需要布尔值');if(c.galaxyResponsive)check(c.count,200,800,true);check(c.galaxyMassRatio??.6,.2,1);check(c.galaxyOffsetKpc??12,0,30);if(c.galaxyRetrograde!==undefined&&typeof c.galaxyRetrograde!=='boolean')throw new Error('星系旋转方向需要布尔值');}
+  else if(c.galaxyMassRatio!==undefined||c.galaxyOffsetKpc!==undefined||c.galaxyRetrograde!==undefined||c.galaxyResponsive!==undefined)throw new Error('星系参数需要星系预设');
   if(c.preset===5){check(c.speed,1,1);validateOrbitBodies(c.orbitBodies!);}
   else if(c.orbitBodies!==undefined&&(!Array.isArray(c.orbitBodies)||c.orbitBodies.length!==0))throw new Error("只有自定义系统接受天体列表");
 }
@@ -85,10 +85,10 @@ export function validName(name: string): string {
   return name.trim();
 }
 export function validateScene(s: SceneDefinition): void {
-  if(!s || s.schemaVersion!==1 || (s.model!=='sph-rock-v1'&&s.model!=='sph-rock-gravity-v1'&&s.model!=='sph-rock-prepared-v1'&&s.model!=='nbody-v1'&&s.model!=='nbody-custom-v1'&&s.model!=='nbody-hard-sphere-v1'&&s.model!=='galaxy-tidal-restricted-v1')) throw new Error('不支持的场景版本或物理模型');
+  if(!s || s.schemaVersion!==1 || (s.model!=='sph-rock-v1'&&s.model!=='sph-rock-gravity-v1'&&s.model!=='sph-rock-prepared-v1'&&s.model!=='nbody-v1'&&s.model!=='nbody-custom-v1'&&s.model!=='nbody-hard-sphere-v1'&&s.model!=='galaxy-tidal-restricted-v1'&&s.model!=='galaxy-responsive-v1')) throw new Error('不支持的场景版本或物理模型');
   validName(s.title);validateConfig(s.config);
   if(s.config.preset>=3){
-    if(s.model!==(s.config.preset===6?'galaxy-tidal-restricted-v1':s.config.preset===5?(finiteOrbitBodies(s.config.orbitBodies!)?'nbody-hard-sphere-v1':'nbody-custom-v1'):'nbody-v1')||!Array.isArray(s.bodies)||s.bodies.length!==0)throw new Error('引力预设由原生模型定义，不接受岩质天体配置');
+    if(s.model!==(s.config.preset===6?(s.config.galaxyResponsive?'galaxy-responsive-v1':'galaxy-tidal-restricted-v1'):s.config.preset===5?(finiteOrbitBodies(s.config.orbitBodies!)?'nbody-hard-sphere-v1':'nbody-custom-v1'):'nbody-v1')||!Array.isArray(s.bodies)||s.bodies.length!==0)throw new Error('引力预设由原生模型定义，不接受岩质天体配置');
     return;
   }
   if(s.model!==((s.config.relaxationSeconds??0)>0?'sph-rock-prepared-v1':(s.config.selfGravity?'sph-rock-gravity-v1':'sph-rock-v1')))throw new Error('物理模型与预设不匹配');

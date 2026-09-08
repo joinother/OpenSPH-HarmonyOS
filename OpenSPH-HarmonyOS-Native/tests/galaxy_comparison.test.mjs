@@ -55,3 +55,10 @@ test('bad or oversized files stay intact for recovery; failed clear preserves re
 test('extreme finite records cannot create nonfinite shared paths',()=>{
  const a=data(),b=data();a.samples[1].values[0]=1e308;const c=m.galaxyComparisonPlot(a,0,b);assert.equal(c.referenceVisible,true);assert.doesNotMatch(c.plot.path+c.referencePath,/Infinity|NaN/);a.samples[1].values[0]=Number.MAX_VALUE;const d=m.galaxyComparisonPlot(a,0,b);assert.equal(d.referenceVisible,false);assert.equal(d.plot.available,false);assert.equal(d.plot.path,'');
 });
+
+test('responsive model survives reference storage and mixed-model CSV without changing old model identity',()=>{
+ const live=reference();live.model='galaxy-responsive-v1';live.data.parameters.count=600;live.data.parameters.responsive=true;m.validateGalaxyReference(live);
+ const old=reference(),csv=m.galaxyComparisonCsv(live.data,old.data);assert.match(csv,/current,galaxy-responsive-v1/);assert.match(csv,/reference,galaxy-tidal-restricted-v1/);assert.match(csv,/model_energy_normalized_error/);assert.ok(m.galaxyParameterDifferences(live.data,old.data).some(s=>s.includes('引力模型')));
+ const wrong=plain(live);wrong.model=old.model;assert.throws(()=>m.validateGalaxyReference(wrong));wrong.model=live.model;wrong.data.parameters.count=801;assert.throws(()=>m.validateGalaxyReference(wrong));
+ const dir=fs.mkdtempSync(join(tmpdir(),'galaxy-responsive-reference-'));try{store().save(dir,live);assert.deepEqual(plain(store().load(dir)),live);}finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

@@ -30,7 +30,7 @@ struct Config {
     std::vector<OrbitSpec> orbitBodies;
     bool selfGravity = false;
     double relaxationSeconds = 0;
-    double galaxyMassRatio=.6,galaxyOffsetKpc=12;bool galaxyRetrograde=false;
+    double galaxyMassRatio=.6,galaxyOffsetKpc=12;bool galaxyRetrograde=false;bool galaxyResponsive=false;
 };
 bool validConfig(const Config &c);
 struct Particle {

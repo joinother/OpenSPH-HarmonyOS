@@ -413,7 +413,7 @@ test('immersive window policy hides status, navigation and gesture indicator ind
 
 test('theme catalog isolates conditions and collision speed comparison changes only speed',async()=>{
   const {page:app}=page();
-  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,18);
+  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,20);
   const [slow,fast]=catalog.experiments;assert.equal(slow.config.speed,2);assert.equal(fast.config.speed,8);
   assert.deepEqual({...slow.config,speed:8},fast.config);
   assert.ok(catalog.experiments.every(t=>t.goal&&t.limit&&t.question));
@@ -1016,4 +1016,15 @@ test('galaxy sky rejects unsupported scenes and out-of-range fields without chan
  for(const [field,value]of [['fov',121],['fov',0],['pitch',1.6],['yaw',101],['yaw',NaN]])await assert.rejects(app.execute('setUiValue',{field:'galaxy.observer.'+field,value}));
  assert.deepEqual(state.observer,before);await app.execute('uiAction',{action:'galaxy.observer.exit'});
  await assert.rejects(app.execute('setUiValue',{field:'galaxy.observer.fov',value:60}));
+});
+
+test('responsive galaxy UI/CLI shares draft flag, budget guard, scene identity and preview parameters',async()=>{
+ const {page:app}=page();await app.execute('uiAction',{action:'theme.galaxy-tails'});
+ await app.execute('uiAction',{action:'galaxy.responsive'});assert.equal(app.galaxyResponsive,true);assert.equal(app.count,800);assert.equal(app.dirty,true);
+ assert.equal(app.definition().model,'galaxy-responsive-v1');assert.equal(app.config().galaxyResponsive,true);
+ await assert.rejects(()=>app.execute('setUiValue',{field:'scene.count',value:801}));assert.equal(app.count,800);
+ await app.execute('uiAction',{action:'galaxy.responsive'});assert.equal(app.definition().model,'galaxy-tidal-restricted-v1');assert.equal(app.config().galaxyResponsive,undefined);
+ await app.execute('uiAction',{action:'theme.galaxy-responsive'});assert.equal(app.count,600);assert.equal(app.speed,.75);assert.equal(app.themeState().modified,false);
+ await app.execute('uiAction',{action:'theme.compare'});assert.equal(app.galaxyResponsive,false);assert.equal(app.count,600);assert.equal(app.speed,.75);
+ await app.execute('uiAction',{action:'preset.3'});await assert.rejects(()=>app.execute('uiAction',{action:'galaxy.responsive'}));
 });

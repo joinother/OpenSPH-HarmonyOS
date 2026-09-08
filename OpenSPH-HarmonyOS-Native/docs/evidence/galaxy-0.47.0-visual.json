@@ -1,0 +1,103 @@
+{
+  "ok": true,
+  "images": [
+    "/Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/../OpenSPH-0.47.0-galaxy-response-encounter.png",
+    "/Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/../OpenSPH-0.47.0-galaxy-response-controls.png",
+    "/Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/../OpenSPH-0.47.0-galaxy-response-ground.png"
+  ],
+  "button": {
+    "accessibilityId": "1055",
+    "backgroundColor": "#00000000",
+    "backgroundImage": "empty source",
+    "blur": "",
+    "bounds": "[1735,1345][2036,1458]",
+    "checkable": "false",
+    "checked": "false",
+    "clickable": "false",
+    "clip": "false",
+    "description": "",
+    "displayId": "0",
+    "enabled": "true",
+    "focused": "false",
+    "hashcode": "76:1055",
+    "hierarchy": "ROOT76,0,2,2,0,1,8",
+    "hint": "",
+    "hitTestBehavior": "HitTestMode.Default",
+    "hostWindowId": "76",
+    "id": "galaxy-responsive",
+    "key": "galaxy-responsive",
+    "longClickable": "false",
+    "opacity": "1.000000",
+    "origBounds": "[1735,1345][2036,1458]",
+    "originalText": "",
+    "scrollable": "false",
+    "selected": "false",
+    "text": "",
+    "type": "__Common__",
+    "visible": "true",
+    "zIndex": "0"
+  },
+  "window": {
+    "layout": {
+      "safe": {
+        "x": 22.4,
+        "y": 0,
+        "width": 750.72,
+        "height": 707.2
+      },
+      "compact": false,
+      "sidePanel": true,
+      "headerHeight": 66,
+      "drawer": {
+        "x": 449.12,
+        "y": 76,
+        "width": 308,
+        "height": 473.20000000000005
+      },
+      "dock": {
+        "x": 187.76000000000002,
+        "y": 569.2,
+        "width": 420,
+        "height": 130
+      },
+      "scene": {
+        "x": 34.4,
+        "y": 76,
+        "width": 726.72,
+        "height": 481.20000000000005
+      }
+    },
+    "geometry": {
+      "widthPx": 2416,
+      "heightPx": 2210,
+      "topPx": 0,
+      "bottomPx": 0,
+      "leftPx": 70,
+      "rightPx": 0,
+      "revision": 7
+    },
+    "viewportWidthVp": 773.12,
+    "viewportHeightVp": 707.2,
+    "widthVp": 773.12,
+    "heightVp": 707.2,
+    "immersive": true,
+    "safePx": {
+      "top": 0,
+      "bottom": 0,
+      "left": 70,
+      "right": 0
+    }
+  },
+  "checks": [
+    "New response control is inside scroll viewport after real scroll",
+    "Actual submitted ground mode/time match current massive response frame",
+    "No renderer error; screenshots require separate visual inspection"
+  ],
+  "visuallyInspected": true,
+  "visualFindings": [
+    "Applied model label, fully visible response button and complete 20/80 percent explanation verified",
+    "Edge scrolling preserves applied and draft configuration",
+    "Ground view shows actual 360 Myr history with updated above-horizon aim notice",
+    "Screenshots recaptured after removing own old remote/local files; packaging validates PNG chunk CRC and exact IEND termination"
+  ]
+}

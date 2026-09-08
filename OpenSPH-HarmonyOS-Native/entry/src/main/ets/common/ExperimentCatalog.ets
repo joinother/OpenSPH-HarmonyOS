@@ -63,9 +63,18 @@ export function themeExperiments():ThemeExperiment[] {
       config:{preset:6,count:1600,speed:1,angle:25,duration:600,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,galaxyMassRatio:.6,galaxyOffsetKpc:12,galaxyRetrograde:retrograde},
       yaw:.15,pitch:.25,zoom:5.2,focus:-1,closeup:false});
   }
+  for(const responsive of [true,false]) {
+    result.push({id:responsive?'galaxy-responsive':'galaxy-response-control',title:responsive?'恒星也能拉动星系':'无质量恒星 · 对照',category:'collision',
+      question:'潮汐尾能反过来拉动星系吗？',goal:'运行慢速相遇，保存曲线作参照，再切换引力模型，比较中心间距和恒星盘的形变。',
+      limit:responsive?'恒星群占总质量 20%，相互吸引并反作用于扩展中心；中心形状固定，无气体和完整暗晕，尚非平衡星系。':'相同采样与接近参数，质量全部放在扩展中心，恒星无质量；与反馈模型的质量分配不同。',
+      badge:responsive?'600 恒星群 · 双向引力':'600 示踪点 · 单向外场',cover:'galaxy-tails',compareId:responsive?'galaxy-response-control':'galaxy-responsive',
+      config:{preset:6,count:600,speed:.75,angle:25,duration:600,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,galaxyMassRatio:.6,galaxyOffsetKpc:12,galaxyRetrograde:false,galaxyResponsive:responsive},
+      yaw:.15,pitch:.25,zoom:5.2,focus:-1,closeup:false});
+  }
   return result;
 }
 export function themeConfigMatches(a:SimulationConfig,b:SimulationConfig):boolean {
+  if((a.galaxyResponsive??false)!==(b.galaxyResponsive??false))return false;
   if((a.galaxyMassRatio??.6)!==(b.galaxyMassRatio??.6)||(a.galaxyOffsetKpc??12)!==(b.galaxyOffsetKpc??12)||(a.galaxyRetrograde??false)!==(b.galaxyRetrograde??false))return false;
   if((a.relaxationSeconds??0)!==(b.relaxationSeconds??0)||(a.selfGravity===true)!==(b.selfGravity===true)||a.preset!==b.preset||a.count!==b.count||a.speed!==b.speed||a.angle!==b.angle||a.duration!==b.duration||
     a.targetRadiusKm!==b.targetRadiusKm||a.impactorRadiusKm!==b.impactorRadiusKm||a.targetDensity!==b.targetDensity||

@@ -1,0 +1,27 @@
+#!/usr/bin/env node
+// Mutates the active experiment, replay and galaxy reference slots. Back them up first.
+import assert from 'node:assert/strict';
+import {execFileSync,spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+const device=process.argv[2];assert.equal(device,'127.0.0.1:5555');const cli=fileURLToPath(new URL('./opensph-cli.mjs',import.meta.url));
+const call=(command,payload={},wait)=>{const args=[cli,'--device',device,'--timeout','120000','--command',command,'--payload-json',JSON.stringify(payload)];if(wait)args.push('--wait-state',wait);return JSON.parse(execFileSync(process.execPath,args,{encoding:'utf8',timeout:130000,maxBuffer:8*1024*1024}));};
+const action=(action,wait)=>call('uiAction',{action},wait),input=(field,value)=>call('setUiValue',{field,value});
+const reject=(command,payload)=>{const r=spawnSync(process.execPath,[cli,'--device',device,'--command',command,'--payload-json',JSON.stringify(payload)],{encoding:'utf8',timeout:30000});assert.equal(r.status,2);};
+call('listCommands');call('getUiState');action('theme.galaxy-responsive','paused');const initial=call('getState');let revision=initial.rendering.sceneRevision;
+assert.equal(initial.simulation.model,'galaxy-responsive-v1');assert.equal(initial.simulation.count,600);assert.equal(initial.simulation.config.galaxyResponsive,true);assert.equal(initial.scene.dirty,false);
+reject('setUiValue',{field:'scene.count',value:801});reject('setScene',{...initial.definition.config,galaxyResponsive:1});assert.equal(call('getState').rendering.sceneRevision,revision);
+action('galaxy.responsive');let draft=call('getState');assert.equal(draft.definition.model,'galaxy-tidal-restricted-v1');assert.equal(draft.simulation.model,'galaxy-responsive-v1');assert.equal(draft.scene.dirty,true);action('galaxy.responsive');action('simulation.apply','paused');revision=call('getState').rendering.sceneRevision;
+const startedAt=Date.now();call('start',{},'completed');const completionMs=Date.now()-startedAt;let state=call('getState');assert.equal(state.rendering.sceneRevision,revision);assert.equal(state.simulation.time,600);assert.equal(state.simulation.frames,151);assert.equal(state.rendering.error,'');const lastFrameComputeMs=state.simulation.stepMs;
+const live=call('getGalaxyObservation').data,table=call('getGalaxyTable');assert.equal(live.parameters.responsive,true);assert.equal(table.model,'galaxy-responsive-v1');assert.equal(table.rows,151);assert.match(table.csv,/model_energy_normalized_error/);assert.match(table.scope,/total system energy/);
+const diagnostic=call('getGalaxyDiagnostics');assert.match(diagnostic.energyScope,/closed system/);assert.equal(diagnostic.centerEnergyError,undefined);assert.ok(Math.abs(diagnostic.energyError)<.001);
+call('saveReplay');action('galaxy.reference.capture');assert.equal(call('getGalaxyReference').reference.model,'galaxy-responsive-v1');
+action('theme.compare','paused');assert.equal(call('getState').simulation.model,'galaxy-tidal-restricted-v1');call('start',{},'completed');const control=call('getGalaxyObservation').data;
+const comparison=call('getGalaxyComparisonTable');assert.equal(comparison.rows,302);assert.match(comparison.csv,/current,galaxy-tidal-restricted-v1/);assert.match(comparison.csv,/reference,galaxy-responsive-v1/);
+assert.ok(Math.abs(live.samples.at(-1).values[0]-control.samples.at(-1).values[0])>.1);
+call('loadReplay');call('seek',{frame:90});state=call('getState');assert.equal(state.simulation.model,'galaxy-responsive-v1');assert.equal(state.simulation.time,360);assert.equal(state.simulation.config.galaxyResponsive,true);
+const roundtrip=call('getGalaxyObservation').data;assert.deepEqual(roundtrip.samples,live.samples);
+action('galaxy.observer.space');const observer=call('getGalaxyObserver').data;assert.equal(observer.mode,1);assert.equal(observer.time,360);call('seek',{frame:100});const later=call('getGalaxyObserver').data;assert.equal(later.anchor,observer.anchor);assert.equal(later.time,400);action('galaxy.observer.ground');action('galaxy.observer.exit');
+const beforePreview=call('getState');action('galaxy.place');input('galaxy.placement.offset',18);action('galaxy.place.cancel');state=call('getState');assert.equal(state.simulation.time,beforePreview.simulation.time);assert.equal(state.rendering.sceneRevision,beforePreview.rendering.sceneRevision);assert.equal(state.definition.config.galaxyResponsive,true);
+const saved=call('saveProject',{title:'验收临时 · 双向星系引力'});action('preset.3','paused');call('loadProject',{id:saved.id},'paused');state=call('getState');assert.equal(state.definition.model,'galaxy-responsive-v1');assert.equal(state.simulation.time,0);assert.equal(state.simulation.config.galaxyResponsive,true);
+call('loadReplay');call('seek',{frame:90});action('focus.all');action('panel.close');
+console.log(JSON.stringify({ok:true,device,temporaryProject:saved.id,initialConfig:initial.simulation.config,completionMs,lastFrameComputeMs,live,control,diagnostic,observer,checks:['UI and CLI share massive response draft and 800 limit; invalid input atomic','600 populations through 600 Myr and 151 records','model-specific whole-system errors and exact CSV rows','restricted control and mixed-model reference identity','v13 complete recorded data roundtrip','same observer anchor across playback; ground and external modes','responsive placement preview cancellation preserves history','named project retains model; old orbit replacement works']},null,2));

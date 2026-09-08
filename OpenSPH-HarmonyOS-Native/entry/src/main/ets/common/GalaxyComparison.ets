@@ -1,12 +1,12 @@
 import { GalaxyObservation, GalaxySample } from 'libsimulation.so';
 import { validName } from './SceneModel';
-import { galaxyPlot, galaxyCsv, validateGalaxyObservation } from './GalaxyObservationModel';
+import { galaxyModel, galaxyPlot, galaxyCsv, validateGalaxyObservation } from './GalaxyObservationModel';
 import { ObservationPlot } from './ObservationModel';
 export interface GalaxyReference {schemaVersion:number;capturedAt:number;title:string;model:string;data:GalaxyObservation;}
 export interface GalaxyComparisonPlot {plot:ObservationPlot;referencePath:string;referenceVisible:boolean;overlap:boolean;deltaReady:boolean;referenceValue?:number;delta?:number;reason:string;}
 export function validateGalaxyReference(r:GalaxyReference):void {
-  if(!r||r.schemaVersion!==1||r.model!=='galaxy-tidal-restricted-v1'||!Number.isSafeInteger(r.capturedAt)||r.capturedAt<0)throw new Error('不支持或损坏的星系参照');
-  validName(r.title);validateGalaxyObservation(r.data);
+  if(!r||r.schemaVersion!==1||(r.model!=='galaxy-tidal-restricted-v1'&&r.model!=='galaxy-responsive-v1')||!Number.isSafeInteger(r.capturedAt)||r.capturedAt<0)throw new Error('不支持或损坏的星系参照');
+  validName(r.title);validateGalaxyObservation(r.data);if(r.model!==galaxyModel(r.data))throw new Error('星系参照模型与参数不一致');
   if(!r.data.available||r.data.samples.length<2)throw new Error('参照需要至少两帧星系记录');
 }
 export function copyGalaxyReference(r:GalaxyReference):GalaxyReference {validateGalaxyReference(r);return JSON.parse(JSON.stringify(r)) as GalaxyReference;}
@@ -44,6 +44,7 @@ export function galaxyParameterDifferences(current:GalaxyObservation,reference:G
   const av:number[]=[a.count,a.seed,a.speed,a.inclination,a.duration,a.massRatio,a.offset],bv:number[]=[b.count,b.seed,b.speed,b.inclination,b.duration,b.massRatio,b.offset];
   const differences:string[]=[];for(let i=0;i<av.length;i++)if(av[i]!==bv[i])differences.push(labels[i]+'：'+av[i]+' → '+bv[i]);
   if(a.retrograde!==b.retrograde)differences.push('次盘自转：'+(a.retrograde?'逆行':'顺行')+' → '+(b.retrograde?'逆行':'顺行'));
+  if((a.responsive??false)!==(b.responsive??false))differences.push('引力模型：'+(a.responsive?'恒星参与引力':'无质量示踪')+' → '+(b.responsive?'恒星参与引力':'无质量示踪'));
   return differences;
 }
 // Each row retains its own applied parameters and original fractions. No resampling.

@@ -6,7 +6,7 @@ import { sphPlot, sphCsv, sphMetricLabel, sphMetricIndex, sphMetricValue, sphWin
 import { ObservationReference, ReferenceSummary, ComparisonPlot, comparisonPlot, referenceSummary, observationCsv } from '../common/ObservationComparison';
 import { ObservationStore } from '../common/ObservationStore';
 import { observationPlot, ObservationPlot } from '../common/ObservationModel';
-import { GALAXY_METRICS, galaxyPlot, galaxyCsv } from '../common/GalaxyObservationModel';
+import { GALAXY_METRICS, galaxyModel, galaxyPlot, galaxyCsv } from '../common/GalaxyObservationModel';
 import simulation, { GalaxyObserverStatus, GalaxyObservation, SphFragmentSnapshot, SphMaterialGroup, SphObservationSample, SphObservation, OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
 import { finiteOrbitBodies, estimatedOrbitRadius, contactDemoBodies, SurfaceRecipe, legacySurfaces, copySurfaces, validateSurfaces, copiedPlanetDraft, PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
@@ -168,6 +168,7 @@ struct Index {
   @State galaxyMassRatio:number=.6;
   @State galaxyOffsetKpc:number=12;
   @State galaxyRetrograde:boolean=false;
+  @State galaxyResponsive:boolean=false;
   private isOrbit():boolean {return this.preset>=3&&this.preset<=5;}
   private timeLabel():string {return this.preset===6?' Myr':this.isOrbit()?' 年':' s';}
   @State seed: number = 1234;
@@ -618,7 +619,7 @@ struct Index {
     this.activeThemeId='';this.clearOrbitHistory();
     this.targetRadiusKm=100;this.impactorRadiusKm=60;this.targetDensity=2700;this.impactorDensity=2700;this.targetSpin=0;this.selfGravity=false;this.relaxationSeconds=0;
     this.editedBody=0;this.title=i>=3?(i===3?'双体轨道':'行星系统'):(i===2?'旋转实验':'碰撞实验');
-    this.duration=i===6?600:i>=3?3:60;this.colorMode=0;this.galaxyMassRatio=.6;this.galaxyOffsetKpc=12;this.galaxyRetrograde=false;
+    this.duration=i===6?600:i>=3?3:60;this.colorMode=0;this.galaxyMassRatio=.6;this.galaxyOffsetKpc=12;this.galaxyRetrograde=false;this.galaxyResponsive=false;
     this.closeup=false;this.autoSpin=false;
     this.preset = i;this.selectingPreset=false;
     this.angle = i === 1 ? 45 : 0;
@@ -643,7 +644,7 @@ struct Index {
       impactorDensity:this.impactorDensity,targetSpin:this.targetSpin,seed:this.seed};
     if(this.selfGravity)c.selfGravity=true;
     if(this.relaxationSeconds>0)c.relaxationSeconds=this.relaxationSeconds;
-    if(this.preset===6){c.galaxyMassRatio=this.galaxyMassRatio;c.galaxyOffsetKpc=this.galaxyOffsetKpc;c.galaxyRetrograde=this.galaxyRetrograde;}
+    if(this.preset===6){c.galaxyMassRatio=this.galaxyMassRatio;c.galaxyOffsetKpc=this.galaxyOffsetKpc;c.galaxyRetrograde=this.galaxyRetrograde;if(this.galaxyResponsive)c.galaxyResponsive=true;}
     if(this.preset===5)c.orbitBodies=copyOrbitBodies(this.orbitBodies);
     validateConfig(c);return c;
   }
@@ -651,7 +652,7 @@ struct Index {
     validateConfig(c);this.stopTrace();this.activeThemeId='';this.clearOrbitHistory();
     if(c.preset!==this.preset){this.closeup=false;this.autoSpin=false;}
     if(c.preset===6&&this.preset!==6){this.zoom=5.2;this.focus=-1;this.changeSky(1,.35);}
-    this.galaxyMassRatio=c.galaxyMassRatio??.6;this.galaxyOffsetKpc=c.galaxyOffsetKpc??12;this.galaxyRetrograde=c.galaxyRetrograde??false;
+    this.galaxyMassRatio=c.galaxyMassRatio??.6;this.galaxyOffsetKpc=c.galaxyOffsetKpc??12;this.galaxyRetrograde=c.galaxyRetrograde??false;this.galaxyResponsive=c.galaxyResponsive??false;
     this.preset=c.preset;this.count=c.count;this.speed=c.speed;this.angle=c.angle;this.duration=c.duration;
     this.targetRadiusKm=c.targetRadiusKm;this.impactorRadiusKm=c.impactorRadiusKm;
     this.relaxationSeconds=c.relaxationSeconds??0;this.selfGravity=c.selfGravity===true;this.targetDensity=c.targetDensity;this.impactorDensity=c.impactorDensity;this.targetSpin=c.targetSpin;this.seed=c.seed;
@@ -662,7 +663,7 @@ struct Index {
     this.resetSurfaces(true);
   }
   private definition(): SceneDefinition {
-    if(this.preset===6)return {schemaVersion:1,model:'galaxy-tidal-restricted-v1',title:this.title,config:this.config(),bodies:[]};
+    if(this.preset===6)return {schemaVersion:1,model:this.galaxyResponsive?'galaxy-responsive-v1':'galaxy-tidal-restricted-v1',title:this.title,config:this.config(),bodies:[]};
     if(this.isOrbit()){const scene:SceneDefinition={schemaVersion:1,model:this.preset===5?(this.contactMode()?'nbody-hard-sphere-v1':'nbody-custom-v1'):'nbody-v1',title:this.title,config:this.config(),bodies:[]};return scene;}
     const bodies: BodyDefinition[]=[{id:'primary',name:this.targetName,kind:'rock',radiusKm:this.targetRadiusKm,density:this.targetDensity}];
     if(this.preset!==2) bodies.push({id:'impactor',name:this.impactorName,kind:'rock',radiusKm:this.impactorRadiusKm,density:this.impactorDensity});
@@ -740,11 +741,11 @@ struct Index {
   private aimGalaxyObserver(secondary:boolean):void {
     const data:GalaxyObserverStatus=simulation.galaxyObserverStatus();if(data.mode===0)throw new Error('请先进入盘内观测');
     this.observerYaw=secondary?data.secondaryYaw:data.primaryYaw;this.observerPitch=secondary?data.secondaryPitch:data.primaryPitch;this.updateGalaxyObserver();
-    if(this.observerMode===2&&this.observerPitch<0)this.notice='中心在地平线下 · 可调整当地恒星时，或切换太空视角';
+    if(this.observerMode===2)this.notice=this.observerPitch<0?'中心在地平线下 · 可调整当地恒星时，或切换太空视角':'已对准'+(secondary?'来访星系':'主星系')+' · 拖动环顾，双指改变视场';
   }
   private galaxyPlacementState():GalaxyPlacementState {return {active:this.galaxyPlacing,offsetKpc:this.galaxyPlacementOffset,sourceTime:this.galaxyPlacementTime,constraint:'initial X separation fixed at 60 kpc; transverse offset 0..30 kpc; confirmation regenerates initial conditions'};}
   private updateGalaxyPlacement():void {
-    simulation.setGalaxyPlacement(this.galaxyPlacing,this.count,this.seed,this.speed,this.angle,this.galaxyMassRatio,this.galaxyPlacementOffset,this.galaxyRetrograde);
+    simulation.setGalaxyPlacement(this.galaxyPlacing,this.count,this.seed,this.speed,this.angle,this.galaxyMassRatio,this.galaxyPlacementOffset,this.galaxyRetrograde,this.galaxyResponsive);
   }
   private beginGalaxyPlacement():void {
     if(this.observerMode>0)this.changeGalaxyObserver(0);
@@ -781,7 +782,7 @@ struct Index {
   }
   private captureGalaxyReference():void {
     const data=simulation.galaxyObservation();
-    const value:GalaxyReference={schemaVersion:1,capturedAt:Date.now(),title:this.title,model:'galaxy-tidal-restricted-v1',data:data};
+    const value:GalaxyReference={schemaVersion:1,capturedAt:Date.now(),title:this.title,model:galaxyModel(data),data:data};
     try{this.galaxyReference=GalaxyComparisonStore.save(this.directory(),value);this.galaxyReferenceShown=true;this.galaxyReferenceError='';this.notice='已保留星系结果 · 换参数后可叠加比较';}
     catch(e){this.galaxyReferenceError='保存星系参照失败 · '+String(e);throw new Error(this.galaxyReferenceError);}
   }
@@ -1046,6 +1047,7 @@ struct Index {
     add('galaxy.reference.clear','移除星系参照',this.galaxyReference!==undefined||this.galaxyReferenceError!=='');add('galaxy.reference.reload','重读星系参照',true);
     for(let i=0;i<5;i++)add('galaxy.metric.'+i,GALAXY_METRICS[i],this.preset===6,this.galaxyMetric===i);
     add('galaxy.minimum','记录最小',this.preset===6&&this.galaxyView().available);add('galaxy.maximum','记录最大',this.preset===6&&this.galaxyView().available);
+    add('galaxy.responsive','恒星参与引力',this.preset===6,this.galaxyResponsive);
     add('galaxy.retrograde','反转次星系旋转',this.preset===6,this.galaxyRetrograde);
     add('scene.stationary','设为静止初态',this.preset===2,this.speed===0&&this.targetSpin===0);
     add('scene.gravity','材料自引力',this.preset<3&&this.count<=1200,this.selfGravity);
@@ -1122,7 +1124,7 @@ struct Index {
     if(field==='material.exposure'){this.changeMaterial({exposure:value});return;}
     if(field==='sky.brightness'){this.checked(value,0,100);this.changeSky(this.skyMode,value/100);return;}
     if(field==='time.frame'){this.checked(value,-1,this.info.frames-1,true);this.stopTrace();this.playing=false;simulation.seek(value);this.info=simulation.status();return;}
-    if(field==='scene.count'){this.checked(value,200,this.selfGravity?1200:2400,true);this.count=value;}
+    if(field==='scene.count'){this.checked(value,200,this.preset===6&&this.galaxyResponsive?800:(this.selfGravity?1200:2400),true);this.count=value;}
     else if(field==='scene.speed'){this.checked(value,this.preset>=3?.75:(this.preset===2?0:.5),this.preset>=3?1.25:10);this.speed=value;}
     else if(field==='scene.angle'){this.checked(value,0,70);this.angle=value;}
     else if(field==='scene.duration'){this.checked(value,this.preset===6?50:1,this.preset===6?800:(this.isOrbit()?10:120));this.duration=value;}
@@ -1166,6 +1168,7 @@ struct Index {
     else if(action==='galaxy.reference.reload'){this.reloadGalaxyReference();if(this.galaxyReferenceError!=='')throw new Error(this.galaxyReferenceError);}
     else if(action.startsWith('galaxy.metric.')){this.galaxyMetric=Number(action.slice(14));this.refreshObservation();}
     else if(action==='galaxy.minimum'||action==='galaxy.maximum')this.seekGalaxyExtreme(action==='galaxy.maximum');
+    else if(action==='galaxy.responsive'){this.galaxyResponsive=!this.galaxyResponsive;if(this.galaxyResponsive&&this.count>800){this.count=800;this.notice='双向引力暂限 800 个恒星群；应用后生效';}this.dirty=true;}
     else if(action==='galaxy.retrograde'){this.galaxyRetrograde=!this.galaxyRetrograde;this.dirty=true;}
     else if(action==='scene.stationary'){this.speed=0;this.targetSpin=0;this.dirty=true;}
     else if(action==='scene.gravity'){this.selfGravity=!this.selfGravity;if(!this.selfGravity)this.relaxationSeconds=0;this.dirty=true;}
@@ -1302,10 +1305,10 @@ struct Index {
       {name:'getGalaxyReference',payload:'{} - locally retained galaxy result with applied parameters and original samples'},
       {name:'getGalaxyComparison',payload:'{} - shared Myr axes, parameter differences and interpolated cursor delta; no extrapolation'},
       {name:'getGalaxyComparisonTable',payload:'{} - both raw series, 19-column CSV with applied parameters; outer fractions remain 0..1'},
-      {name:'getGalaxyTable',payload:'{} - CSV of every retained galaxy frame with model, initial parameters, units and center-only normalized errors'},
+      {name:'getGalaxyTable',payload:'{} - CSV of every retained galaxy frame with model, initial parameters, units and model-scoped normalized errors'},
       {name:'getGalaxyPlacement',payload:'{} - active constrained initial offset preview; original history remains untouched'},
       {name:'setGalaxyPlacementPoint',payload:'{x:0..1,y:0..1} - displayed viewport point projected onto XY offset rail; X separation fixed 60 kpc, offset clamped 0..30 kpc'},
-      {name:'getGalaxyDiagnostics',payload:'{} - current frame separation/radii in kpc, outer tracer fractions and center-only energy error; not unbound mass'},
+      {name:'getGalaxyDiagnostics',payload:'{} - current frame separation/radii in kpc, outer fractions and model-scoped energy error; not unbound mass'},
       {name:'getRingTrace',payload:'{particles?:boolean}; 8192 massless particles drive ring density; returns first 192 when particles=true; controlled radial impulse 0–0.35; km/km/s; speedScale 1–1.2, rateHours 0.1–4, independent 0–24 hour clock'},
       {name:'setSky',payload:'{mode?:0 clean|1 stars|2 galaxy,brightness?:0..1}; photographic galaxy / procedural stars; fixed-direction background'},
       {name:'setWindowOrientation',payload:'{orientation:auto|portrait|landscape|reverse-landscape}; main window only; auto respects system rotation lock'},
@@ -1336,7 +1339,7 @@ struct Index {
       {name:'uiAction',payload:'{action:string} - invoke a catalog action through the same ArkUI handler'},
       {name:'getGalaxyObserver',payload:'{} - solar-radius analogue observer, current frame and sky orientation; illustrative horizon'},
       {name:'setUiValue',payload:'{field:string,value:string|number} - edit a catalog field; orbital inputs stay draft until orbit.apply'},
-      {name:'setScene',payload:'{preset:0..6,count:200..2400,speed:0.5..10 (preset 2 allows 0; total spin = targetSpin + speed*0.003),angle:0..70,duration:1..120; galaxy preset 6: duration 50..800 Myr, speed .75..1.25 of 156.45 km/s, angle 0..70 inclination degrees, galaxyMassRatio?:.2..1, galaxyOffsetKpc?:0..30 initial transverse offset, galaxyRetrograde?:boolean; custom preset 5 requires orbitBodies (2..8), speed=1; optional radiusKm:1..10000000 on every body enables ideal elastic sphere contact and auto-pause; orbit preset 3/4: speed 0.75..1.25 circular-velocity factor, duration 1..10 Julian years; count/rock fields ignored; optional selfGravity:boolean (SPH only, count<=1200, defaults false); relaxationSeconds?:0|16|64 (requires selfGravity, isolated stationary pre-relaxation); targetRadiusKm:40..200,impactorRadiusKm:20..120,targetDensity:2400..3000,impactorDensity:2400..3000,targetSpin:-0.01..0.01,seed:1..1000000}'},
+      {name:'setScene',payload:'{preset:0..6,count:200..2400,speed:0.5..10 (preset 2 allows 0; total spin = targetSpin + speed*0.003),angle:0..70,duration:1..120; galaxy preset 6: duration 50..800 Myr, speed .75..1.25 of 156.45 km/s, angle 0..70 inclination degrees, galaxyMassRatio?:.2..1, galaxyOffsetKpc?:0..30 initial transverse offset, galaxyRetrograde?:boolean, galaxyResponsive?:boolean (massive stellar response, count<=800); custom preset 5 requires orbitBodies (2..8), speed=1; optional radiusKm:1..10000000 on every body enables ideal elastic sphere contact and auto-pause; orbit preset 3/4: speed 0.75..1.25 circular-velocity factor, duration 1..10 Julian years; count/rock fields ignored; optional selfGravity:boolean (SPH only, count<=1200, defaults false); relaxationSeconds?:0|16|64 (requires selfGravity, isolated stationary pre-relaxation); targetRadiusKm:40..200,impactorRadiusKm:20..120,targetDensity:2400..3000,impactorDensity:2400..3000,targetSpin:-0.01..0.01,seed:1..1000000}'},
       {name:'start',payload:'{}'}, {name:'pause',payload:'{}'}, {name:'reset',payload:'{}'},
       {name:'getPreparation',payload:'{}; monotonic phase timings, request ID, previous worker phase and bounded history; no mutation'},
       {name:'seek',payload:'{frame:-1 or retained frame index}'},
@@ -1383,8 +1386,8 @@ struct Index {
     if(command==='getGalaxyReference')return JSON.stringify({ok:true,reference:this.galaxyReference??null,error:this.galaxyReferenceError});
     if(command==='getGalaxyComparison'){this.galaxyObserved=simulation.galaxyObservation();return JSON.stringify({ok:true,metric:this.galaxyMetric,visible:this.galaxyReferenceShown,timeUnit:'Myr',timeAlignment:'simulation-start',current:this.galaxyObserved,reference:this.galaxyReference??null,differences:this.galaxyDifferences(),chart:this.galaxyComparisonView(),error:this.galaxyReferenceError});}
     if(command==='getGalaxyComparisonTable'){const data=simulation.galaxyObservation(),csv=galaxyComparisonCsv(data,this.galaxyReference?.data);return JSON.stringify({ok:true,timeUnit:'Myr',timeAlignment:'simulation-start',csv,rows:data.samples.length+(this.galaxyReference?.data.samples.length??0),currentAvailable:data.available,currentSceneRevision:data.sceneRevision,currentParameters:data.parameters,reference:this.galaxyReference??null,error:this.galaxyReferenceError,scope:'raw recorded samples; outer fractions 0..1; no interpolation or extrapolation'});}
-    if(command==='getGalaxyTable'){const data=simulation.galaxyObservation();return JSON.stringify({ok:true,available:data.available,sceneRevision:data.sceneRevision,selected:data.selected,model:data.available?'galaxy-tidal-restricted-v1':undefined,parameters:data.parameters,timeUnit:'Myr',rows:data.samples.length,csv:galaxyCsv(data),scope:'two softened centers and massless origin tracers; outer fractions are not unbound mass; recorded samples without interpolation'});}
-    if(command==='getGalaxyDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,available:state.galaxy!==undefined,model:state.model,time:state.time,timeUnit:state.timeUnit,selected:state.selected,frames:state.frames,config:state.config,diagnostics:state.galaxy,centerEnergyError:state.galaxy?state.energyError:undefined,centerAngularError:state.galaxy?state.angularError:undefined});}
+    if(command==='getGalaxyTable'){const data=simulation.galaxyObservation();return JSON.stringify({ok:true,available:data.available,sceneRevision:data.sceneRevision,selected:data.selected,model:data.available?galaxyModel(data):undefined,parameters:data.parameters,timeUnit:'Myr',rows:data.samples.length,csv:galaxyCsv(data),scope:data.parameters?.responsive?'massive stars and responsive extended centers; total system energy; outer fractions are not unbound mass':'two softened centers and massless tracers; center energy only; outer fractions are not unbound mass'});}
+    if(command==='getGalaxyDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,available:state.galaxy!==undefined,model:state.model,time:state.time,timeUnit:state.timeUnit,selected:state.selected,frames:state.frames,config:state.config,diagnostics:state.galaxy,energyError:state.galaxy?state.energyError:undefined,angularError:state.galaxy?state.angularError:undefined,energyScope:state.galaxy?.energyScope,centerEnergyError:state.galaxy&&!state.config?.galaxyResponsive?state.energyError:undefined,centerAngularError:state.galaxy&&!state.config?.galaxyResponsive?state.angularError:undefined});}
     if(command==='getSphDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,time:state.time,timeUnit:state.timeUnit??'s',selected:state.selected,frameCount:state.frames,model:state.model,config:state.config,diagnostics:state.sph??{available:false},source:'OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted'});}
     if(command==='getObservationComparison'){this.refreshObservation();const reply:ComparisonReply={ok:true,visible:this.comparisonShown,reference:this.comparisonReference?referenceSummary(this.comparisonReference):undefined,currentName:this.observed.name,currentCount:this.observed.samples.length,currentConfig:simulation.status().config,chart:this.comparisonView(),error:this.comparisonError};return JSON.stringify(reply);}
     if(command==='getObservationReference')return JSON.stringify({ok:true,reference:this.comparisonReference??null,error:this.comparisonError});
@@ -1426,6 +1429,7 @@ struct Index {
       if(p.galaxyMassRatio!==undefined)c.galaxyMassRatio=p.galaxyMassRatio;
       if(p.galaxyOffsetKpc!==undefined)c.galaxyOffsetKpc=p.galaxyOffsetKpc;
       if(p.galaxyRetrograde!==undefined)c.galaxyRetrograde=p.galaxyRetrograde;
+      if(p.galaxyResponsive!==undefined)c.galaxyResponsive=p.galaxyResponsive;
       validateConfig(c);this.applyConfig(c);
       this.title=preset===6?'星系潮汐相遇':preset>=3?(preset===5?'自定义系统':preset===3?'双体轨道':'行星系统'):'碰撞实验';
       if(!this.prepare(false)) throw new Error(this.notice);
@@ -1749,12 +1753,12 @@ struct Index {
       if(this.toolsVisible&&this.observerMode===0&&!this.placing&&!this.galaxyPlacing&&!(this.closeup&&this.panelOpen)&&!(this.preset===6&&this.panelOpen&&!this.layout().sidePanel)) {
         Column({space:5}) {
           Text(this.closeup?this.surfaceName()+' · 近看':this.title).fontColor('#F1EDFC').fontSize(14).fontWeight(FontWeight.Medium).maxLines(1)
-          Text(this.stateLabel()+' · '+(this.trace.enabled?this.trace.count+' 个环粒子':this.info.count+(this.preset===6?' 个恒星示踪点':this.isOrbit()?' 个天体':' 粒子'))).fontSize(11).fontColor('#A5A0B7')
+          Text(this.stateLabel()+' · '+(this.trace.enabled?this.trace.count+' 个环粒子':this.info.count+(this.preset===6?(this.info.config?.galaxyResponsive?' 个带质量恒星群':' 个恒星示踪点'):this.isOrbit()?' 个天体':' 粒子'))).fontSize(11).fontColor('#A5A0B7')
           if(this.contactMode()){Text('理想弹性球体 · 接触 '+(this.info.contact?.count??0)+' 次 · '+(this.info.time*31557600).toFixed(1)+' 秒').id('contact-hud').fontSize(12).fontColor('#CBE8EE')}
           if(this.isOrbit()&&!this.contactMode()&&!this.layout().compact) {Text(this.trace.enabled?'中心引力 · 开普勒轨道 · 不含碰撞':this.closeup?(this.selectedMoon()?'NASA SVS 月面底图 · 非实时月相':(this.autoSpin?'程序表面 · 外观自转演示':'程序表面 · 随轨道时间变化')):'牛顿引力 · AU / 年 · 天体尺寸已放大').fontSize(10).fontColor('#9E97B4')}
           if(this.isOrbit()&&!this.closeup&&!this.layout().compact) {Text(this.focus>=0?'已选中 · '+this.surfaceName():'轻点天体以选中 · 拖动旋转').fontSize(11).fontColor('#C9B8F3')}
           if(this.skyMode===2&&!this.layout().compact) {Text(this.rendering.panoramaReady?'银河摄影 · 非定位星图':(this.skyLoadError?'银河示意 · 摄影全景加载失败':'银河背景 · 载入摄影全景')).fontSize(10).fontColor('#9E97B4')}
-          if(this.preset===6&&!this.layout().compact){Text('星系潮汐 · 千秒差距 / 百万年 · 无质量恒星群').fontSize(10).fontColor('#9E97B4')}
+          if(this.preset===6&&!this.layout().compact){Text('星系潮汐 · 千秒差距 / 百万年 · '+(this.info.config?.galaxyResponsive?'恒星与中心双向引力':'无质量恒星群')).fontSize(10).fontColor('#9E97B4')}
           if(this.preset<3) {Text((this.info.config?.relaxationSeconds??0)>0?'岩质 SPH · 预松弛 '+this.info.config?.relaxationSeconds+' s':this.info.config?.selfGravity===true?'岩质 SPH · 自引力开启':'岩质 SPH · 未启用自引力').fontSize(10).fontColor('#9E97B4')}
           if(this.rendering.fragmentFollow.active){Text('跟随团块 #'+this.rendering.fragmentFollow.rank+' · '+this.rendering.fragmentFollow.count+' 粒子').id('sph-follow-hud').fontSize(11).fontColor(this.fragmentColor(this.rendering.fragmentFollow.anchor))}
           if(this.dirty) {Text('参数待应用').fontSize(11).fontColor('#F0BD82')}
@@ -1861,7 +1865,7 @@ struct Index {
     Column({space:0}) {
       Row() {
         Column({space:3}) {
-          Text(this.placing?'放置新行星':this.tab===0?(this.preset===6?'让引力拉出长尾':this.preset===5?'编辑 · '+this.orbitBodies[this.orbitEdit].name:(this.isOrbit()?'让引力描绘轨道':'构建一次相遇')):(this.tab===1?'换一种方式观察':(this.librarySection==='saved'?'我的实验':'主题实验'))).fontSize(18).fontWeight(FontWeight.Medium).fontColor('#F4F0FF').maxLines(1).textOverflow({overflow:TextOverflow.Ellipsis})
+          Text(this.placing?'放置新行星':this.tab===0?(this.preset===6?(this.galaxyResponsive?'恒星参与星系引力':'让引力拉出长尾'):this.preset===5?'编辑 · '+this.orbitBodies[this.orbitEdit].name:(this.isOrbit()?'让引力描绘轨道':'构建一次相遇')):(this.tab===1?'换一种方式观察':(this.librarySection==='saved'?'我的实验':'主题实验'))).fontSize(18).fontWeight(FontWeight.Medium).fontColor('#F4F0FF').maxLines(1).textOverflow({overflow:TextOverflow.Ellipsis})
           Text(this.placing?'先预览，再确认加入':this.tab===0?(this.preset===5?'初始条件 · 草稿保留在本次会话':'实验参数'):(this.tab===1?'观察与记录':'实验库')).fontSize(10).fontColor('#ACA4C8')
         }.alignItems(HorizontalAlign.Start).layoutWeight(1)
         Blank()
@@ -2172,10 +2176,12 @@ struct Index {
       MetricRow({label:'次星系盘倾角',value:this.angle.toFixed(0)+'°'})
       Slider({value:this.angle,min:0,max:70,step:5}).onChange((v:number,mode:SliderChangeMode)=>{if(mode!==SliderChangeMode.Begin)this.input('scene.angle',v);})
       ChoiceChip({label:'在星图调整相遇',enabledAction:this.info.frames>0&&this.info.state!=='preparing',onPress:()=>{this.press('galaxy.place');}}).id('galaxy-place')
+      ChoiceChip({label:'恒星参与引力',active:this.galaxyResponsive,onPress:()=>{this.press('galaxy.responsive');}}).id('galaxy-responsive')
+      Text(this.galaxyResponsive?'恒星群占总质量 20%，互相吸引并拉动中心；扩展中心占 80%，无气体或完整暗晕。':'恒星仅受两个中心吸引，不反作用；适合潮汐形态对照。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
       ChoiceChip({label:this.galaxyRetrograde?'次星系 · 逆行':'次星系 · 顺行',active:this.galaxyRetrograde,onPress:()=>{this.press('galaxy.retrograde');}}).id('galaxy-spin')
-      MetricRow({label:'恒星示踪点',value:this.count.toString()})
-      Slider({value:this.count,min:200,max:2400,step:200}).onChange((v:number,mode:SliderChangeMode)=>{if(mode!==SliderChangeMode.Begin)this.input('scene.count',Math.round(v));})
-      Text('主星系质量 1000 亿太阳质量。扩展引力势驱动无质量恒星群；未模拟气体、恒星互撞或完整合并。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
+      MetricRow({label:this.galaxyResponsive?'带质量恒星群':'恒星示踪点',value:this.count.toString()})
+      Slider({value:this.count,min:200,max:this.galaxyResponsive?800:2400,step:200}).onChange((v:number,mode:SliderChangeMode)=>{if(mode!==SliderChangeMode.Begin)this.input('scene.count',Math.round(v));})
+      Text('主星系总质量 1000 亿太阳质量。点数改变采样精度，总质量不变；两种模型均未完成真实星系合并验证。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
     }.width('100%')
   }
   @Builder
@@ -2232,9 +2238,9 @@ struct Index {
         MetricRow({label:'次星系分布尺度',value:this.info.galaxy.secondaryRmsKpc.toFixed(2)+' kpc'})
         MetricRow({label:'主星系外延示踪点',value:(this.info.galaxy.primaryOuterFraction*100).toFixed(1)+'%'})
         MetricRow({label:'次星系外延示踪点',value:(this.info.galaxy.secondaryOuterFraction*100).toFixed(1)+'%'})
-        MetricRow({label:'两中心能量归一化偏差',value:(this.info.energyError??0).toExponential(2)})
+        MetricRow({label:this.info.config?.galaxyResponsive?'全系统能量归一化偏差':'两中心能量归一化偏差',value:(this.info.energyError??0).toExponential(2)})
       }
-      Text('外延比例：离所属中心超过初始盘外缘 1.5 倍的示踪点。不是逃逸质量；分布尺度为均方根半径。能量读数仅对应两中心。').fontSize(11).fontColor('#ADA8BF').lineHeight(18)
+      Text('外延比例：超过初始盘外缘 1.5 倍，不是逃逸质量。'+(this.info.config?.galaxyResponsive?'能量读数包含恒星群和扩展中心。':'能量读数仅对应两中心。')).fontSize(11).fontColor('#ADA8BF').lineHeight(18)
     }.width('100%')
   }
   @Builder
@@ -2386,7 +2392,7 @@ struct Index {
         MetricRow({label:'模拟时长',value:this.duration.toFixed(0)+(this.timeLabel())})
         Slider({value:this.duration,min:this.preset===6?50:1,max:this.preset===6?800:(this.isOrbit()?10:120),step:this.preset===6?50:1}).selectedColor('#BDA5F2').trackColor('#414154').blockColor('#F0E8FF')
           .onChange((v:number,mode:SliderChangeMode) => {if(mode!==SliderChangeMode.Moving&&mode!==SliderChangeMode.Click&&mode!==SliderChangeMode.End)return;this.input('scene.duration',v);})
-        Text(this.dirty?'参数已修改，应用后会重新生成实验。':(this.preset===6?'每 4 Myr 记录一帧；示踪点不相互吸引，也不发生实体碰撞。':this.isOrbit()?'轨迹保留最近 2 年；近距离遭遇会停止计算。':'粒子数是预算值，实际数量由采样分布决定。')).fontSize(11).fontColor(this.dirty?'#F0BD82':'#A5A0B6').width('100%')
+        Text(this.dirty?'参数已修改，应用后会重新生成实验。':(this.preset===6?(this.galaxyResponsive?'恒星群相互吸引并拉动中心；每 4 Myr 记录一帧，无实体接触。':'每 4 Myr 记录一帧；示踪点不相互吸引，也不发生实体碰撞。'):this.isOrbit()?'轨迹保留最近 2 年；近距离遭遇会停止计算。':'粒子数是预算值，实际数量由采样分布决定。')).fontSize(11).fontColor(this.dirty?'#F0BD82':'#A5A0B6').width('100%')
         Button('应用参数 · 重新生成',{type:ButtonType.Normal}).width('100%').height(38).borderRadius(10).backgroundColor('#6657477D').fontColor('#E2D7FC').fontSize(12)
           .enabled(!this.ioBusy).onClick(() => {this.press('simulation.apply');})
         Row({space:8}) {

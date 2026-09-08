@@ -218,37 +218,7 @@ static void runOrbit(Engine &engine, Config cfg, uint64_t generation) {
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 }
-static void runGalaxy(Engine& engine,Config cfg,uint64_t generation) {
-    preparationPoint(engine,generation,"galaxies");
-    GalaxySystem system({cfg.count,cfg.seed,cfg.speed,cfg.angle,cfg.galaxyMassRatio,cfg.galaxyOffsetKpc,cfg.galaxyRetrograde});
-    const double e0=system.coreEnergy(),l0=galaxyLength(system.coreAngularMomentum());
-    double energyScale=std::abs(e0),angularScale=0;
-    for(const auto& c:system.cores){energyScale+=c.mass*std::pow(galaxyLength(c.velocity),2);angularScale+=c.mass*galaxyLength(c.position)*galaxyLength(c.velocity);}
-    auto publish=[&](double ms){
-        auto f=std::make_shared<Frame>();f->time=system.elapsed;f->galaxy=system.diagnostics();
-        f->energyError=(system.coreEnergy()-e0)/energyScale;
-        f->angularError=(galaxyLength(system.coreAngularMomentum())-l0)/std::max(1.,angularScale);
-        if(!validGalaxyDiagnostics(f->galaxy)||!std::isfinite(f->energyError)||std::abs(f->energyError)>.001)throw std::runtime_error("星系中心积分精度不足，已停止");
-        for(int b=0;b<2;b++){const auto& c=system.cores[b];f->totalMass+=c.mass*SOLAR_MASS;
-            for(int k=0;k<3;k++)f->centers[b*3+k]=c.position[k]/GALAXY_VIEW_KPC;}
-        f->particles.reserve(system.points.size());
-        for(const auto& p:system.points){
-            const double speed=galaxyLength(p.velocity)*GALAXY_SPEED_KMS;
-            if(!std::isfinite(speed)||!std::isfinite(galaxyLength(p.position)))throw std::runtime_error("Non-finite galaxy tracer");
-            f->particles.push_back({float(p.position[0]/GALAXY_VIEW_KPC),float(p.position[1]/GALAXY_VIEW_KPC),float(p.position[2]/GALAXY_VIEW_KPC),float(speed),0,float(p.origin)});
-            f->maxSpeed=std::max(f->maxSpeed,speed);
-        }
-        engine.publish(f,generation,ms);
-    };
-    preparationPoint(engine,generation,"snapshot");publish(0);
-    while(system.elapsed<cfg.duration&&!engine.stopped(generation)){
-        if(!engine.waitUntilRunning(generation))return;
-        const auto begin=Clock::now();const double end=std::min(cfg.duration,system.elapsed+4.);
-        while(system.elapsed<end){if(engine.stopped(generation))return;system.step(std::min(.0625,end-system.elapsed));}
-        publish(std::chrono::duration<double,std::milli>(Clock::now()-begin).count());
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
-    }
-}
+void runGalaxy(Engine& engine,Config cfg,uint64_t generation);
 Engine::Engine() : worker(&Engine::loop, this) {}
 Engine::~Engine() {
     quit = true;
@@ -291,8 +261,8 @@ bool validConfig(const Config &c) {
             for(size_t j=0;j<i;++j){const auto &a=c.orbitBodies[j];if(norm({b.xAU-a.xAU,b.yAU-a.yAU,b.zAU-a.zAU})<(finite?(b.radiusKm+a.radiusKm)*1000/AU:.05))return false;}
         }
     }else if(!c.orbitBodies.empty())return false;
-    if(c.preset==6){if(!validGalaxyParameters({c.count,c.seed,c.speed,c.angle,c.galaxyMassRatio,c.galaxyOffsetKpc,c.galaxyRetrograde}))return false;}
-    else if(c.galaxyMassRatio!=.6||c.galaxyOffsetKpc!=12||c.galaxyRetrograde)return false;
+    if(c.preset==6){if(!validGalaxyParameters({c.count,c.seed,c.speed,c.angle,c.galaxyMassRatio,c.galaxyOffsetKpc,c.galaxyRetrograde,c.galaxyResponsive}))return false;}
+    else if(c.galaxyMassRatio!=.6||c.galaxyOffsetKpc!=12||c.galaxyRetrograde||c.galaxyResponsive)return false;
     return (!c.selfGravity || (c.preset < 3 && c.count <= 1200)) && c.preset >= 0 && c.preset <= 6 && c.count >= 200 && c.count <= 2400 &&
         range(c.speed,c.preset>=3?0.75:(c.preset==2?0:0.5),c.preset>=3?1.25:10) && range(c.angle,0,70) && range(c.duration,c.preset==6?50:1,c.preset==6?800:(c.preset>=3?10:120)) &&
         range(c.targetRadiusKm,40,200) && range(c.impactorRadiusKm,20,120) &&
@@ -525,7 +495,7 @@ bool Engine::saveReplay(const std::string &dir,bool includeFragments) {
     const bool fragments=includeFragments&&structure&&std::all_of(frames.begin(),frames.end(),[](const auto&f){return validSphFragments(f->fragments,f->particles.size(),f->totalMass);});
     if ((saved.selfGravity && !diagnostics)||(saved.relaxationSeconds>0&&!structure)) return false;
     std::ofstream out(temp, std::ios::binary);
-    uint32_t magic = 0x4c485053, version = known&&saved.preset==6?12:known&&saved.preset==5&&!saved.orbitBodies.empty()&&saved.orbitBodies[0].radiusKm>0?11:fragments?10:saved.relaxationSeconds>0?9:diagnostics?(structure?(saved.selfGravity?8:7):(saved.selfGravity?6:5)):(known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1), n = frames.size();
+    uint32_t magic = 0x4c485053, version = known&&saved.preset==6?(saved.galaxyResponsive?13:12):known&&saved.preset==5&&!saved.orbitBodies.empty()&&saved.orbitBodies[0].radiusKm>0?11:fragments?10:saved.relaxationSeconds>0?9:diagnostics?(structure?(saved.selfGravity?8:7):(saved.selfGravity?6:5)):(known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1), n = frames.size();
     out.write(reinterpret_cast<char *>(&magic), 4);
     out.write(reinterpret_cast<char *>(&version), 4);
     out.write(reinterpret_cast<char *>(&n), 4);
@@ -535,7 +505,7 @@ bool Engine::saveReplay(const std::string &dir,bool includeFragments) {
             saved.targetRadiusKm,saved.impactorRadiusKm,saved.targetDensity,saved.impactorDensity,saved.targetSpin,double(saved.seed)};
         out.write(reinterpret_cast<char *>(values),sizeof(values));
     }
-    if(version==12){double g[]={saved.galaxyMassRatio,saved.galaxyOffsetKpc,saved.galaxyRetrograde?1.:0.};out.write(reinterpret_cast<const char*>(g),sizeof(g));}
+    if(version>=12){double g[]={saved.galaxyMassRatio,saved.galaxyOffsetKpc,saved.galaxyRetrograde?1.:0.};out.write(reinterpret_cast<const char*>(g),sizeof(g));}
     if(version==10){uint32_t gravity=saved.selfGravity?1:0;out.write(reinterpret_cast<const char*>(&gravity),4);out.write(reinterpret_cast<const char*>(&saved.relaxationSeconds),8);}
     if(version==9)out.write(reinterpret_cast<const char*>(&saved.relaxationSeconds),8);
     if(version==4||version==11){uint32_t count=saved.orbitBodies.size();out.write(reinterpret_cast<char *>(&count),4);
@@ -552,7 +522,7 @@ bool Engine::saveReplay(const std::string &dir,bool includeFragments) {
         if(version>=7&&version<=10)out.write(reinterpret_cast<const char*>(f->sph.structure.values.data()),sizeof(double)*4);
         if(version==10){const auto& fragments=f->fragments;uint32_t groups=fragments.groups.size();out.write(reinterpret_cast<const char*>(&groups),4);out.write(reinterpret_cast<const char*>(fragments.labels.data()),count*4);
             for(const auto&g:fragments.groups){out.write(reinterpret_cast<const char*>(&g.anchor),4);out.write(reinterpret_cast<const char*>(&g.count),4);out.write(reinterpret_cast<const char*>(&g.mass),8);out.write(reinterpret_cast<const char*>(g.center.data()),24);out.write(reinterpret_cast<const char*>(g.velocity.data()),24);out.write(reinterpret_cast<const char*>(&g.rmsRadius),8);}}
-        if(version==12){out.write(reinterpret_cast<const char*>(f->galaxy.values.data()),40);double errors[]={f->energyError,f->angularError};out.write(reinterpret_cast<const char*>(errors),16);}
+        if(version>=12){out.write(reinterpret_cast<const char*>(f->galaxy.values.data()),40);double errors[]={f->energyError,f->angularError};out.write(reinterpret_cast<const char*>(errors),16);}
         if(version==11){out.write(reinterpret_cast<const char*>(&f->contact.count),4);int32_t a=f->contact.a,b=f->contact.b;out.write(reinterpret_cast<const char*>(&a),4);out.write(reinterpret_cast<const char*>(&b),4);out.write(reinterpret_cast<const char*>(&f->contact.time),8);out.write(reinterpret_cast<const char*>(&f->contact.speed),8);}
         if(version==3||version==4||version==11){uint32_t ntrail=f->trails.size();double d[]={f->energyError,f->angularError};
             out.write(reinterpret_cast<char *>(d),sizeof(d));out.write(reinterpret_cast<char *>(&ntrail),4);
@@ -575,8 +545,8 @@ bool Engine::loadReplay(const std::string &dir) {
     in.read(reinterpret_cast<char *>(&version), 4);
     in.read(reinterpret_cast<char *>(&n), 4);
     in.read(reinterpret_cast<char *>(&duration), 8);
-    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4 && version != 5 && version != 6 && version != 7 && version != 8 && version != 9 && version != 10 && version != 11 && version != 12) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
-        duration <= 0 || duration > (version==12?800:120))
+    if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4 && version != 5 && version != 6 && version != 7 && version != 8 && version != 9 && version != 10 && version != 11 && version != 12 && version != 13) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
+        duration <= 0 || duration > (version>=12?800:120))
         return false;
     Config saved;
     if (version >= 2) {
@@ -585,7 +555,7 @@ bool Engine::loadReplay(const std::string &dir) {
         for (double x : v) if (!std::isfinite(x) || std::abs(x) > 1.e7) return false;
         for (int i : {0,1,10}) if (std::trunc(v[i]) != v[i]) return false;
         saved = {int(v[0]),int(v[1]),v[2],v[3],v[4],v[5],v[6],v[7],v[8],v[9],int(v[10])};
-        if(version==12){double g[3];in.read(reinterpret_cast<char*>(g),sizeof(g));if(!in||(g[2]!=0&&g[2]!=1))return false;saved.galaxyMassRatio=g[0];saved.galaxyOffsetKpc=g[1];saved.galaxyRetrograde=g[2]==1;}
+        if(version>=12){double g[3];in.read(reinterpret_cast<char*>(g),sizeof(g));if(!in||(g[2]!=0&&g[2]!=1))return false;saved.galaxyMassRatio=g[0];saved.galaxyOffsetKpc=g[1];saved.galaxyRetrograde=g[2]==1;saved.galaxyResponsive=version==13;}
         saved.selfGravity = version == 6 || version == 8 || version == 9;
         if(version==10){uint32_t gravity=2;in.read(reinterpret_cast<char*>(&gravity),4);in.read(reinterpret_cast<char*>(&saved.relaxationSeconds),8);if(!in||gravity>1)return false;saved.selfGravity=gravity==1;}
         if(version==9){in.read(reinterpret_cast<char*>(&saved.relaxationSeconds),8);if(!in||saved.relaxationSeconds<=0)return false;}
@@ -595,7 +565,7 @@ bool Engine::loadReplay(const std::string &dir) {
                 for(double x:d)if(!std::isfinite(x))return false;
                 if(d[7]<0||d[7]>5||std::trunc(d[7])!=d[7])return false;
                 saved.orbitBodies.push_back({name,d[0],d[1],d[2],d[3],d[4],d[5],d[6],int(d[7])});if(version==11){in.read(reinterpret_cast<char*>(&saved.orbitBodies.back().radiusKm),8);if(!in||saved.orbitBodies.back().radiusKm<=0)return false;}}}
-        if (!validConfig(saved) || saved.duration != duration || ((version==3||version==4||version==11)!=(saved.preset>=3&&saved.preset<=5)) || ((version==12)!=(saved.preset==6)) || (version==4||version==11)!=(saved.preset==5)) return false;
+        if (!validConfig(saved) || saved.duration != duration || ((version==3||version==4||version==11)!=(saved.preset>=3&&saved.preset<=5)) || ((version>=12)!=(saved.preset==6)) || (version==4||version==11)!=(saved.preset==5)) return false;
     }
     std::deque<std::shared_ptr<Frame>> frames;
     for (uint32_t k = 0; k < n; ++k) {
@@ -639,7 +609,7 @@ bool Engine::loadReplay(const std::string &dir) {
             f->fragments.available=true;f->fragments.labels.resize(count);f->fragments.groups.resize(groups);in.read(reinterpret_cast<char*>(f->fragments.labels.data()),count*4);
             for(auto&g:f->fragments.groups){in.read(reinterpret_cast<char*>(&g.anchor),4);in.read(reinterpret_cast<char*>(&g.count),4);in.read(reinterpret_cast<char*>(&g.mass),8);in.read(reinterpret_cast<char*>(g.center.data()),24);in.read(reinterpret_cast<char*>(g.velocity.data()),24);in.read(reinterpret_cast<char*>(&g.rmsRadius),8);}
             if(!in||!validSphFragments(f->fragments,count,f->totalMass))return false;}
-        if(version==12){
+        if(version>=12){
             if(count!=uint32_t(saved.count))return false;
             f->galaxy.available=true;in.read(reinterpret_cast<char*>(f->galaxy.values.data()),40);double errors[2];in.read(reinterpret_cast<char*>(errors),16);
             if(!in||!validGalaxyDiagnostics(f->galaxy)||!std::isfinite(errors[0])||!std::isfinite(errors[1]))return false;
