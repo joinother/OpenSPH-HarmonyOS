@@ -26,6 +26,6 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 
 ## 下一步
 
-按 [产品实施路线](OpenSPH-HarmonyOS-Native/docs/reference/PRODUCT-ROADMAP.md)继续接时变外部场与反作用、世界时钟、连续局部镜头、持久事件协议和碎片回注。当前仍为受限尺度的岩体实验，不能作为完整行星碰撞预测。
+2026-09-08 已把旧专题收敛为 [R01–R10 唯一执行路线](OpenSPH-HarmonyOS-Native/docs/reference/PRODUCT-ROADMAP.md)。下一项 R01 固定完整验收玩法，随后事件检查点、连续视口、双向时间／受力和残骸提交；R06 完成才算第一个核心玩法通过。来源与去向见 [调研映射](OpenSPH-HarmonyOS-Native/docs/reference/RESEARCH-IMPLEMENTATION.md)。此次只改计划与执行约定，应用仍为 0.56.0，已打包产物保持原字节。
 
 新应用源码、OpenSPH 及第三方摄影素材分别保留许可证和署名；本检查点不包含同行私有实现或程序素材。
