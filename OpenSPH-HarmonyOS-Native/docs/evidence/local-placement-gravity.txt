@@ -1,0 +1,2 @@
+PASS ten satellite orbits; fractional radius error=4.79272e-07; both bodies accelerate; momentum/energy bounded
+PASS directed projectile reaches physical surface with gravitational acceleration; response remains elastic

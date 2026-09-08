@@ -33,5 +33,14 @@ int main(int argc,char** argv){try{
     e.pause(true);e.orbitClock(10);e.pause(false);auto resumed=wait(e,[&](Status s){return s.time>loaded.time+.0001;});require(resumed.time>1,"resume restarted clock");e.pause(true);
     e.seek(0);e.orbitClock(1);auto branch=e.status();require(branch.orbitState.size()==4&&branch.frames==1,"resume from selected frame did not branch");e.pause(false);wait(e,[&](Status s){return s.time>branch.time;});e.pause(true);
     auto safe=e.status();std::ofstream corrupt(std::string(argv[1])+"/last-replay.osphr",std::ios::binary|std::ios::trunc);corrupt.write("SPHL\16\0\0\0",8);corrupt.close();require(!e.loadReplay(argv[1]),"truncated session accepted");require(e.status().orbitRevision==safe.orbitRevision,"failed load mutated scene");
+    e.start(c,true);wait(e,[](Status s){return s.state=="paused"&&s.time==0&&s.frames>0;});e.freezeOrbit();
+    auto point=e.status();auto satellite=point.orbitState[1];satellite.name="卫星";satellite.surface=5;satellite.massSolar=point.orbitState[1].massSolar*.0123;satellite.radiusKm=1737;
+    satellite.xAU+=.0013;satellite.vyKmS+=std::sqrt(ORBIT_G*(point.orbitState[1].massSolar+satellite.massSolar)/.0013)*AU/YEAR/1000;
+    e.insertOrbit(satellite,point.orbitRevision,false,true);auto physical=e.status();
+    require(physical.time==point.time&&physical.orbitState.size()==5,"local insertion reset state");
+    auto promoted=point.orbitState;for(size_t i=0;i<promoted.size();i++){require(physical.orbitState[i].radiusKm>0,"physical radius missing");promoted[i].radiusKm=physical.orbitState[i].radiusKm;}same(promoted,physical.orbitState);
+    require(e.saveReplay(argv[1])&&e.loadReplay(argv[1]),"promoted session roundtrip failed");same(physical.orbitState,e.status().orbitState);
+    e.orbitClock(.1);e.pause(false);wait(e,[](Status s){return s.time>0;});e.pause(true);require(e.status().orbitState.size()==5,"satellite vanished");
+    std::cout<<"PASS local insertion: point-to-sphere atomic promotion, existing vectors/time retained, v14 continuation\n";
     e.cancel();std::cout<<"PASS orbit sandbox: beyond duration, pause, exact insertion, stellar mass, stale revision, rolling history, v14 roundtrip, cancel, resume, branch, atomic corrupt rejection\n";
 }catch(const std::exception& ex){std::cerr<<"FAIL "<<ex.what()<<"\n";return 1;}}

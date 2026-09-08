@@ -21,6 +21,11 @@ std::vector<napi_value> args(napi_env env, napi_callback_info info, size_t size)
         throw std::invalid_argument("Missing arguments");
     return v;
 }
+std::vector<napi_value> optionalArgs(napi_env e,napi_callback_info i,size_t size,size_t minimum) {
+    std::vector<napi_value> values(size);for(auto& v:values)napi_get_undefined(e,&v);
+    size_t count=size;napi_get_cb_info(e,i,&count,values.data(),nullptr,nullptr);
+    if(count<minimum)throw std::invalid_argument("Missing arguments");return values;
+}
 double number(napi_env e, napi_value v) {
     double d;
     if (napi_get_value_double(e, v, &d) != napi_ok)
@@ -64,7 +69,7 @@ napi_value orbitValue(napi_env e,const lab::OrbitSpec& b) {
 }
 napi_value orbitClock(napi_env e,napi_callback_info i) {try{auto a=args(e,i,1);lab::Engine::instance().orbitClock(number(e,a[0]));return undef(e);}catch(const std::exception& ex){return fail(e,ex);}}
 napi_value freezeOrbit(napi_env e,napi_callback_info) {try{lab::Engine::instance().freezeOrbit();return undef(e);}catch(const std::exception& ex){return fail(e,ex);}}
-napi_value insertOrbit(napi_env e,napi_callback_info i) {try{auto a=args(e,i,3);bool run=false;if(napi_get_value_bool(e,a[2],&run)!=napi_ok)throw std::invalid_argument("Boolean expected");const int rev=integer(e,a[1]);if(rev<0)throw std::invalid_argument("Invalid revision");lab::Engine::instance().insertOrbit(orbitSpec(e,a[0]),rev,run);return undef(e);}catch(const std::exception& ex){return fail(e,ex);}}
+napi_value insertOrbit(napi_env e,napi_callback_info i) {try{auto a=optionalArgs(e,i,4,3);bool physical=false; napi_valuetype type;napi_typeof(e,a[3],&type);if(type!=napi_undefined&&napi_get_value_bool(e,a[3],&physical)!=napi_ok)throw std::invalid_argument("Boolean expected");bool run=false;if(napi_get_value_bool(e,a[2],&run)!=napi_ok)throw std::invalid_argument("Boolean expected");const int rev=integer(e,a[1]);if(rev<0)throw std::invalid_argument("Invalid revision");lab::Engine::instance().insertOrbit(orbitSpec(e,a[0]),rev,run,physical);return undef(e);}catch(const std::exception& ex){return fail(e,ex);}}
 napi_value videoOutput(napi_env e,napi_callback_info i) {
     try {auto a=args(e,i,3);size_t len=0;
         if(napi_get_value_string_utf8(e,a[0],nullptr,0,&len)!=napi_ok||len<1||len>20)throw std::invalid_argument("Invalid surface ID");
@@ -231,7 +236,7 @@ napi_value renderStatus(napi_env e,napi_callback_info){auto s=lab::renderStatus(
     num(e,o,"frames",s.frames);num(e,o,"submitMs",s.submitMs);num(e,o,"previewSeconds",s.previewSeconds);str(e,o,"error",s.error);return o;
 }
 napi_value placement(napi_env e,napi_callback_info i){try{
-    auto a=args(e,i,2);bool array=false;napi_is_array(e,a[0],&array);uint32_t n=0;
+    auto a=optionalArgs(e,i,4,2);bool array=false;napi_is_array(e,a[0],&array);uint32_t n=0;
     if(!array||napi_get_array_length(e,a[0],&n)!=napi_ok||n>8||(n>0&&n<2))throw std::invalid_argument("Invalid preview bodies");
     int candidate=integer(e,a[1]);if(candidate< -1||candidate>=int(n)||candidate==0)throw std::invalid_argument("Invalid preview candidate");
     std::vector<lab::OrbitSpec> bodies;
@@ -241,7 +246,9 @@ napi_value placement(napi_env e,napi_callback_info i){try{
         if(s.massSolar<=0||s.massSolar>10||std::abs(s.xAU)>1.e7||std::abs(s.yAU)>1.e7||std::abs(s.zAU)>1.e7||std::hypot(s.vxKmS,std::hypot(s.vyKmS,s.vzKmS))>1.e7||style<0||style>5||std::trunc(style)!=style)throw std::invalid_argument("Invalid preview body");
         bodies.push_back(s);
     }
-    lab::setOrbitPlacement(bodies,candidate);return undef(e);
+    int parent=0;double extent=0;napi_valuetype type;napi_typeof(e,a[2],&type);if(type!=napi_undefined)parent=integer(e,a[2]);napi_typeof(e,a[3],&type);if(type!=napi_undefined)extent=number(e,a[3]);
+    if(parent<0||(!bodies.empty()&&parent>=int(bodies.size()))||extent<0||extent>100||(parent>0&&extent<.000001))throw std::invalid_argument("Invalid placement parent or extent");
+    lab::setOrbitPlacement(bodies,candidate,parent,extent);return undef(e);
     }catch(const std::exception& ex){return fail(e,ex);}}
 napi_value placementAt(napi_env e,napi_callback_info i){try{
     auto a=args(e,i,3);auto p=lab::placeOrbitAt(number(e,a[0]),number(e,a[1]),number(e,a[2]));napi_value o;napi_create_array_with_length(e,2,&o);

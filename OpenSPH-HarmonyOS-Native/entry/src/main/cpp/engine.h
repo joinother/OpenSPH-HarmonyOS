@@ -89,7 +89,7 @@ class Engine {
     void pause(bool paused);
     void orbitClock(double daysPerSecond);
     void freezeOrbit();
-    void insertOrbit(OrbitSpec body,uint64_t revision,bool resume);
+    void insertOrbit(OrbitSpec body,uint64_t revision,bool resume,bool physicalRadii=false);
     double orbitRate(uint64_t revision);
     void pauseOnContact(uint64_t request);
     void cancel();

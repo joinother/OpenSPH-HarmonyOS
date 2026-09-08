@@ -1,0 +1,1 @@
+PASS 264 placement projection roundtrips, inclination, aspect, composition, singular-plane and invalid-input rejection

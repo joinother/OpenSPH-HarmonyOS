@@ -38,7 +38,7 @@ class Renderer {
     ProjectedScene projected;
     std::shared_ptr<const Frame> placementFrame;
     double galaxyPlacementRatio=.6;
-    int placementCandidate=-1;uint64_t placementRevision=0;
+    int placementParent=0;double placementExtent=0;int placementCandidate=-1;uint64_t placementRevision=0;
     uint64_t projectedRevision=0;
     std::atomic<bool> active{true};
     void error(const std::string &message){std::lock_guard<std::mutex> lock(mutex);stats.error=message;OH_LOG_Print(LOG_APP,LOG_ERROR,0x0200,"SPHLab","render: %{public}s",message.c_str());}
@@ -209,9 +209,9 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             const auto snapshot=Engine::instance().fragmentFrame();
             const auto revision=snapshot.sceneRevision;
             auto frame=snapshot.frame;
-            bool placing=false;int candidate=-1;
+            bool placing=false;int candidate=-1,parent=0;double localExtent=0;
             {std::lock_guard<std::mutex> lock(mutex);
-             if(placementFrame&&placementRevision==revision){frame=placementFrame;placing=true;candidate=placementCandidate;}}
+             if(placementFrame&&placementRevision==revision){frame=placementFrame;placing=true;candidate=placementCandidate;parent=placementParent;localExtent=placementExtent;}}
 
             GalaxyObserverSettings observerSettings;{std::lock_guard<std::mutex> lock(mutex);observerSettings=observer;}
             const auto observerView=galaxyObserverView(snapshot,observerSettings);
@@ -253,6 +253,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             }
             const bool contactDetail=!placing&&frame&&frame->radiiAU.size()==frame->particles.size()&&!frame->radiiAU.empty()&&a.closeup;
             if(contactDetail)c.zoom*=.0001f;
+            if(placing&&parent>0)c.zoom*=float(localExtent/2.7);
             float blend=placing||contactDetail?0:journey.totalDetail();
             shown.placement=placing;shown.candidate=candidate;shown.camera=c;
             framing.step(compositionTarget,float(dt));const auto compositionNow=framing.current();
@@ -272,7 +273,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 cx=cy=cz=0;
                 for(size_t i=0;i<frame->particles.size()&&i<8;++i){const auto &p=frame->particles[i];float weight=journey.tracking(int(i));cx+=p.x*weight;cy+=p.y*weight;cz+=p.z*weight;}
             }
-            if(placing){if(frame->galaxy.available){cx=cy=cz=0;}else{cx=frame->particles[0].x;cy=frame->particles[0].y;cz=frame->particles[0].z;}}
+            if(placing){if(frame->galaxy.available){cx=cy=cz=0;}else{cx=frame->particles[parent].x;cy=frame->particles[parent].y;cz=frame->particles[parent].z;}}
             shown.composition=compositionNow;
             FragmentFollowStatus followed;
             {std::lock_guard<std::mutex> lock(mutex);
@@ -423,7 +424,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             throw std::runtime_error("星系预览尚未就绪，请稍后重试");
         return galaxyOffsetAt(projected.camera,projected.width,projected.height,projected.composition,x,y,galaxyPlacementRatio);
     }
-    void placement(const std::vector<OrbitSpec>& bodies,int candidate) {
+    void placement(const std::vector<OrbitSpec>& bodies,int candidate,int parent,double extent) {
         std::shared_ptr<Frame> preview;
         if(!bodies.empty()){
             preview=std::make_shared<Frame>();preview->orbital=true;
@@ -432,9 +433,9 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 preview->particles.push_back(p);preview->surfaces.push_back(b.surface);
                 // A direction arrow in simulation coordinates, relative to the parent.
                 auto tip=p,wing1=p,wing2=p;
-                if(int(i)==candidate){auto& star=bodies[0];double vx=b.vxKmS-star.vxKmS,vy=b.vyKmS-star.vyKmS,vz=b.vzKmS-star.vzKmS;
+                if(int(i)==candidate){auto& star=bodies[parent];double vx=b.vxKmS-star.vxKmS,vy=b.vyKmS-star.vyKmS,vz=b.vzKmS-star.vzKmS;
                     double speed=std::hypot(vx,std::hypot(vy,vz));
-                    if(speed>1.e-9){double length=std::clamp(std::hypot(b.xAU-star.xAU,std::hypot(b.yAU-star.yAU,b.zAU-star.zAU))*.25,.08,1.);
+                    if(speed>1.e-9){double length=std::clamp(std::hypot(b.xAU-star.xAU,std::hypot(b.yAU-star.yAU,b.zAU-star.zAU))*.25,parent>0?.0000001:.08,1.);
                         vx*=length/speed;vy*=length/speed;vz*=length/speed;
                         tip.x+=vx;tip.y+=vy;tip.z+=vz;
                         wing1=wing2=tip;wing1.x-=vx*.25-vy*.14;wing1.y-=vy*.25+vx*.14;wing1.z-=vz*.25;
@@ -444,7 +445,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 for(auto q:{p,tip,wing1,tip,wing2})preview->trails.push_back(q);
             }
         }
-        std::lock_guard<std::mutex> lock(mutex);placementFrame=std::move(preview);placementCandidate=candidate;placementRevision=Engine::instance().sceneRevision();
+        std::lock_guard<std::mutex> lock(mutex);placementFrame=std::move(preview);placementCandidate=candidate;placementParent=parent;placementExtent=extent;placementRevision=Engine::instance().sceneRevision();
         if(!placementFrame)projected.ready=false;
     }
     std::array<double,2> placementPoint(double x,double y,double tilt){
@@ -452,7 +453,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         if(!placementFrame||!projected.placement||!projected.ready||!active||!running||
            projectedRevision!=Engine::instance().sceneRevision()||placementRevision!=projectedRevision||projected.width!=width||projected.height!=height)
             throw std::runtime_error("放置星图尚未就绪，请稍后重试");
-        return placementOnPlane(projected.camera,projected.width,projected.height,projected.composition,x,y,tilt);
+        return placementOnPlane(projected.camera,projected.width,projected.height,projected.composition,x,y,tilt,placementParent>0);
     }
     void configureTrace(bool on,bool play,int target,double mass){std::lock_guard<std::mutex> lock(mutex);ringClock.configure(on,play,target,mass);ringRevision=Engine::instance().sceneRevision();}
     void traceDisturbance(double kick,bool grains){std::lock_guard<std::mutex> lock(mutex);ringClock.disturbance(kick,grains);}
@@ -537,7 +538,7 @@ void setGalaxyObserver(int mode,double yaw,double pitch,double fov,double latitu
 GalaxyObserverView galaxyObserverStatus(){return renderer().observerStatus();}
 void setGalaxyPlacement(bool enabled,const GalaxyParameters& parameters){renderer().galaxyPlacement(enabled,parameters);}
 double placeGalaxyAt(double x,double y){return renderer().galaxyPlacementPoint(x,y);}
-void setOrbitPlacement(const std::vector<OrbitSpec>& bodies,int candidate){renderer().placement(bodies,candidate);}
+void setOrbitPlacement(const std::vector<OrbitSpec>& bodies,int candidate,int parent,double extent){renderer().placement(bodies,candidate,parent,extent);}
 std::array<double,2> placeOrbitAt(double x,double y,double tilt){return renderer().placementPoint(x,y,tilt);}
 ProjectedScene projectedScene(){return renderer().projection();}
 void bindSurface(OH_NativeXComponent *c) { OH_NativeXComponent_RegisterCallback(c, &callbacks); }

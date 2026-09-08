@@ -168,15 +168,16 @@ export interface PlacementPreview {
   candidateX:number; candidateY:number; markerPath:string; velocityPath:string;
 }
 // Original two-body initial-condition construction. No competitor implementation.
-export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],surface:number,direction:number,plotExtent:number=0,target:number=-1,live:boolean=false):PlacementPreview {
+export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],surface:number,direction:number,plotExtent:number=0,target:number=-1,live:boolean=false,parent:number=0):PlacementPreview {
   const result:PlacementPreview={valid:false,error:'填写有效的放置参数',body:undefined,speedKmS:0,circularKmS:0,escapeKmS:0,nearestAU:0,bound:false,plotScale:1,orbitPath:'',candidateX:120,candidateY:120,markerPath:'',velocityPath:''};
   try {
     if(fields.length!==(finiteOrbitBodies(bodies)?6:5)||fields.some((v:string):boolean=>v.trim()===''))throw new Error('请填写全部放置参数');
     if(!live)validateOrbitBodies(bodies);if(bodies.length<2)throw new Error("需要当前轨道状态");if(bodies.length>=8)throw new Error('最多支持 8 个天体');
     const v:number[]=fields.map((s:string):number=>Number(s));
-    check(v[0],surface===0?.1:1e-8/EARTH_MASS_SOLAR,surface===0?2:.01/EARTH_MASS_SOLAR);check(v[1],.05,10);check(v[2],0,360);check(v[3],-90,90);check(v[4],0,2);
+    check(v[0],surface===0?.1:1e-8/EARTH_MASS_SOLAR,surface===0?2:.01/EARTH_MASS_SOLAR);check(v[1],parent>0?.000001:.05,10);check(v[2],0,360);check(v[3],-90,90);check(v[4],0,2);
     check(surface,0,5,true);if(direction!==1&&direction!==-1)throw new Error('方向无效');
-    const star=bodies[0],r=v[1],phase=v[2]*Math.PI/180,tilt=v[3]*Math.PI/180,mass=v[0]*(surface===0?1:EARTH_MASS_SOLAR);
+    check(parent,0,bodies.length-1,true);
+    const star=bodies[parent],r=v[1],phase=v[2]*Math.PI/180,tilt=v[3]*Math.PI/180,mass=v[0]*(surface===0?1:EARTH_MASS_SOLAR);
     const cs=Math.cos(phase),sn=Math.sin(phase),ci=Math.cos(tilt),si=Math.sin(tilt);
     const circular=Math.sqrt(1.32712440041279419e20*(star.massSolar+mass)/(r*149597870700))/1000,speed=circular*v[4];
     const b:OrbitBodyConfig={name:validName(name),massSolar:mass,surface:surface,
@@ -191,9 +192,9 @@ export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],
     }
     result.body=b;result.circularKmS=circular;result.speedKmS=speed;result.escapeKmS=circular*Math.SQRT2;result.bound=v[4]<Math.SQRT2;
     result.nearestAU=Math.min(...bodies.map((a:OrbitBodyConfig):number=>Math.hypot(b.xAU-a.xAU,b.yAU-a.yAU,b.zAU-a.zAU)));
-    let extent=r*1.3;for(const a of bodies)extent=Math.max(extent,Math.hypot(a.xAU-star.xAU,(a.yAU-star.yAU)*ci+(a.zAU-star.zAU)*si)*1.15);
+    let extent=r*1.3;if(parent===0)for(const a of bodies)extent=Math.max(extent,Math.hypot(a.xAU-star.xAU,(a.yAU-star.yAU)*ci+(a.zAU-star.zAU)*si)*1.15);
     if(plotExtent>0)extent=plotExtent;
-    result.plotScale=Math.max(.1,extent);const scale=100/result.plotScale;
+    result.plotScale=Math.max(parent>0?.000001:.1,extent);const scale=100/result.plotScale;
     result.candidateX=120+r*cs*scale;result.candidateY=120-r*sn*scale;
     for(const a of bodies){const x=120+(a.xAU-star.xAU)*scale,y=120-((a.yAU-star.yAU)*ci+(a.zAU-star.zAU)*si)*scale;
       result.markerPath+='M'+(x-2)+' '+y+' L'+(x+2)+' '+y+' M'+x+' '+(y-2)+' L'+x+' '+(y+2)+' ';}
@@ -214,7 +215,7 @@ export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],
     if(live){
       // The existing system is an exact solver snapshot, not an initial editor recipe.
       // Validate only the proposed body in the anchor's local position/velocity frame.
-      const a:OrbitBodyConfig=copyOrbitBodies([star])[0],local:OrbitBodyConfig=copyOrbitBodies([b])[0];
+      const a:OrbitBodyConfig=copyOrbitBodies([bodies[0]])[0],local:OrbitBodyConfig=copyOrbitBodies([b])[0];
       local.xAU-=a.xAU;local.yAU-=a.yAU;local.zAU-=a.zAU;local.vxKmS-=a.vxKmS;local.vyKmS-=a.vyKmS;local.vzKmS-=a.vzKmS;
       a.xAU=0;a.yAU=0;a.zAU=0;a.vxKmS=0;a.vyKmS=0;a.vzKmS=0;validateOrbitBodies([a,local]);
       for(const a of bodies)if(Math.hypot(b.xAU-a.xAU,b.yAU-a.yAU,b.zAU-a.zAU)<(b.radiusKm!==undefined?(b.radiusKm+a.radiusKm!)/149597870.7:.05))throw new Error('新天体与已有天体间距过近');
@@ -223,10 +224,10 @@ export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],
   return result;
 }
 // Plot coordinates are normalized to the square above, in the selected orbital plane.
-export function placementPoint(x:number,y:number,scale:number):number[] {
-  check(x,0,1);check(y,0,1);check(scale,.1,100);
+export function placementPoint(x:number,y:number,scale:number,local:boolean=false):number[] {
+  check(x,0,1);check(y,0,1);check(scale,local?.000001:.1,100);
   const dx=(x*240-120)/100*scale,dy=(120-y*240)/100*scale;
-  const radius=Math.hypot(dx,dy);check(radius,.05,10);
+  const radius=Math.hypot(dx,dy);check(radius,local?.000001:.05,10);
   return [radius,(Math.atan2(dy,dx)*180/Math.PI+360)%360];
 }
 

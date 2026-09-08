@@ -329,15 +329,18 @@ void Engine::orbitClock(double rate) {
 double Engine::orbitRate(uint64_t g) {
     std::lock_guard<std::mutex> lock(mutex);return stopped(g)||!continuous?0:daysPerSecond;
 }
-void Engine::insertOrbit(OrbitSpec body,uint64_t revision,bool run) {
+void Engine::insertOrbit(OrbitSpec body,uint64_t revision,bool run,bool physicalRadii) {
     std::lock_guard<std::mutex> lock(mutex);
     if(revision!=generation.load()||!paused||history.empty())throw std::invalid_argument("放置基准已变化，请重新打开添加天体");
     auto old=current.selected<0?history.back():history.at(current.selected);
     if(old->orbitState.empty()||old->orbitState.size()>=8)throw std::invalid_argument("当前最多 8 个实体天体");
-    Config check=config;check.preset=5;check.speed=1;check.orbitBodies=old->orbitState;check.orbitBodies.push_back(body);
+    Config check=config;check.preset=5;check.speed=1;check.orbitBodies=old->orbitState;if(physicalRadii&&check.orbitBodies.front().radiusKm==0){
+        for(auto& v:check.orbitBodies)v.radiusKm=v.surface==0?695700*std::cbrt(v.massSolar):6371*std::cbrt(v.massSolar/(398600.435507e9/SOLAR_GM));
+    }
+    check.orbitBodies.push_back(body);
     // Existing states can move beyond the initial editor's 10 AU box. Validate the new body
     // through an origin-local recipe, then validate separation with the exact integrator.
-    Config candidate=check;candidate.orbitBodies={old->orbitState.front(),body};
+    Config candidate=check;candidate.orbitBodies={check.orbitBodies.front(),body};
     auto& a=candidate.orbitBodies[0];auto& b=candidate.orbitBodies[1];
     b.xAU-=a.xAU;b.yAU-=a.yAU;b.zAU-=a.zAU;b.vxKmS-=a.vxKmS;b.vyKmS-=a.vyKmS;b.vzKmS-=a.vzKmS;
     a.xAU=a.yAU=a.zAU=a.vxKmS=a.vyKmS=a.vzKmS=0;
@@ -347,7 +350,7 @@ void Engine::insertOrbit(OrbitSpec body,uint64_t revision,bool run) {
     auto f=std::make_shared<Frame>(*old);f->orbitState=check.orbitBodies;
     const auto& v=bodies.back();const size_t i=bodies.size()-1;
     Particle p{float(v.position[0]),float(v.position[1]),float(v.position[2]),float(norm(v.velocity)*AU/YEAR/1000),float(v.mass),float(i)};
-    f->particles.push_back(p);f->surfaces.push_back(body.surface);if(system.finiteSpheres())f->radiiAU.push_back(v.radius);
+    f->particles.push_back(p);f->surfaces.push_back(body.surface);if(system.finiteSpheres()){f->radiiAU.clear();for(const auto& sphere:bodies)f->radiiAU.push_back(sphere.radius);}
     f->trails.push_back(p);f->totalMass+=v.mass*SOLAR_MASS;f->maxSpeed=std::max(f->maxSpeed,double(p.speed));
     // Adding mass/impulse changes invariants. Start a new conservation segment here.
     f->orbitEnergy=system.energy();f->orbitAngular=norm(system.angularMomentum());

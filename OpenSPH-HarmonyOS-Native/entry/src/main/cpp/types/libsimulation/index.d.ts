@@ -55,7 +55,7 @@ export const followSphFragment:(particle:number,sceneRevision:number)=>void;
 export const clearSphFragmentFollow:()=>void;
 
 export interface ProjectedBody { id:number; x:number; y:number; radius:number; depth:number; opacity:number; }
-export const setOrbitPlacement:(bodies:OrbitBodyConfig[],candidate:number)=>void;
+export const setOrbitPlacement:(bodies:OrbitBodyConfig[],candidate:number,parent?:number,extent?:number)=>void;
 export const placeOrbitAt:(x:number,y:number,tilt:number)=>number[];
 export interface ProjectedScene { placement:boolean; candidate:number; ready:boolean; widthPx:number; heightPx:number; time:number; bodies:ProjectedBody[]; }
 export const projectedScene:()=>ProjectedScene;
@@ -102,4 +102,4 @@ export const videoOutputStatus:()=>VideoOutputStatus;
 
 export const orbitClock:(daysPerSecond:number)=>void;
 export const freezeOrbit:()=>void;
-export const insertOrbit:(body:OrbitBodyConfig,revision:number,resume:boolean)=>void;
+export const insertOrbit:(body:OrbitBodyConfig,revision:number,resume:boolean,physicalRadii?:boolean)=>void;

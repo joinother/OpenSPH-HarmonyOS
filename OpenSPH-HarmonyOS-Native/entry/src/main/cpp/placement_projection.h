@@ -5,7 +5,7 @@ namespace lab {
 // Invert the same orthographic transform used for the presented placement frame.
 // The plane goes through the parent and is tilted about its X axis.
 inline std::array<double,2> placementOnPlane(Camera c,int width,int height,
-    std::array<float,3> composition,double x,double y,double tiltDegrees) {
+    std::array<float,3> composition,double x,double y,double tiltDegrees,bool local=false) {
     if(width<=0||height<=0||!std::isfinite(x)||!std::isfinite(y)||x<0||x>1||y<0||y>1||
        !std::isfinite(tiltDegrees)||std::abs(tiltDegrees)>90||composition[2]<=0)
         throw std::invalid_argument("Invalid placement viewport or plane");
@@ -18,7 +18,7 @@ inline std::array<double,2> placementOnPlane(Camera c,int width,int height,
     double py=(composition[1]-y)*2*zoom/composition[2];
     double dx=(px*b[1]-py*b[0])/det,dy=(py*a[0]-px*a[1])/det;
     double radius=std::hypot(dx,dy);
-    if(!std::isfinite(radius)||radius<.05||radius>10)throw std::invalid_argument("放置距离需在 0.05–10 AU 内，请缩放星图");
+    if(!std::isfinite(radius)||radius<(local?.000001:.05)||radius>10)throw std::invalid_argument(local?"卫星距离需在 0.000001–10 AU 内，请缩放星图":"放置距离需在 0.05–10 AU 内，请缩放星图");
     return {radius,std::fmod(std::atan2(dy,dx)*180/3.141592653589793+360,360)};
 }
 }

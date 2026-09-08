@@ -29,7 +29,7 @@ void setGalaxyObserver(int mode,double yaw,double pitch,double fov,double latitu
 GalaxyObserverView galaxyObserverStatus();
 void setGalaxyPlacement(bool enabled,const GalaxyParameters& parameters);
 double placeGalaxyAt(double x,double y);
-void setOrbitPlacement(const std::vector<OrbitSpec>& bodies,int candidate);
+void setOrbitPlacement(const std::vector<OrbitSpec>& bodies,int candidate,int parent=0,double extent=0);
 std::array<double,2> placeOrbitAt(double x,double y,double tilt);
 struct ProjectedScene { bool placement=false;int candidate=-1; Camera camera;std::array<float,3> composition{.5f,.5f,1}; bool ready=false; int width=0,height=0; double time=0; std::vector<ProjectedBody> bodies; };
 ProjectedScene projectedScene();

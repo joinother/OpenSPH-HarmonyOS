@@ -14,6 +14,9 @@ int main(){
     auto found=placementOnPlane(c,size[0],size[1],comp,x,y,tilt);
     assert(std::abs(found[0]-radius)<.00002);assert(std::abs(found[1]-phase*180/3.141592653589793)<.001);count++;
   }
+  {Camera c{0,0,.002f,1,0};auto point=projectBody(c,1,{.001f,.0005f,0},1080,2444,0,0);
+   auto local=placementOnPlane(c,1080,2444,{.5f,.5f,1},point.x,point.y,0,true);
+   assert(std::abs(local[0]-std::hypot(.001,.0005))<1e-8);}
   auto reject=[](auto f){bool failed=false;try{f();}catch(const std::exception&){failed=true;}assert(failed);};
   reject([]{placementOnPlane({0,0,3,-1,0},800,800,{.5f,.5f,1},.7,.4,90);});
   reject([]{placementOnPlane({},800,800,{.5f,.5f,1},NAN,.4,0);});
