@@ -29,7 +29,7 @@ export interface SavedProject { id: string; savedAt: number; scene: SceneDefinit
 
 export function defaultRecipe(scene:SceneDefinition):ExperimentRecipe {
   return {schemaVersion:1,appearanceVersion:2,material:defaultMaterial(),themeId:'',
-    camera:{yaw:.15,pitch:.25,zoom:2.7*Math.max(1,scene.config.targetRadiusKm/100),focus:-1,color:0},
+    camera:{yaw:.15,pitch:.25,zoom:scene.config.preset===6?5.2:2.7*Math.max(1,scene.config.targetRadiusKm/100),focus:-1,color:0},
     appearance:{clouds:true,atmosphere:true,trails:true,closeup:false,autoSpin:false,rings:true},
     sky:{mode:2,brightness:.65},ring:{enabled:false,target:-1,timeHours:0,speedScale:1,rateHours:1}};
 }
@@ -46,7 +46,7 @@ export function validateRecipe(r:ExperimentRecipe,scene:SceneDefinition):void {
   if(r.overview!==undefined){validateRecipeCamera(r.overview,maxFocus,preset);if(r.overview.focus!==-1)throw new Error('返回视角必须是全景');}
   const a=r.appearance;
   if(!a||[a.clouds,a.atmosphere,a.trails,a.closeup,a.autoSpin,a.rings].some((v:boolean):boolean=>typeof v!=='boolean'))throw new Error('无效外观开关');
-  if(a.closeup&&(preset<3||r.camera.focus<0))throw new Error('近看视角与场景不匹配');
+  if(a.closeup&&(preset<3||preset===6||r.camera.focus<0))throw new Error('近看视角与场景不匹配');
   if(!r.sky)throw new Error('缺少星空配置');check(r.sky.mode,0,2,true);check(r.sky.brightness,0,1);
   const t=r.ring;if(!t||typeof t.enabled!=='boolean')throw new Error('缺少局部环配置');
   if(t.modelVersion!==undefined&&t.modelVersion!==2)throw new Error('不支持的环模型版本');
@@ -69,9 +69,11 @@ export function validateConfig(c: SimulationConfig): void {
   if((c.relaxationSeconds??0)>0&&(!c.selfGravity||c.preset>=3))throw new Error('预松弛需要岩质模型与材料自引力');
   if(c.selfGravity!==undefined&&typeof c.selfGravity!=='boolean')throw new Error('自引力必须为布尔值');
   if(c.selfGravity&&(c.preset>=3||c.count>1200))throw new Error('SPH 自引力支持岩质实验，粒子预算不超过 1200');
-  check(c.preset,0,5,true);check(c.count,200,2400,true);check(c.speed,c.preset>=3?0.75:(c.preset===2?0:0.5),c.preset>=3?1.25:10);check(c.angle,0,70);check(c.duration,1,c.preset>=3?10:120);
+  check(c.preset,0,6,true);check(c.count,200,2400,true);check(c.speed,c.preset>=3?0.75:(c.preset===2?0:0.5),c.preset>=3?1.25:10);check(c.angle,0,70);check(c.duration,c.preset===6?50:1,c.preset===6?800:(c.preset>=3?10:120));
   check(c.targetRadiusKm,40,200);check(c.impactorRadiusKm,20,120);check(c.targetDensity,2400,3000);
   check(c.impactorDensity,2400,3000);check(c.targetSpin,-0.01,0.01);check(c.seed,1,1000000,true);
+  if(c.preset===6){check(c.galaxyMassRatio??.6,.2,1);check(c.galaxyOffsetKpc??12,0,30);if(c.galaxyRetrograde!==undefined&&typeof c.galaxyRetrograde!=='boolean')throw new Error('星系旋转方向需要布尔值');}
+  else if(c.galaxyMassRatio!==undefined||c.galaxyOffsetKpc!==undefined||c.galaxyRetrograde!==undefined)throw new Error('星系参数需要星系预设');
   if(c.preset===5){check(c.speed,1,1);validateOrbitBodies(c.orbitBodies!);}
   else if(c.orbitBodies!==undefined&&(!Array.isArray(c.orbitBodies)||c.orbitBodies.length!==0))throw new Error("只有自定义系统接受天体列表");
 }
@@ -83,10 +85,10 @@ export function validName(name: string): string {
   return name.trim();
 }
 export function validateScene(s: SceneDefinition): void {
-  if(!s || s.schemaVersion!==1 || (s.model!=='sph-rock-v1'&&s.model!=='sph-rock-gravity-v1'&&s.model!=='sph-rock-prepared-v1'&&s.model!=='nbody-v1'&&s.model!=='nbody-custom-v1'&&s.model!=='nbody-hard-sphere-v1')) throw new Error('不支持的场景版本或物理模型');
+  if(!s || s.schemaVersion!==1 || (s.model!=='sph-rock-v1'&&s.model!=='sph-rock-gravity-v1'&&s.model!=='sph-rock-prepared-v1'&&s.model!=='nbody-v1'&&s.model!=='nbody-custom-v1'&&s.model!=='nbody-hard-sphere-v1'&&s.model!=='galaxy-tidal-restricted-v1')) throw new Error('不支持的场景版本或物理模型');
   validName(s.title);validateConfig(s.config);
   if(s.config.preset>=3){
-    if(s.model!==(s.config.preset===5?(finiteOrbitBodies(s.config.orbitBodies!)?'nbody-hard-sphere-v1':'nbody-custom-v1'):'nbody-v1')||!Array.isArray(s.bodies)||s.bodies.length!==0)throw new Error('引力预设由原生模型定义，不接受岩质天体配置');
+    if(s.model!==(s.config.preset===6?'galaxy-tidal-restricted-v1':s.config.preset===5?(finiteOrbitBodies(s.config.orbitBodies!)?'nbody-hard-sphere-v1':'nbody-custom-v1'):'nbody-v1')||!Array.isArray(s.bodies)||s.bodies.length!==0)throw new Error('引力预设由原生模型定义，不接受岩质天体配置');
     return;
   }
   if(s.model!==((s.config.relaxationSeconds??0)>0?'sph-rock-prepared-v1':(s.config.selfGravity?'sph-rock-gravity-v1':'sph-rock-v1')))throw new Error('物理模型与预设不匹配');

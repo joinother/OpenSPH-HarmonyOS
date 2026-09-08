@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+import assert from 'node:assert/strict';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
+const device=process.argv[2];assert.equal(device,'127.0.0.1:5555');const cli=fileURLToPath(new URL('./opensph-cli.mjs',import.meta.url));
+const call=(command,payload={},wait)=>{const a=[cli,'--device',device,'--command',command,'--payload-json',JSON.stringify(payload)];if(wait)a.push('--wait-state',wait);return JSON.parse(execFileSync(process.execPath,a,{encoding:'utf8',timeout:40000}));};
+call('listCommands');call('getUiState');const original=call('listProjects').projects.map(p=>p.id).sort();let saved;
+try{
+ call('uiAction',{action:'theme.galaxy-retrograde'},'paused');call('setUiValue',{field:'galaxy.ratio',value:.45});call('setUiValue',{field:'galaxy.offset',value:19});call('setUiValue',{field:'scene.angle',value:55});call('setUiValue',{field:'scene.duration',value:150});call('uiAction',{action:'simulation.apply'},'paused');call('setCamera',{yaw:.4,pitch:.3,zoom:4.8,focus:1,color:1});
+ const before=call('getState');saved=call('saveProject',{title:'验收临时 · 星系配方'});assert.match(saved.id,/^project-[0-9]+-[0-9]+$/);assert.ok(!original.includes(saved.id));call('uiAction',{action:'preset.3'},'paused');call('loadProject',{id:saved.id},'paused');const after=call('getState');
+ assert.deepEqual(after.simulation.config,before.simulation.config);assert.deepEqual(after.camera,before.camera);assert.deepEqual(after.sky,before.sky);assert.equal(after.definition.model,'galaxy-tidal-restricted-v1');assert.equal(after.simulation.time,0);assert.equal(after.appearance.closeup,false);
+ console.log(JSON.stringify({ok:true,device,checks:['named galaxy config survives other model and reload','ratio/offset/inclination/duration/retrograde restored','camera focus/color and sky recipe restored','loaded scene starts paused'],before,after},null,2));
+}finally{if(saved?.id&&/^project-[0-9]+-[0-9]+$/.test(saved.id)&&!original.includes(saved.id)){execFileSync('/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/hdc',['-t',device,'shell','rm','-f','/data/app/el2/100/base/com.opensph.lab/haps/entry/files/'+saved.id+'.json']);assert.deepEqual(call('listProjects').projects.map(p=>p.id).sort(),original);}}

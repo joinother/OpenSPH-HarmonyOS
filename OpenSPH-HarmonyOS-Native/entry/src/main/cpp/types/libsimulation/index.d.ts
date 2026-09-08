@@ -1,5 +1,6 @@
 export interface OrbitBodyConfig { radiusKm?:number; name:string; massSolar:number; xAU:number; yAU:number; zAU:number; vxKmS:number; vyKmS:number; vzKmS:number; surface:number; }
 export interface SimulationConfig {
+  galaxyMassRatio?:number;galaxyOffsetKpc?:number;galaxyRetrograde?:boolean;
   orbitBodies?: OrbitBodyConfig[];
   preset: number; count: number; speed: number; angle: number; duration: number;
   targetRadiusKm: number; impactorRadiusKm: number; targetDensity: number; impactorDensity: number;
@@ -9,7 +10,9 @@ export const startScene: (config: SimulationConfig, initiallyPaused?: boolean) =
 export interface OrbitBodyStatus { radiusKm?:number; id:number; name:string; surface?:number; xAU:number; yAU:number; zAU:number; speedKmS:number; massSolar:number; }
 export interface SphDiagnostics {structure?:number[];available:boolean;pressureMinGPa?:number;pressureMaxGPa?:number;pressureMeanGPa?:number;internalMinMJkg?:number;internalMaxMJkg?:number;internalMeanMJkg?:number;damageMean?:number;damageMax?:number;kineticJ?:number;internalJ?:number;}
 export interface OrbitContactStatus {count:number;a:number;b:number;timeSeconds:number;normalSpeedKmS:number;restitution:number;}
+export interface GalaxyDiagnostics {separationKpc:number;primaryRmsKpc:number;secondaryRmsKpc:number;primaryOuterFraction:number;secondaryOuterFraction:number;energyScope:string;outerScope:string;}
 export interface SimulationStatus {
+  galaxy?:GalaxyDiagnostics;
   contact?:OrbitContactStatus;
   preparation?:PreparationStatus;
   sph?:SphDiagnostics;

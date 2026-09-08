@@ -78,6 +78,8 @@ napi_value startScene(napi_env e, napi_callback_info i) {
             if(napi_get_value_bool(e,v,&c.selfGravity)!=napi_ok)throw std::invalid_argument("Boolean selfGravity expected");}
         bool relaxPresent=false;napi_has_named_property(e,a[0],"relaxationSeconds",&relaxPresent);
         if(relaxPresent)c.relaxationSeconds=field("relaxationSeconds");
+        for(const char* name:{"galaxyMassRatio","galaxyOffsetKpc"}){bool present=false;napi_has_named_property(e,a[0],name,&present);if(present){if(c.preset!=6)throw std::invalid_argument("Galaxy fields require preset 6");if(std::string(name)=="galaxyMassRatio")c.galaxyMassRatio=field(name);else c.galaxyOffsetKpc=field(name);}}
+        bool retroPresent=false;napi_has_named_property(e,a[0],"galaxyRetrograde",&retroPresent);if(retroPresent){napi_value v;napi_get_named_property(e,a[0],"galaxyRetrograde",&v);if(c.preset!=6||napi_get_value_bool(e,v,&c.galaxyRetrograde)!=napi_ok)throw std::invalid_argument("Galaxy boolean expected");}
         napi_value list;bool has=false;napi_has_named_property(e,a[0],"orbitBodies",&has);
         if(has){napi_get_named_property(e,a[0],"orbitBodies",&list);bool array=false;napi_is_array(e,list,&array);uint32_t n=0;
             if(!array||napi_get_array_length(e,list,&n)!=napi_ok||n>8)throw std::invalid_argument("Invalid orbitBodies array");
@@ -302,11 +304,14 @@ napi_value status(napi_env e, napi_callback_info) {
     if(s.sph.structure.available){napi_value a;napi_create_array_with_length(e,4,&a);for(size_t j=0;j<4;j++){napi_value n;napi_create_double(e,s.sph.structure.values[j],&n);napi_set_element(e,a,j,n);}napi_set_named_property(e,diag,"structure",a);}
     napi_set_named_property(e,o,"sph",diag);
     num(e,o,"energyError",s.energyError);num(e,o,"angularError",s.angularError);
-    str(e,o,"model",s.config.preset==5?(!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0?"nbody-hard-sphere-v1":"nbody-custom-v1"):(s.config.preset>=3?"nbody-v1":(s.config.relaxationSeconds>0?"sph-rock-prepared-v1":(s.config.selfGravity?"sph-rock-gravity-v1":"sph-rock-v1"))));
+    str(e,o,"model",s.config.preset==6?"galaxy-tidal-restricted-v1":s.config.preset==5?(!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0?"nbody-hard-sphere-v1":"nbody-custom-v1"):(s.config.preset>=3?"nbody-v1":(s.config.relaxationSeconds>0?"sph-rock-prepared-v1":(s.config.selfGravity?"sph-rock-gravity-v1":"sph-rock-v1"))));
     if(s.config.preset==5&&!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0){
         napi_value contact;napi_create_object(e,&contact);num(e,contact,"count",s.contact.count);num(e,contact,"a",s.contact.a);num(e,contact,"b",s.contact.b);num(e,contact,"timeSeconds",s.contact.time*lab::YEAR);num(e,contact,"normalSpeedKmS",s.contact.speed*lab::AU/lab::YEAR/1000);num(e,contact,"restitution",1);napi_set_named_property(e,o,"contact",contact);
     }
-    str(e,o,"timeUnit",s.config.preset>=3?"year":"s");
+    str(e,o,"timeUnit",s.config.preset==6?"Myr":s.config.preset>=3?"year":"s");
+    if(s.galaxy.available){napi_value g;napi_create_object(e,&g);const char* keys[]={"separationKpc","primaryRmsKpc","secondaryRmsKpc","primaryOuterFraction","secondaryOuterFraction"};
+        for(int k=0;k<5;k++)num(e,g,keys[k],s.galaxy.values[k]);str(e,g,"energyScope","two softened centers only; tracers exchange energy with the time-dependent field");str(e,g,"outerScope","fraction of origin tracers beyond 1.5 initial outer radii; not unbound mass");napi_set_named_property(e,o,"galaxy",g);}
+
     napi_value bodies;napi_create_array_with_length(e,s.bodies.size(),&bodies);
     const char *names[]={"恒星","蓝色行星","金色行星","红色行星"};
     for(size_t i=0;i<s.bodies.size();++i){const auto &p=s.bodies[i];napi_value b;napi_create_object(e,&b);
@@ -315,6 +320,7 @@ napi_value status(napi_env e, napi_callback_info) {
     napi_set_named_property(e,o,"bodies",bodies);
     if (s.configKnown) {
       napi_value c; napi_create_object(e,&c);
+      if(s.config.preset==6){num(e,c,"galaxyMassRatio",s.config.galaxyMassRatio);num(e,c,"galaxyOffsetKpc",s.config.galaxyOffsetKpc);napi_value retro;napi_get_boolean(e,s.config.galaxyRetrograde,&retro);napi_set_named_property(e,c,"galaxyRetrograde",retro);}
       num(e,c,"preset",s.config.preset);num(e,c,"count",s.config.count);num(e,c,"speed",s.config.speed);
       num(e,c,"angle",s.config.angle);num(e,c,"duration",s.config.duration);
       num(e,c,"targetRadiusKm",s.config.targetRadiusKm);num(e,c,"impactorRadiusKm",s.config.impactorRadiusKm);

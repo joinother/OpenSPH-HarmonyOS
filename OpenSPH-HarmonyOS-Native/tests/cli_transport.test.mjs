@@ -410,7 +410,7 @@ test('immersive window policy hides status, navigation and gesture indicator ind
 
 test('theme catalog isolates conditions and collision speed comparison changes only speed',async()=>{
   const {page:app}=page();
-  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,16);
+  const catalog=JSON.parse(await app.execute('listExperiments',{}));assert.equal(catalog.catalogVersion,1);assert.equal(catalog.experiments.length,18);
   const [slow,fast]=catalog.experiments;assert.equal(slow.config.speed,2);assert.equal(fast.config.speed,8);
   assert.deepEqual({...slow.config,speed:8},fast.config);
   assert.ok(catalog.experiments.every(t=>t.goal&&t.limit&&t.question));
@@ -918,4 +918,29 @@ test('placement pauses a live solver and replay playback then resumes only on ca
  const {page:app,state}=page();app.choose(5);state.state='running';app.playing=true;
  app.beginPlacement();assert.equal(state.state,'paused');assert.equal(app.playing,false);app.cancelPlacement();assert.equal(state.state,'running');assert.equal(app.playing,true);
  state.state='paused';app.playing=false;app.beginPlacement();app.cancelPlacement();assert.equal(state.state,'paused');assert.equal(app.playing,false);
+});
+
+
+test('galaxy UI/CLI uses an independent model, validates atomically and retains recipes',async()=>{
+ const {page:app,state,calls}=page();await app.execute('uiAction',{action:'theme.galaxy-tails'});state.state='paused';
+ const initial=app.definition();assert.equal(initial.model,'galaxy-tidal-restricted-v1');assert.equal(initial.config.duration,600);assert.equal(app.zoom,5.2);
+ let ui=JSON.parse(await app.execute('getUiState',{}));assert.equal(ui.actions.find(a=>a.id==='surface.toggle').enabled,false);assert.equal(ui.actions.find(a=>a.id==='color.2').enabled,false);assert.equal(ui.fields.find(f=>f.field==='scene.count').enabled,true);
+ await assert.rejects(app.execute('setScene',{...initial.config,galaxyMassRatio:0}));assert.deepEqual(app.definition(),initial);
+ await assert.rejects(app.execute('setScene',{...initial.config,preset:3,duration:1}));assert.deepEqual(app.definition(),initial);
+ await assert.rejects(app.execute('setScene',{...initial.config,galaxyRetrograde:1}));assert.deepEqual(app.definition(),initial);
+ await assert.rejects(app.execute('navigateCamera',{focus:1,closeup:true}));assert.deepEqual(app.definition(),initial);
+ await app.execute('uiAction',{action:'theme.compare'});assert.deepEqual(JSON.parse(JSON.stringify(app.config())),{...initial.config,galaxyRetrograde:true});
+ const starts=calls.filter(c=>c[0]==='start').length;
+ await app.execute('setUiValue',{field:'galaxy.offset',value:20});await app.execute('setUiValue',{field:'galaxy.ratio',value:.4});await app.execute('setUiValue',{field:'scene.angle',value:60});await app.execute('setUiValue',{field:'scene.duration',value:800});
+ assert.equal(calls.filter(c=>c[0]==='start').length,starts);assert.equal(app.dirty,true);
+ const saved=await app.execute('saveProject',{title:'潮汐对照'});const id=JSON.parse(saved).id;await app.execute('uiAction',{action:'preset.3'});await app.execute('loadProject',{id});
+ assert.equal(app.config().galaxyOffsetKpc,20);assert.equal(app.config().galaxyMassRatio,.4);assert.equal(app.config().galaxyRetrograde,true);assert.equal(app.config().duration,800);
+ await app.execute('uiAction',{action:'focus.1'});assert.equal(app.focus,1);assert.equal(app.closeup,false);
+ state.galaxy={separationKpc:12,primaryRmsKpc:4,secondaryRmsKpc:3,primaryOuterFraction:.2,secondaryOuterFraction:.3};state.timeUnit='Myr';
+ const diag=JSON.parse(await app.execute('getGalaxyDiagnostics',{}));assert.equal(diag.timeUnit,'Myr');assert.equal(diag.diagnostics.separationKpc,12);
+});
+
+
+test('time labels render for every model without recursion or unit leakage',()=>{
+ const {page:app}=page();for(let preset=0;preset<=6;preset++){app.preset=preset;assert.equal(app.timeLabel(),preset===6?' Myr':preset>=3?' 年':' s');}
 });

@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.42.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.43.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -14,6 +14,12 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 ```
 
 `--device` 必填，本任务仅使用 `127.0.0.1:5555`。`--payload-json` 与 `--payload-file` 二选一。`--hdc PATH` 可指定 HDC；`--json` 保留兼容，输出本身已为 JSON。退出码为 0（成功）、2（应用返回失败）、1（参数或传输错误）。
+
+## 星系潮汐
+
+`uiAction {"action":"theme.galaxy-tails"}` 与 `theme.galaxy-retrograde` 打开初始暂停的双星系旋转对照；`preset.6` 打开基础星系实验。`setScene` 的 preset 6 使用 200–2400 个示踪点、50–800 Myr 时长，speed 为 0.75–1.25 的接近速度倍率，angle 为次盘倾角 0–70°；可附加 `galaxyMassRatio:0.2..1`、`galaxyOffsetKpc:0..30`、`galaxyRetrograde:boolean`。完整定义和示例见 [星系潮汐指南](reference/GALACTIC-TIDES.md)。
+
+`setUiValue` 的 `galaxy.ratio`、`galaxy.offset` 与通用 scene 字段修改草稿，`galaxy.retrograde` 动作切换旋转方向；`simulation.apply` 才重算。`getGalaxyDiagnostics` 返回当前帧实际时间、kpc 尺度、外延示踪比例及仅对应两中心的守恒量偏差，非星系场景返回 `available:false`。`focus.0`／`focus.1` 连续跟随两个中心；暂停、取消、命名实验、保存／载入及时间轴通用，星系回放为 v12。表面近看、行星曲线和岩体损伤控件在此模型禁用。
 
 ## 状态与通用交互
 
@@ -261,7 +267,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getSphDiagnostics
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"color.3"}'
 ```
 
-`getSphDiagnostics` 只读取所选帧，返回 `time`、`timeUnit`、`selected`、`frameCount`、`model`、已应用 `config` 和 `diagnostics`；SPH 的时间单位为 `s`，轨道为 `year`。`getState.simulation.sph` 具有同一组诊断字段。`available:false` 时数值字段省略，不能当成零测量。
+`getSphDiagnostics` 只读取所选帧，返回 `time`、`timeUnit`、`selected`、`frameCount`、`model`、已应用 `config` 和 `diagnostics`；SPH 的时间单位为 `s`，轨道为 `year`，星系为 `Myr`；星系不提供岩体材料诊断。`getState.simulation.sph` 具有同一组诊断字段。`available:false` 时数值字段省略，不能当成零测量。
 
 | 字段 | 单位／含义 |
 | --- | --- |
@@ -296,12 +302,12 @@ node scripts/export-sph.mjs --device 127.0.0.1:5555 --output /tmp/sph-run.csv
 
 | 命令 | 行为 |
 | --- | --- |
-| `setScene` | 必填 preset、count、speed、angle、duration；preset 5 还需完整 bodies；验证后事务式设置并准备为 paused |
+| `setScene` | 必填 preset、count、speed、angle、duration；preset 5 还需完整 orbitBodies；preset 6 使用星系字段与 Myr；验证后事务式设置并准备为 paused |
 | `start` / `pause` | 启动或继续／暂停求解；重复 start 不会切换为暂停 |
 | `reset` | 重新初始化并暂停 |
 | `seek` | `{ "frame": -1 }` 回最新帧，或指定保留帧索引；暂停求解并停止自动回放 |
 | `listProjects` / `saveProject` / `loadProject` | 列表／按 title 保存／按 id 载入命名实验配方，最多 50 个 |
-| `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v11 |
+| `saveReplay` / `loadReplay` | 异步保存／载入单槽回放；兼容 v1–v12 |
 
 预设 0–2 为 SPH，3 为双体，4 为四体，5 为自定义。完整配置范围以命令目录和应用校验为准。`getState.definition` 是初始条件，`simulation.bodies` 为当前显示的质心参考系数据；SPH 时间单位为秒，轨道为儒略年。
 

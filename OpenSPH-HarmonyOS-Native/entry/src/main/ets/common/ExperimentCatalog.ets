@@ -56,9 +56,17 @@ export function themeExperiments():ThemeExperiment[] {
       badge:prepared?'预松弛 64 s → 自由演化 32 s':'直接初态 → 自由演化 32 s',cover:'rock-spin',compareId:prepared?'sphere-unprepared':'sphere-release',config,
       yaw:.15,pitch:.25,zoom:2.7,focus:-1,closeup:false});
   }
+  for(const retrograde of [false,true]) {
+    result.push({id:retrograde?'galaxy-retrograde':'galaxy-tails',title:retrograde?'反转一片星系':'两条潮汐尾',category:'collision',
+      question:'两片恒星盘擦过，旋转方向会改变长尾吗？',goal:'运行到接近与分离阶段，拖动视角观察长尾，再切换旋转方向作对照。观察面板显示中心间距与外延比例。',
+      limit:'扩展引力势与无质量恒星群的限制性模型；未包含气体、自洽暗晕、动力摩擦或完整合并。',badge:'1600 示踪点 · 600 Myr',cover:'galaxy-tails',compareId:retrograde?'galaxy-tails':'galaxy-retrograde',
+      config:{preset:6,count:1600,speed:1,angle:25,duration:600,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,galaxyMassRatio:.6,galaxyOffsetKpc:12,galaxyRetrograde:retrograde},
+      yaw:.15,pitch:.25,zoom:5.2,focus:-1,closeup:false});
+  }
   return result;
 }
 export function themeConfigMatches(a:SimulationConfig,b:SimulationConfig):boolean {
+  if((a.galaxyMassRatio??.6)!==(b.galaxyMassRatio??.6)||(a.galaxyOffsetKpc??12)!==(b.galaxyOffsetKpc??12)||(a.galaxyRetrograde??false)!==(b.galaxyRetrograde??false))return false;
   if((a.relaxationSeconds??0)!==(b.relaxationSeconds??0)||(a.selfGravity===true)!==(b.selfGravity===true)||a.preset!==b.preset||a.count!==b.count||a.speed!==b.speed||a.angle!==b.angle||a.duration!==b.duration||
     a.targetRadiusKm!==b.targetRadiusKm||a.impactorRadiusKm!==b.impactorRadiusKm||a.targetDensity!==b.targetDensity||
     a.impactorDensity!==b.impactorDensity||a.targetSpin!==b.targetSpin||a.seed!==b.seed)return false;

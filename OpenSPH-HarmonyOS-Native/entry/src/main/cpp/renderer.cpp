@@ -105,6 +105,7 @@ uniform vec3 composition;
 uniform float size;
 uniform int mode;
 uniform int orbital;
+uniform highp int galactic;
 uniform int surfaces[8];
 out vec3 tint;
 void main(){
@@ -130,6 +131,7 @@ void main(){
    gl_PointSize=data.z<0.5?size*1.8:size;
    if(mode==1)tint=mix(vec3(0.30,0.45,1.0),vec3(1.0,0.4,0.2),clamp(data.x/50.0,0.0,1.0));
  }
+ if(galactic==1){tint=mix(vec3(1.0,.64,.30),vec3(.38,.72,1.0),step(.5,data.z))*(.65+.5*grain);if(mode==1)tint=mix(vec3(.22,.46,1.0),vec3(1.0,.37,.16),clamp(data.x/400.,0.,1.));}
  if(data.z<0.0){tint=vec3(0.28,0.40,0.54);gl_PointSize=2.0;}
 })";
         const char *fs = R"(#version 300 es
@@ -137,8 +139,10 @@ precision mediump float;
 in vec3 tint;
 out vec4 color;
 uniform int trail;
+uniform highp int galactic;
 uniform float trailOpacity;
 void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCoord*2.0-1.0;float d=dot(p,p);if(d>1.0)discard;
+ if(galactic==1){color=vec4(tint,exp(-4.0*d)*.7);return;}
  float light=0.42+0.58*max(0.0,dot(normalize(vec3(p,sqrt(1.0-d))),normalize(vec3(-0.4,0.6,1.0))));
  color=vec4(tint*light,(1.0-smoothstep(0.7,1.0,d)));})";
         GLuint vert = shader(GL_VERTEX_SHADER, vs), frag = shader(GL_FRAGMENT_SHADER, fs);
@@ -252,7 +256,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             glUseProgram(program);glBindVertexArray(vao);glBindBuffer(GL_ARRAY_BUFFER,vbo);
             float cx = frame&&frame->orbital?0:0.5f, cy = 0, cz = 0;
             if(frame&&!frame->orbital){
-                cx=.5f*journey.tracking(8);cy=cz=0;
+                cx=(frame->galaxy.available?0.f:.5f)*journey.tracking(8);cy=cz=0;
                 for(int i=0;i<2;++i){float weight=journey.tracking(i);cx+=frame->centers[i*3]*weight;cy+=frame->centers[i*3+1]*weight;cz+=frame->centers[i*3+2]*weight;}
             }
             if(frame&&frame->orbital){
@@ -277,6 +281,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             int styles[8]={0,1,2,3,1,1,1,1};if(frame&&frame->orbital)for(size_t i=0;i<frame->surfaces.size();++i)styles[i]=frame->surfaces[i];
             glUniform1iv(glGetUniformLocation(program,"surfaces"),8,styles);
             glUniform1i(glGetUniformLocation(program,"orbital"),frame&&frame->orbital?1:0);
+            glUniform1i(glGetUniformLocation(program,"galactic"),frame&&frame->galaxy.available?1:0);
             glUniform1i(glGetUniformLocation(program,"trail"),0);
             glUniform1f(glGetUniformLocation(program,"trailOpacity"),(placing||a.trails)?.65f*(1-blend):0.f);
             glUniform1f(glGetUniformLocation(program, "size"), 2);
@@ -315,6 +320,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                     }
                     glEnable(GL_DEPTH_TEST);
                 } else {
+                if(frame->galaxy.available){size=std::clamp(float(std::min(w,h))*.006f,2.f,7.f);glBlendFunc(GL_SRC_ALPHA,GL_ONE);glDepthMask(GL_FALSE);}
                 glUniform1f(glGetUniformLocation(program, "size"), size);
                 glBufferData(GL_ARRAY_BUFFER, frame->particles.size() * sizeof(Particle),
                              frame->particles.data(), GL_STREAM_DRAW);
@@ -325,7 +331,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 if(c.color==6&&frame->fragments.available&&frame->fragments.labels.size()==frame->particles.size()){
                     glBindBuffer(GL_ARRAY_BUFFER,fragmentVbo);glBufferData(GL_ARRAY_BUFFER,frame->fragments.labels.size()*sizeof(uint32_t),frame->fragments.labels.data(),GL_STREAM_DRAW);glEnableVertexAttribArray(3);glVertexAttribPointer(3,1,GL_UNSIGNED_INT,GL_FALSE,sizeof(uint32_t),nullptr);
                 }else{glDisableVertexAttribArray(3);glVertexAttrib1f(3,0);if(c.color==6)glUniform1i(glGetUniformLocation(program,"mode"),0);}
-                glDrawArrays(GL_POINTS, 0, frame->particles.size());glDisableVertexAttribArray(3);
+                glDrawArrays(GL_POINTS, 0, frame->particles.size());if(frame->galaxy.available){glDepthMask(GL_TRUE);glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);}glDisableVertexAttribArray(3);
                 glDisableVertexAttribArray(2);glBindBuffer(GL_ARRAY_BUFFER,vbo);
                 }
             }

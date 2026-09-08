@@ -1,6 +1,7 @@
 #pragma once
 #include "sph_fragments.h"
 #include "orbit.h"
+#include "galaxy.h"
 #include "sph_diagnostics.h"
 #include "preparation.h"
 #include <atomic>
@@ -29,12 +30,14 @@ struct Config {
     std::vector<OrbitSpec> orbitBodies;
     bool selfGravity = false;
     double relaxationSeconds = 0;
+    double galaxyMassRatio=.6,galaxyOffsetKpc=12;bool galaxyRetrograde=false;
 };
 bool validConfig(const Config &c);
 struct Particle {
     float x, y, z, speed, density, body;
 };
 struct Frame {
+    GalaxyDiagnostics galaxy;
     OrbitContact contact;std::vector<double> radiiAU;
     SphFragments fragments;
     SphDiagnostics sph;
@@ -48,6 +51,7 @@ struct Frame {
     double centers[6] = {};
 };
 struct Status {
+    GalaxyDiagnostics galaxy;
     OrbitContact contact;
     PreparationStatus preparation;
     SphDiagnostics sph;

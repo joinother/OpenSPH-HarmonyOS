@@ -1,0 +1,11 @@
+FileTransfer finish, Size:4703856, File count = 1, time:67ms rate:70206.81kB/s
+PASS sweep: high speed, separating, tangent, bounds, overlap
+PASS elastic: equal/unequal masses, head-on/oblique, E/P/L, no tunneling
+PASS simultaneous pair resolution and failure rollback
+measured error 1.50938e-05 time 2268.48
+demo step=0.5 time_s=2268.48 relative_energy=1.50938e-05
+measured error 6.76066e-06 time 2268.48
+demo step=0.25 time_s=2268.48 relative_energy=6.76066e-06
+measured error 2.59359e-06 time 2268.48
+demo step=0.125 time_s=2268.48 relative_energy=2.59359e-06
+PASS gravitational demo, timestep convergence, conservation

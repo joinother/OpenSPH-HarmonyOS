@@ -1,0 +1,10 @@
+{
+  "resolved": true,
+  "stage": "development validation before accepted build",
+  "symptom": "ArkUI startup stack overflow; CLI large replies incomplete when app exited",
+  "cause": "timeLabel accidentally called itself on non-galaxy branch",
+  "fix": "Use isOrbit() to select years or seconds; preset 6 uses Myr",
+  "regression": "All seven presets time-label check added; 127 host tests and subsequent device/layout/legacy tests pass",
+  "rawFailureEvidence": "work/galaxy-0.43.0/startup-crash.log retained in local workspace",
+  "scope": "No generic CLI transport repair claimed"
+}
