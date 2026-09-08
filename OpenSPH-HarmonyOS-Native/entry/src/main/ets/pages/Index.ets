@@ -1,3 +1,5 @@
+import { GalaxyReference, GalaxyComparisonPlot, galaxyComparisonPlot, galaxyParameterDifferences, galaxyComparisonCsv } from '../common/GalaxyComparison';
+import { GalaxyComparisonStore } from '../common/GalaxyComparisonStore';
 import { SphReference, SphReferenceSummary, SphComparisonPlot, sphComparisonPlot, sphReferenceSummary, sphParameterDifferences, sphComparisonCsv } from '../common/SphComparison';
 import { SphComparisonStore } from '../common/SphComparisonStore';
 import { sphPlot, sphCsv, sphMetricLabel, sphMetricIndex, sphMetricValue, sphWindowSummary, SphWindowSummary } from '../common/SphObservationModel';
@@ -143,6 +145,9 @@ struct Index {
   @State relaxationSeconds: number = 0;
   @State galaxyPlacing:boolean=false;
   @State galaxyPlacementOffset:number=12;
+  @State galaxyReference:GalaxyReference|undefined=undefined;
+  @State galaxyReferenceShown:boolean=true;
+  @State galaxyReferenceError:string='';
   @State galaxyMetric:number=0;
   @State galaxyObserved:GalaxyObservation={available:false,sceneRevision:0,selected:-1,samples:[]};
   private galaxyPlacementView:CameraState|undefined=undefined;
@@ -357,7 +362,7 @@ struct Index {
   }
   private directory(): string { return (this.getUIContext().getHostContext() as common.UIAbilityContext).filesDir; }
   aboutToAppear(): void {
-    this.refreshProjects();this.reloadReference();this.reloadSphReference();
+    this.refreshProjects();this.reloadReference();this.reloadSphReference();this.reloadGalaxyReference();
     loadSkyPanorama(this.getUIContext().getHostContext() as common.UIAbilityContext).catch((error:Error) => {this.skyLoadError=error.message;});
     this.prepare(false);
     CliBridge.bind((command: string, payload: CommandPayload) => this.execute(command,payload));
@@ -741,7 +746,23 @@ struct Index {
     const offset=simulation.placeGalaxyAt(x,y);this.galaxyPlacementOffset=offset;this.updateGalaxyPlacement();
   }
   private dragGalaxyPlacement(e:GestureEvent):void {const f=e.fingerList[0];if(e.fingerList.length!==1||!f||this.viewportWidth<=0||this.viewportHeight<=0)return;try{this.moveGalaxyPlacement(f.localX/this.viewportWidth,f.localY/this.viewportHeight);}catch(error){this.notice=String(error);}}
-  private galaxyView():ObservationPlot {return galaxyPlot(this.galaxyObserved,this.galaxyMetric);}
+  private galaxyComparisonView():GalaxyComparisonPlot {return galaxyComparisonPlot(this.galaxyObserved,this.galaxyMetric,this.galaxyReferenceShown?this.galaxyReference?.data:undefined);}
+  private galaxyView():ObservationPlot {return this.galaxyComparisonView().plot;}
+  private galaxyDifferences():string[] {return this.galaxyReference?galaxyParameterDifferences(this.galaxyObserved,this.galaxyReference.data):[];}
+  private reloadGalaxyReference():void {
+    try{this.galaxyReference=GalaxyComparisonStore.load(this.directory());this.galaxyReferenceError='';}
+    catch(e){this.galaxyReference=undefined;this.galaxyReferenceError='无法读取星系参照 · '+String(e);}
+  }
+  private captureGalaxyReference():void {
+    const data=simulation.galaxyObservation();
+    const value:GalaxyReference={schemaVersion:1,capturedAt:Date.now(),title:this.title,model:'galaxy-tidal-restricted-v1',data:data};
+    try{this.galaxyReference=GalaxyComparisonStore.save(this.directory(),value);this.galaxyReferenceShown=true;this.galaxyReferenceError='';this.notice='已保留星系结果 · 换参数后可叠加比较';}
+    catch(e){this.galaxyReferenceError='保存星系参照失败 · '+String(e);throw new Error(this.galaxyReferenceError);}
+  }
+  private clearGalaxyReference():void {
+    try{GalaxyComparisonStore.clear(this.directory());this.galaxyReference=undefined;this.galaxyReferenceError='';this.notice='已移除参照 · 当前星系实验保留';}
+    catch(e){this.galaxyReferenceError='移除星系参照失败 · '+String(e);throw new Error(this.galaxyReferenceError);}
+  }
   private seekGalaxyExtreme(maximum:boolean):void {
     const p=this.galaxyView();if(!p.available)throw new Error('暂无星系记录');
     simulation.seekGalaxyObservation(maximum?p.maxFrame:p.minFrame,this.galaxyObserved.sceneRevision,maximum?p.maxTime:p.minTime);this.playing=false;this.info=simulation.status();this.refreshObservation();this.notice='已定位保留记录的'+(maximum?'最大值':'最小值');
@@ -988,6 +1009,9 @@ struct Index {
     for(const seconds of [0,16,64])add('scene.relax.'+seconds,seconds===0?'直接生成':'预松弛 '+seconds+' 秒',this.preset<3&&(seconds===0||this.selfGravity),this.relaxationSeconds===seconds);
     add('galaxy.place','在星图调整相遇',this.preset===6&&this.info.frames>0&&this.info.state!=='preparing');
     add('galaxy.place.cancel','取消相遇调整',this.galaxyPlacing);add('galaxy.place.confirm','确认相遇初态',this.galaxyPlacing);
+    add('galaxy.reference.capture',this.galaxyReference?'替换星系参照':'保存星系参照',this.galaxyObserved.available&&this.galaxyObserved.samples.length>=2);
+    add('galaxy.reference.toggle',this.galaxyReferenceShown?'隐藏星系参照':'显示星系参照',this.galaxyReference!==undefined,this.galaxyReferenceShown);
+    add('galaxy.reference.clear','移除星系参照',this.galaxyReference!==undefined||this.galaxyReferenceError!=='');add('galaxy.reference.reload','重读星系参照',true);
     for(let i=0;i<5;i++)add('galaxy.metric.'+i,GALAXY_METRICS[i],this.preset===6,this.galaxyMetric===i);
     add('galaxy.minimum','记录最小',this.preset===6&&this.galaxyView().available);add('galaxy.maximum','记录最大',this.preset===6&&this.galaxyView().available);
     add('galaxy.retrograde','反转次星系旋转',this.preset===6,this.galaxyRetrograde);
@@ -1089,6 +1113,10 @@ struct Index {
     else if(action==='galaxy.place')this.beginGalaxyPlacement();
     else if(action==='galaxy.place.cancel')this.cancelGalaxyPlacement();
     else if(action==='galaxy.place.confirm')this.confirmGalaxyPlacement();
+    else if(action==='galaxy.reference.capture')this.captureGalaxyReference();
+    else if(action==='galaxy.reference.toggle')this.galaxyReferenceShown=!this.galaxyReferenceShown;
+    else if(action==='galaxy.reference.clear')this.clearGalaxyReference();
+    else if(action==='galaxy.reference.reload'){this.reloadGalaxyReference();if(this.galaxyReferenceError!=='')throw new Error(this.galaxyReferenceError);}
     else if(action.startsWith('galaxy.metric.')){this.galaxyMetric=Number(action.slice(14));this.refreshObservation();}
     else if(action==='galaxy.minimum'||action==='galaxy.maximum')this.seekGalaxyExtreme(action==='galaxy.maximum');
     else if(action==='galaxy.retrograde'){this.galaxyRetrograde=!this.galaxyRetrograde;this.dirty=true;}
@@ -1223,6 +1251,9 @@ struct Index {
       {name:'cancelCameraMotion',payload:'{requestId?:number}; stops only that request; stale cancellation cannot stop a newer flight'},
       {name:'navigateCamera',payload:'{focus:number,closeup?:boolean,yaw?:number,pitch?:number,zoom?:number,durationMs?:0..3000}; explicit continuous flight, request ID in cameraMotion'},
       {name:'getGalaxyObservation',payload:'{} - coherent recorded galaxy samples, applied parameters and selected curve; time Myr'},
+      {name:'getGalaxyReference',payload:'{} - locally retained galaxy result with applied parameters and original samples'},
+      {name:'getGalaxyComparison',payload:'{} - shared Myr axes, parameter differences and interpolated cursor delta; no extrapolation'},
+      {name:'getGalaxyComparisonTable',payload:'{} - both raw series, 19-column CSV with applied parameters; outer fractions remain 0..1'},
       {name:'getGalaxyTable',payload:'{} - CSV of every retained galaxy frame with model, initial parameters, units and center-only normalized errors'},
       {name:'getGalaxyPlacement',payload:'{} - active constrained initial offset preview; original history remains untouched'},
       {name:'setGalaxyPlacementPoint',payload:'{x:0..1,y:0..1} - displayed viewport point projected onto XY offset rail; X separation fixed 60 kpc, offset clamped 0..30 kpc'},
@@ -1298,7 +1329,10 @@ struct Index {
     if(command==='getSphTable'){const data:SphObservation=simulation.sphObservation(),config:SimulationConfig|undefined=simulation.status().config;if(simulation.sphObservation().sceneRevision!==data.sceneRevision)throw new Error('场景已变化，请重试导出');return JSON.stringify({ok:true,rows:data.samples.length,timeUnit:'s',sceneRevision:data.sceneRevision,config,csv:sphCsv(data)});}
     if(command==='getGalaxyPlacement')return JSON.stringify({ok:true,placement:this.galaxyPlacementState(),projection:simulation.projectedScene()});
     if(command==='setGalaxyPlacementPoint'){this.moveGalaxyPlacement(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,placement:this.galaxyPlacementState()});}
-    if(command==='getGalaxyObservation'){this.galaxyObserved=simulation.galaxyObservation();return JSON.stringify({ok:true,timeUnit:'Myr',data:this.galaxyObserved,metric:this.galaxyMetric,label:GALAXY_METRICS[this.galaxyMetric],plot:this.galaxyView()});}
+    if(command==='getGalaxyObservation'){this.galaxyObserved=simulation.galaxyObservation();return JSON.stringify({ok:true,timeUnit:'Myr',data:this.galaxyObserved,metric:this.galaxyMetric,label:GALAXY_METRICS[this.galaxyMetric],plot:galaxyPlot(this.galaxyObserved,this.galaxyMetric)});}
+    if(command==='getGalaxyReference')return JSON.stringify({ok:true,reference:this.galaxyReference??null,error:this.galaxyReferenceError});
+    if(command==='getGalaxyComparison'){this.galaxyObserved=simulation.galaxyObservation();return JSON.stringify({ok:true,metric:this.galaxyMetric,visible:this.galaxyReferenceShown,timeUnit:'Myr',timeAlignment:'simulation-start',current:this.galaxyObserved,reference:this.galaxyReference??null,differences:this.galaxyDifferences(),chart:this.galaxyComparisonView(),error:this.galaxyReferenceError});}
+    if(command==='getGalaxyComparisonTable'){const data=simulation.galaxyObservation(),csv=galaxyComparisonCsv(data,this.galaxyReference?.data);return JSON.stringify({ok:true,timeUnit:'Myr',timeAlignment:'simulation-start',csv,rows:data.samples.length+(this.galaxyReference?.data.samples.length??0),currentAvailable:data.available,currentSceneRevision:data.sceneRevision,currentParameters:data.parameters,reference:this.galaxyReference??null,error:this.galaxyReferenceError,scope:'raw recorded samples; outer fractions 0..1; no interpolation or extrapolation'});}
     if(command==='getGalaxyTable'){const data=simulation.galaxyObservation();return JSON.stringify({ok:true,available:data.available,sceneRevision:data.sceneRevision,selected:data.selected,model:data.available?'galaxy-tidal-restricted-v1':undefined,parameters:data.parameters,timeUnit:'Myr',rows:data.samples.length,csv:galaxyCsv(data),scope:'two softened centers and massless origin tracers; outer fractions are not unbound mass; recorded samples without interpolation'});}
     if(command==='getGalaxyDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,available:state.galaxy!==undefined,model:state.model,time:state.time,timeUnit:state.timeUnit,selected:state.selected,frames:state.frames,config:state.config,diagnostics:state.galaxy,centerEnergyError:state.galaxy?state.energyError:undefined,centerAngularError:state.galaxy?state.angularError:undefined});}
     if(command==='getSphDiagnostics'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,time:state.time,timeUnit:state.timeUnit??'s',selected:state.selected,frameCount:state.frames,model:state.model,config:state.config,diagnostics:state.sph??{available:false},source:'OpenSPH Storage PRESSURE/ENERGY/DAMAGE; effective damage = stored root cubed; means mass-weighted'});}
@@ -2032,10 +2066,12 @@ struct Index {
       }
       if(this.galaxyView().available){
         Text(this.galaxyView().current.toPrecision(4)+' '+this.galaxyView().unit+' · '+this.galaxyView().currentTime.toFixed(1)+' Myr').id('galaxy-curve-current').fontSize(12).fontColor('#A9E1EF')
+        if(this.galaxyComparisonView().referenceVisible){Text('青色 · 当前　金色 · 参照').id('galaxy-comparison-legend').fontSize(10).fontColor('#EBC08B').width('100%')}
         Text(this.galaxyView().high.toPrecision(4)+' '+this.galaxyView().unit).fontSize(10).fontColor('#ABA6C0')
         Stack({alignContent:Alignment.TopStart}) {
           Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath('M0 0 L240 0 M0 50 L240 50 M0 100 L240 100')).stroke('#414055').strokeWidth(1).fillOpacity(0)
           Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.galaxyView().path)).stroke('#A9E1EF').strokeWidth(2).fillOpacity(0)
+          if(this.galaxyComparisonView().referenceVisible){Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.galaxyComparisonView().referencePath)).stroke('#EBC08B').strokeWidth(2).fillOpacity(0)}
           Path().width(this.observationWidth()).height(this.observationWidth()*100/240).commands(this.observationPath(this.galaxyView().cursorPath)).stroke('#CDB9F0').strokeWidth(1).fillOpacity(0)
         }.id('galaxy-curve-plot').width(this.observationWidth()).height(this.observationWidth()*100/240).clip(true)
         Text(this.galaxyView().low.toPrecision(4)+' '+this.galaxyView().unit+' · '+this.galaxyView().firstTime.toFixed(1)+'–'+this.galaxyView().lastTime.toFixed(1)+' Myr').fontSize(10).fontColor('#ABA6C0')
@@ -2044,6 +2080,33 @@ struct Index {
           ChoiceChip({label:'记录最大',onPress:()=>{this.press('galaxy.maximum');}})
         }
         Text('仅定位已记录的采样极值；外延比例不等于逃逸质量。').fontSize(10).fontColor('#ABA6C0')
+      }
+    }.width('100%')
+  }
+  @Builder
+  galaxyReferenceControls() {
+    Column({space:7}) {
+      Button(this.galaxyReference?'替换为本次结果':'保存本次作参照',{type:ButtonType.Normal}).id('galaxy-reference-capture').width('100%').height(36).borderRadius(18).fontSize(12).backgroundColor('#334F416E').fontColor('#D9CCF5')
+        .enabled(this.galaxyObserved.available&&this.galaxyObserved.samples.length>=2&&!this.ioBusy).onClick(()=>{this.press('galaxy.reference.capture');})
+      if(this.galaxyReference){
+        Text('参照 · '+this.galaxyReference.title).id('galaxy-reference-title').fontSize(12).fontColor('#EBC08B').width('100%')
+        Text(this.galaxyReference.data.samples.length+' 帧 · '+this.galaxyReference.data.samples[0].time.toFixed(1)+'–'+this.galaxyReference.data.samples[this.galaxyReference.data.samples.length-1].time.toFixed(1)+' Myr').fontSize(10).fontColor('#B8AFA7').width('100%')
+        Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(6)}}){
+          ChoiceChip({label:this.galaxyReferenceShown?'隐藏参照':'显示参照',active:this.galaxyReferenceShown,onPress:()=>{this.press('galaxy.reference.toggle');}}).id('galaxy-reference-toggle')
+          ChoiceChip({label:'移除参照',onPress:()=>{this.press('galaxy.reference.clear');}}).id('galaxy-reference-clear')
+        }.width('100%')
+        if(this.galaxyReferenceShown){Text(this.galaxyComparisonView().deltaReady?'当前 − 参照 '+this.galaxyComparisonView().delta!.toPrecision(4)+(this.galaxyMetric>=3?' 个百分点':' kpc')+' · 参照按当前时刻线性插值':this.galaxyComparisonView().reason).id('galaxy-comparison-delta').fontSize(10).fontColor('#B7C5D5').lineHeight(16).width('100%')}
+        Text('参数差异 · 参照 → 当前已应用').fontSize(11).fontColor('#DCCEF3').width('100%')
+        if(this.galaxyDifferences().length===0){Text('已记录的初始参数相同').fontSize(10).fontColor('#ABA6C0').width('100%')}
+        ForEach(this.galaxyDifferences(),(difference:string)=>{Text(difference).fontSize(10).fontColor('#B8AFA7').lineHeight(16).width('100%')},(difference:string):string=>difference)
+        Text('按各自开始后的 Myr 对齐；点数是采样预算，不改变引力质量。多项参数同时变化时，曲线不能单独归因。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+      }
+      if(this.galaxyReferenceError!==''){
+        Text(this.galaxyReferenceError).fontSize(10).fontColor('#F4A993').width('100%')
+        Row({space:6}){
+          ChoiceChip({label:'重试读取',onPress:()=>{this.press('galaxy.reference.reload');}})
+          ChoiceChip({label:'移除参照',onPress:()=>{this.press('galaxy.reference.clear');}})
+        }
       }
     }.width('100%')
   }
@@ -2068,6 +2131,7 @@ struct Index {
   galaxyObservation() {
     Column({space:8}) {
       this.galaxyCurveControls()
+      this.galaxyReferenceControls()
       Text('潮汐正在改变什么').fontSize(15).fontColor('#E2EEF5').width('100%')
       if(this.info.galaxy){
         MetricRow({label:'两个中心相距',value:this.info.galaxy.separationKpc.toFixed(2)+' kpc'})

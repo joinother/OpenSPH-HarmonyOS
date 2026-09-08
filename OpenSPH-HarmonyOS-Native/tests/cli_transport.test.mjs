@@ -72,10 +72,12 @@ function page() {
   vm.runInNewContext('(function(){'+ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/SphObservationModel.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText+'})()',modelContext);
   vm.runInNewContext('(function(){'+ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/ObservationComparison.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText+'})()',modelContext);
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/ExperimentCatalog.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
+  vm.runInNewContext('(function(){'+ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/GalaxyComparison.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText+'})()',modelContext);
   const projects=new Map();
   const ProjectStore={list:()=>[...projects.values()],load:(_dir,id)=>{const p=projects.get(id);if(!p)throw Error('missing project');modelContext.exports.validateScene(p.scene);if(p.recipe!==undefined)modelContext.exports.validateRecipe(p.recipe,p.scene);return structuredClone(p);},save:(_dir,scene,recipe)=>{modelContext.exports.validateScene(scene);modelContext.exports.validateRecipe(recipe,scene);const p=structuredClone({id:'project-1-'+projects.size,savedAt:1,scene,recipe});projects.set(p.id,p);return p;}};
   let reference;const ObservationStore={load:()=>{if(state.rejectReferenceLoad)throw Error('bad reference file');return reference;},save:(_dir,value)=>{if(state.rejectReferenceSave)throw Error('disk full');reference=modelContext.exports.copyReference(value);return reference;},clear:()=>{if(state.rejectReferenceClear)throw Error('permission denied');reference=undefined;}};
-  const context={exports:{},...modelContext.exports,ObservationStore,ProjectStore,simulation,Scroller:class {scrollEdge(){}},Edge:{Top:0},Curve:{EaseOut:0},setInterval,clearInterval,console};
+  let galaxyReference;const GalaxyComparisonStore={load:()=>{if(state.rejectGalaxyLoad)throw Error('bad file');return structuredClone(galaxyReference);},save:(_dir,value)=>{if(state.rejectGalaxySave)throw Error('disk full');galaxyReference=modelContext.exports.copyGalaxyReference(value);return structuredClone(galaxyReference);},clear:()=>{if(state.rejectGalaxyClear)throw Error('denied');galaxyReference=undefined;}};
+  const context={exports:{},...modelContext.exports,GalaxyComparisonStore,ObservationStore,ProjectStore,simulation,Scroller:class {scrollEdge(){}},Edge:{Top:0},Curve:{EaseOut:0},setInterval,clearInterval,console};
   vm.runInNewContext(ts.transpileModule(transformed,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,context);
   const page=new context.exports.Index();
   page.getUIContext=()=>({px2vp:v=>v,getHostContext:()=>({filesDir:'/mock'}),animateTo:(opts,apply)=>{apply();opts.onFinish?.();}});
@@ -971,4 +973,21 @@ test('galaxy placement leaves offset unchanged for two-finger input while one-fi
  const {page:app,state}=page();app.choose(6);state.state='paused';state.frames=1;app.info={...state};await app.execute('uiAction',{action:'galaxy.place'});app.viewportWidth=800;app.viewportHeight=600;
  const original=app.galaxyPlacementOffset;app.dragGalaxyPlacement({fingerList:[{localX:400,localY:300},{localX:500,localY:300}]});assert.equal(app.galaxyPlacementOffset,original);
  app.dragGalaxyPlacement({fingerList:[{localX:400,localY:300}]});assert.equal(app.galaxyPlacementOffset,22);
+});
+
+test('galaxy reference actions use applied snapshot, survive scene changes, and preserve old data on I/O failure',async()=>{
+ const {page:app,state,calls}=page();app.preset=6;app.speed=1;app.duration=800;app.title='顺行参照';
+ state.galaxyObservation={available:true,sceneRevision:7,selected:1,parameters:{count:1600,seed:1234,speed:1,inclination:25,duration:800,massRatio:.6,offset:12,retrograde:false},samples:[{frame:0,time:0,values:[60,8,7,0,0],energyError:0,angularError:0},{frame:1,time:4,values:[59,9,8,.1,.2],energyError:0,angularError:0}]};
+ app.galaxyOffsetKpc=30;app.dirty=true;await app.execute('uiAction',{action:'galaxy.reference.capture'});
+ const original=JSON.parse(await app.execute('getGalaxyReference',{})).reference;assert.equal(original.data.parameters.offset,12);assert.equal(app.dirty,true);assert.equal(calls.length,0);
+ state.galaxyObservation.parameters.retrograde=true;state.galaxyObservation.samples[1].values[4]=.3;
+ const comparison=JSON.parse(await app.execute('getGalaxyComparison',{}));assert.deepEqual(comparison.differences,['次盘自转：顺行 → 逆行']);assert.equal(comparison.chart.referenceVisible,true);
+ const raw=JSON.parse(await app.execute('getGalaxyComparisonTable',{}));assert.equal(raw.rows,4);assert.equal(raw.csv.trim().split('\n')[0].split(',').length,19);
+ await app.execute('uiAction',{action:'galaxy.reference.toggle'});assert.equal(JSON.parse(await app.execute('getGalaxyComparison',{})).chart.referenceVisible,false);assert.equal(JSON.parse(await app.execute('getGalaxyComparisonTable',{})).csv,raw.csv);
+ state.rejectGalaxySave=true;await assert.rejects(app.execute('uiAction',{action:'galaxy.reference.capture'}));assert.deepEqual(JSON.parse(await app.execute('getGalaxyReference',{})).reference,original);state.rejectGalaxySave=false;
+ state.rejectGalaxyClear=true;await assert.rejects(app.execute('uiAction',{action:'galaxy.reference.clear'}));assert.deepEqual(JSON.parse(await app.execute('getGalaxyReference',{})).reference,original);state.rejectGalaxyClear=false;
+ app.galaxyReference=undefined;await app.execute('uiAction',{action:'galaxy.reference.reload'});assert.deepEqual(JSON.parse(await app.execute('getGalaxyReference',{})).reference,original);
+ app.preset=0;app.speed=2;app.duration=90;state.galaxyObservation={available:false,sceneRevision:8,selected:-1,samples:[]};await assert.rejects(app.execute('uiAction',{action:'galaxy.reference.capture'}));assert.equal(JSON.parse(await app.execute('getGalaxyComparisonTable',{})).rows,2);
+ state.rejectGalaxyLoad=true;await assert.rejects(app.execute('uiAction',{action:'galaxy.reference.reload'}));assert.equal(app.galaxyReference,undefined);assert.match(app.galaxyReferenceError,/bad file/);state.rejectGalaxyLoad=false;
+ await app.execute('uiAction',{action:'galaxy.reference.reload'});await app.execute('uiAction',{action:'galaxy.reference.clear'});assert.equal(JSON.parse(await app.execute('getGalaxyReference',{})).reference,null);assert.equal(calls.length,0);
 });

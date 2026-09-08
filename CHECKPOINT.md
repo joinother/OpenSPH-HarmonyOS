@@ -1,6 +1,6 @@
 # 星体实验室 GitHub 检查点
 
-记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.44.0。
+记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.45.0。
 
 ## 恢复开发
 
@@ -17,6 +17,8 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 构建需要 DevEco Studio 与 HarmonyOS SDK；安装请遵循工程 README，当前任务只操作模拟器 127.0.0.1:5555。签名配置、依赖缓存、构建目录和发布二进制不纳入源码检查点。
 
 ## 保存范围与验证
+
+- 0.45.0 补星系本地参照、五指标共轴曲线、已应用初值差异和 19 列双实验导出。144 项主机检查、实际 352 行原生对照、冷启动与坏文件恢复、三布局滚动和原 UI 回归通过；原慢撞暂停初态、保存槽和命名实验恢复。物理求解器保持原定义，见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.45.0.md)。
 
 - 0.44.0 接入星图相遇偏移预览、取消／确认、五条演化曲线、过期定位保护和原始诊断 CSV。134 项主机检查、288 组主机／ARM64／内存投影检查、原生新旧引擎、实际 201 行数据逐项核对、三布局拖动／滚动及项目回归通过；原回放、保存槽和 10 个项目恢复。初始 X 距离固定 60 kpc，仍无任意位置／速度或新的自洽物理模型，见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.44.0.md)。
 
@@ -53,7 +55,7 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 
 ## 继续工作
 
-当前实施状态以 [预研实施顺序](OpenSPH-HarmonyOS-Native/docs/reference/RESEARCH-IMPLEMENTATION.md) 为准。0.44.0 已完成受约束的星系相遇偏移预览、曲线和诊断 CSV；接下来补任意位置／速度的初态定义和文件选择器，再评估带质量盘／暗晕、气体云，行星轨道到局部 SPH 仍是另一条物理主线。以下按原日期保留历史调研记录。
+当前实施状态以 [预研实施顺序](OpenSPH-HarmonyOS-Native/docs/reference/RESEARCH-IMPLEMENTATION.md) 为准。0.45.0 已完成受约束的星系相遇偏移预览、曲线、本地参照和双实验诊断 CSV；接下来补任意位置／速度的初态定义和文件选择器，再评估带质量盘／暗晕、气体云，行星轨道到局部 SPH 仍是另一条物理主线。以下按原日期保留历史调研记录。
 
 2026-09-07 增加 [天体程序化生成调研](OpenSPH-HarmonyOS-Native/docs/research/PROCEDURAL-CELESTIAL-GENERATION-2026-09-07.md)：固定 NPGS 提交并选读 10 份文件，比较 9 个开源候选，另选读 Solar-System 陨坑相关 3 份源码，核对 3 份华为 MCP 文档。形成外观 seed／地貌／大气、系统初值与黑洞的分批路线和 8 个预设；视频仅阅读索引，未播放，作者主页目录访问受限。此次仅更新文档和来源证据，应用仍为 0.31.0。
 

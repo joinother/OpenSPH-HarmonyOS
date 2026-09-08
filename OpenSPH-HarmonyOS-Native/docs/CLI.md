@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.44.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.45.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -37,6 +37,24 @@ python3 -c 'import json,pathlib; d=json.loads(pathlib.Path("galaxy-table.json").
 ```
 
 此导出包含记录中的诊断序列，没有逐恒星坐标／速度，也没有系统文件选择器。详细列定义和初态约束见 [星系参考](reference/GALACTIC-TIDES.md)。
+
+### 本地星系参照
+
+观察面板与 CLI 共用 `galaxy.reference.capture`（至少两帧）、`galaxy.reference.toggle`、`galaxy.reference.clear`、`galaxy.reference.reload`。保留一个参照，跨切换／重启加载；写入失败保留旧参照，损坏文件显示错误且不自动删除。参数来源为原生原子快照，未确认的草稿不进入参照。
+
+`getGalaxyReference` 返回参照；`getGalaxyComparison` 返回五指标之一的共享坐标、当前数据、保存数据、已应用参数差异与当前时刻差值。时间按实验开始后的 Myr 对齐，仅在参照范围内插值；超出范围不外推。界面比例差用百分点。`getGalaxyObservation` 保留原单实验含义，极值按钮只定位当前记录。
+
+`getGalaxyComparisonTable` 返回两组原始 CSV，19 列＝series 加原 18 列，每行含所属实验的已应用参数。比例为 0–1；不插值、不因隐藏曲线丢弃参照。只有参照时返回 `currentAvailable:false`；`error` 字段说明参照读取错误，不能当作没有差异。
+
+```sh
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"galaxy.reference.capture"}'
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"theme.compare"}' --wait-state paused
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command start --wait-state completed
+node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getGalaxyComparisonTable > galaxy-comparison.json
+python3 -c 'import json; from pathlib import Path; d=json.loads(Path("galaxy-comparison.json").read_text()); assert d["ok"] and not d["error"]; p=Path("galaxy-comparison.csv"); p.open("x").write(d["csv"])'
+```
+
+上例先运行“两条潮汐尾”得到至少两帧再保存，`theme.compare` 需要当前实验属于带对照的主题。JSON 保留参照名称与捕获时间，CSV 中参数列对应每组真实记录。文件名已有时示例拒绝覆盖。当前没有系统文件选择器或多参照管理。
 
 ## 状态与通用交互
 

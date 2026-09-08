@@ -1,16 +1,16 @@
 # 文档目录
 
-> 类型：当前文档索引；源码版本：0.44.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前文档索引；源码版本：0.45.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 先阅读 [项目概览](../README.md)，操作应用使用 [CLI 指南](CLI.md)，维护资料遵循 [文档流程](WORKFLOW.md) 和 [开发约定](../AGENTS.md)。本目录区分当前说明与历史记录；归档内容不覆盖当前规则。
 
-最新版本：[0.44.0 星图相遇预览与演化记录](releases/RELEASE-0.44.0.md)。
+最新版本：[0.45.0 星系实验对照](releases/RELEASE-0.45.0.md)。
 
 ## 当前参考
 
 | 文档 | 用途 |
 | --- | --- |
-| [星系潮汐模型](reference/GALACTIC-TIDES.md) | 扩展引力势、受约束相遇预览、五条曲线、CSV、kpc／Myr 与 v12 边界 |
+| [星系潮汐模型](reference/GALACTIC-TIDES.md) | 扩展引力势、受约束相遇预览、五条曲线、本地对照、CSV、kpc／Myr 与 v12 边界 |
 | [球体接触模型](reference/SPHERE-CONTACT.md) | 实体半径、扫掠接触、弹性响应、近距回放与 v11 边界 |
 | [主星图放置与碰撞接入](reference/VIEWPORT-PLACEMENT.md) | 屏幕坐标、倾斜平面、取消事务、定向发射及实体接触缺口 |
 | [预研实施核对](reference/RESEARCH-IMPLEMENTATION.md) | 预研建议与已交付能力、部分实现和未完成主线的对应 |
@@ -51,6 +51,7 @@
 
 | 版本 | 主题 |
 | --- | --- |
+| [0.45.0](releases/RELEASE-0.45.0.md) | 星系本地参照、共享曲线与双实验导出 |
 | [0.44.0](releases/RELEASE-0.44.0.md) | 星图相遇预览、演化曲线与原始数据导出 |
 | [0.43.0](releases/RELEASE-0.43.0.md) | 星系潮汐相遇、旋转对照与独立尺度 |
 | [0.42.0](releases/RELEASE-0.42.0.md) | 实体半径与理想弹性接触 |
