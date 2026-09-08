@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "restored": true,
+  "originalState": "replay",
+  "restoredState": "paused",
+  "time": 0,
+  "frames": 1,
+  "bodyStatesMatch": true,
+  "exactVelocitiesAvailable": true,
+  "projects": 10,
+  "videoClips": 1,
+  "savedSlotSha256": "6dcabbd5e2c4e55f11b7401c88f305b3559e423e26048febb2d71991a3a3daaf",
+  "note": "Original zero-time recipe reconstructed with identical visible body states and exact velocities; original saved replay slot is byte-identical; only own temporary project removed"
+}

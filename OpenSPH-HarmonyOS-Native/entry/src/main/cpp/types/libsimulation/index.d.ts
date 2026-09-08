@@ -19,6 +19,7 @@ export const setGalaxyPlacement:(enabled:boolean,count:number,seed:number,speed:
 export const placeGalaxyAt:(x:number,y:number)=>number;
 export interface GalaxyDiagnostics {separationKpc:number;primaryRmsKpc:number;secondaryRmsKpc:number;primaryOuterFraction:number;secondaryOuterFraction:number;energyScope:string;outerScope:string;}
 export interface SimulationStatus {
+  orbitState?:OrbitBodyConfig[];orbitRevision?:number;continuous?:boolean;daysPerSecond?:number;actualDaysPerSecond?:number;
   galaxy?:GalaxyDiagnostics;
   contact?:OrbitContactStatus;
   preparation?:PreparationStatus;
@@ -98,3 +99,7 @@ export const galaxyObserverStatus:()=>GalaxyObserverStatus;
 export interface VideoOutputStatus {attached:boolean;pending:boolean;frames:number;width:number;height:number;error:string;}
 export const setVideoOutput:(id:string,width:number,height:number)=>void;
 export const videoOutputStatus:()=>VideoOutputStatus;
+
+export const orbitClock:(daysPerSecond:number)=>void;
+export const freezeOrbit:()=>void;
+export const insertOrbit:(body:OrbitBodyConfig,revision:number,resume:boolean)=>void;

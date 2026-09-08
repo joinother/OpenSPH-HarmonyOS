@@ -314,7 +314,10 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                     std::stable_sort(order.begin(),order.end(),[&](size_t i,size_t j){return drawDepth(i)<drawDepth(j);});
                     glDisable(GL_DEPTH_TEST);
                     for(size_t i:order){const auto &p=frame->particles[i];auto v=rotate(p.x-cx,p.y-cy,p.z-cz);
-                        const auto &star=frame->particles[0];auto light=rotate(star.x-p.x,star.y-p.y,star.z-p.z);
+                        size_t source=0;double flux=-1;
+                        for(size_t j=0;j<frame->particles.size();j++)if(j!=i&&frame->surfaces[j]==0){const auto& star=frame->particles[j];double d2=(star.x-p.x)*(star.x-p.x)+(star.y-p.y)*(star.y-p.y)+(star.z-p.z)*(star.z-p.z);double f=std::pow(double(star.density),3.5)/std::max(d2,1.e-12);if(f>flux){source=j;flux=f;}}
+                        // One dominant stellar light; multi-source atmosphere/scattering is a later model.
+                        const auto &star=frame->particles[source];auto light=rotate(star.x-p.x,star.y-p.y,star.z-p.z);
                         float len=std::sqrt(light[0]*light[0]+light[1]*light[1]+light[2]*light[2]);if(len<1.e-6f)light={-.4f,.5f,1.f};else for(auto &x:light)x/=len;
                         auto projectedBody=projectBody(c,int(i),v,w,h,blend,placing||contactDetail?0:journey.detail(int(i)));
                         if(contactDetail)projectedBody.radius=float(frame->radiiAU[i])/(2*projectionZoom);

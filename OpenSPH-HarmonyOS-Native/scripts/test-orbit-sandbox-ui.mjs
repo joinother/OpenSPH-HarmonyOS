@@ -1,0 +1,25 @@
+// This acceptance script replaces the active scene and the single replay slot; back them up first.
+import{execFileSync}from'node:child_process';import{writeFileSync,readFileSync,mkdirSync}from'node:fs';import{resolve}from'node:path';import{fileURLToPath}from'node:url';import assert from'node:assert/strict';
+const cli=fileURLToPath(new URL('./opensph-cli.mjs',import.meta.url));
+const h=(...args)=>execFileSync('/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/hdc',['-t',device,...args],{encoding:'utf8',timeout:60000});
+const call=(command,payload={},wait)=>{const args=[cli,'--device',device,'--timeout','60000','--command',command,'--payload-json',JSON.stringify(payload)];if(wait)args.push('--wait-state',wait);return JSON.parse(execFileSync(process.execPath,args,{encoding:'utf8',timeout:70000,maxBuffer:8*1024*1024}));};
+const device=process.argv[2],directory=process.argv[3];if(!device||!directory)throw Error('Explicit device and evidence directory required');
+const dir=resolve(directory)+'/';mkdirSync(dir,{recursive:true});
+const results=[];
+const run=(c,p={},wait)=>{const r=call(c,p,wait);assert.equal(r.ok,true,JSON.stringify(r));results.push({command:c,payload:p,result:r});return r;};
+run('listCommands');run('getUiState');
+run('uiAction',{action:'preset.4'},'paused');let s=run('getState');assert.equal(s.simulation.orbitState.length,4);assert.equal(s.simulation.time,0);
+run('uiAction',{action:'time.rate.100'});run('start');
+const deadline=Date.now()+90000;do{s=run('getState');if(Date.now()>deadline)throw Error('Continuous clock did not pass original end');}while(s.simulation.time<=3.01);
+run('pause');const frozen=run('getState');s=run('getState');assert.equal(s.simulation.time,frozen.simulation.time);assert.equal(s.simulation.state,'paused');
+run('uiAction',{action:'orbit.add'});const before=run('getState');const original=structuredClone(before.simulation.orbitState);
+run('uiAction',{action:'placement.surface.0'});run('uiAction',{action:'placement.still'});let preview=run('getPlacementPreview');assert.equal(preview.preview.valid,true);assert.equal(preview.preview.body.massSolar,1);
+run('uiAction',{action:'placement.confirm'});s=run('getState');assert.equal(s.simulation.time,before.simulation.time);assert.deepEqual(s.simulation.orbitState.slice(0,4),original);assert.equal(s.simulation.orbitState[4].surface,0);assert.equal(s.simulation.frames,240);
+run('uiAction',{action:'time.rate.1'});run('saveReplay');run('loadReplay');const loaded=run('getState');assert.equal(loaded.simulation.time,s.simulation.time);assert.deepEqual(loaded.simulation.orbitState,s.simulation.orbitState);
+run('start');s=run('getState');assert.ok(s.simulation.time>loaded.simulation.time);run('pause');
+run('uiAction',{action:'orbit.add'});preview=run('getPlacementPreview');assert.equal(preview.preview.valid,true);run('uiAction',{action:'placement.escape'});run('uiAction',{action:'placement.target.1'});preview=run('getPlacementPreview');assert.equal(preview.preview.valid,true);run('uiAction',{action:'placement.cancel'});
+run('uiAction',{action:'ui.restore'});run('setCamera',{yaw:.15,pitch:.25,zoom:5,focus:-1,color:0});run('setPanel',{panel:-1});
+h('shell','snapshot_display','-f','/data/local/tmp/sandbox-0.49.0.jpeg');h('file','recv','/data/local/tmp/sandbox-0.49.0.jpeg',dir+'device.jpeg');
+assert.ok(readFileSync(dir+'device.jpeg').length>1000);
+writeFileSync(dir+'device-tests.json',JSON.stringify({ok:true,checks:['continuous beyond 3 years','stable pause','current-time insertion preserves exact original bodies','additional stellar mass','rolling 240 frames','v14 save/load/resume','aimed launch/cancel'],results},null,2));
+console.log('PASS device sandbox; time',s.simulation.time,'bodies',s.simulation.orbitState.length);

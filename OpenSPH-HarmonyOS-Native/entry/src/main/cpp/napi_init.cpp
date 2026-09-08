@@ -49,6 +49,22 @@ napi_value fail(napi_env e, const std::exception &ex) {
     napi_throw_error(e, nullptr, ex.what());
     return undef(e);
 }
+lab::OrbitSpec orbitSpec(napi_env e,napi_value b) {
+    napi_value name;napi_get_named_property(e,b,"name",&name);size_t len=0;
+    if(napi_get_value_string_utf8(e,name,nullptr,0,&len)!=napi_ok||len==0||len>192)throw std::invalid_argument("Invalid body name");
+    std::string text(len+1,'\0');napi_get_value_string_utf8(e,name,&text[0],len+1,&len);text.resize(len);
+    auto f=[&](const char* key){napi_value v;napi_get_named_property(e,b,key,&v);return number(e,v);};
+    const double style=f("surface");if(std::trunc(style)!=style)throw std::invalid_argument("Integer surface expected");
+    lab::OrbitSpec result{text,f("massSolar"),f("xAU"),f("yAU"),f("zAU"),f("vxKmS"),f("vyKmS"),f("vzKmS"),int(style)};
+    bool radius=false;napi_has_named_property(e,b,"radiusKm",&radius);if(radius)result.radiusKm=f("radiusKm");return result;
+}
+napi_value orbitValue(napi_env e,const lab::OrbitSpec& b) {
+    napi_value v;napi_create_object(e,&v);str(e,v,"name",b.name);num(e,v,"massSolar",b.massSolar);num(e,v,"xAU",b.xAU);num(e,v,"yAU",b.yAU);num(e,v,"zAU",b.zAU);
+    num(e,v,"vxKmS",b.vxKmS);num(e,v,"vyKmS",b.vyKmS);num(e,v,"vzKmS",b.vzKmS);num(e,v,"surface",b.surface);if(b.radiusKm>0)num(e,v,"radiusKm",b.radiusKm);return v;
+}
+napi_value orbitClock(napi_env e,napi_callback_info i) {try{auto a=args(e,i,1);lab::Engine::instance().orbitClock(number(e,a[0]));return undef(e);}catch(const std::exception& ex){return fail(e,ex);}}
+napi_value freezeOrbit(napi_env e,napi_callback_info) {try{lab::Engine::instance().freezeOrbit();return undef(e);}catch(const std::exception& ex){return fail(e,ex);}}
+napi_value insertOrbit(napi_env e,napi_callback_info i) {try{auto a=args(e,i,3);bool run=false;if(napi_get_value_bool(e,a[2],&run)!=napi_ok)throw std::invalid_argument("Boolean expected");const int rev=integer(e,a[1]);if(rev<0)throw std::invalid_argument("Invalid revision");lab::Engine::instance().insertOrbit(orbitSpec(e,a[0]),rev,run);return undef(e);}catch(const std::exception& ex){return fail(e,ex);}}
 napi_value videoOutput(napi_env e,napi_callback_info i) {
     try {auto a=args(e,i,3);size_t len=0;
         if(napi_get_value_string_utf8(e,a[0],nullptr,0,&len)!=napi_ok||len<1||len>20)throw std::invalid_argument("Invalid surface ID");
@@ -222,7 +238,7 @@ napi_value placement(napi_env e,napi_callback_info i){try{
     for(uint32_t k=0;k<n;++k){napi_value b;napi_get_element(e,a[0],k,&b);
         auto f=[&](const char* key){napi_value v;napi_get_named_property(e,b,key,&v);return number(e,v);};
         double style=f("surface");lab::OrbitSpec s{"preview",f("massSolar"),f("xAU"),f("yAU"),f("zAU"),f("vxKmS"),f("vyKmS"),f("vzKmS"),int(style)};
-        if(s.massSolar<=0||s.massSolar>10||std::abs(s.xAU)>10||std::abs(s.yAU)>10||std::abs(s.zAU)>10||std::hypot(s.vxKmS,std::hypot(s.vyKmS,s.vzKmS))>100||style<0||style>5||std::trunc(style)!=style)throw std::invalid_argument("Invalid preview body");
+        if(s.massSolar<=0||s.massSolar>10||std::abs(s.xAU)>1.e7||std::abs(s.yAU)>1.e7||std::abs(s.zAU)>1.e7||std::hypot(s.vxKmS,std::hypot(s.vyKmS,s.vzKmS))>1.e7||style<0||style>5||std::trunc(style)!=style)throw std::invalid_argument("Invalid preview body");
         bodies.push_back(s);
     }
     lab::setOrbitPlacement(bodies,candidate);return undef(e);
@@ -329,6 +345,8 @@ napi_value status(napi_env e, napi_callback_info) {
     num(e, o, "selected", s.selected);
     num(e, o, "time", s.time);
     num(e, o, "duration", s.duration);
+    napi_value clockFlag;napi_get_boolean(e,s.continuous,&clockFlag);napi_set_named_property(e,o,"continuous",clockFlag);num(e,o,"daysPerSecond",s.daysPerSecond);num(e,o,"actualDaysPerSecond",s.actualDaysPerSecond);num(e,o,"orbitRevision",s.orbitRevision);
+    napi_value exact;napi_create_array_with_length(e,s.orbitState.size(),&exact);for(size_t i=0;i<s.orbitState.size();i++)napi_set_element(e,exact,i,orbitValue(e,s.orbitState[i]));napi_set_named_property(e,o,"orbitState",exact);
     num(e, o, "stepMs", s.stepMs);
     num(e, o, "steps", s.steps);
     num(e, o, "maxSpeed", s.maxSpeed);
@@ -351,7 +369,7 @@ napi_value status(napi_env e, napi_callback_info) {
     napi_value bodies;napi_create_array_with_length(e,s.bodies.size(),&bodies);
     const char *names[]={"恒星","蓝色行星","金色行星","红色行星"};
     for(size_t i=0;i<s.bodies.size();++i){const auto &p=s.bodies[i];napi_value b;napi_create_object(e,&b);
-        str(e,b,"name",s.config.preset==5?s.config.orbitBodies[i].name:names[i]);num(e,b,"surface",s.config.preset==5?s.config.orbitBodies[i].surface:int(i));num(e,b,"id",i);num(e,b,"xAU",p.x);num(e,b,"yAU",p.y);num(e,b,"zAU",p.z);
+        str(e,b,"name",!s.orbitState.empty()?s.orbitState[i].name:(s.config.preset==5?s.config.orbitBodies[i].name:names[i]));num(e,b,"surface",!s.orbitState.empty()?s.orbitState[i].surface:(s.config.preset==5?s.config.orbitBodies[i].surface:int(i)));num(e,b,"id",i);num(e,b,"xAU",p.x);num(e,b,"yAU",p.y);num(e,b,"zAU",p.z);
         if(s.config.preset==5&&s.config.orbitBodies[i].radiusKm>0)num(e,b,"radiusKm",s.config.orbitBodies[i].radiusKm);num(e,b,"speedKmS",p.speed);num(e,b,"massSolar",p.density);napi_set_element(e,bodies,i,b);}
     napi_set_named_property(e,o,"bodies",bodies);
     if (s.configKnown) {
@@ -452,6 +470,9 @@ napi_value Init(napi_env e, napi_value exports) {
         {"followSphFragment",nullptr,followFragment,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"clearSphFragmentFollow",nullptr,clearFragmentFollow,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"renderStatus",nullptr,renderStatus,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"orbitClock",nullptr,orbitClock,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"freezeOrbit",nullptr,freezeOrbit,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"insertOrbit",nullptr,insertOrbit,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"startScene", nullptr, startScene, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"start", nullptr, start, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"pause", nullptr, pause, nullptr, nullptr, nullptr, napi_default, nullptr},

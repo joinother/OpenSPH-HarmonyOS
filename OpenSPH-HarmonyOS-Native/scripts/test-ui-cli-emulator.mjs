@@ -12,6 +12,7 @@ const temp=mkdtempSync(join(tmpdir(),'opensph-ui-cli-'));
 function call(command,payload={},wait){const args=[cli,'--device',device,'--timeout','60000','--command',command,'--payload-json',JSON.stringify(payload)];if(wait)args.push('--wait-state',wait);return JSON.parse(execFileSync(process.execPath,args,{encoding:'utf8',timeout:70000}));}
 const action=(id,wait)=>call('uiAction',{action:id},wait);
 try{
+  call('listCommands');call('getUiState');
   action('preset.5','paused');let catalog=call('getUiState');assert.ok(catalog.actions.length>45);assert.equal(catalog.fields.length,38);assert.ok(catalog.fields.some(f=>f.field==='trace.impulse'));assert.ok(catalog.fields.some(f=>f.field==='material.exposure'));
   action('orbit.add');action('placement.confirm','paused');const original=call('getState').definition.config.orbitBodies;
   call('setUiValue',{field:'orbit.name',value:'CLI 远洋'});call('setUiValue',{field:'orbit.value.0',value:'2'});
@@ -22,7 +23,7 @@ try{
   action('panel.parameters');action('ui.back');assert.equal(call('getState').ui.panelOpen,false);
   const cloudsBefore=call('getState').appearance.clouds;
   action('appearance.clouds');assert.equal(call('getState').appearance.clouds,!cloudsBefore);action('appearance.clouds');assert.equal(call('getState').appearance.clouds,cloudsBefore);
-  action('surface.toggle');call('setUiValue',{field:'scene.duration',value:1});action('simulation.apply','paused');action('simulation.toggle','completed');
+  action('surface.toggle');call('setUiValue',{field:'scene.duration',value:1});action('simulation.apply','paused');action('simulation.toggle','running');assert.equal(call('getState').simulation.continuous,true);call('pause',{},'paused');
   action('replay.toggle');assert.equal(call('getState').ui.playing,true);action('replay.toggle');assert.equal(call('getState').ui.playing,false);action('replay.latest');
   action('orbit.select.0');const before=call('getState').definition;const rejected=spawnSync(process.execPath,[cli,'--device',device,'--command','uiAction','--payload-json','{"action":"orbit.remove"}'],{encoding:'utf8'});assert.equal(rejected.status,2);assert.deepEqual(call('getState').definition,before);
   // Batch validates envelopes first, then stops on a runtime failure. Earlier steps are retained.

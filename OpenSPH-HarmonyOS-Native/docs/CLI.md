@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.48.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.49.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -106,9 +106,9 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command start --wait-state paused
 ```
 
-确认返回 `simulation.contact.count>0` 才表示接触已发生。接触后自动暂停在响应子步末尾，时间字段仍以儒略年为底层单位，事件额外提供秒；UI 的接触 HUD 与时间轴显示秒。继续会从当前积分状态前进，读取已保存回放后再开始则从初始条件重算。
+确认返回 `simulation.contact.count>0` 才表示接触已发生。接触后自动暂停在响应子步末尾，时间字段仍以儒略年为底层单位，事件额外提供秒；UI 的接触 HUD 与时间轴显示秒。继续会从当前积分状态前进，新版 v14 回放加载后可继续；旧 v11 仍只有观察数据。
 
-模型标识为 `nbody-hard-sphere-v1`；v11 保存配置半径及每帧累计次数／最近接触，旧格式仍按原模型载入。局部近看按实体半径绘制，概览仍放大标记；局部隐藏无碰撞含义的装饰环。理想弹性响应不是流体行星破裂，详见 [球体接触模型](reference/SPHERE-CONTACT.md)。
+模型标识为 `nbody-hard-sphere-v1`；新计算的 v14 保存完整轨道状态，兼容旧 v11 配置半径及每帧累计次数／最近接触，旧格式仍按原模型载入。局部近看按实体半径绘制，概览仍放大标记；局部隐藏无碰撞含义的装饰环。理想弹性响应不是流体行星破裂，详见 [球体接触模型](reference/SPHERE-CONTACT.md)。
 
 ## 准备、取消与等待
 
@@ -176,7 +176,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"orbit.discard"}'
 ```
 
-- `orbit.apply`、`orbit.remove` 和 `placement.confirm` 各记入一次成功的天体初始条件事务，最多保留最近 20 步。无效输入、取消放置不产生历史；成功提交新编辑后清除重做分支。
+- `orbit.apply`、`orbit.remove` 各记入一次成功的天体初始条件事务，最多保留最近 20 步。无效输入、取消放置不产生历史；成功提交新编辑后清除重做分支。
 - `orbit.undo`／`orbit.redo` 恢复天体初始参数、所选编辑对象和各天体草稿；重新创建暂停的初始帧，清空旧轨迹，不恢复历史物理检查点。镜头返回全景，实验时长等全局参数保持当前设置。
 - `orbit.discard` 只把当前天体输入还原为已应用值，不改变其他草稿、天体配置、镜头、回放进度或编辑历史。
 - `getState` 与 `getUiState` 的 `editor.drafts` 列出所有未应用草稿；`editor.history` 返回 undoCount、redoCount、undoLabel、redoLabel、limit 和 scope。草稿可以含暂时为空的数值，不能据此直接重建场景。
@@ -185,9 +185,9 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 验收脚本 `node scripts/test-edit-history-emulator.mjs 127.0.0.1:5555` 会改写开发模拟器的当前初始条件，切换折叠状态和窗口方向，生成测试截图；它不替代真实手势验收。
 
-## 放置行星
+## 当前时刻加入天体
 
-先打开自定义轨道场景，并通过动作目录确认 `orbit.add` 可用。
+先打开轨道预设 3、4 或 5，并通过动作目录确认 `orbit.add` 可用。
 
 ```sh
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"orbit.add"}'
@@ -196,23 +196,23 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command getPlacementPrevi
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"placement.confirm"}' --wait-state paused
 ```
 
-`orbit.add` 打开主星图初始时刻预览：原有天体和候选都按初始位置显示，求解器历史不替换。先等待 `getProjectedBodies.projection.ready/placement` 为 true，再发送视口点位。`placement.confirm` 才加入天体并从初始条件重建；`placement.cancel`、返回或关闭面板取消候选，保留原场景、历史与旧编辑草稿。放置期间部分实验操作禁用，应查询 enabled。确认会清空旧轨迹，保留已有天体的编辑草稿，并记入一步天体编辑历史。
+`orbit.add` 冻结当前可见帧并打开主星图预览。预设 3、4、5 均支持；旧回放缺少完整速度时禁用。`placement.confirm` 在同一时刻加入天体，保留原有位置、速度和历史；原先运行则恢复。取消恢复视角与草稿。确认清除初态编辑撤销历史，防止旧初态覆盖当前世界；在过去帧确认会建立新历史分支，取消则保留未来历史。详见 [连续沙盒](reference/ORBIT-SANDBOX.md)。
 
-- `placement.name` 与 `placement.value.0..4` 为字符串；五个值依次为地球质量倍数、距离 AU、方位角度、倾角角度、圆轨道速度倍数。
-- `placement.circular`、`placement.still`、`placement.escape`、`placement.reverse` 设置圆轨道、相对恒星静止、1.45 倍圆轨道速度及反向；`placement.surface.1..5` 设置表面。
+- `placement.name` 与 `placement.value.0..4` 为字符串；五个值依次为质量倍数（恒星采用太阳质量，其余采用地球质量）、距离 AU、方位角度、倾角角度、圆轨道速度倍数。
+- `placement.circular`、`placement.still`、`placement.escape`、`placement.reverse` 设置圆轨道、相对恒星静止、1.45 倍圆轨道速度及反向；`placement.surface.0..5` 设置恒星或行星外观。
 - `setViewportPlacementPoint {x,y}` 使用整个主视口内 0–1 坐标（左上原点），与主星图轻点／单指拖动共用原生投影逆变换。未呈现放置帧、屏幕尺寸正变化、轨道面接近侧视或距离越界时拒绝，不确认或改写实验。
 - `placement.options` 显示／收起数值抽屉，保留候选；`placement.align` 正对当前倾斜轨道面。双指缩放保持候选位置；放置时单指不旋转镜头。
-- `placement.target.N` 将相对恒星速度指向第 N 个天体的初始位置；目标可以是恒星 0。速度模长仍由速度倍数设置，反向切换指向外侧。不是预测拦截，不保证命中。圆轨道／静止／掠过动作退出瞄准。
+- `placement.target.N` 将相对恒星速度指向第 N 个天体的当前位置；目标可以是恒星 0。速度模长仍由速度倍数设置，反向切换指向外侧。不是预测拦截，不保证命中。圆轨道／静止／掠过动作退出瞄准。
 - `setPlacementPoint {x,y}` 保留辅助小图内 0–1 坐标，与小图轻点／拖动共用转换，不会自动确认。主视口与辅助小图坐标不能混用。
 - `getPlacementPreview` 返回 valid、error、完整候选初值、相对速度、圆轨道／逃逸速度、最近距离和解析引导路径；无效输入不能确认。
 
 `getProjectedBodies.projection` 增加 `placement` 和 `candidate`，表示最近呈现帧是否为放置预览、候选 ID（无有效候选为 −1）；time 为预览初始时刻 0，不能代替 `getState.simulation.time`。放置期间 `pickBody` 拒绝普通天体选择。
 
-圆轨道速度包含恒星与候选质量，候选速度叠加恒星原速度。紫线是二体解析引导，灰点是其他天体初始位置的平面投影。工具不在当前时刻注入天体。自定义系统限制为 2–8 天体、坐标 ±10 AU、速度模长不超过 100 km/s、初始间距至少 0.05 AU。
+圆轨道速度包含恒星与候选质量，候选速度叠加恒星原速度。紫线是二体解析引导，灰点是其他天体当前位置的平面投影。当前最多 8 个实体；新天体相对母星距离 0.05–10 AU，局部速度模长不超过 100 km/s；已有天体可继续演化越出初态编辑范围。
 
 ### 复制已有行星
 
-在自定义系统中用 `orbit.select.N` 选择行星，再执行 `orbit.copy`，对应编辑面板的“复制并放置”。仅行星可复制；满 8 个天体、放置中或 I/O 忙碌时禁用。复制读取已应用的质量与表面，保留未应用的编辑输入；不会复制当前模拟帧、原位置／速度、局部环时钟或程序自转相位。
+在自定义系统中用 `orbit.select.N` 选择行星，再执行 `orbit.copy`，对应编辑面板的“复制并放置”。仅行星可复制；满 8 个天体、放置中或 I/O 忙碌时禁用。复制读取当前帧的质量与表面，保留未应用的编辑输入；重新生成候选轨道，不复制原速度、局部环时钟或程序自转相位。
 
 ```sh
 node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payload-json '{"action":"orbit.select.1"}'
@@ -223,7 +223,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 副本名称在 48 字符内避免重名，不拆开 Unicode 代理对。新轨道从相对恒星的 XY 平面圆轨道开始，优先采用原始相对距离（初始建议限制在 0.1–8 AU）、错开方位；若越界或占位则尝试其他角度／距离，所有候选仍执行原有速度、坐标、质量与间距校验。未找到可用位置时保留无效预览供修改，不能确认。
 
-`getState.placement` 增加 `sourceIndex` 与 `sourceName`，表示当前复制草稿的来源；普通添加或退出放置后为 −1／空字符串。这是会话提示，不是持久化的天体关联。确认后的新天体独立编辑，使用原有撤销／重做和命名实验保存路径。主系统正在运行时进入放置会暂停主时钟，回放播放也暂停；取消恢复原有运行／播放状态，确认生成新初值。进入放置仍按既有规则退出局部示踪模式。`getState.placement.target` 为瞄准索引，−1 表示通常的切向模式。
+`getState.placement` 增加 `sourceIndex` 与 `sourceName`，表示当前复制草稿的来源；普通添加或退出放置后为 −1／空字符串。这是会话提示，不是持久化的天体关联。确认后的新天体独立编辑；后续初态编辑仍使用撤销／重做，插入本身通过历史帧分支回退。主系统正在运行时进入放置会暂停主时钟，回放播放也暂停；取消恢复原有运行／播放状态，确认在当前时刻加入。进入放置仍按既有规则退出局部示踪模式。`getState.placement.target` 为瞄准索引，−1 表示通常的切向模式。
 
 ## 轨道观察曲线
 
@@ -237,7 +237,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 ```
 
 - `observation.distance` / `observation.speed`：切换 AU 距离和 km/s 速率，不改变物理参数或镜头。
-- `observation.minimum` / `observation.maximum`：在当前指标的保留记录中寻找最小／最大值，暂停演算并选择相应帧；相等时选择最早保留帧。停止回放播放并退出局部示踪，沿用现有回放语义，不能从该帧恢复积分。
+- `observation.minimum` / `observation.maximum`：在当前指标的保留记录中寻找最小／最大值，暂停演算并选择相应帧；相等时选择最早保留帧。停止回放播放并退出局部示踪，沿用现有回放语义，新版轨道可通过“时间继续”从该帧建立分支；旧回放不能续算。
 - 曲线横轴按实际年数分布，紫线标记当前查看的帧；原时间轴拖动也会更新曲线读数。数据范围随 240 帧保留窗口移动，未必包含初始时刻或完整周期。
 - 距离是该行星到第 0 个天体（恒星）中心的三维距离；速度是系统质心参考系中的速率，不是相对恒星速度。数据来自已有单精度显示／回放快照，不是新增双精度科学输出。
 - 无历史帧或 SPH 模型返回空曲线；极值动作禁用。放置中或 I/O 忙碌时沿用统一动作限制。新场景不拼接旧记录，载入轨道回放后可从原快照重建曲线。
@@ -329,7 +329,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 | `damageMean`、`damageMax` | 上游标量 DAMAGE 的三次方，0–1；Mean 为质量加权 |
 | `kineticJ`、`internalJ` | 所有粒子的动能、内能总量，J；不包含完整弹性／引力能量预算 |
 
-压力色标为蓝 −10／白 0／红 +10 GPa，比内能为深蓝 0 至金色 10 MJ/kg，损伤为青色 0 至红色 1。色标固定且显示饱和；原始读数不裁切。比内能不换算为温度，损伤不代表碎片计数。旧 v7/v8 保存结构记录（分别关闭／开启自引力）；v5/v6 只有原十项材料诊断；v1/v2 缺少此数据时提示重新运行，选择新色号时渲染回退原色。点质量轨道使用 v3/v4，实体接触轨道使用 v11。详情见 [诊断与复现](reference/SPH-DIAGNOSTICS.md)。
+压力色标为蓝 −10／白 0／红 +10 GPa，比内能为深蓝 0 至金色 10 MJ/kg，损伤为青色 0 至红色 1。色标固定且显示饱和；原始读数不裁切。比内能不换算为温度，损伤不代表碎片计数。旧 v7/v8 保存结构记录（分别关闭／开启自引力）；v5/v6 只有原十项材料诊断；v1/v2 缺少此数据时提示重新运行，选择新色号时渲染回退原色。新轨道保存为可续算的 v14，仍读取旧 v3/v4/v11。详情见 [诊断与复现](reference/SPH-DIAGNOSTICS.md)。
 
 ### SPH 曲线与原始数据导出
 
@@ -372,7 +372,7 @@ node scripts/export-sph.mjs --device 127.0.0.1:5555 --output /tmp/sph-run.csv
 
 旧存档缺少 `recipe` 时仍可打开，采用固定默认外观、银河亮度和全景，不继承上一个实验的设置。显式损坏的配方、未知配方／外观版本或不匹配的局部环目标会被拒绝，已有场景保持；损坏条目不影响其他有效实验。详见 [0.21.0 记录](releases/RELEASE-0.21.0.md)。验收入口为 `node scripts/test-recipe-emulator.mjs 127.0.0.1:5555`；它创建并清理自己的验收实验，不覆盖既有存档，但会替换当前会话，调用者需先备份并事后恢复。
 
-回放最多保留 240 帧，不是求解器检查点。完成、载入回放或配置改变后再次开始，会重新计算；不能从任意历史快照续算。语义动作还包括 `simulation.toggle`、`simulation.apply`、`replay.toggle`、`replay.latest`、`replay.save`、`replay.load`；时间轴输入为 `time.frame`。
+回放最多保留 240 帧。新版轨道 v14 保存完整状态，可从所选时刻继续；旧回放及 SPH／星系历史仍不能续算。轨道 `start` 与 `simulation.toggle` 使用持续时钟，超过配方时长仍继续；`time.rate.0.01/0.1/1/10/100` 设置模拟日／现实秒档位，暂停后不积累补算时间。`simulation` 状态包含 `orbitState`、`continuous`、`daysPerSecond`、`actualDaysPerSecond` 与 `orbitRevision`。语义动作还包括 `simulation.toggle`、`simulation.apply`、`replay.toggle`、`replay.latest`、`replay.save`、`replay.load`；时间轴输入为 `time.frame`。
 
 ## 光照与材质
 

@@ -37,6 +37,8 @@ struct Particle {
     float x, y, z, speed, density, body;
 };
 struct Frame {
+    std::vector<OrbitSpec> orbitState; // Exact state at this frame, including velocities and body identities.
+    double orbitEnergy=0,orbitAngular=0,orbitEnergyScale=1,orbitAngularScale=1;
     GalaxyDiagnostics galaxy;
     OrbitContact contact;std::vector<double> radiiAU;
     SphFragments fragments;
@@ -61,6 +63,8 @@ struct Status {
     int steps = 0;
     Config config;
     bool configKnown = true;
+    bool continuous=false; double daysPerSecond=1,actualDaysPerSecond=0; uint64_t orbitRevision=0;
+    std::vector<OrbitSpec> orbitState;
     double totalMass = 0;
     double energyError = 0, angularError = 0;
     std::vector<Particle> bodies;
@@ -83,6 +87,10 @@ class Engine {
     ~Engine();
     void start(Config config, bool initiallyPaused = false);
     void pause(bool paused);
+    void orbitClock(double daysPerSecond);
+    void freezeOrbit();
+    void insertOrbit(OrbitSpec body,uint64_t revision,bool resume);
+    double orbitRate(uint64_t revision);
     void pauseOnContact(uint64_t request);
     void cancel();
     void seek(int index);
@@ -117,6 +125,9 @@ class Engine {
     uint64_t workerRequestId=0;
     std::string workerStage="idle";
     Config config;
+    std::shared_ptr<Frame> resumeOrbit;
+    bool continuous=false;double daysPerSecond=1,lastPublishMs=0;
+    void resumeOrbitLocked(std::shared_ptr<Frame> frame,bool run);
     Status current;
     std::deque<std::shared_ptr<Frame>> history;
     static constexpr size_t maxFrames = 240;

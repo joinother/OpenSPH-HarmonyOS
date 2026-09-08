@@ -16,7 +16,7 @@ class OrbitSystem {
 public:
     std::vector<OrbitBody> bodies;
     explicit OrbitSystem(int preset, double velocityScale=1);
-    explicit OrbitSystem(std::vector<OrbitBody> initial);
+    explicit OrbitSystem(std::vector<OrbitBody> initial, bool center=true);
     double step(double dt);
     bool finiteSpheres() const {return !bodies.empty()&&bodies[0].radius>0;}
     OrbitContact contact;

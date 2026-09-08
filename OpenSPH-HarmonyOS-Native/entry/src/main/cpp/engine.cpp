@@ -165,28 +165,34 @@ class Experiment : public IRun, public IRunCallbacks {
     }
     bool shouldAbortRun() const override { return engine.stopped(generation); }
 };
-static void runOrbit(Engine &engine, Config cfg, uint64_t generation) {
+static void runOrbit(Engine &engine, Config cfg, uint64_t generation,std::shared_ptr<Frame> checkpoint) {
     preparationPoint(engine,generation,"orbits");
     std::vector<OrbitBody> initial;
+    if(checkpoint){cfg.preset=5;cfg.orbitBodies=checkpoint->orbitState;}
     for(const auto &b:cfg.orbitBodies)initial.push_back({b.massSolar,{b.xAU,b.yAU,b.zAU},{b.vxKmS*1000*YEAR/AU,b.vyKmS*1000*YEAR/AU,b.vzKmS*1000*YEAR/AU},b.radiusKm*1000/AU});
-    OrbitSystem system=cfg.preset==5?OrbitSystem(initial):OrbitSystem(cfg.preset,cfg.speed);
-    const double e0=system.energy(),l0=norm(system.angularMomentum());
+    OrbitSystem system=cfg.preset==5?OrbitSystem(initial,!checkpoint):OrbitSystem(cfg.preset,cfg.speed);
+    const double e0=checkpoint?checkpoint->orbitEnergy:system.energy(),l0=checkpoint?checkpoint->orbitAngular:norm(system.angularMomentum());
+    if(checkpoint){system.elapsed=checkpoint->time;system.contact=checkpoint->contact;}
     double energyScale=0,angularScale=0;
     for(size_t i=0;i<system.bodies.size();++i){const auto &b=system.bodies[i];
         energyScale+=.5*b.mass*norm(b.velocity)*norm(b.velocity);
         angularScale+=b.mass*norm(b.position)*std::max(norm(b.velocity),std::sqrt(ORBIT_G/std::max(.02,norm(b.position))));
         for(size_t j=0;j<i;++j){Vec3 d;for(int k=0;k<3;++k)d[k]=b.position[k]-system.bodies[j].position[k];energyScale+=ORBIT_G*b.mass*system.bodies[j].mass/norm(d);}}
-    const double eden=(std::abs(e0)<1.e-6*energyScale?energyScale:std::abs(e0)),lden=(l0<1.e-6*angularScale?angularScale:l0);
+    const double eden=checkpoint?checkpoint->orbitEnergyScale:(std::abs(e0)<1.e-6*energyScale?energyScale:std::abs(e0)),lden=checkpoint?checkpoint->orbitAngularScale:(l0<1.e-6*angularScale?angularScale:l0);
     std::vector<std::deque<Particle>> trails(system.bodies.size());
-    double time=0;
+    double time=checkpoint?checkpoint->time:0;
+    if(checkpoint)for(const auto& p:checkpoint->trails)if(p.body>=0&&size_t(p.body)<trails.size())trails[size_t(p.body)].push_back(p);
     auto publish=[&](double ms) {
         auto f=std::make_shared<Frame>();f->orbital=true;f->time=time;f->contact=system.contact;
+        f->orbitEnergy=e0;f->orbitAngular=l0;f->orbitEnergyScale=eden;f->orbitAngularScale=lden;
         f->energyError=(system.energy()-e0)/eden;
         f->angularError=(norm(system.angularMomentum())-l0)/lden;
         for(size_t i=0;i<system.bodies.size();++i){const auto &b=system.bodies[i];
             Particle p{float(b.position[0]),float(b.position[1]),float(b.position[2]),float(norm(b.velocity)*AU/YEAR/1000),float(b.mass),float(i)};
             if(system.finiteSpheres())f->radiiAU.push_back(b.radius);
             f->surfaces.push_back(cfg.preset==5?cfg.orbitBodies[i].surface:int(i));
+            const char* names[]={"恒星","蓝色行星","金色行星","红色行星"};
+            f->orbitState.push_back({cfg.preset==5?cfg.orbitBodies[i].name:names[i],b.mass,b.position[0],b.position[1],b.position[2],b.velocity[0]*AU/YEAR/1000,b.velocity[1]*AU/YEAR/1000,b.velocity[2]*AU/YEAR/1000,f->surfaces.back(),b.radius*AU/1000});
             f->particles.push_back(p);trails[i].push_back(p);if(trails[i].size()>512)trails[i].pop_front();
             f->trails.insert(f->trails.end(),trails[i].begin(),trails[i].end());
             f->maxSpeed=std::max(f->maxSpeed,double(p.speed));f->totalMass+=b.mass*SOLAR_MASS;
@@ -194,11 +200,20 @@ static void runOrbit(Engine &engine, Config cfg, uint64_t generation) {
         }
         engine.publish(f,generation,ms);
     };
-    preparationPoint(engine,generation,"snapshot");publish(0);
-    while(time<cfg.duration&&!engine.stopped(generation)){
+    preparationPoint(engine,generation,"snapshot");if(!checkpoint)publish(0);
+    auto tick=Clock::now();
+    while(!engine.stopped(generation)){
+        double rate=engine.orbitRate(generation);
+        if(rate==0&&time>=cfg.duration){if(!engine.waitUntilRunning(generation))return;if(engine.orbitRate(generation)==0)break;}
+        // Reset pacing across pauses. No accumulated catch-up debt after the UI resumes.
+        const auto beforeWait=Clock::now();
         if(!engine.waitUntilRunning(generation))return;
+        rate=engine.orbitRate(generation);
         auto begin=Clock::now();const auto contactsBefore=system.contact.count;
-        double frameEnd=cfg.duration;
+        const auto now=Clock::now();
+        const double wall=std::chrono::duration<double>(now-beforeWait).count()>.01?.016:std::clamp(std::chrono::duration<double>(now-tick).count(),.001,.05);
+        tick=now;
+        double frameEnd=rate>0?time+rate*wall/365.25:cfg.duration;
         if(system.finiteSpheres()){
             // Sample close encounters densely enough to see approach and replay contact.
             double span=ORBIT_DT*16;
@@ -210,9 +225,9 @@ static void runOrbit(Engine &engine, Config cfg, uint64_t generation) {
             }
             frameEnd=std::min(frameEnd,time+std::max(1.e-12,span));
         }
-        for(int k=0;k<(cfg.preset==5?128:16)&&time<frameEnd;++k){double dt=std::min(ORBIT_DT/(cfg.preset==5?8:1),frameEnd-time);const auto contacts=system.contact.count;time+=system.step(dt);
+        for(int k=0;k<(rate>0?4096:(cfg.preset==5?128:16))&&time<frameEnd&&!engine.stopped(generation);++k){double dt=std::min(ORBIT_DT/(cfg.preset==5?8:1),frameEnd-time);const auto contacts=system.contact.count;time+=system.step(dt);
             if(cfg.preset==5&&std::abs(system.energy()-e0)>eden*.01)throw std::runtime_error("积分精度不足：能量偏差超过阈值，已停止；请增大间距或降低初速");
-            if(system.contact.count!=contacts)break;}
+            if(system.contact.count!=contacts||std::chrono::duration<double,std::milli>(Clock::now()-begin).count()>12)break;}
         publish(std::chrono::duration<double,std::milli>(Clock::now()-begin).count());
         if(system.contact.count!=contactsBefore)engine.pauseOnContact(generation);
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
@@ -256,7 +271,7 @@ bool validConfig(const Config &c) {
         for(size_t i=0;i<c.orbitBodies.size();++i){const auto &b=c.orbitBodies[i];
             if(!std::isfinite(b.radiusKm)||b.radiusKm<0||b.radiusKm>1.e7||(b.radiusKm>0)!=finite||(finite&&b.radiusKm<1))return false;
             if(!validOrbitName(b.name))return false;
-            if(!range(b.massSolar,i==0?.1:1.e-8,i==0?2:.01)||b.surface<(i==0?0:1)||b.surface>(i==0?0:5))return false;
+            if(!range(b.massSolar,b.surface==0?.1:1.e-8,b.surface==0?2:.01)||b.surface<0||b.surface>(i==0?0:5))return false;
             if(!range(b.xAU,-10,10)||!range(b.yAU,-10,10)||!range(b.zAU,-10,10)||!range(norm({b.vxKmS,b.vyKmS,b.vzKmS}),0,100))return false;
             for(size_t j=0;j<i;++j){const auto &a=c.orbitBodies[j];if(norm({b.xAU-a.xAU,b.yAU-a.yAU,b.zAU-a.zAU})<(finite?(b.radiusKm+a.radiusKm)*1000/AU:.05))return false;}
         }
@@ -274,6 +289,7 @@ void Engine::start(Config c, bool initiallyPaused) {
     std::lock_guard<std::mutex> lock(mutex);
     ++generation;
     config = c;
+    resumeOrbit.reset();continuous=false;daysPerSecond=1;lastPublishMs=0;
     pending = true;
     paused = initiallyPaused;
     history.clear();
@@ -283,6 +299,65 @@ void Engine::start(Config c, bool initiallyPaused) {
     preparation.begin(generation.load(),monotonicMs());
     cv.notify_all();
 }
+
+void Engine::resumeOrbitLocked(std::shared_ptr<Frame> f,bool run) {
+    ++generation;resumeOrbit=f;pending=true;paused=!run;lastPublishMs=0;current.actualDaysPerSecond=0;
+    if(current.selected>=0)history.erase(history.begin()+current.selected+1,history.end());
+    current.selected=-1;current.state=run?"running":"paused";current.error.clear();
+    preparation.begin(generation.load(),monotonicMs());cv.notify_all();
+}
+void Engine::freezeOrbit() {
+    std::lock_guard<std::mutex> lock(mutex);
+    if(history.empty()||current.state=="preparing")throw std::invalid_argument("请等待轨道初态就绪");
+    auto f=current.selected<0?history.back():history.at(current.selected);
+    if(f->orbitState.empty())throw std::invalid_argument("此回放不含完整速度，不能从回放加入天体；请新建轨道系统");
+    // Freeze the exact visible frame; abandon only work which has not been published.
+    const int selected=current.selected;current.selected=-1;resumeOrbitLocked(history.back(),false);current.selected=selected;
+}
+void Engine::orbitClock(double rate) {
+    if(!std::isfinite(rate)||rate<.001||rate>100)throw std::invalid_argument("时间速度范围为 0.001–100 天/秒");
+    std::lock_guard<std::mutex> lock(mutex);
+    if(config.preset<3||config.preset>5)throw std::invalid_argument("持续时钟目前支持天体轨道系统");
+    if(current.state=="completed"||current.state=="replay"||current.selected>=0){
+        if(history.empty())throw std::invalid_argument("没有可继续的轨道状态");
+        auto f=current.selected<0?history.back():history.at(current.selected);
+        if(f->orbitState.empty())throw std::invalid_argument("旧回放缺少速度，不能继续积分");
+        resumeOrbitLocked(f,false);config.preset=5;config.speed=1;config.orbitBodies=f->orbitState;
+    }
+    continuous=true;daysPerSecond=rate;cv.notify_all();
+}
+double Engine::orbitRate(uint64_t g) {
+    std::lock_guard<std::mutex> lock(mutex);return stopped(g)||!continuous?0:daysPerSecond;
+}
+void Engine::insertOrbit(OrbitSpec body,uint64_t revision,bool run) {
+    std::lock_guard<std::mutex> lock(mutex);
+    if(revision!=generation.load()||!paused||history.empty())throw std::invalid_argument("放置基准已变化，请重新打开添加天体");
+    auto old=current.selected<0?history.back():history.at(current.selected);
+    if(old->orbitState.empty()||old->orbitState.size()>=8)throw std::invalid_argument("当前最多 8 个实体天体");
+    Config check=config;check.preset=5;check.speed=1;check.orbitBodies=old->orbitState;check.orbitBodies.push_back(body);
+    // Existing states can move beyond the initial editor's 10 AU box. Validate the new body
+    // through an origin-local recipe, then validate separation with the exact integrator.
+    Config candidate=check;candidate.orbitBodies={old->orbitState.front(),body};
+    auto& a=candidate.orbitBodies[0];auto& b=candidate.orbitBodies[1];
+    b.xAU-=a.xAU;b.yAU-=a.yAU;b.zAU-=a.zAU;b.vxKmS-=a.vxKmS;b.vyKmS-=a.vyKmS;b.vzKmS-=a.vzKmS;
+    a.xAU=a.yAU=a.zAU=a.vxKmS=a.vyKmS=a.vzKmS=0;
+    if(!validConfig(candidate))throw std::invalid_argument("新天体参数或间距超出范围");
+    std::vector<OrbitBody> bodies;for(const auto& v:check.orbitBodies)bodies.push_back({v.massSolar,{v.xAU,v.yAU,v.zAU},{v.vxKmS*1000*YEAR/AU,v.vyKmS*1000*YEAR/AU,v.vzKmS*1000*YEAR/AU},v.radiusKm*1000/AU});
+    OrbitSystem system(bodies,false);
+    auto f=std::make_shared<Frame>(*old);f->orbitState=check.orbitBodies;
+    const auto& v=bodies.back();const size_t i=bodies.size()-1;
+    Particle p{float(v.position[0]),float(v.position[1]),float(v.position[2]),float(norm(v.velocity)*AU/YEAR/1000),float(v.mass),float(i)};
+    f->particles.push_back(p);f->surfaces.push_back(body.surface);if(system.finiteSpheres())f->radiiAU.push_back(v.radius);
+    f->trails.push_back(p);f->totalMass+=v.mass*SOLAR_MASS;f->maxSpeed=std::max(f->maxSpeed,double(p.speed));
+    // Adding mass/impulse changes invariants. Start a new conservation segment here.
+    f->orbitEnergy=system.energy();f->orbitAngular=norm(system.angularMomentum());
+    double es=0,ls=0;for(const auto& b:bodies){es+=.5*b.mass*norm(b.velocity)*norm(b.velocity);ls+=b.mass*norm(b.position)*norm(b.velocity);}
+    f->orbitEnergyScale=std::max({std::abs(f->orbitEnergy),es,1.e-30});f->orbitAngularScale=std::max({f->orbitAngular,ls,1.e-30});f->energyError=f->angularError=0;
+    resumeOrbitLocked(f,run);config=check;continuous=true;
+    history.push_back(f);if(history.size()>maxFrames)history.pop_front();
+    current.count=f->particles.size();current.time=f->time;
+}
+
 void Engine::pauseOnContact(uint64_t request) {
     std::lock_guard<std::mutex> lock(mutex);
     if(stopped(request))return;
@@ -290,6 +365,9 @@ void Engine::pauseOnContact(uint64_t request) {
 }
 void Engine::pause(bool value) {
     std::lock_guard<std::mutex> lock(mutex);
+    if(value&&!paused&&!history.empty()&&!history.back()->orbitState.empty()&&current.state=="running"){
+        const int selected=current.selected;current.selected=-1;resumeOrbitLocked(history.back(),false);current.selected=selected;return;
+    }
     if (current.state == "running" || current.state == "paused" || current.state == "preparing") {
         paused = value;
         if (current.state != "preparing")
@@ -331,13 +409,16 @@ bool Engine::preparationStage(uint64_t g,const std::string& stage) {
     std::lock_guard<std::mutex> lock(mutex);
     if(workerRequestId==g)workerStage=stage;
     if(stopped(g))return false;
-    preparation.advance(g,stage,monotonicMs());return true;
+    preparation.advance(g,stage,monotonicMs());if(stage=="snapshot"&&!history.empty()){preparation.finish(g,"ready",monotonicMs());workerStage="simulation";}return true;
 }
 void Engine::publish(std::shared_ptr<Frame> f, uint64_t g, double ms) {
     std::lock_guard<std::mutex> lock(mutex);
     if (stopped(g))
         return;
     if(history.empty()){preparation.finish(g,"ready",monotonicMs());workerStage="simulation";}
+    const double now=monotonicMs();
+    if(continuous&&!paused&&!history.empty()&&lastPublishMs>0&&now>lastPublishMs){const double measured=(f->time-history.back()->time)*365.25*1000/(now-lastPublishMs);current.actualDaysPerSecond=current.actualDaysPerSecond>0?.75*current.actualDaysPerSecond+.25*measured:measured;}
+    lastPublishMs=now;
     history.push_back(f);
     if (history.size() > maxFrames) {
         history.pop_front();
@@ -354,7 +435,7 @@ Status Engine::status() {
     std::lock_guard<std::mutex> lock(mutex);
     Status s = current;
     s.preparation=preparation.snapshot(monotonicMs(),workerRequestId,workerStage);
-    s.config = config;
+    s.config = config;s.continuous=continuous;s.daysPerSecond=daysPerSecond;s.orbitRevision=generation.load();if(paused)s.actualDaysPerSecond=0;
     s.frames = history.size();
     if (!history.empty()) {
         auto f = current.selected < 0 ? history.back()
@@ -366,7 +447,7 @@ Status Engine::status() {
         s.totalMass = f->totalMass;
         s.count = f->particles.size();
         s.energyError=f->energyError;s.angularError=f->angularError;
-        if(f->orbital){s.bodies=f->particles;s.contact=f->contact;}
+        if(f->orbital){s.bodies=f->particles;s.contact=f->contact;s.orbitState=f->orbitState;}
     }
     return s;
 }
@@ -379,7 +460,7 @@ OrbitObservation Engine::observation(int body) {
     result.name=config.preset==5?config.orbitBodies.at(body).name:(body<4?names[body]:"行星 "+std::to_string(body));
     result.samples.reserve(history.size());
     for(size_t i=0;i<history.size();++i){const auto &f=*history[i];
-        if(!f.orbital||size_t(body)>=f.particles.size()){result.samples.clear();return result;}
+        if(!f.orbital||size_t(body)>=f.particles.size())continue;
         const auto &p=f.particles[body],&star=f.particles[0];
         const double x=double(p.x)-star.x,y=double(p.y)-star.y,z=double(p.z)-star.z;
         result.samples.push_back({int(i),f.time,std::sqrt(x*x+y*y+z*z),p.speed});
@@ -436,14 +517,14 @@ std::shared_ptr<const Frame> Engine::frame() {
 }
 void Engine::loop() {
     while (!quit) {
-        Config c;
+        Config c;std::shared_ptr<Frame> checkpoint;
         uint64_t g;
         {
             std::unique_lock<std::mutex> lock(mutex);
             cv.wait(lock, [&] { return pending || quit; });
             if (quit)
                 return;
-            c = config;
+            c = config;checkpoint=resumeOrbit;resumeOrbit.reset();
             g = generation;
             pending = false;
             workerRequestId=g;workerStage="starting";
@@ -451,7 +532,7 @@ void Engine::loop() {
         }
         try {
             if(c.preset==6)runGalaxy(*this,c,g);
-            else if(c.preset>=3) runOrbit(*this,c,g);
+            else if(c.preset>=3) runOrbit(*this,c,g,checkpoint);
             else {preparationPoint(*this,g,"starting");Experiment run(*this, c, g);Storage storage;run.run(storage, run);preparationStage(g,"cleanup");}
             std::lock_guard<std::mutex> lock(mutex);
             if (!stopped(g))
@@ -474,21 +555,23 @@ void Engine::loop() {
         {std::lock_guard<std::mutex> lock(mutex);if(workerRequestId==g){workerRequestId=0;workerStage="idle";}}
     }
 }
+#include "orbit_session.inc"
 // Versioned, bounded playback format. This is visualization history, not a solver checkpoint.
 // Fixed-width little-endian ARM64/desktop fields; reject other formats/version.
 bool Engine::saveReplay(const std::string &dir,bool includeFragments) {
     std::deque<std::shared_ptr<Frame>> frames;
     double duration;
     Config saved;
-    bool known;
+    bool known;bool savedContinuous=false;double savedRate=1;
     {
         std::lock_guard<std::mutex> lock(mutex);
         frames = history;
         duration = current.duration;
-        saved = config; known = current.configKnown;
+        saved = config; known = current.configKnown;savedContinuous=continuous;savedRate=daysPerSecond;
     }
     if (frames.empty())
         return false;
+    if(std::all_of(frames.begin(),frames.end(),[](const auto& f){return !f->orbitState.empty();}))return writeOrbitSession(dir,{saved,frames,savedContinuous,savedRate});
     std::string path = dir + "/last-replay.osphr", temp = path + ".tmp";
     const bool diagnostics=known&&saved.preset<3&&std::all_of(frames.begin(),frames.end(),[](const auto &f){return f->sph.available&&f->scalars.size()==f->particles.size();});
     const bool structure=diagnostics&&std::all_of(frames.begin(),frames.end(),[](const auto& f){return validSphStructure(f->sph.structure);});
@@ -543,6 +626,9 @@ bool Engine::loadReplay(const std::string &dir) {
     double duration = 0;
     in.read(reinterpret_cast<char *>(&magic), 4);
     in.read(reinterpret_cast<char *>(&version), 4);
+    if(version==14){OrbitSession session;if(!readOrbitSession(in,session))return false;
+        std::lock_guard<std::mutex> lock(mutex);++generation;pending=false;resumeOrbit.reset();paused=true;history=std::move(session.frames);config=session.config;continuous=session.continuous;daysPerSecond=session.rate;
+        current=Status{};current.state="replay";current.duration=config.duration;current.selected=int(history.size())-1;preparation=PreparationTracker{};cv.notify_all();return true;}
     in.read(reinterpret_cast<char *>(&n), 4);
     in.read(reinterpret_cast<char *>(&duration), 8);
     if (!in || magic != 0x4c485053 || (version != 1 && version != 2 && version != 3 && version != 4 && version != 5 && version != 6 && version != 7 && version != 8 && version != 9 && version != 10 && version != 11 && version != 12 && version != 13) || n == 0 || n > maxFrames || !std::isfinite(duration) ||
@@ -645,6 +731,7 @@ bool Engine::loadReplay(const std::string &dir) {
     std::lock_guard<std::mutex> lock(mutex);
     ++generation;
     pending = false;
+    resumeOrbit.reset();continuous=false;daysPerSecond=1;lastPublishMs=0;
     paused = false;
     history = std::move(frames);
     current = Status{};

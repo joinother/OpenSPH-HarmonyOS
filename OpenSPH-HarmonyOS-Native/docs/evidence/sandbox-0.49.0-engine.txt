@@ -1,0 +1,3 @@
+ninja: no work to do.
+FileTransfer finish, Size:8696688, File count = 1, time:70ms rate:124238.40kB/s
+PASS orbit sandbox: beyond duration, pause, exact insertion, stellar mass, stale revision, rolling history, v14 roundtrip, cancel, resume, branch, atomic corrupt rejection

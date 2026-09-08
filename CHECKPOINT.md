@@ -1,6 +1,6 @@
 # 星体实验室 GitHub 检查点
 
-记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.48.0。
+记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.49.0。
 
 ## 恢复开发
 
@@ -17,6 +17,8 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 构建需要 DevEco Studio 与 HarmonyOS SDK；安装请遵循工程 README，当前任务只操作模拟器 127.0.0.1:5555。签名配置、依赖缓存、构建目录和发布二进制不纳入源码检查点。
 
 ## 保存范围与验证
+
+- 0.49.0 增加持续轨道时间、目标／实测速度、当前时刻插入恒星或行星及 v14 续算；97 项主机检查、原生引擎与实际应用 CLI 验收通过。最多 8 个实体，尚无流体行星破裂和 SPH 事件联动；原始初态、保存槽、项目及视频恢复。见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.49.0.md)。
 
 - 0.48.0 实现系统星图录制、MP4、本机预览和导出；97 项主机检查与无编码器模拟器提示通过，实际录制和导出按用户要求留待真机验收。没有软件编码依赖。见 [视频记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.48.0.md)。
 

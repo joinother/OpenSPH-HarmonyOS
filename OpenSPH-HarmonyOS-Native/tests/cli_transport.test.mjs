@@ -62,7 +62,8 @@ function page() {
   const calls=[],initialPauses=[];let trace={impulse:0,points:false,speedScale:1,rateHours:1,eccentricity:0,referenceXKm:76800,referenceYKm:0,innerApoapsisKm:76800,enabled:false,running:false,target:-1,timeHours:0,massSolar:.0002857,radiusKm:60000,count:192,innerPeriodHours:6,outerPeriodHours:14,model:'restricted-circular-kepler-v1'};
   let motion={requestId:0,sceneRevision:1,targetFocus:-1,targetCloseup:false,progress:1,state:'idle',reason:'',yaw:.15,pitch:.25,zoom:2.7};
   const noFollow=()=>({active:false,moving:false,seed:-1,anchor:-1,rank:0,count:0,sceneRevision:0,time:0,centerKm:[0,0,0]});
-  const simulation={galaxyObserverStatus:()=>({...{available:!!state.galaxyObservation?.available,mode:0,primaryDirection:[-8,0,0],secondaryDirection:[50,12,0],primaryYaw:Math.PI,primaryPitch:0,secondaryYaw:.2355,secondaryPitch:.1},...state.observer}),setGalaxyObserver:(mode,yaw,pitch,fov,latitude,siderealHours)=>{state.observer={mode,yaw,pitch,fov,latitude,siderealHours};calls.push(['observer',mode,yaw,pitch,fov]);},galaxyObservation:()=>structuredClone(state.galaxyObservation??{available:false,sceneRevision:0,selected:-1,samples:[]}),setGalaxyPlacement:(...args)=>calls.push(['galaxyPlacement',...args]),placeGalaxyAt:()=>state.galaxyOffset??22,seekGalaxyObservation:(frame,revision,time)=>{if(revision!==state.galaxyObservation?.sceneRevision)throw Error('stale');state.selected=frame;state.time=time;},setOrbitPlacement:(bodies,candidate)=>{state.placementPreview={bodies:structuredClone(bodies),candidate};},placeOrbitAt:(x,y,tilt)=>{calls.push(['viewportPlacement',x,y,tilt]);return state.placementPoint??[2.5,35];},clearSphFragmentFollow:()=>{state.follow=noFollow();},followSphFragment:(particle,revision)=>{if(!state.fragments?.available||revision!==state.fragments.sceneRevision||particle>=state.fragments.particleCount)throw Error('stale material');calls.push(['follow',particle,revision]);const group=state.fragments.groups.find(g=>g.anchor===particle);state.follow={...noFollow(),active:true,seed:particle,anchor:particle,rank:group?.rank??1,count:group?.count??1,sceneRevision:revision};},sphFragments:(offset,limit)=>({...structuredClone(state.fragments??{available:false,reason:'legacy',sceneRevision:1,selected:state.selected??-1,time:state.time??0,linkScale:1.5,method:'symmetric-smoothing-connectivity-v1',groups:[]}),offset,groups:(state.fragments?.groups??[]).slice(offset,offset+limit),nextOffset:offset+limit<(state.fragments?.groups.length??0)?offset+limit:-1}),setSurfaceSeeds:(pairs)=>calls.push(['surfaceSeeds',...pairs]),cancel:()=>{state.state='cancelled';calls.push(['cancel']);},sphObservation:()=>structuredClone(state.sphObservation??{sceneRevision:1,selected:state.selected??-1,samples:[]}),seekSphObservation:(frame,revision,time)=>{const d=state.sphObservation;if(!d||d.sceneRevision!==revision||d.samples[frame]?.time!==time)throw Error('stale SPH observation');state.selected=frame;state.sphObservation.selected=frame;calls.push(['sph.seek',frame]);},orbitObservation:(body)=>({...structuredClone(state.observation??{sceneRevision:1,body,name:'',samples:[]}),body,selected:state.selected}),seekObservation:(frame,revision,time)=>{const o=state.observation;if(!o||o.sceneRevision!==revision||o.samples[frame]?.time!==time)throw Error('stale observation');state.selected=frame;calls.push(['observation.seek',frame]);},setMaterial:(...args)=>calls.push(['material',...args]),getCameraMotion:()=>({...motion}),cancelCameraMotion:()=>({...motion}),navigateCamera:(yaw,pitch,zoom,focus,color,closeup)=>{calls.push(['camera',yaw,pitch,zoom,focus,color]);motion={...motion,requestId:motion.requestId+1,yaw,pitch,zoom,targetFocus:focus,targetCloseup:closeup,state:'completed'};return {...motion};},setRingDisturbance:(impulse,points)=>{if(impulse!==trace.impulse){trace.timeHours=0;trace.running=false;}trace.impulse=impulse;trace.points=points;},setRingParameters:(speedScale,rateHours)=>{if(speedScale!==trace.speedScale){trace.timeHours=0;trace.running=false;}trace.speedScale=speedScale;trace.rateHours=rateHours;trace.eccentricity=speedScale*speedScale-1;},ringTraceStatus:()=>({...trace}),configureRingTrace:(enabled,running,target,massSolar)=>{if(enabled&&(!trace.enabled||target!==trace.target||massSolar!==trace.massSolar)){trace.timeHours=0;trace.speedScale=1;trace.rateHours=1;trace.impulse=0;trace.points=false;}trace={...trace,enabled,running,target,massSolar};},seekRingTrace:seconds=>{trace.timeHours=seconds/3600;trace.running=false;},setComposition:(x,y,scale)=>{state.composition={x,y,scale};},setSky:(mode,brightness)=>{state.sky={mode,brightness};},pickBody:()=>state.pick??-1,projectedScene:()=>({ready:true,bodies:[]}),setAppearance:()=>{},renderStatus:()=>({fragmentFollow:structuredClone(state.follow??noFollow()),panoramaReady:state.panoramaReady??false,panoramaBlend:state.panoramaReady?1:0,ready:true,texturesReady:true,active:true,frames:1,submitMs:1,previewSeconds:0,error:''}),status:()=>({...state}),startScene:(c,initiallyPaused)=>{if(state.rejectStart)throw Error('native rejected scene');initialPauses.push(initiallyPaused);calls.push(['start',c.preset,c.count,c.speed,c.angle,c.duration]);state.state='preparing';},pause:v=>{calls.push(['pause',v]);if(state.state!=='preparing')state.state=v?'paused':'running';},setCamera:(...args)=>calls.push(['camera',...args]),seek:i=>state.selected=i,saveReplay:async()=>false,loadReplay:async()=>{if(state.loadReplayOK){state.state='replay';return true;}return false;}};
+  const exactBodies=()=>structuredClone(state.orbitState??(page?.preset===5?page.orbitBodies:modelContext.exports.defaultOrbitBodies()));
+  const simulation={orbitClock:rate=>{calls.push(['clock',rate]);state.continuous=true;state.daysPerSecond=rate;if(state.state==='completed'||state.state==='replay')state.state='paused';},freezeOrbit:()=>{state.orbitRevision=(state.orbitRevision??0)+1;state.state='paused';calls.push(['freeze']);},insertOrbit:(body,revision,resume)=>{if(state.rejectStart||state.rejectInsert)throw Error('native rejected insertion');if(revision!==state.orbitRevision)throw Error('stale placement');calls.push(['insert',structuredClone(body),revision,resume]);state.orbitState=exactBodies().concat([structuredClone(body)]);state.state=resume?'running':'paused';state.frames++;state.continuous=true;},galaxyObserverStatus:()=>({...{available:!!state.galaxyObservation?.available,mode:0,primaryDirection:[-8,0,0],secondaryDirection:[50,12,0],primaryYaw:Math.PI,primaryPitch:0,secondaryYaw:.2355,secondaryPitch:.1},...state.observer}),setGalaxyObserver:(mode,yaw,pitch,fov,latitude,siderealHours)=>{state.observer={mode,yaw,pitch,fov,latitude,siderealHours};calls.push(['observer',mode,yaw,pitch,fov]);},galaxyObservation:()=>structuredClone(state.galaxyObservation??{available:false,sceneRevision:0,selected:-1,samples:[]}),setGalaxyPlacement:(...args)=>calls.push(['galaxyPlacement',...args]),placeGalaxyAt:()=>state.galaxyOffset??22,seekGalaxyObservation:(frame,revision,time)=>{if(revision!==state.galaxyObservation?.sceneRevision)throw Error('stale');state.selected=frame;state.time=time;},setOrbitPlacement:(bodies,candidate)=>{state.placementPreview={bodies:structuredClone(bodies),candidate};},placeOrbitAt:(x,y,tilt)=>{calls.push(['viewportPlacement',x,y,tilt]);return state.placementPoint??[2.5,35];},clearSphFragmentFollow:()=>{state.follow=noFollow();},followSphFragment:(particle,revision)=>{if(!state.fragments?.available||revision!==state.fragments.sceneRevision||particle>=state.fragments.particleCount)throw Error('stale material');calls.push(['follow',particle,revision]);const group=state.fragments.groups.find(g=>g.anchor===particle);state.follow={...noFollow(),active:true,seed:particle,anchor:particle,rank:group?.rank??1,count:group?.count??1,sceneRevision:revision};},sphFragments:(offset,limit)=>({...structuredClone(state.fragments??{available:false,reason:'legacy',sceneRevision:1,selected:state.selected??-1,time:state.time??0,linkScale:1.5,method:'symmetric-smoothing-connectivity-v1',groups:[]}),offset,groups:(state.fragments?.groups??[]).slice(offset,offset+limit),nextOffset:offset+limit<(state.fragments?.groups.length??0)?offset+limit:-1}),setSurfaceSeeds:(pairs)=>calls.push(['surfaceSeeds',...pairs]),cancel:()=>{state.state='cancelled';calls.push(['cancel']);},sphObservation:()=>structuredClone(state.sphObservation??{sceneRevision:1,selected:state.selected??-1,samples:[]}),seekSphObservation:(frame,revision,time)=>{const d=state.sphObservation;if(!d||d.sceneRevision!==revision||d.samples[frame]?.time!==time)throw Error('stale SPH observation');state.selected=frame;state.sphObservation.selected=frame;calls.push(['sph.seek',frame]);},orbitObservation:(body)=>({...structuredClone(state.observation??{sceneRevision:1,body,name:'',samples:[]}),body,selected:state.selected}),seekObservation:(frame,revision,time)=>{const o=state.observation;if(!o||o.sceneRevision!==revision||o.samples[frame]?.time!==time)throw Error('stale observation');state.selected=frame;calls.push(['observation.seek',frame]);},setMaterial:(...args)=>calls.push(['material',...args]),getCameraMotion:()=>({...motion}),cancelCameraMotion:()=>({...motion}),navigateCamera:(yaw,pitch,zoom,focus,color,closeup)=>{calls.push(['camera',yaw,pitch,zoom,focus,color]);motion={...motion,requestId:motion.requestId+1,yaw,pitch,zoom,targetFocus:focus,targetCloseup:closeup,state:'completed'};return {...motion};},setRingDisturbance:(impulse,points)=>{if(impulse!==trace.impulse){trace.timeHours=0;trace.running=false;}trace.impulse=impulse;trace.points=points;},setRingParameters:(speedScale,rateHours)=>{if(speedScale!==trace.speedScale){trace.timeHours=0;trace.running=false;}trace.speedScale=speedScale;trace.rateHours=rateHours;trace.eccentricity=speedScale*speedScale-1;},ringTraceStatus:()=>({...trace}),configureRingTrace:(enabled,running,target,massSolar)=>{if(enabled&&(!trace.enabled||target!==trace.target||massSolar!==trace.massSolar)){trace.timeHours=0;trace.speedScale=1;trace.rateHours=1;trace.impulse=0;trace.points=false;}trace={...trace,enabled,running,target,massSolar};},seekRingTrace:seconds=>{trace.timeHours=seconds/3600;trace.running=false;},setComposition:(x,y,scale)=>{state.composition={x,y,scale};},setSky:(mode,brightness)=>{state.sky={mode,brightness};},pickBody:()=>state.pick??-1,projectedScene:()=>({ready:true,bodies:[]}),setAppearance:()=>{},renderStatus:()=>({fragmentFollow:structuredClone(state.follow??noFollow()),panoramaReady:state.panoramaReady??false,panoramaBlend:state.panoramaReady?1:0,ready:true,texturesReady:true,active:true,frames:1,submitMs:1,previewSeconds:0,error:''}),status:()=>({...state,orbitState:exactBodies()}),startScene:(c,initiallyPaused)=>{if(state.rejectStart)throw Error('native rejected scene');state.orbitState=undefined;initialPauses.push(initiallyPaused);calls.push(['start',c.preset,c.count,c.speed,c.angle,c.duration]);state.state='preparing';},pause:v=>{calls.push(['pause',v]);if(state.state!=='preparing')state.state=v?'paused':'running';},setCamera:(...args)=>calls.push(['camera',...args]),seek:i=>state.selected=i,saveReplay:async()=>false,loadReplay:async()=>{if(state.loadReplayOK){state.state='replay';return true;}return false;}};
   const modelContext={exports:{}};
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/SceneModel.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
   vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../entry/src/main/ets/common/WorkspaceLayout.ets',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,modelContext);
@@ -158,7 +159,7 @@ test('custom body edits are transactional; add/delete maintain star and clear st
   assert.equal(JSON.stringify(app.orbitBodies),before);assert.equal(calls.length,n);assert.match(app.notice,/0.05/);
   app.selectOrbit(1);app.orbitFields[0]='2';app.orbitFields[3]='0.2';app.orbitName='远洋';app.orbitSurface=3;app.applyOrbit();
   assert.equal(app.orbitBodies[1].name,'远洋');assert.equal(app.orbitBodies[1].surface,3);assert.equal(app.orbitBodies[1].zAU,0.2);
-  app.focus=3;app.closeup=true;app.beginPlacement();app.confirmPlacement();assert.equal(app.orbitBodies.length,5);assert.equal(app.focus,-1);assert.equal(app.closeup,false);
+  app.focus=3;app.closeup=true;app.beginPlacement();app.confirmPlacement();assert.equal(app.orbitBodies.length,5);assert.equal(app.focus,0);assert.equal(app.closeup,false);
   app.removeOrbit();assert.equal(app.orbitBodies.length,4);app.selectOrbit(0);app.removeOrbit();assert.equal(app.orbitBodies.length,4);
   app.selectOrbit(1);app.removeOrbit();app.removeOrbit();app.removeOrbit();assert.equal(app.orbitBodies.length,2);
   while(app.orbitBodies.length<8){app.beginPlacement();app.confirmPlacement();}assert.equal(app.orbitBodies.length,8);assert.equal(app.maxFocus(),7);
@@ -282,7 +283,7 @@ test('placement preview is a cancellable transaction, with shared point position
  await app.execute('setUiValue',{field:'placement.value.1',value:''});assert.equal(JSON.parse(await app.execute('getPlacementPreview')).preview.valid,false);await assert.rejects(app.execute('uiAction',{action:'placement.confirm'}));
  await app.execute('uiAction',{action:'panel.close'});assert.equal(app.placing,false);assert.equal(app.orbitName,'原编辑草稿');assert.equal(state.selected,3);assert.equal(JSON.stringify(app.definition()),before);assert.equal(calls.filter(c=>c[0]==='start').length,start);
  await app.execute('uiAction',{action:'orbit.add'});await app.execute('uiAction',{action:'placement.reverse'});await app.execute('setUiValue',{field:'placement.value.3',value:'30'});preview=JSON.parse(await app.execute('getPlacementPreview')).preview;
- await app.execute('uiAction',{action:'placement.confirm'});assert.equal(app.placing,false);assert.equal(app.orbitBodies.length,5);assert.deepEqual(JSON.parse(JSON.stringify(app.orbitBodies[4])),preview.body);assert.equal(calls.filter(c=>c[0]==='start').length,start+1);
+ await app.execute('uiAction',{action:'placement.confirm'});assert.equal(app.placing,false);assert.equal(app.orbitBodies.length,5);assert.deepEqual(JSON.parse(JSON.stringify(app.orbitBodies[4])),preview.body);assert.equal(calls.filter(c=>c[0]==='start').length,start);assert.equal(calls.filter(c=>c[0]==='insert').length,1);
  await assert.rejects(app.execute('uiAction',{action:'placement.confirm'}));
 });
 test('placement physics respects relative reference frames, inclined velocities and conic energy',()=>{
@@ -293,7 +294,7 @@ test('placement physics respects relative reference frames, inclined velocities 
  app.placementDirection=-1;const reversed=app.placementPreview().body;assert.ok(Math.abs(reversed.vxKmS-star.vxKmS+v[0])<1e-12);
  app.placementFields[4]='0';p=app.placementPreview();assert.equal(p.speedKmS,0);assert.equal(p.body.vxKmS,4);
  app.placementFields[4]='1.45';p=app.placementPreview();assert.equal(p.bound,false);assert.ok(p.speedKmS>p.escapeKmS);assert.ok(p.orbitPath.length>10);
- app.placementFields=['1','1','0','0','1'];app.orbitBodies[0].xAU=0;app.orbitBodies[0].vxKmS=0;assert.equal(app.placementPreview().valid,false);assert.match(app.placementPreview().error,/间距/);
+ app.placementFields=['1','1','0','0','1'];app.placementBodies[0].xAU=0;app.placementBodies[0].vxKmS=0;assert.equal(app.placementPreview().valid,false);assert.match(app.placementPreview().error,/间距/);
  app.placementFields[1]='NaN';assert.equal(app.placementPreview().valid,false);
 });
 
@@ -340,12 +341,12 @@ test('body transactions preserve unrelated drafts; undo and redo restore deleted
  app.travelOrbitHistory(true);assert.equal(app.orbitBodies.length,3);assert.equal(app.orbitFields[6],'');assert.equal(app.orbitEdit,2);
 });
 
-test('placement confirm is one undoable transaction, cancel is none, and draft discard leaves replay intact',async()=>{
+test('live placement commits without rebuilding, retains drafts, and clears initial-condition undo history',async()=>{
  const {page:app,calls,state}=page();app.choose(5);state.state='paused';
  app.setUiValue('orbit.name','保留草稿');app.beginPlacement();app.cancelPlacement();assert.equal(app.editHistory().undoCount,0);
- app.beginPlacement();app.placementName='候选一';app.confirmPlacement();assert.equal(app.editHistory().undoCount,1);
- const added=JSON.stringify(app.orbitBodies);app.travelOrbitHistory(false);assert.equal(app.orbitBodies.length,4);assert.equal(app.orbitName,'保留草稿');assert.equal(app.placing,false);
- app.travelOrbitHistory(true);assert.equal(JSON.stringify(app.orbitBodies),added);assert.equal(app.placing,false);assert.equal(app.bodyDrafts()[0].name,'保留草稿');
+ const time=state.time,frames=state.frames;app.beginPlacement();app.placementName='候选一';app.confirmPlacement();assert.equal(app.editHistory().undoCount,0);
+ assert.equal(app.orbitBodies.length,5);assert.equal(state.time,time);assert.equal(state.frames,frames+1);assert.equal(app.placing,false);assert.equal(app.bodyDrafts()[0].name,'保留草稿');
+ await assert.rejects(app.execute('uiAction',{action:'orbit.undo'}),/unavailable/);
  app.selectOrbit(1);state.selected=3;state.state='paused';const starts=calls.length;const history=JSON.stringify(app.editHistory());
  await app.execute('uiAction',{action:'orbit.discard'});assert.equal(app.orbitDraft,false);assert.equal(state.selected,3);assert.equal(calls.length,starts);assert.equal(JSON.stringify(app.editHistory()),history);
  await assert.rejects(app.execute('uiAction',{action:'orbit.discard'}),/unavailable/);
@@ -489,8 +490,9 @@ test('ring style survives placement, edit history and serialized scene reload',a
   assert.equal(app.placementPreview().valid,true);assert.equal(app.placementPreview().body.surface,4);
   await app.execute('uiAction',{action:'placement.confirm'});state.state='paused';
   assert.equal(app.orbitBodies[4].surface,4);
-  await app.execute('uiAction',{action:'orbit.undo'});state.state='paused';assert.equal(app.orbitBodies.length,4);
-  await app.execute('uiAction',{action:'orbit.redo'});state.state='paused';assert.equal(app.orbitBodies[4].surface,4);
+  app.setUiValue('orbit.name','环星');app.applyOrbit(true);state.state='paused';
+  await app.execute('uiAction',{action:'orbit.undo'});state.state='paused';assert.equal(app.orbitBodies[4].surface,4);
+  await app.execute('uiAction',{action:'orbit.redo'});state.state='paused';assert.equal(app.orbitBodies[4].name,'环星');
   const saved=JSON.parse(JSON.stringify(app.definition()));await app.execute('setScene',saved.config);state.state='paused';
   assert.equal(app.orbitBodies[4].surface,4);
   const before=app.snapshot();saved.config.orbitBodies[4].surface=6;await assert.rejects(app.execute('setScene',saved.config));assert.equal(app.snapshot(),before);
@@ -628,7 +630,7 @@ test('Moon atlas is an explicit teaching scene and moon styles survive editing a
  await app.execute('uiAction',{action:'orbit.add'});await app.execute('uiAction',{action:'placement.surface.5'});assert.equal(app.placementPreview().body.surface,5);assert.equal(app.placementPreview().valid,true);
 });
 
-test('copy uses applied mass and skin, preserves drafts and timeline, commits once and supports undo/redo',async()=>{
+test('copy uses current mass and skin, preserves drafts and timeline, and commits without rebuilding',async()=>{
  const {page:app,calls,state}=page();app.choose(5);state.state='completed';state.selected=3;
  app.orbitBodies[1].surface=5;app.surfaces[1]={version:1,seed:0,cloudSeed:0};app.orbitBodies[1].massSolar*=7;app.selectOrbit(1,true);
  await app.execute('setUiValue',{field:'orbit.name',value:'未应用名称'});
@@ -648,11 +650,10 @@ test('copy uses applied mass and skin, preserves drafts and timeline, commits on
  await app.execute('uiAction',{action:'orbit.copy'});await app.execute('setUiValue',{field:'placement.value.4',value:'1.2'});
  p=JSON.parse(app.snapshot()).placement.preview;assert.equal(p.valid,true);
  await app.execute('uiAction',{action:'placement.confirm'});state.state='paused';
- assert.deepEqual(JSON.parse(JSON.stringify(app.orbitBodies.at(-1))),p.body);assert.equal(app.editHistory().undoCount,1);
- assert.equal(calls.filter(c=>c[0]==='start').length,starts+1);
- await app.execute('uiAction',{action:'orbit.undo'});state.state='paused';
- assert.deepEqual(JSON.parse(app.snapshot()).definition,before.definition);assert.equal(app.orbitName,'未应用名称');assert.equal(app.orbitFields[0],'');
- await app.execute('uiAction',{action:'orbit.redo'});state.state='paused';assert.deepEqual(JSON.parse(JSON.stringify(app.orbitBodies.at(-1))),p.body);
+ assert.deepEqual(JSON.parse(JSON.stringify(app.orbitBodies.at(-1))),p.body);assert.equal(app.editHistory().undoCount,0);
+ assert.equal(calls.filter(c=>c[0]==='start').length,starts);assert.equal(calls.filter(c=>c[0]==='insert').length,1);
+ app.selectOrbit(1);assert.equal(app.orbitName,'未应用名称');assert.equal(app.orbitFields[0],'');
+ await assert.rejects(app.execute('uiAction',{action:'orbit.undo'}),/unavailable/);
  await app.execute('uiAction',{action:'orbit.add'});assert.equal(JSON.parse(app.snapshot()).placement.sourceIndex,-1);assert.equal(app.placementSurface,1);
 });
 
@@ -666,7 +667,7 @@ test('copy rejects stars, full systems, I/O and other models without partial mut
 });
 
 test('copy avoids occupied positions and preserves Unicode names, all skins, mass bounds and stellar frame',()=>{
- const {page:app}=page();app.choose(5);app.orbitBodies[0].xAU=.3;app.orbitBodies[0].vxKmS=4;app.orbitBodies[0].vyKmS=-2;
+ const {page:app,state}=page();app.choose(5);app.orbitBodies[0].xAU=.3;app.orbitBodies[0].vxKmS=4;app.orbitBodies[0].vyKmS=-2;
  for(let surface=1;surface<=5;surface++){
   app.orbitBodies[1].surface=surface;app.orbitBodies[1].name='🌙'.repeat(24);app.beginPlacement(1);
   const p=app.placementPreview();assert.equal(p.valid,true);assert.equal(p.body.surface,surface);assert.ok(p.body.name.length<=48);assert.ok(p.nearestAU>=.05);
@@ -675,7 +676,7 @@ test('copy avoids occupied positions and preserves Unicode names, all skins, mas
  }
  app.beginPlacement(1);const first=app.placementPreview().body;app.confirmPlacement();app.beginPlacement(1);
  assert.notEqual(app.placementName,first.name);assert.equal(app.placementPreview().valid,true);app.cancelPlacement();
- for(const mass of [1e-8,.01]){app.orbitBodies[1].massSolar=mass;app.beginPlacement(1);assert.equal(app.placementPreview().valid,true);assert.ok(Math.abs(app.placementPreview().body.massSolar-mass)<1e-18);app.cancelPlacement();}
+ for(const mass of [1e-8,.01]){state.orbitState[1].massSolar=mass;app.beginPlacement(1);assert.equal(app.placementPreview().valid,true);assert.ok(Math.abs(app.placementPreview().body.massSolar-mass)<1e-18);app.cancelPlacement();}
 });
 
 test('native copy commit rejection leaves candidate, source, drafts and history intact',async()=>{
@@ -1027,4 +1028,25 @@ test('responsive galaxy UI/CLI shares draft flag, budget guard, scene identity a
  await app.execute('uiAction',{action:'theme.galaxy-responsive'});assert.equal(app.count,600);assert.equal(app.speed,.75);assert.equal(app.themeState().modified,false);
  await app.execute('uiAction',{action:'theme.compare'});assert.equal(app.galaxyResponsive,false);assert.equal(app.count,600);assert.equal(app.speed,.75);
  await app.execute('uiAction',{action:'preset.3'});await assert.rejects(()=>app.execute('uiAction',{action:'galaxy.responsive'}));
+});
+
+test('sandbox uses the current snapshot for insertion and switches stellar mass units without restarting',async()=>{
+ const {page:app,state,calls}=page();app.choose(5);state.state='running';state.time=8.25;
+ state.orbitState=structuredClone(app.orbitBodies);state.orbitState[0].xAU=12;state.orbitState[0].vxKmS=7;
+ for(let i=1;i<state.orbitState.length;i++)state.orbitState[i].xAU+=12;
+ const original=structuredClone(state.orbitState),time=state.time,starts=calls.filter(c=>c[0]==='start').length;
+ await app.execute('uiAction',{action:'orbit.add'});assert.equal(app.placementWasRunning,true);assert.equal(state.state,'paused');
+ await app.execute('uiAction',{action:'placement.surface.0'});let p=app.placementPreview();assert.equal(p.valid,true);assert.equal(p.body.massSolar,1);assert.equal(p.body.surface,0);assert.ok(p.body.xAU>12);
+ await app.execute('uiAction',{action:'placement.still'});p=app.placementPreview();assert.equal(p.body.vxKmS,7);assert.equal(p.body.vyKmS,0);
+ await app.execute('uiAction',{action:'placement.confirm'});assert.equal(state.state,'running');assert.equal(state.time,time);assert.deepEqual(state.orbitState.slice(0,4),original);
+ assert.equal(calls.filter(c=>c[0]==='start').length,starts);assert.equal(app.surfaces[4].seed,0);
+ await app.execute('uiAction',{action:'time.rate.10'});assert.equal(state.daysPerSecond,10);assert.equal(state.time,time);assert.equal(app.orbitDays,10);
+});
+
+test('all orbit presets expose add-body and clock actions and share continuous start/pause controls',async()=>{
+ const {page:app,state,calls}=page();app.choose(4);state.state='paused';app.info={...state,orbitState:app.orbitBodies};
+ const ui=JSON.parse(await app.execute('getUiState'));assert.equal(ui.actions.find(a=>a.id==='orbit.add').enabled,true);
+ await app.execute('uiAction',{action:'simulation.toggle'});assert.equal(state.continuous,true);assert.equal(state.state,'running');
+ await app.execute('uiAction',{action:'simulation.toggle'});assert.equal(state.state,'paused');
+ assert.ok(calls.some(c=>c[0]==='clock'));assert.equal(calls.filter(c=>c[0]==='start').length,1);
 });

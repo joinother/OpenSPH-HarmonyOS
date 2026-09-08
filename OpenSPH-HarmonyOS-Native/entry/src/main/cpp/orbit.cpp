@@ -19,11 +19,11 @@ OrbitSystem::OrbitSystem(int preset,double scale) {
     if(preset==4) {add(0.72,324858.592000e9/SOLAR_GM,2.1);add(1.52,42828.375816e9/SOLAR_GM,4.2);}
     recenter();
 }
-OrbitSystem::OrbitSystem(std::vector<OrbitBody> initial):bodies(std::move(initial)) {
+OrbitSystem::OrbitSystem(std::vector<OrbitBody> initial,bool center):bodies(std::move(initial)) {
     if(bodies.size()<2||bodies.size()>8)throw std::invalid_argument("Expected 2–8 bodies");
     for(const auto &b:bodies){if(!std::isfinite(b.mass)||b.mass<=0||!std::isfinite(norm(b.position))||!std::isfinite(norm(b.velocity)))throw std::invalid_argument("Invalid initial body");}
     for(const auto& b:bodies)if(!std::isfinite(b.radius)||b.radius<0||(b.radius>0)!=finiteSpheres())throw std::invalid_argument("All bodies need physical radii, or all must be point masses");
-    recenter();accelerations();
+    if(center)recenter();accelerations();
 }
 void OrbitSystem::recenter() {
     Vec3 p{},v{};double mass=0;
