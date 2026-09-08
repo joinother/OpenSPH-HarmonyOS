@@ -1,0 +1,5 @@
+PASS ten satellite orbits; fractional radius error=4.79272e-07; both bodies accelerate; momentum/energy bounded
+PASS directed projectile reaches physical surface with gravitational acceleration; response remains elastic
+PASS 15 km projectile: max step seconds=7704.49; contact seconds=2259.69; relative speed km/s=14.1262; fractional analytic error=5.03012e-05
+PASS 15 km projectile: max step seconds=0.5; contact seconds=2259.69; relative speed km/s=14.1275; fractional analytic error=4.06722e-05
+PASS 15 km projectile: max step seconds=0.125; contact seconds=2259.69; relative speed km/s=14.1269; fractional analytic error=2.64162e-06

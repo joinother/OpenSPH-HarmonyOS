@@ -20,6 +20,7 @@ export interface CommandPayload {
   yaw?: number; pitch?: number; zoom?: number; focus?: number; color?: number;
   frame?: number; panel?: number;
 }
+interface CachedReply { id:string; value:string; }
 interface Request { id: string; command: string; payload: string; }
 type Handler = (command: string, payload: CommandPayload) => Promise<string>;
 
@@ -29,6 +30,7 @@ export class CliBridge {
   private static queue: Request[] = [];
   private static busy: boolean = false;
   private static seen: string[] = [];
+  private static replies:CachedReply[]=[];
   static bind(handler: Handler): void { CliBridge.handler = handler; CliBridge.drain(); }
   static unbind(): void { CliBridge.handler = undefined; }
   static receive(want: Want): void {
@@ -37,6 +39,12 @@ export class CliBridge {
     const id: string = p['sph.request'] as string;
     const command: string = p['sph.command'] as string;
     if (!/^[a-zA-Z0-9-]{1,64}$/.test(id) || !/^[a-zA-Z]{1,32}$/.test(command)) return;
+    if(command==='retryReply'){
+      if(CliBridge.queue.length<16&&CliBridge.replies.some((r:CachedReply):boolean=>r.id===id)){
+        CliBridge.queue.push({id:id,command:command,payload:'{}'});CliBridge.drain();
+      }
+      return;
+    }
     if (CliBridge.seen.includes(id)) return;
     const encoded: string = typeof p['sph.payload'] === 'string' ? p['sph.payload'] as string : '%7B%7D';
     if (encoded.length > 16384 || CliBridge.queue.length >= 16) {
@@ -54,6 +62,7 @@ export class CliBridge {
   private static async reply(id: string, value: string): Promise<void> {
     // Pace across requests too: HiLog is a bounded log stream, not a bulk-data socket.
     // Charge UTF-8 bytes (surrogate pairs conservatively count as six) plus line metadata.
+    // Leave process-log headroom for rendering while consecutive full-state replies are emitted.
     if(value.length>128000)value=JSON.stringify({ok:false,error:'response exceeds CLI limit; request a smaller result'});
     const size: number = 500;
     let chunks:string[]=[];
@@ -69,7 +78,7 @@ export class CliBridge {
       const chunk:string=chunks[index];
       let bytes:number=128;for(let j=0;j<chunk.length;j++){const code:number=chunk.charCodeAt(j);bytes+=code<128?1:(code<2048?2:3);}
       const now:number=Date.now(),due:number=Math.max(now,CliBridge.nextReplyAt);
-      CliBridge.nextReplyAt=due+Math.ceil(bytes/24000*1000);
+      CliBridge.nextReplyAt=due+Math.ceil(bytes/12000*1000);
       if(due>now)await new Promise<void>((resolve:()=>void)=>{setTimeout(resolve,due-now);});
       hilog.info(0x0001, 'SPHCLI', 'SPHCLI %{public}s %{public}d/%{public}d %{public}s', id, index, total, chunk);
     }
@@ -79,11 +88,20 @@ export class CliBridge {
     CliBridge.busy = true;
     while (CliBridge.queue.length > 0 && CliBridge.handler) {
       const r: Request = CliBridge.queue.shift()!;
+      if(r.command==='retryReply'){
+        const cached=CliBridge.replies.find((v:CachedReply):boolean=>v.id===r.id);
+        if(cached)await CliBridge.reply(r.id,cached.value);
+        continue;
+      }
+      let response:string;
       try {
         const parsed: CommandPayload = JSON.parse(r.payload) as CommandPayload;
         if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('payload must be an object');
-        await CliBridge.reply(r.id, await CliBridge.handler(r.command, parsed));
-      } catch (error) { await CliBridge.reply(r.id, JSON.stringify({ok:false,error:String(error)})); }
+        response=await CliBridge.handler(r.command, parsed);
+      } catch (error) { response=JSON.stringify({ok:false,error:String(error)}); }
+      if(response.length>128000)response=JSON.stringify({ok:false,error:'response exceeds CLI limit; request a smaller result'});
+      CliBridge.replies.push({id:r.id,value:response});CliBridge.replies=CliBridge.replies.slice(-8);
+      await CliBridge.reply(r.id,response);
     }
     CliBridge.busy = false;
   }

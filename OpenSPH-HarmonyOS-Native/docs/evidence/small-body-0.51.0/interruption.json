@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-08",
+  "timezone": "Asia/Shanghai",
+  "scope": "development validation, not a confirmed application root cause",
+  "transport": "Partial HiLog replies observed; 12 KB/s pacing and same-id cached-result recovery added. Host recovery test executes original mutation once.",
+  "interruption": "First broad UI regression interrupted by HDC ETIMEDOUT on getState; application subsequently absent. Broad regression after relaunch passed.",
+  "earlierStartupCrash": {
+    "timestamp": "2026-09-08T15:56:26.440+08:00",
+    "processLifetimeSeconds": 3,
+    "signal": "SIGSEGV",
+    "topFrames": [
+      "libunwinder.z.so",
+      "libark_jsruntime.so"
+    ],
+    "rootCause": "unresolved; not claimed fixed"
+  },
+  "recovery": "Independent session backup retained; final restoration separately verified."
+}

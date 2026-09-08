@@ -1,0 +1,24 @@
+import {execFileSync} from 'node:child_process';
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+const device=process.argv[2];if(device!=='127.0.0.1:5555'||!process.argv[3]||!process.argv[4])throw Error('Explicit designated emulator, recovery directory, evidence directory required');
+const recovery=resolve(process.argv[3]),out=resolve(process.argv[4]);mkdirSync(out,{recursive:true});
+const before=JSON.parse(readFileSync(recovery+'/before.json')),frozen=JSON.parse(readFileSync(recovery+'/frozen.json')),backup=JSON.parse(readFileSync(recovery+'/backup.json'));
+assert.equal(backup.ok,true);assert.match(backup.projectId,/^project-\d+-\d+$/);
+const cli=fileURLToPath(new URL('./opensph-cli.mjs',import.meta.url)),remote='/data/app/el2/100/base/com.opensph.lab/haps/entry/files/';
+const h=(...a)=>execFileSync('/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/hdc',['-t',device,...a],{encoding:'utf8',timeout:60000});
+const call=(command,payload={},wait)=>{const args=[cli,'--device',device,'--timeout','60000','--command',command,'--payload-json',JSON.stringify(payload)];if(wait)args.push('--wait-state',wait);const r=JSON.parse(execFileSync(process.execPath,args,{encoding:'utf8',timeout:70000,maxBuffer:12e6}));assert.equal(r.ok,true);return r;};
+const action=a=>call('uiAction',{action:a});
+ const current=call('getState');if(current.placement.active)action('placement.cancel');call('pause');
+ call('loadProject',{id:backup.projectId},'paused');h('file','send',recovery+'/active.osphr',remote+'last-replay.osphr');call('loadReplay');
+ call('setUiValue',{field:'scene.title',value:before.definition.title});call('setAppearance',before.appearance);call('setMaterial',before.material);call('setCamera',before.camera);
+ for(let i=1;i<before.surfaces.length;i++){const s=before.surfaces[i];call('setSurfaceSeed',{body:i,surfaceSeed:s.seed,cloudSeed:s.cloudSeed});}
+ action(before.ui.toolsVisible?'ui.restore':'ui.focus');call('setPanel',{panel:before.ui.panelOpen?before.ui.panel:-1});
+ const restored=call('getState');assert.deepEqual(restored.simulation.orbitState,frozen.simulation.orbitState);assert.equal(restored.simulation.time,frozen.simulation.time);assert.equal(restored.simulation.frames,frozen.simulation.frames);
+ assert.deepEqual(restored.camera,before.camera);assert.deepEqual(restored.appearance,before.appearance);assert.deepEqual(restored.surfaces,before.surfaces);
+ h('file','send',recovery+'/original-files/last-replay.osphr',remote+'last-replay.osphr');h('shell','rm','-f',remote+backup.projectId+'.json');
+ if(backup.wasRunning)call('start');
+ writeFileSync(out+'/restoration.json',JSON.stringify({ok:true,restoredTime:restored.simulation.time,frames:restored.simulation.frames,exactBodies:true,camera:true,appearance:true,surfaceSeeds:true,originalReplayRestored:true,resumed:backup.wasRunning},null,2));
+ console.log('PASS restored original live system, presentation and previous replay slot');

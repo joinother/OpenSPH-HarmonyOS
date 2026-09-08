@@ -271,7 +271,7 @@ bool validConfig(const Config &c) {
         for(size_t i=0;i<c.orbitBodies.size();++i){const auto &b=c.orbitBodies[i];
             if(!std::isfinite(b.radiusKm)||b.radiusKm<0||b.radiusKm>1.e7||(b.radiusKm>0)!=finite||(finite&&b.radiusKm<1))return false;
             if(!validOrbitName(b.name))return false;
-            if(!range(b.massSolar,b.surface==0?.1:1.e-8,b.surface==0?2:.01)||b.surface<0||b.surface>(i==0?0:5))return false;
+            if(!range(b.massSolar,b.surface==0?.1:MIN_ORBIT_MASS,b.surface==0?2:.01)||b.surface<0||b.surface>(i==0?0:5))return false;
             if(!range(b.xAU,-10,10)||!range(b.yAU,-10,10)||!range(b.zAU,-10,10)||!range(norm({b.vxKmS,b.vyKmS,b.vzKmS}),0,100))return false;
             for(size_t j=0;j<i;++j){const auto &a=c.orbitBodies[j];if(norm({b.xAU-a.xAU,b.yAU-a.yAU,b.zAU-a.zAU})<(finite?(b.radiusKm+a.radiusKm)*1000/AU:.05))return false;}
         }
@@ -335,7 +335,7 @@ void Engine::insertOrbit(OrbitSpec body,uint64_t revision,bool run,bool physical
     auto old=current.selected<0?history.back():history.at(current.selected);
     if(old->orbitState.empty()||old->orbitState.size()>=8)throw std::invalid_argument("当前最多 8 个实体天体");
     Config check=config;check.preset=5;check.speed=1;check.orbitBodies=old->orbitState;if(physicalRadii&&check.orbitBodies.front().radiusKm==0){
-        for(auto& v:check.orbitBodies)v.radiusKm=v.surface==0?695700*std::cbrt(v.massSolar):6371*std::cbrt(v.massSolar/(398600.435507e9/SOLAR_GM));
+        for(auto& v:check.orbitBodies)v.radiusKm=v.surface==0?695700*std::cbrt(v.massSolar):std::max(1.,6371*std::cbrt(v.massSolar/(398600.435507e9/SOLAR_GM)));
     }
     check.orbitBodies.push_back(body);
     // Existing states can move beyond the initial editor's 10 AU box. Validate the new body

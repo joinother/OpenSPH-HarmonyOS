@@ -54,10 +54,16 @@ export async function request(o) {
   const shell=(args)=>execFileSync(o.hdc,['-t',o.device,'shell',...args],{encoding:'utf8',timeout:Math.min(o.timeout,10000),maxBuffer:2*1024*1024});
   const started=shell(['aa','start','-b','com.opensph.lab','-a','EntryAbility','--ps','sph.command',o.command,'--ps','sph.request',id,'--ps','sph.payload',o.payload]);
   if(!/success/i.test(started)) throw Error('Ability launch failed: '+started.trim());
-  const deadline=Date.now()+o.timeout, parts=new Map();
+  const deadline=Date.now()+o.timeout, parts=new Map();let lastProgress=Date.now(),lastCount=0,retries=0;
   while(Date.now()<deadline) {
     const value=collect(shell(['hilog','-x','-T','SPHCLI','-e',id]),id,parts);
     if(value!==undefined)return value;
+    if(parts.size!==lastCount){lastCount=parts.size;lastProgress=Date.now();}
+    // Re-emit an already computed response under the same id; never repeat a mutation.
+    if(parts.size>0&&Date.now()-lastProgress>2000&&retries<3){
+      shell(['aa','start','-b','com.opensph.lab','-a','EntryAbility','--ps','sph.command','retryReply','--ps','sph.request',id]);
+      retries++;lastProgress=Date.now();
+    }
     await delay(200);
   }
   throw Error('Timed out waiting for device response '+id+'; received '+parts.size+' chunks. Check application logs.');

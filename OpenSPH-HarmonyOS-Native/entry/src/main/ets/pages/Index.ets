@@ -10,7 +10,7 @@ import { observationPlot, ObservationPlot } from '../common/ObservationModel';
 import { GALAXY_METRICS, galaxyModel, galaxyPlot, galaxyCsv } from '../common/GalaxyObservationModel';
 import simulation, { GalaxyObserverStatus, GalaxyObservation, SphFragmentSnapshot, SphMaterialGroup, SphObservationSample, SphObservation, OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
-import { finiteOrbitBodies, estimatedOrbitRadius, contactDemoBodies, SurfaceRecipe, legacySurfaces, copySurfaces, validateSurfaces, copiedPlanetDraft, PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
+import { PlacementUnits, defaultPlacementUnits, physicalPlacementUnits, placementCanonicalFields, placementFieldsInUnits, placementUnitLabels, MIN_ORBIT_MASS_SOLAR, SOLAR_MASS_KG, AU_KM, finiteOrbitBodies, estimatedOrbitRadius, contactDemoBodies, SurfaceRecipe, legacySurfaces, copySurfaces, validateSurfaces, copiedPlanetDraft, PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
 import { themeExperiments, themeConfigMatches, ThemeExperiment } from '../common/ExperimentCatalog';
 import { ProjectStore } from '../common/ProjectStore';
 import { curves, LengthMetrics } from '@kit.ArkUI';
@@ -38,7 +38,7 @@ interface ProjectSummary { id: string; title: string; savedAt: number; hasRecipe
 interface ProjectList { ok: boolean; projects: ProjectSummary[]; }
 interface AppearanceState { clouds:boolean; atmosphere:boolean; trails:boolean; closeup:boolean; autoSpin:boolean; rings:boolean; }
 interface SkyState {mode:number;brightness:number;reference:string;}
-interface PlacementState { parent:number; promotesContact:boolean; target:number; sourceIndex:number; sourceName:string; active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
+interface PlacementState { units:PlacementUnits; labels:string[]; parent:number; promotesContact:boolean; target:number; sourceIndex:number; sourceName:string; active:boolean; name:string; fields:string[]; surface:number; direction:number; preview:PlacementPreview; }
 interface ComparisonReply {ok:boolean;visible:boolean;reference?:ReferenceSummary;currentName:string;currentCount:number;currentConfig?:SimulationConfig;chart:ComparisonPlot;error:string;}
 interface ObservationTableReply {ok:boolean;csv:string;rows:number;timeAlignment:string;reference?:ReferenceSummary;currentName:string;currentConfig?:SimulationConfig;}
 interface SphCurveData {sceneRevision:number;selected:number;samples:SphCurveSample[];}
@@ -200,6 +200,7 @@ struct Index {
   @State placing:boolean=false;
   @State placementSource:number=-1;
   @State placementName:string='新行星';
+  @State placementUnits:PlacementUnits=defaultPlacementUnits();
   @State placementFields:string[]=['1','2.5','45','0','1'];
   @State placementSurface:number=1;
   @State placementDirection:number=1;
@@ -217,7 +218,6 @@ struct Index {
   private placementWasSpin:boolean=false;
   private placementWasPanel:boolean=false;
   private placementWasTab:number=0;
-  private placementLabels:string[]=['质量 · 地球','距离 · AU','方位 · °','倾角 · °','速度 · 圆轨道倍数'];
   @State selectingPreset: boolean = false;
   private orbitLabels: string[] = ['质量','X · AU','Y · AU','Z · AU','Vx · km/s','Vy · km/s','Vz · km/s'];
   @State projects: SavedProject[] = [];
@@ -523,7 +523,7 @@ struct Index {
     }
     simulation.setComposition(Math.max(0,Math.min(1,x)),Math.max(0,Math.min(1,y)),Math.max(.05,scale));
   }
-  private canTrace():boolean {return this.preset===5&&this.focus>0&&this.orbitBodies[this.focus]?.surface===4&&!this.placing;}
+  private canTrace():boolean {return this.preset===5&&this.focus>0&&this.orbitBodies[this.focus]?.surface===4&&this.orbitBodies[this.focus].massSolar>=1e-8&&!this.placing;}
   private stopTrace():void {if(this.trace.enabled){simulation.configureRingTrace(false,false,-1,this.trace.massSolar);this.trace=simulation.ringTraceStatus(false);}}
   private toggleTrace():void {
     if(this.trace.enabled){this.stopTrace();return;}
@@ -819,7 +819,32 @@ struct Index {
   private placementRevision:number=0;
   @State private orbitDays:number=1;
   private changeOrbitClock(rate:number):void {simulation.orbitClock(rate);this.orbitDays=rate;this.info=simulation.status();if(this.preset===5&&(this.info.orbitState??[]).length!==this.orbitBodies.length){this.orbitBodies=copyOrbitBodies(this.info.orbitState??[]);this.orbitUndo=[];this.orbitRedo=[];this.focus=Math.min(this.focus,this.orbitBodies.length-1);this.selectOrbit(Math.min(this.orbitEdit,this.orbitBodies.length-1),true);this.surfaces=this.surfaces.slice(0,this.orbitBodies.length);this.syncSurfaces();}this.notice='持续演化 · 每秒 '+rate+' 个模拟日';}
-  private placementPreview():PlacementPreview {return planPlanet(this.placementBodies,this.placementName,this.placementFields,this.placementSurface,this.placementDirection,this.placementScale,this.placementTarget,true,this.placementParent);}
+  private placementPreview():PlacementPreview {return planPlanet(this.placementBodies,this.placementName,this.placementFields,this.placementSurface,this.placementDirection,this.placementScale,this.placementTarget,true,this.placementParent,this.placementUnits);}
+  private placementLabels():string[] {return placementUnitLabels(this.placementUnits,this.placementSurface===0).slice(0,this.placementFields.length);}
+  private placementDistanceAU():number {
+    const n=this.placementFields[1]?.trim()===''?Number.NaN:Number(this.placementFields[1]);
+    return this.placementUnits.distance==='au'?n:(n+(this.placementUnits.distance==='altitude'?(this.placementBodies[this.placementParent]?.radiusKm??0):0))/AU_KM;
+  }
+  private placementDistanceInput(au:number):string {
+    return String(this.placementUnits.distance==='au'?au:au*AU_KM-(this.placementUnits.distance==='altitude'?(this.placementBodies[this.placementParent]?.radiusKm??0):0));
+  }
+  private changePlacementUnits(next:PlacementUnits):void {
+    const canonical=placementCanonicalFields(this.placementFields,this.placementUnits,this.placementBodies,this.placementParent,this.placementSurface);
+    const fields=placementFieldsInUnits(canonical,next,this.placementBodies,this.placementParent,this.placementSurface);
+    this.placementFields=fields;this.placementUnits=next;
+  }
+  private setPlacementSpeedRatio(ratio:number):void {
+    const draft=this.placementFields.map((v:string,i:number):string=>i===4?'0':v);
+    const canonical=placementCanonicalFields(draft,this.placementUnits,this.placementBodies,this.placementParent,this.placementSurface);canonical[4]=String(ratio);
+    const value=placementFieldsInUnits(canonical,this.placementUnits,this.placementBodies,this.placementParent,this.placementSurface)[4];
+    this.placementFields=this.placementFields.map((v:string,i:number):string=>i===4?value:v);
+  }
+  private useSmallRock():void {
+    const mass=sphereMass(7.5,2700)/SOLAR_MASS_KG;
+    this.placementSurface=3;this.placementName='岩质小行星 · 直径 15 km';
+    this.placementFields=this.placementFields.map((v:string,i:number):string=>i===0?String(this.placementUnits.mass==='kg'?mass*SOLAR_MASS_KG:mass/EARTH_MASS_SOLAR):i===5?String(this.placementUnits.size==='diameter'?15:7.5):v);
+    this.notice='直径 15 km · 均匀密度 2700 kg/m³ · 保留当前距离和速度';
+  }
   private beginPlacement(sourceIndex:number=-1):void {
     if(this.placing)return;
     const wasRunning=simulation.status().state==='running';
@@ -832,6 +857,7 @@ struct Index {
     this.placementSource=sourceIndex;
     this.placementSurfaceRecipe=sourceIndex>0?copySurfaces([this.surfaces[sourceIndex]])[0]:{version:1,seed:Date.now()%1000000+1,cloudSeed:(Date.now()+193939)%1000000+1};
     this.placementName=copied?copied.name:'新行星 '+this.placementBodies.length;
+    this.placementUnits=defaultPlacementUnits();
     this.placementFields=copied?copied.fields:['1',String(2+this.placementBodies.length*.35),'45','0','1'];
     if(finiteOrbitBodies(this.placementBodies)&&this.placementFields.length===5)this.placementFields.push(String(estimatedOrbitRadius(Number(this.placementFields[0])*EARTH_MASS_SOLAR,false)));
     this.placementSurface=copied?copied.surface:1;this.placementDirection=1;this.placementTarget=-1;this.placementParent=0;this.placementPromotesContact=false;
@@ -845,12 +871,13 @@ struct Index {
     this.placementPromotesContact=!finiteOrbitBodies(this.placementBodies);
     if(this.placementPromotesContact)this.placementBodies=this.placementBodies.map((b:OrbitBodyConfig):OrbitBodyConfig=>{const v=copyOrbitBodies([b])[0];v.radiusKm=estimatedOrbitRadius(v.massSolar,v.surface===0);return v;});
     const host=this.placementBodies[parent];
-    const mass=Math.max(.004,Math.min(.0123,host.massSolar/EARTH_MASS_SOLAR*.0123));
+    const mass=Math.max(MIN_ORBIT_MASS_SOLAR/EARTH_MASS_SOLAR,Math.min(.0123,host.massSolar/EARTH_MASS_SOLAR*.0123));
     const radius=estimatedOrbitRadius(mass*EARTH_MASS_SOLAR,false);
-    const distance=parent===0?.1:Math.max((host.radiusKm!+radius)*5/149597870.7,host.radiusKm!*30/149597870.7);
+    const distance=parent===0?.1:Math.max(.000001,(host.radiusKm!+radius)*5/AU_KM,host.radiusKm!*30/AU_KM);
     this.placementName=host.name+(mode==='satellite'?'的卫星':mode==='launch'?'的撞击体':'旁的小天体');
     this.placementFields=[String(mass),String(distance),'45','0',mode==='drop'?'0':mode==='launch'?'1.5':'1',String(radius)];
     this.placementSurface=mode==='satellite'?5:3;this.placementTarget=mode==='launch'?parent:-1;
+    this.changePlacementUnits(physicalPlacementUnits());
     this.placementScale=distance*1.7;this.focus=parent;this.zoom=2.7;this.camera();this.updatePlacementPreview();
     this.notice='围绕 '+host.name+' 放置 · 继承母体速度 · '+(this.placementPromotesContact?'确认时按估算半径启用球体接触':'同一多体引力系统');
   }
@@ -863,7 +890,7 @@ struct Index {
   private moveViewportPlacement(x:number,y:number):void {
     if(!this.placing||this.ioBusy)throw new Error('当前未在放置行星');
     const p=simulation.placeOrbitAt(x,y,Number(this.placementFields[3]));
-    this.placementFields=this.placementFields.map((v:string,i:number):string=>i===1?p[0].toFixed(9):i===2?p[1].toFixed(6):v);
+    this.placementFields=this.placementFields.map((v:string,i:number):string=>i===1?this.placementDistanceInput(p[0]):i===2?p[1].toFixed(6):v);
     this.updatePlacementPreview();
   }
   private dragViewportPlacement(e:GestureEvent):void {
@@ -891,7 +918,7 @@ struct Index {
   private movePlacement(x:number,y:number):void {
     if(!this.placing||this.ioBusy)throw new Error('当前未在放置行星');
     const point=placementPoint(x,y,this.placementPreview().plotScale,this.placementParent>0);
-    this.placementFields=this.placementFields.map((v:string,i:number):string=>i===1?point[0].toFixed(9):i===2?point[1].toFixed(2):v);this.updatePlacementPreview();
+    this.placementFields=this.placementFields.map((v:string,i:number):string=>i===1?this.placementDistanceInput(point[0]):i===2?point[1].toFixed(2):v);this.updatePlacementPreview();
   }
   private placementGesture(e:GestureEvent):void {
     const finger=e.fingerList[0];if(!finger)return;
@@ -1019,7 +1046,7 @@ struct Index {
   }
   private snapshot(): string {
     this.info=simulation.status();
-    const snapshot: AppSnapshot = {video:this.videoState,galaxyObserver:simulation.galaxyObserverStatus(),galaxyPlacement:this.galaxyPlacementState(),surfaces:copySurfaces(this.surfaces),surfaceUndoCount:this.surfaceUndo.length,surfaceRedoCount:this.surfaceRedo.length,ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{parent:this.placementParent,promotesContact:this.placementPromotesContact,target:this.placementTarget,sourceIndex:this.placing?this.placementSource:-1,sourceName:this.placing&&this.placementSource>0?this.orbitBodies[this.placementSource].name:'',active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.observerMode>0?'galaxy-tracer-observer':this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
+    const snapshot: AppSnapshot = {video:this.videoState,galaxyObserver:simulation.galaxyObserverStatus(),galaxyPlacement:this.galaxyPlacementState(),surfaces:copySurfaces(this.surfaces),surfaceUndoCount:this.surfaceUndo.length,surfaceRedoCount:this.surfaceRedo.length,ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{units:this.placementUnits,labels:this.placementLabels(),parent:this.placementParent,promotesContact:this.placementPromotesContact,target:this.placementTarget,sourceIndex:this.placing?this.placementSource:-1,sourceName:this.placing&&this.placementSource>0?this.orbitBodies[this.placementSource].name:'',active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.observerMode>0?'galaxy-tracer-observer':this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
       material:this.materialState(),appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},rendering:simulation.renderStatus(),
       simulation:this.info,
       scene:{preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,dirty:this.dirty},
@@ -1119,6 +1146,13 @@ struct Index {
     for(let i=0;i<this.placementBodies.length;i++)add('placement.target.'+i,'瞄准 '+this.placementBodies[i].name,this.placing,this.placementTarget===i);
     add('placement.cancel','取消放置',this.placing);add('placement.confirm','在当前时刻加入',this.placing&&this.placementPreview().valid);
     add('placement.circular','圆轨道',this.placing);add('placement.still','相对静止',this.placing);add('placement.escape','掠过',this.placing);add('placement.reverse','反向',this.placing,this.placementDirection===-1);
+    add('placement.units.physical','公斤 / 公里 / 秒',this.placing&&finiteOrbitBodies(this.placementBodies),this.placementUnits.mass==='kg');
+    add('placement.units.astro','天文单位',this.placing,this.placementUnits.mass==='astronomical');
+    add('placement.units.center','距母体中心',this.placing&&finiteOrbitBodies(this.placementBodies),this.placementUnits.distance==='km');
+    add('placement.units.altitude','距母体表面',this.placing&&finiteOrbitBodies(this.placementBodies),this.placementUnits.distance==='altitude');
+    add('placement.units.radius','半径',this.placing&&finiteOrbitBodies(this.placementBodies),this.placementUnits.size==='radius');
+    add('placement.units.diameter','直径',this.placing&&finiteOrbitBodies(this.placementBodies),this.placementUnits.size==='diameter');
+    add('placement.rock','15 km 岩质小行星',this.placing&&finiteOrbitBodies(this.placementBodies));
     for(let i=0;i<=5;i++)add('placement.surface.'+i,['恒星','海洋','厚云','荒漠','带环','月面'][i],this.placing,this.placementSurface===i);
     for(const mode of ['satellite','launch','drop'])add('selection.'+mode,mode==='satellite'?'添加卫星':mode==='launch'?'向它发射':'附近投放',this.isOrbit()&&this.focus>=0&&this.focus<(this.info.orbitState??[]).length&&(this.info.orbitState??[]).length<8);
     add('orbit.contact','启用球体接触',this.preset===5&&!this.contactMode());add('orbit.contact.demo','球体接触实验',this.preset===5);
@@ -1162,7 +1196,7 @@ struct Index {
     if(field==='galaxy.placement.offset'){if(typeof value!=='number')throw new Error('需要数值');this.galaxyPlacementOffset=this.checked(value,0,30);this.updateGalaxyPlacement();return;}
     if(field.startsWith('placement.')){
       if(typeof value!=='string'||value.length>48)throw new Error('Expected bounded text');
-      if(field==='placement.name')this.placementName=value;else{const index=Number(field.slice(16));this.placementFields=this.placementFields.map((v:string,i:number):string=>i===index?value:v);if(index===1&&Number.isFinite(Number(value)))this.placementScale=this.placementParent>0?Math.max(.000001,Math.min(13,Number(value)*1.7)):Math.max(this.placementScale,Math.min(13,Number(value)*1.3));}
+      if(field==='placement.name')this.placementName=value;else{const index=Number(field.slice(16));this.placementFields=this.placementFields.map((v:string,i:number):string=>i===index?value:v);if(index===1&&Number.isFinite(this.placementDistanceAU()))this.placementScale=this.placementParent>0?Math.max(.000001,Math.min(13,this.placementDistanceAU()*1.7)):Math.max(this.placementScale,Math.min(13,this.placementDistanceAU()*1.3));}
       this.updatePlacementPreview();return;
     }
     if(field==='scene.title'||field==='body.name'||field==='orbit.name'||field.startsWith('orbit.value.')){
@@ -1328,10 +1362,15 @@ struct Index {
     else if(action==='placement.align'){this.yaw=0;this.pitch=Math.max(-1.5,Math.min(1.5,-Number(this.placementFields[3])*Math.PI/180));this.camera();}
     else if(action.startsWith('placement.target.'))this.placementTarget=Number(action.slice(17));
     else if(action==='placement.reverse')this.placementDirection=-this.placementDirection;
+    else if(action==='placement.rock')this.useSmallRock();
+    else if(action.startsWith('placement.units.')){
+      const mode=action.slice(16),u=this.placementUnits;
+      this.changePlacementUnits(mode==='physical'?physicalPlacementUnits():mode==='astro'?defaultPlacementUnits():{mass:u.mass,distance:mode==='center'?'km':mode==='altitude'?'altitude':u.distance,speed:u.speed,size:mode==='radius'?'radius':mode==='diameter'?'diameter':u.size});
+    }
     else if(action.startsWith('placement.surface.')){const next=Number(action.slice(18)),star=next===0;
-      if(star!==(this.placementSurface===0)){this.placementFields=this.placementFields.map((v:string,i:number):string=>i===0?'1':i===5?String(estimatedOrbitRadius(star?1:EARTH_MASS_SOLAR,star)):v);this.placementName=star?'新恒星':'新行星';}
+      if(star!==(this.placementSurface===0)){this.placementFields=this.placementFields.map((v:string,i:number):string=>i===0?String(this.placementUnits.mass==='kg'?(star?1:EARTH_MASS_SOLAR)*SOLAR_MASS_KG:1):i===5?String(estimatedOrbitRadius(star?1:EARTH_MASS_SOLAR,star)*(this.placementUnits.size==='diameter'?2:1)):v);this.placementName=star?'新恒星':'新行星';}
       this.placementSurface=next;}
-    else if(action.startsWith('placement.')){this.placementTarget=-1;const speed=action==='placement.still'?'0':action==='placement.escape'?'1.45':'1';this.placementFields=this.placementFields.map((v:string,i:number):string=>i===4?speed:v);}
+    else if(action.startsWith('placement.')){this.placementTarget=-1;const speed=action==='placement.still'?'0':action==='placement.escape'?'1.45':'1';this.setPlacementSpeedRatio(Number(speed));}
     else if(action==='orbit.undo'||action==='orbit.redo')this.travelOrbitHistory(action==='orbit.redo');
     else if(action==='orbit.discard')this.discardOrbitDraft();
     else if(action==='orbit.remove')this.removeOrbit();
@@ -1959,7 +1998,7 @@ struct Index {
     Column({space:0}) {
       Row() {
         Column({space:3}) {
-          Text(this.placing?'放置新行星':this.tab===0?(this.preset===6?(this.galaxyResponsive?'恒星参与星系引力':'让引力拉出长尾'):this.preset===5?'编辑 · '+this.orbitBodies[this.orbitEdit].name:(this.isOrbit()?'让引力描绘轨道':'构建一次相遇')):(this.tab===1?'换一种方式观察':(this.librarySection==='saved'?'我的实验':'主题实验'))).fontSize(18).fontWeight(FontWeight.Medium).fontColor('#F4F0FF').maxLines(1).textOverflow({overflow:TextOverflow.Ellipsis})
+          Text(this.placing?'放置天体':this.tab===0?(this.preset===6?(this.galaxyResponsive?'恒星参与星系引力':'让引力拉出长尾'):this.preset===5?'编辑 · '+this.orbitBodies[this.orbitEdit].name:(this.isOrbit()?'让引力描绘轨道':'构建一次相遇')):(this.tab===1?'换一种方式观察':(this.librarySection==='saved'?'我的实验':'主题实验'))).fontSize(18).fontWeight(FontWeight.Medium).fontColor('#F4F0FF').maxLines(1).textOverflow({overflow:TextOverflow.Ellipsis})
           Text(this.placing?'先预览，再确认加入':this.tab===0?(this.preset===5?'初始条件 · 草稿保留在本次会话':'实验参数'):(this.tab===1?'观察与记录':'实验库')).fontSize(10).fontColor('#ACA4C8')
         }.alignItems(HorizontalAlign.Start).layoutWeight(1)
         Blank()
@@ -2037,7 +2076,7 @@ struct Index {
   @Builder
   placementDock() {
     Column({space:8}) {
-      Text(this.placementName+' · '+(this.placementParent>0?(Number(this.placementFields[1])*149597870.7).toFixed(0)+' km':Number(this.placementFields[1]).toFixed(2)+' AU')).maxLines(1).fontSize(14).fontColor('#E5E7FF')
+      Text(this.placementName+' · '+(this.placementParent>0?(this.placementDistanceAU()*AU_KM).toFixed(0)+' km 中心距':this.placementDistanceAU().toFixed(2)+' AU')).maxLines(1).fontSize(14).fontColor('#E5E7FF')
       Text(this.placementPreview().valid?(this.placementPromotesContact?'确认时启用估算实体半径 · 拖动调整位置':'当前时刻预览 · 轻点 / 拖动放置 · 双指缩放'):this.placementPreview().error).fontSize(11).fontColor(this.placementPreview().valid?'#BCBDD8':'#F4A993')
       Row({space:6}) {
         ChoiceChip({label:'取消',onPress:()=>{this.press('placement.cancel');}})
@@ -2051,6 +2090,29 @@ struct Index {
   placementControls() {
     Column({space:10}) {
       Text(this.placementSource>0?'来自 '+this.orbitBodies[this.placementSource].name+' · 已应用的质量与外观':'围绕 '+this.placementParentName()+' 放置').fontSize(13).fontColor('#D1C1F0').width('100%')
+      if(finiteOrbitBodies(this.placementBodies)) {
+        Flex({wrap:FlexWrap.Wrap}) {
+          ChoiceChip({label:'公斤 / 公里 / 秒',active:this.placementUnits.mass==='kg',onPress:()=>{this.press('placement.units.physical');}})
+          ChoiceChip({label:'天文单位',active:this.placementUnits.mass==='astronomical',onPress:()=>{this.press('placement.units.astro');}})
+          ChoiceChip({label:'15 km 岩质小行星',onPress:()=>{this.press('placement.rock');}})
+        }
+      }
+      ForEach(this.placementLabels(),(label:string,i:number)=>{
+        Row({space:8}) {
+          Text(label).fontSize(11).fontColor('#B6ADC9').width(96)
+          TextInput({text:this.placementFields[i]}).fontSize(12).height(38).layoutWeight(1).borderRadius(14).fontColor('#EBE7F8').backgroundColor('#4533334D')
+            .onChange((v:string)=>{this.input('placement.value.'+i,v);})
+        }.width('100%')
+      })
+      if(finiteOrbitBodies(this.placementBodies)) {
+        Flex({wrap:FlexWrap.Wrap}) {
+          ChoiceChip({label:'距母体中心',active:this.placementUnits.distance==='km',onPress:()=>{this.press('placement.units.center');}})
+          ChoiceChip({label:'距母体表面',active:this.placementUnits.distance==='altitude',onPress:()=>{this.press('placement.units.altitude');}})
+          ChoiceChip({label:'半径',active:this.placementUnits.size==='radius',onPress:()=>{this.press('placement.units.radius');}})
+          ChoiceChip({label:'直径',active:this.placementUnits.size==='diameter',onPress:()=>{this.press('placement.units.diameter');}})
+        }
+        Text('高度以新天体中心计；需大于自身半径。质量与尺寸可独立编辑，15 km 快捷项按均匀岩石密度估算质量。').fontSize(10).fontColor('#B6ADC9')
+      }
       Text('当前时刻加入 · 原有位置、速度与时间保留；最多 8 个实体天体').fontSize(11).fontColor('#ACA5C0').lineHeight(16)
       Row({space:8}) {
         ChoiceChip({label:'取消',onPress:()=>{this.press('placement.cancel');}})
@@ -2074,16 +2136,16 @@ struct Index {
         ))
       Text('辅助俯视图 · 主星图同样可以轻点或拖动放置\n紫线为二体估计，灰点为已有天体当前的位置投影').fontSize(10).fontColor('#ACA5C0').textAlign(TextAlign.Center)
       Row({space:6}) {
-        ChoiceChip({label:'圆轨道',active:this.placementFields[4]==='1',onPress:()=>{this.press('placement.circular');}})
-        ChoiceChip({label:'直接投放',active:this.placementFields[4]==='0',onPress:()=>{this.press('placement.still');}})
-        ChoiceChip({label:'掠过',active:this.placementFields[4]==='1.45',onPress:()=>{this.press('placement.escape');}})
+        ChoiceChip({label:'圆轨道',active:this.placementPreview().valid&&Math.abs(this.placementPreview().speedKmS/this.placementPreview().circularKmS-1)<1e-10,onPress:()=>{this.press('placement.circular');}})
+        ChoiceChip({label:'直接投放',active:this.placementPreview().valid&&this.placementPreview().speedKmS===0,onPress:()=>{this.press('placement.still');}})
+        ChoiceChip({label:'掠过',active:this.placementPreview().valid&&Math.abs(this.placementPreview().speedKmS/this.placementPreview().circularKmS-1.45)<1e-10,onPress:()=>{this.press('placement.escape');}})
         ChoiceChip({label:'反向',active:this.placementDirection===-1,onPress:()=>{this.press('placement.reverse');}})
       }
       Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(6)}}) {
         ForEach(this.placementBodies,(b:OrbitBodyConfig,i:number)=>{ChoiceChip({label:'瞄准 '+b.name,active:this.placementTarget===i,onPress:()=>{this.press('placement.target.'+i);}})})
       }
       Text(this.placementTarget>=0?(finiteOrbitBodies(this.placementBodies)?'按当前位置瞄准 · 实体接触后弹性响应并暂停':'按目标当前位置定向发射 · 引力会改变路径；实体碰撞尚未接通'):'' ).fontSize(10).fontColor('#D1BB9A')
-      Text(this.placementPreview().valid?'相对 '+this.placementParentName()+' '+this.placementPreview().speedKmS.toFixed(2)+' km/s · '+(this.placementFields[4]==='0'?'相对母体静止投放':this.placementPreview().bound?'二体束缚轨道':'二体非束缚轨道'):this.placementPreview().error)
+      Text(this.placementPreview().valid?'相对 '+this.placementParentName()+' '+this.placementPreview().speedKmS.toFixed(2)+' km/s · '+(this.placementPreview().speedKmS===0?'相对母体静止投放':this.placementPreview().bound?'二体束缚轨道':'二体非束缚轨道'):this.placementPreview().error)
         .fontSize(11).fontColor(this.placementPreview().valid?'#AECFD9':'#F4A993').width('100%')
       if(this.placementPromotesContact){Text('确认将按估算半径启用实体接触；保留原位置、速度与时间。接触仍为弹性反弹，尚无熔融。').fontSize(11).fontColor('#D1BB9A')}
       TextInput({text:this.placementName,placeholder:'新行星名称'}).height(38).fontColor('#EBE7F8').backgroundColor('#4533334D').borderRadius(14)
@@ -2096,14 +2158,7 @@ struct Index {
           ChoiceChip({label:'带环',active:this.placementSurface===4,onPress:()=>{this.press('placement.surface.4');}})
           ChoiceChip({label:'月面',active:this.placementSurface===5,onPress:()=>{this.press('placement.surface.5');}})
       }
-      ForEach(finiteOrbitBodies(this.placementBodies)?this.placementLabels.concat(['半径 · km']):this.placementLabels,(label:string,i:number)=>{
-        Row({space:8}) {
-          Text(i===0&&this.placementSurface===0?'质量 · 太阳质量':label).fontSize(11).fontColor('#B6ADC9').width(108)
-          TextInput({text:this.placementFields[i]}).height(38).layoutWeight(1).borderRadius(14).fontColor('#EBE7F8').backgroundColor('#4533334D')
-            .onChange((v:string)=>{this.input('placement.value.'+i,v);})
-        }.width('100%')
-      })
-      Text('相对恒星设置；静止为相对恒星零速度。速度上限、初始间距和坐标越界会阻止确认。倾角围绕 X 轴，反向改变速度方向。取消保留原模拟与草稿；确认会清空旧轨迹，保留其他天体草稿。').fontSize(10).fontColor('#ACA5C0').lineHeight(16)
+      Text('速度相对所选母体；倾角围绕 X 轴。确认保留当前时间与原有天体状态，取消保留原模拟与草稿。接触仍为弹性响应，尚未接入破碎和熔融。').fontSize(10).fontColor('#ACA5C0').lineHeight(16)
     }.width('100%')
   }
   @Builder

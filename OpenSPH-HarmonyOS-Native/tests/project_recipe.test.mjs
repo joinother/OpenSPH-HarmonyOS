@@ -83,3 +83,13 @@ test('finite spheres preserve radii, model identity, copied placement and atomic
   const old=scene();model.validateScene(old);assert.equal(model.copyOrbitBodies(old.config.orbitBodies)[1].radiusKm,undefined);
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+test('kilometre-scale asteroid masses survive project serialization and reject below-budget masses',()=>{
+ const dir=fs.mkdtempSync(join(tmpdir(),'sph-small-body-'));try{
+  const s=scene();s.config.orbitBodies=model.contactDemoBodies();s.model='nbody-hard-sphere-v1';
+  s.config.orbitBodies.push({name:'15 km 岩体',massSolar:model.sphereMass(7.5,2700)/model.SOLAR_MASS_KG,xAU:2,yAU:0,zAU:0,vxKmS:0,vyKmS:20,vzKmS:0,surface:3,radiusKm:7.5});
+  const saved=ProjectStore.save(dir,s,model.defaultRecipe(s));assert.deepEqual(JSON.parse(JSON.stringify(ProjectStore.load(dir,saved.id).scene)),JSON.parse(JSON.stringify(s)));
+  for(const mass of [0,1e-19,NaN,Infinity]){s.config.orbitBodies[3].massSolar=mass;assert.throws(()=>model.validateScene(s));}
+  s.config.orbitBodies[3].massSolar=model.MIN_ORBIT_MASS_SOLAR;model.validateScene(s);
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

@@ -42,5 +42,19 @@ int main(int argc,char** argv){try{
     require(e.saveReplay(argv[1])&&e.loadReplay(argv[1]),"promoted session roundtrip failed");same(physical.orbitState,e.status().orbitState);
     e.orbitClock(.1);e.pause(false);wait(e,[](Status s){return s.time>0;});e.pause(true);require(e.status().orbitState.size()==5,"satellite vanished");
     std::cout<<"PASS local insertion: point-to-sphere atomic promotion, existing vectors/time retained, v14 continuation\n";
+    e.start(c,true);wait(e,[](Status s){return s.state=="paused"&&s.time==0&&s.frames>0;});e.freezeOrbit();
+    auto smallBefore=e.status();auto rock=smallBefore.orbitState[1];rock.name="15 km 岩体";rock.surface=3;rock.radiusKm=7.5;
+    rock.massSolar=4*3.141592653589793/3*std::pow(7500.,3)*2700/SOLAR_MASS;
+    rock.xAU+=(6371.+25000.)*1000/AU;rock.vxKmS-=10;
+    for(double mass:{0.,MIN_ORBIT_MASS/10}){auto bad=rock;bad.massSolar=mass;bool rejected=false;try{e.insertOrbit(bad,smallBefore.orbitRevision,false,true);}catch(...){rejected=true;}require(rejected,"sub-minimum mass accepted");same(smallBefore.orbitState,e.status().orbitState);require(e.status().orbitRevision==smallBefore.orbitRevision,"rejected insertion changed revision");}
+    e.insertOrbit(rock,smallBefore.orbitRevision,false,true);auto small=e.status();
+    require(small.orbitState.back().massSolar==rock.massSolar&&small.orbitState.back().radiusKm==7.5,"small body mass/radius lost");
+    require(e.saveReplay(argv[1])&&e.loadReplay(argv[1]),"small body v14 roundtrip failed");same(small.orbitState,e.status().orbitState);
+    e.orbitClock(.01);e.pause(false);wait(e,[](Status s){return s.time>0;});e.pause(true);
+    require(e.status().orbitState.back().massSolar==rock.massSolar,"small body mass changed while running");
+    Config minimum=c;minimum.preset=5;minimum.orbitBodies=e.status().orbitState;minimum.orbitBodies.back().massSolar=MIN_ORBIT_MASS;minimum.orbitBodies.back().radiusKm=1;
+    require(validConfig(minimum),"minimum supported body rejected");
+    e.start(minimum,true);wait(e,[](Status s){return s.state=="paused"&&s.frames>0;});require(e.saveReplay(argv[1])&&e.loadReplay(argv[1]),"minimum mass replay rejected");
+    std::cout<<"PASS small bodies: 15 km insertion, invalid-mass atomic rejection, exact mass/radius v14 roundtrip, continuation and minimum budget\n";
     e.cancel();std::cout<<"PASS orbit sandbox: beyond duration, pause, exact insertion, stellar mass, stale revision, rolling history, v14 roundtrip, cancel, resume, branch, atomic corrupt rejection\n";
 }catch(const std::exception& ex){std::cerr<<"FAIL "<<ex.what()<<"\n";return 1;}}

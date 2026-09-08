@@ -1,0 +1,16 @@
+import {execFileSync} from 'node:child_process';import {mkdirSync,writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+const device=process.argv[2];if(device!=='127.0.0.1:5555'||!process.argv[3])throw Error('Explicit designated emulator and a new recovery directory required');
+const dir=resolve(process.argv[3]);mkdirSync(dir,{recursive:false});
+const h=(...a)=>execFileSync('/Applications/DevEco-Studio.app/Contents/sdk/default/openharmony/toolchains/hdc',['-t',device,...a],{encoding:'utf8',timeout:60000});
+const call=(c,p={})=>JSON.parse(execFileSync(process.execPath,['scripts/opensph-cli.mjs','--device','127.0.0.1:5555','--command',c,'--payload-json',JSON.stringify(p)],{encoding:'utf8',timeout:60000,maxBuffer:12e6}));
+const before=call('getState');writeFileSync(dir+'/before.json',JSON.stringify(before,null,2));
+if(before.placement.active||!['idle','error'].includes(before.video.state)||before.editor.orbitDraft||before.scene.dirty||before.editor.drafts.length||before.editor.history.undoCount||before.editor.history.redoCount)throw Error('Active draft or recording requires separate preservation');
+if(before.scene.preset!==5||!before.simulation.orbitState?.length||before.ringTrace.enabled||before.ui.playing||before.simulation.selected>=0)throw Error('Requires a live custom orbit session without a separate ring/replay clock');
+call('pause');const frozen=call('getState');writeFileSync(dir+'/frozen.json',JSON.stringify(frozen,null,2));
+const remote='/data/app/el2/100/base/com.opensph.lab/haps/entry/files';
+h('file','recv',remote,dir+'/original-files');
+const project=call('saveProject',{title:before.definition.title});writeFileSync(dir+'/project.json',JSON.stringify(project));
+const saved=call('saveReplay');if(!saved.ok)throw Error('Unable to preserve active session');
+h('file','recv',remote+'/last-replay.osphr',dir+'/active.osphr');
+writeFileSync(dir+'/backup.json',JSON.stringify({ok:true,wasRunning:before.simulation.state==='running',projectId:project.id,time:frozen.simulation.time,frames:frozen.simulation.frames},null,2));console.log('PASS preserved live session, current presentation, original files and replay');

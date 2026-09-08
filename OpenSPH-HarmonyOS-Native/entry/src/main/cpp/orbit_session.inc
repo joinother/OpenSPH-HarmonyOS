@@ -35,7 +35,7 @@ static bool readOrbitSession(std::ifstream& in,OrbitSession& s) {
         for(uint32_t i=0;i<count;i++){
             uint32_t len=0;read(len);if(!in||len<1||len>192)return false;
             std::string name(len,'\0');in.read(&name[0],len);double d[9];for(double& x:d){read(x);if(!in||!std::isfinite(x)||std::abs(x)>1.e7)return false;}
-            if(!in||!validOrbitName(name)||d[7]<0||d[7]>5||std::trunc(d[7])!=d[7]||(i==0&&d[7]!=0)||d[0]<(d[7]==0?.1:1.e-8)||d[0]>(d[7]==0?2:.01)||d[8]<0||(d[8]>0&&d[8]<1))return false;
+            if(!in||!validOrbitName(name)||d[7]<0||d[7]>5||std::trunc(d[7])!=d[7]||(i==0&&d[7]!=0)||d[0]<(d[7]==0?.1:MIN_ORBIT_MASS)||d[0]>(d[7]==0?2:.01)||d[8]<0||(d[8]>0&&d[8]<1))return false;
             f->orbitState.push_back({name,d[0],d[1],d[2],d[3],d[4],d[5],d[6],int(d[7]),d[8]});
             bodies.push_back({d[0],{d[1],d[2],d[3]},{d[4]*1000*YEAR/AU,d[5]*1000*YEAR/AU,d[6]*1000*YEAR/AU},d[8]*1000/AU});
             const double speed=norm({d[4],d[5],d[6]});f->particles.push_back({float(d[1]),float(d[2]),float(d[3]),float(speed),float(d[0]),float(i)});f->surfaces.push_back(int(d[7]));if(d[8]>0)f->radiiAU.push_back(d[8]*1000/AU);

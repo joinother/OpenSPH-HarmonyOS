@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.50.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.51.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -101,7 +101,7 @@ python3 -c 'import json; from pathlib import Path; d=json.loads(Path("galaxy-com
 | `orbit.contact` | 给当前系统估算初始半径并启用接触，支持撤销；已有草稿保留 |
 | `orbit.contact.demo` | 加载三个天体的接近实验，暂停并进入局部实体比例视图 |
 | `orbit.value.7` | 当前天体的半径字符串，应用后重算初始条件 |
-| `placement.value.5` | 接触模式候选天体的半径字符串，确认／取消遵循放置事务 |
+| `placement.value.5` | 接触模式候选天体的尺寸字符串，半径／直径由 `getState.placement.units.size` 指定，确认／取消遵循放置事务 |
 | `getState.simulation.contact` | 累计 count、最近一对索引 a/b、timeSeconds、normalSpeedKmS、restitution=1；无事件时 count=0、a/b=-1 |
 
 ```sh
@@ -202,17 +202,20 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 `orbit.add` 冻结当前可见帧并打开主星图预览。预设 3、4、5 均支持；旧回放缺少完整速度时禁用。`placement.confirm` 在同一时刻加入天体，保留原有位置、速度和历史；原先运行则恢复。取消恢复视角与草稿。确认清除初态编辑撤销历史，防止旧初态覆盖当前世界；在过去帧确认会建立新历史分支，取消则保留未来历史。详见 [连续沙盒](reference/ORBIT-SANDBOX.md)。
 
-- `placement.name` 与 `placement.value.0..4` 为字符串；五个值依次为质量倍数（恒星采用太阳质量，其余采用地球质量）、距离 AU、方位角度、倾角角度、圆轨道速度倍数。
-- `placement.circular`、`placement.still`、`placement.escape`、`placement.reverse` 设置圆轨道、相对恒星静止、1.45 倍圆轨道速度及反向；`placement.surface.0..5` 设置恒星或行星外观。
+- `placement.name` 与 `placement.value.0..5` 为字符串；按当前单位依次为质量、距离、方位角、倾角、速度、尺寸，尺寸仅实体模式提供。先读 `getState.placement.units/labels`，不能把局部放置的 kg／km／km/s 误解为倍数／AU。普通 `orbit.add` 默认天文单位；`selection.satellite/launch/drop` 默认公斤、中心距母体表面高度、km/s 和直径。
+- `placement.units.physical/astro` 换算整组单位；`placement.units.center/altitude` 切换公里距离基准，`placement.units.radius/diameter` 切换尺寸表达。同一候选的物理值保留；不完整数值拒绝换算，原字符串不丢失。
+- 高度为候选中心距母体表面的距离；增大候选半径不会自动移动其中心。`placement.rock` 设置直径 15 km、均匀密度 2700 kg/m³ 对应的质量和荒漠外观；不移动候选、不重置速度。质量与尺寸随后独立可调。最低非恒星质量为 1e-18 太阳质量，实体半径下限仍为 1 km。
+- 绝对速度模式更改质量／距离后保持 km/s；倍数模式保持比例。当前输入相对速度上限 100 km/s，另校验相对首颗恒星的完整速度。
+- `placement.circular`、`placement.still`、`placement.escape`、`placement.reverse` 设置圆轨道、相对母体静止、1.45 倍圆轨道速度及反向；`placement.surface.0..5` 设置恒星或行星外观。
 - `setViewportPlacementPoint {x,y}` 使用整个主视口内 0–1 坐标（左上原点），与主星图轻点／单指拖动共用原生投影逆变换。未呈现放置帧、屏幕尺寸正变化、轨道面接近侧视或距离越界时拒绝，不确认或改写实验。
 - `placement.options` 显示／收起数值抽屉，保留候选；`placement.align` 正对当前倾斜轨道面。双指缩放保持候选位置；放置时单指不旋转镜头。
-- `placement.target.N` 将相对恒星速度指向第 N 个天体的当前位置；目标可以是恒星 0。速度模长仍由速度倍数设置，反向切换指向外侧。不是预测拦截，不保证命中。圆轨道／静止／掠过动作退出瞄准。
+- `placement.target.N` 将相对母体速度指向第 N 个天体的当前位置；目标可以是恒星 0。速度模长由当前速度字段及其单位设置，反向切换指向外侧。不是预测拦截，不保证命中。圆轨道／静止／掠过动作退出瞄准。
 - `setPlacementPoint {x,y}` 保留辅助小图内 0–1 坐标，与小图轻点／拖动共用转换，不会自动确认。主视口与辅助小图坐标不能混用。
 - `getPlacementPreview` 返回 valid、error、完整候选初值、相对速度、圆轨道／逃逸速度、最近距离和解析引导路径；无效输入不能确认。
 
 `getProjectedBodies.projection` 增加 `placement` 和 `candidate`，表示最近呈现帧是否为放置预览、候选 ID（无有效候选为 −1）；time 为预览初始时刻 0，不能代替 `getState.simulation.time`。放置期间 `pickBody` 拒绝普通天体选择。
 
-圆轨道速度包含恒星与候选质量，候选速度叠加恒星原速度。紫线是二体解析引导，灰点是其他天体当前位置的平面投影。当前最多 8 个实体；新天体相对母星距离 0.05–10 AU，局部速度模长不超过 100 km/s；已有天体可继续演化越出初态编辑范围。
+圆轨道速度包含恒星与候选质量，候选速度叠加恒星原速度。紫线是二体解析引导，灰点是其他天体当前位置的平面投影。当前最多 8 个实体；绕首颗恒星中心距离 0.05–10 AU；选中其他母体后局部中心距离 0.000001–10 AU，局部速度模长不超过 100 km/s；已有天体可继续演化越出初态编辑范围。
 
 ### 复制已有行星
 
@@ -609,3 +612,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 改变颜色、旋转、缩放、翻页、折叠与屏幕方向保留跟随。`fragments.stop` 平滑返回选择前的常规观察目标；`focus.all` 返回全景，普通天体选择／视角复位结束团块跟随。返回键先关闭面板，之后结束团块跟随，再按既有逻辑处理。显式 `setCamera`、重新加载回放或更换实验结束跟随，防止粒子序号被用于另一场景。
 
 跟随是当前观察状态，不写入实验配方或回放；回放仍为 v10，无格式变化。分裂时跟随包含种子材料点的分支，连接时跟随合并团块；这不代表完整碎片谱系、引力束缚或再聚合。见 [定义与验证](reference/FRAGMENT-FOLLOW.md)。
+
+## 命令返回的丢段恢复
+
+回复经过有界日志通道分段传输。客户端收到部分回复但超过 2 秒没有新片段时，会使用同一请求 ID 请求 `retryReply`，最多 3 次；应用只重发最近 8 份缓存结果，不重新执行动作。此命令是传输内部恢复机制，普通操作继续使用语义动作。没有收到任何片段或缓存已过期时仍可能超时；此时先查询当前状态，不能盲目重复加入天体等操作。

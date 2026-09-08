@@ -13,7 +13,7 @@ function call(command,payload={},wait){const args=[cli,'--device',device,'--time
 const action=(id,wait)=>call('uiAction',{action:id},wait);
 try{
   call('listCommands');call('getUiState');
-  action('preset.5','paused');let catalog=call('getUiState');assert.ok(catalog.actions.length>45);assert.equal(catalog.fields.length,38);assert.ok(catalog.fields.some(f=>f.field==='trace.impulse'));assert.ok(catalog.fields.some(f=>f.field==='material.exposure'));
+  action('preset.5','paused');let catalog=call('getUiState');assert.ok(catalog.actions.length>45);for(const field of ['placement.name',...Array.from({length:5},(_,i)=>'placement.value.'+i),...Array.from({length:7},(_,i)=>'orbit.value.'+i)])assert.ok(catalog.fields.some(f=>f.field===field),'Missing semantic field '+field);assert.ok(catalog.fields.some(f=>f.field==='trace.impulse'));assert.ok(catalog.fields.some(f=>f.field==='material.exposure'));
   action('orbit.add');action('placement.confirm','paused');const original=call('getState').definition.config.orbitBodies;
   call('setUiValue',{field:'orbit.name',value:'CLI 远洋'});call('setUiValue',{field:'orbit.value.0',value:'2'});
   action('orbit.surface.3');assert.deepEqual(call('getState').definition.config.orbitBodies,original);

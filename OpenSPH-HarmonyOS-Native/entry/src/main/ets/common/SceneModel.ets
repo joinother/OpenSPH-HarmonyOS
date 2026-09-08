@@ -55,7 +55,7 @@ export function validateRecipe(r:ExperimentRecipe,scene:SceneDefinition):void {
   if(!t.enabled&&((t.impulse??0)!==0||(t.points??false)))throw new Error('关闭的环必须清除扰动');
   check(t.timeHours,0,24);check(t.speedScale,1,1.2);check(t.rateHours,.1,4);check(t.target,-1,maxFocus,true);
   if(t.enabled){
-    if(preset!==5||t.target<1||t.target!==r.camera.focus||scene.config.orbitBodies![t.target].surface!==4)throw new Error('局部环目标与带环行星不匹配');
+    if(preset!==5||t.target<1||t.target!==r.camera.focus||scene.config.orbitBodies![t.target].surface!==4||scene.config.orbitBodies![t.target].massSolar<1e-8)throw new Error('局部环目标与带环行星不匹配');
   }else if(t.target!==-1||t.timeHours!==0||t.speedScale!==1||t.rateHours!==1)throw new Error('关闭的局部环必须使用默认参数');
 }
 function validateRecipeCamera(c:RecipeCamera,maxFocus:number,preset:number):void {
@@ -103,9 +103,12 @@ export function validateScene(s: SceneDefinition): void {
 export function sphereMass(radiusKm: number, density: number): number { return 4*Math.PI/3*Math.pow(radiusKm*1000,3)*density; }
 
 // Initial values use AU, km/s and solar mass; the solver shifts the whole system to its barycentre.
+export const MIN_ORBIT_MASS_SOLAR:number = 1e-18;
+export const SOLAR_MASS_KG:number = 1.32712440041279419e20/6.67430e-11;
+export const AU_KM:number = 149597870.7;
 export const EARTH_MASS_SOLAR: number = 398600.435507e9/1.32712440041279419e20;
 export function finiteOrbitBodies(bodies:OrbitBodyConfig[]):boolean {return bodies.length>0&&bodies[0].radiusKm!==undefined;}
-export function estimatedOrbitRadius(massSolar:number,star:boolean):number {return star?695700*Math.cbrt(massSolar):6371*Math.cbrt(massSolar/EARTH_MASS_SOLAR);}
+export function estimatedOrbitRadius(massSolar:number,star:boolean):number {return star?695700*Math.cbrt(massSolar):Math.max(1,6371*Math.cbrt(massSolar/EARTH_MASS_SOLAR));}
 export function contactDemoBodies():OrbitBodyConfig[] {
   return [{name:'恒星',massSolar:1,xAU:0,yAU:0,zAU:0,vxKmS:0,vyKmS:0,vzKmS:0,surface:0,radiusKm:695700},
     {name:'接触球 A',massSolar:EARTH_MASS_SOLAR,xAU:1,yAU:-.00012,zAU:0,vxKmS:0,vyKmS:35,vzKmS:0,surface:1,radiusKm:6371},
@@ -118,7 +121,7 @@ export function validateOrbitBodies(bodies: OrbitBodyConfig[]): void {
     if(finiteOrbitBodies(bodies)){check(b.radiusKm!,1,1e7);}else if(b.radiusKm!==undefined)throw new Error('全部天体须使用一致的接触模型');
     validName(b.name);if(/[\x00-\x1f\x7f]/.test(b.name))throw new Error('名称不能包含控制字符');
     for(let k=0;k<b.name.length;k++){const u=b.name.charCodeAt(k);if(u>=0xd800&&u<=0xdbff){const next=b.name.charCodeAt(++k);if(!(next>=0xdc00&&next<=0xdfff))throw new Error('名称包含无效字符');}else if(u>=0xdc00&&u<=0xdfff)throw new Error('名称包含无效字符');}
-    check(b.massSolar,b.surface===0?0.1:1e-8,b.surface===0?2:0.01);check(b.surface,0,i===0?0:5,true);
+    check(b.massSolar,b.surface===0?0.1:MIN_ORBIT_MASS_SOLAR,b.surface===0?2:0.01);check(b.surface,0,i===0?0:5,true);
     check(b.xAU,-10,10);check(b.yAU,-10,10);check(b.zAU,-10,10);
     check(b.vxKmS,-100,100);check(b.vyKmS,-100,100);check(b.vzKmS,-100,100);
     check(Math.sqrt(b.vxKmS*b.vxKmS+b.vyKmS*b.vyKmS+b.vzKmS*b.vzKmS),0,100);
@@ -162,24 +165,71 @@ export function previewOrbit(fields:string[],plane:string):OrbitPreview {
   p.valid=true;p.error='';return p;
 }
 
+export interface PlacementUnits { mass:string; distance:string; speed:string; size:string; }
+export function defaultPlacementUnits():PlacementUnits {return {mass:'astronomical',distance:'au',speed:'circular',size:'radius'};}
+export function physicalPlacementUnits():PlacementUnits {return {mass:'kg',distance:'altitude',speed:'kms',size:'diameter'};}
+export function placementUnitLabels(u:PlacementUnits,star:boolean):string[] {
+  return [u.mass==='kg'?'质量 · kg':star?'质量 · 太阳质量':'质量 · 地球质量',
+    u.distance==='au'?'中心距 · AU':u.distance==='km'?'中心距 · km':'中心距母体表面 · km',
+    '方位 · °','倾角 · °',u.speed==='kms'?'相对速度 · km/s':'速度 · 圆轨道倍数',u.size==='diameter'?'直径 · km':'半径 · km'];
+}
+// Draft units never enter the solver or saved scene. The canonical representation remains
+// Earth/solar masses, centre distance in AU, circular-speed ratio, and physical radius in km.
+export function placementCanonicalFields(fields:string[],u:PlacementUnits,bodies:OrbitBodyConfig[],parent:number,surface:number):string[] {
+  const out=fields.slice();
+  if(!['astronomical','kg'].includes(u.mass)||!['au','km','altitude'].includes(u.distance)||!['circular','kms'].includes(u.speed)||!['radius','diameter'].includes(u.size))throw new Error('未知放置单位');
+  const value=(i:number):number=>out[i]?.trim()===''?Number.NaN:Number(out[i]);
+  if(u.mass==='kg')out[0]=String(value(0)/SOLAR_MASS_KG/(surface===0?1:EARTH_MASS_SOLAR));
+  if(u.distance!=='au'){
+    const hostRadius=u.distance==='altitude'?bodies[parent]?.radiusKm:0;
+    if(hostRadius===undefined)throw new Error('表面高度需要实体半径');
+    const distance=value(1);if(distance<0)throw new Error('距离或高度不能为负');
+    out[1]=String((distance+hostRadius)/AU_KM);
+  }
+  if(out.length===6&&u.size==='diameter')out[5]=String(value(5)/2);
+  if(u.speed==='kms'){
+    const speed=value(4);if(!Number.isFinite(speed)||speed<0||speed>100)throw new Error('相对速度需要 0–100 km/s');
+    const mass=value(0)*(surface===0?1:EARTH_MASS_SOLAR),r=value(1);
+    const circular=Math.sqrt(1.32712440041279419e20*(bodies[parent]?.massSolar+mass)/(r*AU_KM*1000))/1000;
+    out[4]=String(speed/circular);
+  }
+  return out;
+}
+export function placementFieldsInUnits(canonical:string[],u:PlacementUnits,bodies:OrbitBodyConfig[],parent:number,surface:number):string[] {
+  const out=canonical.slice(),v=canonical.map((s:string):number=>s.trim()===''?Number.NaN:Number(s));
+  if(v.some((n:number):boolean=>!Number.isFinite(n)))throw new Error('请先补全数值，再切换单位');
+  if(u.mass==='kg')out[0]=String(v[0]*(surface===0?1:EARTH_MASS_SOLAR)*SOLAR_MASS_KG);
+  if(u.distance!=='au'){
+    const hostRadius=u.distance==='altitude'?bodies[parent]?.radiusKm:0;
+    if(hostRadius===undefined)throw new Error('表面高度需要实体半径');
+    out[1]=String(v[1]*AU_KM-hostRadius);
+  }
+  if(out.length===6&&u.size==='diameter')out[5]=String(v[5]*2);
+  if(u.speed==='kms')out[4]=String(v[4]*Math.sqrt(1.32712440041279419e20*(bodies[parent]?.massSolar+v[0]*(surface===0?1:EARTH_MASS_SOLAR))/(v[1]*AU_KM*1000))/1000);
+  if(out.some((s:string):boolean=>!Number.isFinite(Number(s))))throw new Error('当前参数无法换算单位');
+  // Remove binary conversion tails in generated draft text, without rounding active typing.
+  return out.map((s:string):string=>String(Number(Number(s).toPrecision(15))));
+}
+
 export interface PlacementPreview {
   valid:boolean; error:string; body:OrbitBodyConfig|undefined; speedKmS:number; circularKmS:number;
   escapeKmS:number; nearestAU:number; bound:boolean; plotScale:number; orbitPath:string;
   candidateX:number; candidateY:number; markerPath:string; velocityPath:string;
 }
 // Original two-body initial-condition construction. No competitor implementation.
-export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],surface:number,direction:number,plotExtent:number=0,target:number=-1,live:boolean=false,parent:number=0):PlacementPreview {
+export function planPlanet(bodies:OrbitBodyConfig[],name:string,fields:string[],surface:number,direction:number,plotExtent:number=0,target:number=-1,live:boolean=false,parent:number=0,units:PlacementUnits=defaultPlacementUnits()):PlacementPreview {
   const result:PlacementPreview={valid:false,error:'填写有效的放置参数',body:undefined,speedKmS:0,circularKmS:0,escapeKmS:0,nearestAU:0,bound:false,plotScale:1,orbitPath:'',candidateX:120,candidateY:120,markerPath:'',velocityPath:''};
   try {
     if(fields.length!==(finiteOrbitBodies(bodies)?6:5)||fields.some((v:string):boolean=>v.trim()===''))throw new Error('请填写全部放置参数');
     if(!live)validateOrbitBodies(bodies);if(bodies.length<2)throw new Error("需要当前轨道状态");if(bodies.length>=8)throw new Error('最多支持 8 个天体');
-    const v:number[]=fields.map((s:string):number=>Number(s));
-    check(v[0],surface===0?.1:1e-8/EARTH_MASS_SOLAR,surface===0?2:.01/EARTH_MASS_SOLAR);check(v[1],parent>0?.000001:.05,10);check(v[2],0,360);check(v[3],-90,90);check(v[4],0,2);
+    const v:number[]=placementCanonicalFields(fields,units,bodies,parent,surface).map((s:string):number=>Number(s));
+    check(v[0],surface===0?.1:MIN_ORBIT_MASS_SOLAR/EARTH_MASS_SOLAR,surface===0?2:.01/EARTH_MASS_SOLAR);check(v[1],parent>0?.000001:.05,10);check(v[2],0,360);check(v[3],-90,90);check(v[4],0,1e9);
     check(surface,0,5,true);if(direction!==1&&direction!==-1)throw new Error('方向无效');
     check(parent,0,bodies.length-1,true);
     const star=bodies[parent],r=v[1],phase=v[2]*Math.PI/180,tilt=v[3]*Math.PI/180,mass=v[0]*(surface===0?1:EARTH_MASS_SOLAR);
     const cs=Math.cos(phase),sn=Math.sin(phase),ci=Math.cos(tilt),si=Math.sin(tilt);
     const circular=Math.sqrt(1.32712440041279419e20*(star.massSolar+mass)/(r*149597870700))/1000,speed=circular*v[4];
+    check(speed,0,100);
     const b:OrbitBodyConfig={name:validName(name),massSolar:mass,surface:surface,
       xAU:star.xAU+r*cs,yAU:star.yAU+r*sn*ci,zAU:star.zAU+r*sn*si,
       vxKmS:star.vxKmS-speed*sn*direction,vyKmS:star.vyKmS+speed*cs*ci*direction,vzKmS:star.vzKmS+speed*cs*si*direction};

@@ -550,7 +550,7 @@ test('HiLog replies pace UTF-8 bytes across sequential large requests and bound 
  for(const line of lines){assert.doesNotMatch(line,/[\uD800-\uDBFF]$/);assert.doesNotMatch(line,/\d+\/\d+ [\uDC00-\uDFFF]/);}
  assert.equal(collect(lines.join('\n'),'largeone').text,text);assert.equal(collect(lines.join('\n'),'largetwo').text,text);
  assert.ok(emissions.at(-1).at>2000);
- for(let i=1;i<emissions.length;i++)assert.ok(emissions[i].at-emissions[i-1].at>=emissions[i-1].bytes/24-1,'unpaced chunk burst');
+ for(let i=1;i<emissions.length;i++)assert.ok(emissions[i].at-emissions[i-1].at>=emissions[i-1].bytes/12-1,'unpaced chunk burst');
  Bridge.bind(async()=>JSON.stringify({ok:true,text:'a'.repeat(128001)}));Bridge.receive(want('oversize'));await tick();assert.equal(collect(lines.join('\n'),'oversize').ok,false);
 });
 
@@ -907,7 +907,7 @@ test('main viewport placement uses the presented plane, aim velocity and one can
  const before=JSON.stringify(app.definition()),starts=calls.filter(c=>c[0]==='start').length;
  await app.execute('uiAction',{action:'orbit.add'});assert.equal(app.panelOpen,false);assert.equal(state.placementPreview.candidate,4);
  state.placementPoint=[2.25,60];await app.execute('setViewportPlacementPoint',{x:.62,y:.36});
- assert.equal(app.placementFields[1],'2.250000000');assert.equal(app.placementFields[2],'60.000000');assert.deepEqual(calls.filter(c=>c[0]==='viewportPlacement').at(-1),['viewportPlacement',.62,.36,0]);
+ assert.equal(Number(app.placementFields[1]),2.25);assert.equal(app.placementFields[2],'60.000000');assert.deepEqual(calls.filter(c=>c[0]==='viewportPlacement').at(-1),['viewportPlacement',.62,.36,0]);
  await assert.rejects(app.execute('pickBody',{x:.5,y:.5}));
  await app.execute('uiAction',{action:'placement.target.1'});let preview=app.placementPreview(),b=preview.body,t=app.orbitBodies[1],star=app.orbitBodies[0];
  let d=[t.xAU-b.xAU,t.yAU-b.yAU,t.zAU-b.zAU],v=[b.vxKmS-star.vxKmS,b.vyKmS-star.vyKmS,b.vzKmS-star.vzKmS];
@@ -1078,7 +1078,68 @@ test('local satellite preview rejects physical overlap and failed insertion stay
  await app.execute('uiAction',{action:'selection.satellite'});
  await app.execute('setUiValue',{field:'placement.value.1',value:'0.000001'});assert.equal(app.placementPreview().valid,false);
  await assert.rejects(app.execute('uiAction',{action:'placement.confirm'}));
- await app.execute('setUiValue',{field:'placement.value.1',value:'0.002'});assert.equal(app.placementPreview().valid,true);
+ await app.execute('setUiValue',{field:'placement.value.1',value:'300000'});assert.equal(app.placementPreview().valid,true);
  state.rejectInsert=true;await assert.rejects(app.execute('uiAction',{action:'placement.confirm'}));assert.equal(app.placing,true);
  await app.execute('uiAction',{action:'placement.cancel'});assert.equal(JSON.stringify(state.orbitState??app.orbitBodies),original);
+});
+
+test('small rock physical units preserve the same candidate across unit switches and inherit host velocity',async()=>{
+ const {page:app,state}=page();app.choose(5);state.state='paused';app.focusBody(1);
+ state.orbitState=structuredClone(app.orbitBodies);state.orbitState[1].vxKmS=8;state.orbitState[1].vzKmS=-2;
+ const initial=structuredClone(state.orbitState);
+ await app.execute('uiAction',{action:'selection.launch'});
+ assert.equal(app.placementUnits.distance,'altitude');assert.equal(app.placementUnits.speed,'kms');
+ await app.execute('uiAction',{action:'placement.rock'});
+ for(const [i,v] of [[1,'25000'],[2,'0'],[4,'10']])await app.execute('setUiValue',{field:'placement.value.'+i,value:v});
+ const candidate=structuredClone(app.placementPreview().body),host=initial[1];assert.equal(app.placementPreview().valid,true,app.placementPreview().error);
+ assert.equal(candidate.radiusKm,7.5);assert.ok(candidate.massSolar<1e-14);assert.ok(candidate.massSolar>1e-16);
+ assert.ok(Math.abs((candidate.xAU-host.xAU)*149597870.7-31371)<1e-7);
+ assert.ok(Math.abs(candidate.vxKmS-(host.vxKmS-10))<1e-12);assert.equal(candidate.vyKmS,host.vyKmS);assert.equal(candidate.vzKmS,host.vzKmS);
+ for(const action of ['center','radius','astro','physical','diameter','altitude']){
+  await app.execute('uiAction',{action:'placement.units.'+action});const p=app.placementPreview();assert.equal(p.valid,true,p.error);
+  for(const key of ['massSolar','radiusKm','xAU','yAU','zAU','vxKmS','vyKmS','vzKmS'])assert.ok(Math.abs(p.body[key]-candidate[key])<=Math.max(1e-30,Math.abs(candidate[key])*2e-14),key);
+ }
+ await app.execute('setUiValue',{field:'placement.value.5',value:'30'});assert.equal(app.placementPreview().body.radiusKm,15);
+ assert.ok(Math.abs(Number(app.placementFields[1])-25000)<1e-8);assert.ok(Math.abs(app.placementPreview().speedKmS-10)<1e-12);
+ await app.execute('setUiValue',{field:'placement.value.1',value:'50000'});assert.ok(Math.abs(app.placementPreview().speedKmS-10)<1e-12);
+ assert.deepEqual(state.orbitState,initial);await app.execute('uiAction',{action:'placement.confirm'});assert.equal(state.orbitState[4].radiusKm,15);
+});
+
+test('physical draft rejects invalid units inputs, does not reinterpret incomplete text, and keeps cancellation atomic',async()=>{
+ const {page:app,state}=page();app.choose(5);state.state='paused';app.focusBody(1);const original=JSON.stringify(state.orbitState??app.orbitBodies);
+ await app.execute('uiAction',{action:'selection.launch'});await app.execute('uiAction',{action:'placement.rock'});
+ for(const [i,v] of [[0,'1'],[0,'NaN'],[1,'-1'],[1,'0'],[4,'101'],[5,'1']]){
+  const old=app.placementFields[i];await app.execute('setUiValue',{field:'placement.value.'+i,value:v});assert.equal(app.placementPreview().valid,false);
+  await assert.rejects(app.execute('uiAction',{action:'placement.confirm'}));await app.execute('setUiValue',{field:'placement.value.'+i,value:old});
+ }
+ await app.execute('setUiValue',{field:'placement.value.0',value:''});const fields=app.placementFields.slice(),units=JSON.stringify(app.placementUnits);
+ await assert.rejects(app.execute('uiAction',{action:'placement.units.astro'}));assert.deepEqual(app.placementFields,fields);assert.equal(JSON.stringify(app.placementUnits),units);
+ await app.execute('uiAction',{action:'placement.rock'});await app.execute('uiAction',{action:'placement.circular'});assert.ok(Math.abs(app.placementPreview().speedKmS/app.placementPreview().circularKmS-1)<1e-12);
+ await app.execute('uiAction',{action:'placement.cancel'});assert.equal(JSON.stringify(state.orbitState??app.orbitBodies),original);
+});
+
+test('viewport placement respects selected altitude units and preserves an absolute launch speed',async()=>{
+ const {page:app,state}=page();app.choose(5);state.state='paused';app.focusBody(1);
+ await app.execute('uiAction',{action:'selection.launch'});await app.execute('uiAction',{action:'placement.rock'});
+ await app.execute('setUiValue',{field:'placement.value.4',value:'10'});state.placementPoint=[31371/149597870.7,60];
+ await app.execute('setViewportPlacementPoint',{x:.6,y:.4});assert.ok(Math.abs(Number(app.placementFields[1])-25000)<1e-8);assert.ok(Math.abs(app.placementPreview().speedKmS-10)<1e-12);
+ const s=JSON.parse(app.snapshot());assert.equal(s.placement.units.distance,'altitude');assert.match(s.placement.labels[1],/表面/);
+ await app.execute('uiAction',{action:'placement.surface.4'});await app.execute('uiAction',{action:'placement.confirm'});app.focusBody(4);
+ assert.equal(app.canTrace(),false);await assert.rejects(app.execute('uiAction',{action:'trace.toggle'}));
+});
+
+test('adding a satellite to a small asteroid does not silently create a lunar-mass object',async()=>{
+ const {page:app,state}=page();app.choose(5);state.state='paused';app.focusBody(1);
+ await app.execute('uiAction',{action:'selection.drop'});await app.execute('uiAction',{action:'placement.rock'});await app.execute('uiAction',{action:'placement.confirm'});app.focusBody(4);
+ const host=state.orbitState[4];await app.execute('uiAction',{action:'selection.satellite'});const p=app.placementPreview();assert.equal(p.valid,true,p.error);
+ assert.ok(p.body.massSolar<host.massSolar*.02);assert.ok(p.body.radiusKm>=1);assert.ok(p.body.radiusKm<host.radiusKm);
+});
+
+test('lost reply chunks can be recovered without executing an insertion twice',async()=>{
+ const {Bridge,lines}=bridge();let mutations=0;const result={ok:true,body:'small asteroid',payload:'物理状态'.repeat(300)};
+ Bridge.bind(async()=>{mutations++;return JSON.stringify(result);});Bridge.receive(want('insert-once','uiAction','{"action":"placement.confirm"}'));await tick();
+ const complete=lines.splice(0);const partial=complete.filter((_,i)=>i!==1);assert.equal(collect(partial.join('\n'),'insert-once'),undefined);
+ Bridge.receive(want('insert-once','retryReply'));await tick();assert.deepEqual(collect(lines.join('\n'),'insert-once'),result);assert.equal(mutations,1);
+ Bridge.receive(want('unknown-id','retryReply'));await tick();assert.equal(mutations,1);
+ Bridge.receive(want('insert-once','uiAction','{"action":"placement.confirm"}'));await tick();assert.equal(mutations,1);
 });

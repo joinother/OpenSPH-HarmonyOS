@@ -11,6 +11,7 @@ constexpr double AU = 149597870700.0, YEAR = 365.25*86400.0;
 constexpr double SOLAR_GM = 1.32712440041279419e20;
 constexpr double ORBIT_G = SOLAR_GM*YEAR*YEAR/(AU*AU*AU);
 constexpr double SOLAR_MASS = SOLAR_GM/6.67430e-11;
+constexpr double MIN_ORBIT_MASS = 1.e-18;
 constexpr double ORBIT_DT = 1.0/4096;
 class OrbitSystem {
 public:
