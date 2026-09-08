@@ -1,0 +1,308 @@
+{
+  "kind": "research-reading-and-local-fingerprints",
+  "recordedAt": "2026-09-08T08:44:02+08:00",
+  "researchDate": "2026-09-08",
+  "timezone": "Asia/Shanghai",
+  "sourceVersion": "0.42.0",
+  "baselineCheckpoint": "ff5e47353298d982181911efc4c3186a544f25e9",
+  "upstreamOpenSPH": "f3033faf4422a056dcb79cc6643c7c6f3d9fee19",
+  "celestia": {
+    "localRoot": "/Users/jiexuanyang/celestia-src",
+    "commit": "405c85679833a046953b9d6821e0a0c2631f1be0",
+    "selectedFilesUnmodified": true,
+    "files": [
+      {
+        "path": "src/celengine/univcoord.h",
+        "sha256": "360c3e653417574ab355e7035a758538cf08e1aceb69c3af4ee9b4ec1b969284",
+        "selectedLineRanges": [
+          [
+            1,
+            150
+          ]
+        ],
+        "audit": "selected passages; not full module validation"
+      },
+      {
+        "path": "src/celrender/galaxyrenderer.cpp",
+        "sha256": "8f493c253217122c5d68347f961564855b363c597f606a6b976c83766f1804a0",
+        "selectedLineRanges": [
+          [
+            95,
+            220
+          ]
+        ],
+        "audit": "selected passages; not full module validation"
+      },
+      {
+        "path": "src/celengine/nebula.cpp",
+        "sha256": "654aaa8cba8cc31fd11e53821bce808d79b2072ad8408a759c90ee1f251cebb0",
+        "selectedLineRanges": [
+          [
+            1,
+            145
+          ]
+        ],
+        "audit": "selected passages; not full module validation"
+      },
+      {
+        "path": "src/celengine/dsodb.cpp",
+        "sha256": "5f5669f0d329d7311f4b3f6997897d43b1a49c4cc393df87444487ac91a07562",
+        "selectedLineRanges": [
+          [
+            140,
+            180
+          ]
+        ],
+        "audit": "selected passages; not full module validation"
+      }
+    ]
+  },
+  "nativeFiles": [
+    {
+      "path": "entry/src/main/cpp/engine.cpp",
+      "sha256": "feaa919da9f3274464c654378186823b610ad5cf929f5579e5e3ae4a41d7be6c",
+      "selectedLineRanges": [
+        [
+          1,
+          110
+        ],
+        [
+          245,
+          267
+        ]
+      ],
+      "audit": "selected passages; not full module validation"
+    },
+    {
+      "path": "entry/src/main/cpp/orbit.h",
+      "sha256": "5e217362a85cacf22a5503c98e6cd77d63ae8ac45d913e9a650dc9d3cc229c19",
+      "selectedLineRanges": [
+        [
+          1,
+          35
+        ]
+      ],
+      "audit": "selected passages; not full module validation"
+    },
+    {
+      "path": "third_party/opensph/UPSTREAM.md",
+      "sha256": "aacb8ff78d582b4546077b408d53790a66801df0fcf57492dd99450d3d6a2de3",
+      "selectedLineRanges": [
+        [
+          1,
+          7
+        ]
+      ],
+      "audit": "selected passages; not full module validation"
+    },
+    {
+      "path": "third_party/opensph/core/gravity/BarnesHut.h",
+      "sha256": "5d97d4eb7d7261d5619f5674db6491760c57affe482dbc231197dfbeb91fd3d0",
+      "selectedLineRanges": [
+        [
+          1,
+          125
+        ]
+      ],
+      "audit": "selected passages; not full module validation"
+    },
+    {
+      "path": "third_party/opensph/core/system/Factory.cpp",
+      "sha256": "d7d9ebf98c1543d2f41a6fee1153fcdcdaaf61f19c05fd8cbf0fb9fb1be5dd96",
+      "selectedLineRanges": [
+        [
+          372,
+          405
+        ]
+      ],
+      "audit": "selected passages; not full module validation"
+    },
+    {
+      "path": "third_party/opensph/core/physics/Eos.cpp",
+      "sha256": "2e1bab6da0ee8ec3d53d9c20f13842a25a91eaf50fd384c2155d7838e683f5ff",
+      "selectedLineRanges": [
+        [
+          30,
+          75
+        ]
+      ],
+      "audit": "selected passages; not full module validation"
+    },
+    {
+      "path": "third_party/opensph/CMakeLists.txt",
+      "sha256": "8e15deff6542487daa48a97cebaae27847cbdad000142a69ada853d8df00a4d7",
+      "selectedLineRanges": [
+        [
+          1,
+          20
+        ]
+      ],
+      "audit": "selected passages; not full module validation"
+    },
+    {
+      "path": "third_party/opensph/core/CMakeLists.txt",
+      "sha256": "52eaa772f63d02416fe29ee5162ce3acb968d308eccaa74f2080c9125d8fdbc7",
+      "selectedLineRanges": [
+        [
+          1,
+          75
+        ]
+      ],
+      "audit": "selected passages; not full module validation"
+    },
+    {
+      "path": "third_party/opensph/core/gravity/test/BarnesHut.cpp",
+      "sha256": "03c24d69ca6b6cfdb1a0f33f59b37f1e6a92c79285d8877c219895e8efffb504",
+      "selectedLineRanges": [
+        [
+          1,
+          100
+        ]
+      ],
+      "audit": "selected passages; not full module validation"
+    },
+    {
+      "path": "third_party/opensph/core/physics/test/Eos.cpp",
+      "sha256": "afacb39198ce9a913b2176220e4d5d4f8993e3d7b952dde0d27baba8e65cad34",
+      "selectedLineRanges": [
+        [
+          1,
+          75
+        ]
+      ],
+      "audit": "selected passages; not full module validation"
+    },
+    {
+      "path": "third_party/opensph/core/run/jobs/MaterialJobs.cpp",
+      "sha256": "62aa898b3cb384d78d5ccc2059bbf0fdfd87d7ea070d913be762c5d2f95f900a",
+      "selectedLineRanges": [
+        [
+          170,
+          230
+        ]
+      ],
+      "audit": "selected passages; not full module validation"
+    }
+  ],
+  "priorResearchReviewed": [
+    {
+      "path": "docs/research/archive/UNIVERSE-ARCHITECTURE-2026-09-06.md",
+      "sha256": "b173e981625f19257adbc01c10508667e7d5d31126ff3364daf17604e66a189b",
+      "scope": "relevant implementation and limitation passages"
+    },
+    {
+      "path": "docs/research/CELESTIA-SOURCE-ADDONS-2026-09-07.md",
+      "sha256": "057f5e78c13d6bff8db824f9e17bca5fb747fc2b55a63f559ae46a594ab3f159",
+      "scope": "relevant implementation and limitation passages"
+    },
+    {
+      "path": "docs/research/SPACEENGINE-2026-09-06.md",
+      "sha256": "02fccb1aac6c1d33ecf85079b2a3ca87f57b6f3d592bb44e7dc849b607906723",
+      "scope": "relevant implementation and limitation passages"
+    },
+    {
+      "path": "docs/research/UNIVERSE-SANDBOX-BLOG-FORUM-2026-09-07.md",
+      "sha256": "361e6f17c3fae1f4e9492a2eefebfd8fbc186a47e1099e91bd5bdc579f937de3",
+      "scope": "relevant implementation and limitation passages"
+    },
+    {
+      "path": "docs/reference/UPSTREAM-AUDIT.md",
+      "sha256": "de13c16b70a2fc454169e6fc07c65c24839abe11966065963162902a3ee1fd46",
+      "scope": "relevant implementation and limitation passages"
+    },
+    {
+      "path": "docs/reference/RING-AND-COLLISION.md",
+      "sha256": "c319d102709d8f0fed519b514354f7fc281b6609b80514ce09aeb800e7777fe2",
+      "scope": "relevant implementation and limitation passages"
+    },
+    {
+      "path": "docs/reference/VIEWPORT-PLACEMENT.md",
+      "sha256": "a73abf6b3d33e035e5106e0388e63f2cdaf05d8b3392bdaabecffc6fc9e85f10",
+      "scope": "relevant implementation and limitation passages"
+    }
+  ],
+  "webSources": [
+    {
+      "url": "https://spaceengine.org/manual/user-manual/",
+      "accessScope": "opened; graphics and volumetric quality sections",
+      "limitation": "rendering reference only"
+    },
+    {
+      "url": "https://spaceengine.org/manual/making-addons/creating-a-dso/",
+      "accessScope": "opened; catalog and model sections",
+      "limitation": "content/model definition, not gas dynamics"
+    },
+    {
+      "url": "https://spaceengine.org/manual/faq/",
+      "accessScope": "opened; source availability and selected capabilities",
+      "limitation": "undated mixed-age page; stale feature claims not adopted"
+    },
+    {
+      "url": "https://universesandbox.com/blog/2019/06/dark-matter-galaxies/",
+      "accessScope": "opened; simplified galaxies and dark matter",
+      "limitation": "historical June 2019; current implementation not verified"
+    },
+    {
+      "url": "https://science.nasa.gov/universe/galaxies/evolution/",
+      "accessScope": "opened; collisions, mergers and tidal structures",
+      "limitation": "used for physical distinction only, not a Milky Way/Andromeda timing prediction"
+    },
+    {
+      "url": "https://arxiv.org/abs/1511.05041",
+      "accessScope": "opened; paper abstract and metadata",
+      "limitation": "abstract only, not full paper review"
+    },
+    {
+      "url": "https://github.com/jfwallin/JSPAM",
+      "accessScope": "opened; repository README",
+      "limitation": "no pinned tree or source implementation audit"
+    },
+    {
+      "url": "https://wwwmpa.mpa-garching.mpg.de/gadget4/",
+      "accessScope": "opened; project overview",
+      "limitation": "not built or run"
+    },
+    {
+      "url": "https://wwwmpa.mpa-garching.mpg.de/gadget4/01_index/",
+      "accessScope": "opened; manual introduction",
+      "limitation": "MPI, model scope and convergence guidance; no full manual/source audit"
+    },
+    {
+      "url": "https://www.tapir.caltech.edu/~phopkins/Site/GIZMO.html",
+      "accessScope": "search-returned primary-source content only",
+      "limitation": "not source audit or full-page review"
+    },
+    {
+      "url": "https://www.tapir.caltech.edu/~phopkins/Site/GIZMO_files/gizmo_documentation.html",
+      "accessScope": "search-returned primary-source content only",
+      "limitation": "candidate review incomplete"
+    }
+  ],
+  "accessFailures": [
+    {
+      "url": "https://api.github.com/repos/jfwallin/JSPAM/",
+      "result": "HTTP 404; no pinned source tree obtained"
+    },
+    {
+      "url": "https://wwwmpa.mpa-garching.mpg.de/gadget4/02_running/",
+      "result": "web open InternalError; search snippet only; dependency detail omitted from recommendation"
+    }
+  ],
+  "capacityEstimates": {
+    "kind": "arithmetic only, not measurements",
+    "particleBytesPerFrameAssumption": 24,
+    "framesAssumption": 240,
+    "4096ParticlesMiB": 22.5,
+    "100000ParticlesMiB": 549.31640625,
+    "128CubedFourFloatFieldsMiB": 32.0,
+    "excluded": "solver arrays, tree, identity, other fields, caches, double buffering"
+  },
+  "newScientificTestsRun": [],
+  "newDeviceTestsRun": [],
+  "applicationCodeChanged": false,
+  "importedExternalCode": false,
+  "watchedVideos": false,
+  "fullRepositoryAudit": false,
+  "newModelImplementationStatus": "proposed only: G0/G1/G2/N1/U1",
+  "releaseArtifacts": "0.42.0 HAP, ZIP and release receipts preserved; no rebuild"
+}

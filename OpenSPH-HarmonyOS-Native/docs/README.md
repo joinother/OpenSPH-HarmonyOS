@@ -13,6 +13,7 @@
 | [球体接触模型](reference/SPHERE-CONTACT.md) | 实体半径、扫掠接触、弹性响应、近距回放与 v11 边界 |
 | [主星图放置与碰撞接入](reference/VIEWPORT-PLACEMENT.md) | 屏幕坐标、倾斜平面、取消事务、定向发射及实体接触缺口 |
 | [预研实施核对](reference/RESEARCH-IMPLEMENTATION.md) | 预研建议与已交付能力、部分实现和未完成主线的对应 |
+| [星系、星云与宇宙尺度](research/GALAXIES-NEBULAE-UNIVERSE-2026-09-08.md) | Celestia／SpaceEngine 与科学引擎选读；潮汐相遇、自洽引力、气体和宇宙学回放路线，6 个实验提案；尚未接入新物理模型 |
 | [材料团块跟随](reference/FRAGMENT-FOLLOW.md) | 材料点身份、实时质心镜头、切换／停止与回放连续性 |
 | [SPH 材料团块](reference/SPH-FRAGMENTS.md) | 对称几何连接、质量与质心统计、团块着色及 v10 回放 |
 | [SPH 实验对照](reference/SPH-COMPARISON.md) | 本地参照、共用坐标、参数差异与原始数据导出 |

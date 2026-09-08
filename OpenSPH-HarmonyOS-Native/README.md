@@ -80,6 +80,8 @@ python3 scripts/check-docs.py
 
 ## 验证与下一步
 
+[星系、星云与宇宙尺度预研](docs/research/GALAXIES-NEBULAE-UNIVERSE-2026-09-08.md) 补齐潮汐相遇、恒星盘／暗晕自洽引力、气体碰撞与有限宇宙学场景的模型、入口和验收；确认现有导入树包含树形引力与理想气体模块，尚未接入星系／气体实验。本次仅更新研究与 [实施顺序](docs/reference/RESEARCH-IMPLEMENTATION.md)，应用仍为 0.42.0，行星碰撞到局部 SPH 的主线继续保留。
+
 0.40.0 增加材料团块的连续镜头跟随、逐团／最大团快捷动作、停止与返回、CLI 及跨布局验收。见 [本轮记录](docs/releases/RELEASE-0.40.0.md)。
 
 0.39.0 接入逐帧材料团块、几何分组着色、分页统计与 v10 回放，并保留自引力／准备阶段身份。见 [本轮记录](docs/releases/RELEASE-0.39.0.md)。
