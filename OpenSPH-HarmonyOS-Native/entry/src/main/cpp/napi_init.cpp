@@ -185,7 +185,7 @@ napi_value composition(napi_env e,napi_callback_info i){try{auto a=args(e,i,3);d
 napi_value renderActive(napi_env e,napi_callback_info i){try{auto a=args(e,i,1);bool b;if(napi_get_value_bool(e,a[0],&b)!=napi_ok)throw std::invalid_argument("Boolean expected");lab::setRenderActive(b);}catch(const std::exception &ex){return fail(e,ex);}return undef(e);}
 napi_value followFragment(napi_env e,napi_callback_info i){try{auto a=args(e,i,2);int revision=integer(e,a[1]);if(revision<0)throw std::invalid_argument("Invalid scene revision");lab::followSphFragment(integer(e,a[0]),uint64_t(revision));}catch(const std::exception&ex){return fail(e,ex);}return undef(e);}
 napi_value clearFragmentFollow(napi_env e,napi_callback_info){lab::clearSphFragmentFollow();return undef(e);}
-napi_value renderStatus(napi_env e,napi_callback_info){auto s=lab::renderStatus();napi_value o;napi_create_object(e,&o);
+napi_value renderStatus(napi_env e,napi_callback_info){auto s=lab::renderStatus();napi_value o;napi_create_object(e,&o);num(e,o,"galaxyObserverMode",s.galaxyObserverMode);num(e,o,"galaxyObserverTime",s.galaxyObserverTime);
     auto boolean=[&](const char *key,bool b){napi_value v;napi_get_boolean(e,b,&v);napi_set_named_property(e,o,key,v);};
     napi_value follow,flag,center;napi_create_object(e,&follow);napi_get_boolean(e,s.fragmentFollow.active,&flag);napi_set_named_property(e,follow,"active",flag);napi_get_boolean(e,s.fragmentFollow.moving,&flag);napi_set_named_property(e,follow,"moving",flag);
     num(e,follow,"seed",s.fragmentFollow.seed);num(e,follow,"anchor",s.fragmentFollow.anchor);num(e,follow,"rank",s.fragmentFollow.rank);num(e,follow,"count",s.fragmentFollow.count);num(e,follow,"sceneRevision",s.fragmentFollow.sceneRevision);num(e,follow,"time",s.fragmentFollow.time);
@@ -249,6 +249,13 @@ napi_value galaxyObservation(napi_env e,napi_callback_info){try{
     napi_set_named_property(e,o,"samples",list);return o;
 }catch(const std::exception& ex){return fail(e,ex);}}
 napi_value seekGalaxyObservation(napi_env e,napi_callback_info i){try{auto a=args(e,i,3);lab::Engine::instance().seekGalaxyObservation(integer(e,a[0]),integer(e,a[1]),number(e,a[2]));return undef(e);}catch(const std::exception& ex){return fail(e,ex);}}
+napi_value setGalaxyObserver(napi_env e,napi_callback_info i){try{auto a=args(e,i,6);lab::setGalaxyObserver(integer(e,a[0]),number(e,a[1]),number(e,a[2]),number(e,a[3]),number(e,a[4]),number(e,a[5]));return undef(e);}catch(const std::exception& ex){return fail(e,ex);}}
+napi_value galaxyObserverStatus(napi_env e,napi_callback_info){try{const auto s=lab::galaxyObserverStatus();napi_value o,flag;napi_create_object(e,&o);napi_get_boolean(e,s.available,&flag);napi_set_named_property(e,o,"available",flag);
+    num(e,o,"mode",s.mode);num(e,o,"sceneRevision",s.sceneRevision);num(e,o,"selected",s.selected);num(e,o,"time",s.time);num(e,o,"anchor",s.anchor);num(e,o,"initialRadiusKpc",s.initialRadiusKpc);num(e,o,"yaw",s.settings.yaw);num(e,o,"pitch",s.settings.pitch);num(e,o,"fov",s.settings.fov);const auto primaryAim=lab::galaxyObserverAim(s,false),secondaryAim=lab::galaxyObserverAim(s,true);num(e,o,"primaryYaw",primaryAim[0]);num(e,o,"primaryPitch",primaryAim[1]);num(e,o,"secondaryYaw",secondaryAim[0]);num(e,o,"secondaryPitch",secondaryAim[1]);num(e,o,"latitude",s.settings.latitude);num(e,o,"siderealHours",s.settings.siderealHours);
+    const char* names[]={"positionKpc","primaryDirection","secondaryDirection"};const lab::GalaxyVector vectors[]={s.positionKpc,s.primaryDirection,s.secondaryDirection};
+    for(int k=0;k<3;k++){napi_value a;napi_create_array_with_length(e,3,&a);for(int j=0;j<3;j++){napi_value v;napi_create_double(e,vectors[k][j],&v);napi_set_element(e,a,j,v);}napi_set_named_property(e,o,names[k],a);}
+    str(e,o,"scope","solar-radius tracer analogue; equal-weight illustrative sky; frozen J2000 analogue horizon with independent local sidereal time, not future Earth astrometry or calibrated Milky Way/Andromeda forecast");return o;
+}catch(const std::exception& ex){return fail(e,ex);}}
 napi_value galaxyPlacement(napi_env e,napi_callback_info i){try{auto a=args(e,i,8);bool on,retro;
     if(napi_get_value_bool(e,a[0],&on)!=napi_ok||napi_get_value_bool(e,a[7],&retro)!=napi_ok)throw std::invalid_argument("Boolean expected");
     lab::setGalaxyPlacement(on,{integer(e,a[1]),integer(e,a[2]),number(e,a[3]),number(e,a[4]),number(e,a[5]),number(e,a[6]),retro});return undef(e);
@@ -439,6 +446,8 @@ napi_value Init(napi_env e, napi_value exports) {
         {"sphFragments", nullptr, sphFragments, nullptr, nullptr, nullptr, napi_default, nullptr},
         {"galaxyObservation",nullptr,galaxyObservation,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"seekGalaxyObservation",nullptr,seekGalaxyObservation,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"setGalaxyObserver",nullptr,setGalaxyObserver,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"galaxyObserverStatus",nullptr,galaxyObserverStatus,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setGalaxyPlacement",nullptr,galaxyPlacement,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"placeGalaxyAt",nullptr,galaxyPlacementAt,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"sphObservation", nullptr, sphObservation, nullptr, nullptr, nullptr, napi_default, nullptr},

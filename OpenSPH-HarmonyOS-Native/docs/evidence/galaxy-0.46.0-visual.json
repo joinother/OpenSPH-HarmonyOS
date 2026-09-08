@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "date": "2026-09-08",
+  "timezone": "Asia/Shanghai",
+  "method": "Manual inspection of six actual emulator captures; separate native/CLI tests establish frame provenance",
+  "observations": [
+    "Wide space: smoothed gold primary band and blue secondary distribution; no static photographic Milky Way",
+    "Ground view: level horizon masks lower sky, with local-coordinate orientation",
+    "0/240/480 Myr captures show changing secondary shape and angular extent; each capture aims at its current center",
+    "Expanded, folded phone and landscape: six dock controls and common timeline are visible without edge clipping",
+    "Density is illustrative; thin primary disk, equal tracer weights and no dust/photometry limit realism"
+  ],
+  "images": [
+    {
+      "file": "OpenSPH-0.46.0-galaxy-observer-landscape-ground.png",
+      "sha256": "cd288d791d8f252c29e0c39b9826c87afdf1f5e815fd2bc7934683fd6c6b34d0",
+      "bytes": 861907
+    },
+    {
+      "file": "OpenSPH-0.46.0-galaxy-observer-phone-ground.png",
+      "sha256": "7d0b79f32221421912dd57f7611e5ee99fa802b93731dd1b11143f11da20e298",
+      "bytes": 988723
+    },
+    {
+      "file": "OpenSPH-0.46.0-galaxy-observer-wide-early.png",
+      "sha256": "ec7175bd572c2727b7da84b8fab05ff9977331bcc4cacac3e2af943a79673b54",
+      "bytes": 1166852
+    },
+    {
+      "file": "OpenSPH-0.46.0-galaxy-observer-wide-ground.png",
+      "sha256": "c370049cba396b21a0b96aed5df899d0f66554a520578eedd176c8587d8eeb24",
+      "bytes": 1375512
+    },
+    {
+      "file": "OpenSPH-0.46.0-galaxy-observer-wide-late.png",
+      "sha256": "4cacdd58b5fd24c1f5ba03c3ca604f69cfd15be2ee6fad324dc600ee5f26ee5d",
+      "bytes": 1567998
+    },
+    {
+      "file": "OpenSPH-0.46.0-galaxy-observer-wide-space.png",
+      "sha256": "85d348df3bd514bd369ee6615fae0eda147f03f85861c428b9a02ee9f2d2e0b2",
+      "bytes": 1838776
+    }
+  ]
+}

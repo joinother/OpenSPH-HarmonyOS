@@ -11,6 +11,7 @@ namespace lab {void setMoonMap(std::shared_ptr<const MoonMap> map);}
 #include "engine.h"
 #include "placement_projection.h"
 #include "galaxy_placement.h"
+#include "galaxy_observer.h"
 #include "camera_navigation.h"
 #include "fragment_follow.h"
 #include <ace/xcomponent/native_interface_xcomponent.h>
@@ -23,7 +24,9 @@ struct MaterialSettings { float exposure=0; bool ocean=true,cloudShadows=true; }
 void setMaterial(float exposure,bool ocean,bool cloudShadows);
 struct Appearance { bool clouds=true, atmosphere=true, trails=true, closeup=false, autoSpin=false,rings=true; };
 void setSurfaceSeeds(const std::array<SurfaceKey,8> &keys);
-struct RenderStatus { FragmentFollowStatus fragmentFollow; int surfacePending=0,surfaceGenerated=0;std::string surfaceError; bool moonReady=false; int moonUploads=0; float moonBlend=0; std::string moonError; float materialExposure=0; bool materialOcean=true,materialCloudShadows=true; uint64_t sceneRevision=0; int surfaceStarts=0; bool cameraMoving=false; float centerX=0,centerY=0,centerZ=0; float compositionX=.5f,compositionY=.5f,compositionScale=1; bool panoramaReady=false; float panoramaBlend=0; bool skyReady=false; float skyStars=0,skyGalaxy=0; bool ready=false, texturesReady=false, active=true; int frames=0; double submitMs=0, previewSeconds=0; std::string error; };
+struct RenderStatus { int galaxyObserverMode=0; double galaxyObserverTime=0; FragmentFollowStatus fragmentFollow; int surfacePending=0,surfaceGenerated=0;std::string surfaceError; bool moonReady=false; int moonUploads=0; float moonBlend=0; std::string moonError; float materialExposure=0; bool materialOcean=true,materialCloudShadows=true; uint64_t sceneRevision=0; int surfaceStarts=0; bool cameraMoving=false; float centerX=0,centerY=0,centerZ=0; float compositionX=.5f,compositionY=.5f,compositionScale=1; bool panoramaReady=false; float panoramaBlend=0; bool skyReady=false; float skyStars=0,skyGalaxy=0; bool ready=false, texturesReady=false, active=true; int frames=0; double submitMs=0, previewSeconds=0; std::string error; };
+void setGalaxyObserver(int mode,double yaw,double pitch,double fov,double latitude,double siderealHours);
+GalaxyObserverView galaxyObserverStatus();
 void setGalaxyPlacement(bool enabled,const GalaxyParameters& parameters);
 double placeGalaxyAt(double x,double y);
 void setOrbitPlacement(const std::vector<OrbitSpec>& bodies,int candidate);

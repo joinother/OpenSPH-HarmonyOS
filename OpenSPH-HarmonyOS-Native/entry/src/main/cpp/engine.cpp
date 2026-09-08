@@ -440,7 +440,7 @@ void Engine::seekGalaxyObservation(int index,uint64_t revision,double time){
 }
 FragmentFrame Engine::fragmentFrame(){
     std::lock_guard<std::mutex> lock(mutex);FragmentFrame result;result.sceneRevision=generation.load();result.selected=current.selected;
-    if(!history.empty())result.frame=current.selected<0?history.back():history[std::min(size_t(current.selected),history.size()-1)];return result;
+    if(!history.empty()){result.frame=current.selected<0?history.back():history[std::min(size_t(current.selected),history.size()-1)];if(result.frame->galaxy.available)result.initial=history.front();}return result;
 }
 void Engine::seekSphObservation(int index,uint64_t revision,double time) {
     std::lock_guard<std::mutex> lock(mutex);

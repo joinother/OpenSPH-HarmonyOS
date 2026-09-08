@@ -3,6 +3,7 @@
 #include "engine.h"
 #include "planet_material.h"
 #include "sky_renderer.h"
+#include "galaxy_sky_renderer.h"
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
 #include <algorithm>
@@ -20,6 +21,7 @@ class Renderer {
     std::atomic<bool> running{false};
     std::atomic<int> width{1}, height{1};
     std::mutex mutex;
+    GalaxyObserverSettings observer;
     Camera camera;
     CameraNavigation navigation;
     FragmentFollower fragmentFollower;
@@ -161,6 +163,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         SkyRenderer sky;bool skyReady=false;std::string skyError;
         try{skyReady=sky.init(skyError);}catch(const std::exception &e){skyError=e.what();}
         if(!skyReady){sky.release();error(skyError);}else{std::lock_guard<std::mutex> lock(mutex);stats.skyReady=true;}
+        GalaxySkyRenderer galaxySky;std::string galaxySkyError;const bool galaxySkyReady=galaxySky.init(galaxySkyError);if(!galaxySkyReady)error(galaxySkyError);
         float skyStars=0,skyGalaxy=0,photoMix=0;bool photoReady=false;
         std::shared_ptr<const SkyPanorama> uploadedPanorama;
         double previewTime=0;ViewportComposition framing;
@@ -208,6 +211,9 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             {std::lock_guard<std::mutex> lock(mutex);
              if(placementFrame&&placementRevision==revision){frame=placementFrame;placing=true;candidate=placementCandidate;}}
 
+            GalaxyObserverSettings observerSettings;{std::lock_guard<std::mutex> lock(mutex);observerSettings=observer;}
+            const auto observerView=galaxyObserverView(snapshot,observerSettings);
+            const bool observing=observerView.mode>0&&!placing&&galaxySkyReady;
             int pending=0,generatedCount=0;std::string generatedError;
             for(int i=0;i<8;i++){
                 SurfaceKey key{};if(frame&&frame->orbital&&size_t(i)<frame->surfaces.size()){key=seeds[i];key.style=frame->surfaces[i];}
@@ -253,7 +259,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             auto approach=[&](float value,float target){return value+std::clamp(target-value,-float(dt)*2.f,float(dt)*2.f);};
             skyStars=approach(skyStars,skyConfig.mode>0?skyConfig.brightness*dim:0);
             skyGalaxy=approach(skyGalaxy,skyConfig.mode==2?skyConfig.brightness*dim:0);
-            if(skyReady)sky.draw(c.yaw,c.pitch,w,h,skyStars,skyGalaxy,photoMix);
+            if(skyReady&&!observing)sky.draw(c.yaw,c.pitch,w,h,skyStars,skyGalaxy,photoMix);
             glUseProgram(program);glBindVertexArray(vao);glBindBuffer(GL_ARRAY_BUFFER,vbo);
             float cx = frame&&frame->orbital?0:0.5f, cy = 0, cz = 0;
             if(frame&&!frame->orbital){
@@ -286,7 +292,8 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             glUniform1i(glGetUniformLocation(program,"trail"),0);
             glUniform1f(glGetUniformLocation(program,"trailOpacity"),(placing||a.trails)?.65f*(1-blend):0.f);
             glUniform1f(glGetUniformLocation(program, "size"), 2);
-            if (frame) {
+            if(observing){galaxySky.draw(*frame,observerView,w,h);}
+            if (frame&&!observing) {
                 float size = std::clamp(float(h) / projectionZoom / std::cbrt(float(frame->particles.size())) * ((c.color==0||c.color==6)?0.9f:0.32f),
                                         3.0f, (c.color==0||c.color==6)?96.0f:18.0f);
                 if(frame->orbital){
@@ -345,11 +352,12 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
                 }
             }
             GLenum glError=glGetError();if(glError!=GL_NO_ERROR)error("OpenGL draw error "+std::to_string(glError));
-            {std::lock_guard<std::mutex> lock(mutex);stats.sceneRevision=revision;stats.fragmentFollow=followed;stats.cameraMoving=navigation.moving()||framing.moving()||followed.moving;stats.compositionX=compositionNow[0];stats.compositionY=compositionNow[1];stats.compositionScale=compositionNow[2];stats.centerX=cx;stats.centerY=cy;stats.centerZ=cz;stats.frames++;stats.skyStars=skyStars;stats.skyGalaxy=skyGalaxy;stats.previewSeconds=previewTime;stats.submitMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count();}
+            {std::lock_guard<std::mutex> lock(mutex);stats.galaxyObserverMode=observing?observerView.mode:0;stats.galaxyObserverTime=observing?observerView.time:0;stats.sceneRevision=revision;stats.fragmentFollow=followed;stats.cameraMoving=navigation.moving()||framing.moving()||followed.moving;stats.compositionX=compositionNow[0];stats.compositionY=compositionNow[1];stats.compositionScale=compositionNow[2];stats.centerX=cx;stats.centerY=cy;stats.centerZ=cz;stats.frames++;stats.skyStars=skyStars;stats.skyGalaxy=skyGalaxy;stats.previewSeconds=previewTime;stats.submitMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count();}
             if (!eglSwapBuffers(display, surface)){error("EGL swap failed");break;}
             {std::lock_guard<std::mutex> lock(mutex);stats.materialExposure=m.exposure;stats.materialOcean=m.ocean;stats.materialCloudShadows=m.cloudShadows;navigation.presented(cameraRequest);projected=std::move(shown);projectedRevision=revision;}
             std::this_thread::sleep_until(begin + std::chrono::milliseconds(33));
         }
+        galaxySky.release();
         sky.release();
         material.release();
         glDeleteBuffers(1, &fragmentVbo);
@@ -383,6 +391,13 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         if (thread.joinable())
             thread.join();
     }
+    void observerSet(int mode,double yaw,double pitch,double fov,double latitude,double siderealHours){
+        validateGalaxyObserver(mode,yaw,pitch,fov,latitude,siderealHours);auto snapshot=Engine::instance().fragmentFrame();
+        GalaxyObserverSettings next{mode,yaw,pitch,fov,snapshot.sceneRevision,latitude,siderealHours};
+        if(mode&&!galaxyObserverView(snapshot,next).available)throw std::runtime_error("需要含初始帧的星系实验记录");
+        std::lock_guard<std::mutex> lock(mutex);if(mode&&placementFrame&&placementRevision==snapshot.sceneRevision)throw std::runtime_error("请先退出放置预览");observer=next;projected.ready=false;
+    }
+    GalaxyObserverView observerStatus(){auto snapshot=Engine::instance().fragmentFrame();GalaxyObserverSettings settings;{std::lock_guard<std::mutex> lock(mutex);settings=observer;}return galaxyObserverView(snapshot,settings);}
     void galaxyPlacement(bool enabled,const GalaxyParameters& parameters){
         std::shared_ptr<Frame> f;
         if(enabled){GalaxySystem system(parameters);f=std::make_shared<Frame>();f->galaxy=system.diagnostics();
@@ -511,6 +526,8 @@ RenderStatus renderStatus(){return renderer().status();}
 uint64_t navigateCamera(Camera c,bool close,float duration,bool animatePose,bool force){return renderer().navigate(c,close,duration,animatePose,force);}
 CameraMotion cameraMotion(uint64_t id){return renderer().motion(id);}
 CameraMotion cancelCameraMotion(uint64_t id){return renderer().cancelMotion(id);}
+void setGalaxyObserver(int mode,double yaw,double pitch,double fov,double latitude,double siderealHours){renderer().observerSet(mode,yaw,pitch,fov,latitude,siderealHours);}
+GalaxyObserverView galaxyObserverStatus(){return renderer().observerStatus();}
 void setGalaxyPlacement(bool enabled,const GalaxyParameters& parameters){renderer().galaxyPlacement(enabled,parameters);}
 double placeGalaxyAt(double x,double y){return renderer().galaxyPlacementPoint(x,y);}
 void setOrbitPlacement(const std::vector<OrbitSpec>& bodies,int candidate){renderer().placement(bodies,candidate);}

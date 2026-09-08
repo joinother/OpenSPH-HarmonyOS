@@ -1,0 +1,12 @@
+[
+  {"command":"listCommands"},
+  {"command":"getUiState"},
+  {"command":"uiAction","payload":{"action":"theme.galaxy-tails"},"waitForState":"paused"},
+  {"command":"start","waitForState":"completed"},
+  {"command":"seek","payload":{"frame":60}},
+  {"command":"uiAction","payload":{"action":"galaxy.observer.ground"}},
+  {"command":"setUiValue","payload":{"field":"galaxy.observer.latitude","value":35}},
+  {"command":"setUiValue","payload":{"field":"galaxy.observer.sidereal","value":12}},
+  {"command":"uiAction","payload":{"action":"galaxy.observer.secondary"}},
+  {"command":"getGalaxyObserver"}
+]

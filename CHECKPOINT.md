@@ -1,6 +1,6 @@
 # 星体实验室 GitHub 检查点
 
-记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.45.0。
+记录日期：2026-09-08（Asia/Shanghai）；源码版本：0.46.0。
 
 ## 恢复开发
 
@@ -17,6 +17,8 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 构建需要 DevEco Studio 与 HarmonyOS SDK；安装请遵循工程 README，当前任务只操作模拟器 127.0.0.1:5555。签名配置、依赖缓存、构建目录和发布二进制不纳入源码检查点。
 
 ## 保存范围与验证
+
+- 0.46.0 增加固定示踪点盘内天空、地表地平线、纬度／恒星时、共享回放和语义 CLI。147 项主机检查、真实时间回退与不变历史、三布局／拖动、v12、专注模式和旧行星 UI 回归通过；恢复后来捕获的行星环状态与原保存槽。真实银河系初值、自洽合并和真实天空测光仍待实现，见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.46.0.md)。
 
 - 0.45.0 补星系本地参照、五指标共轴曲线、已应用初值差异和 19 列双实验导出。144 项主机检查、实际 352 行原生对照、冷启动与坏文件恢复、三布局滚动和原 UI 回归通过；原慢撞暂停初态、保存槽和命名实验恢复。物理求解器保持原定义，见 [本轮记录](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.45.0.md)。
 

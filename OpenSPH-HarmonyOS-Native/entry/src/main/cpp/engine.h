@@ -76,7 +76,7 @@ struct SphObservationSample {int frame;double time;std::array<double,10> values;
 struct SphObservation {uint64_t sceneRevision=0;int selected=-1;std::vector<SphObservationSample> samples;};
 struct GalaxySample {int frame;double time;std::array<double,5> values;double energyError,angularError;};
 struct GalaxyObservation {bool available=false;uint64_t sceneRevision=0;int selected=-1;Config config;std::vector<GalaxySample> samples;};
-struct FragmentFrame {uint64_t sceneRevision=0;int selected=-1;std::shared_ptr<const Frame> frame;};
+struct FragmentFrame {uint64_t sceneRevision=0;int selected=-1;std::shared_ptr<const Frame> frame; std::shared_ptr<const Frame> initial;};
 class Engine {
   public:
     Engine();

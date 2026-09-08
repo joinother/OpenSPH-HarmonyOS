@@ -1,6 +1,6 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.45.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.46.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
@@ -14,6 +14,14 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 ```
 
 `--device` 必填，本任务仅使用 `127.0.0.1:5555`。`--payload-json` 与 `--payload-file` 二选一。`--hdc PATH` 可指定 HDC；`--json` 保留兼容，输出本身已为 JSON。退出码为 0（成功）、2（应用返回失败）、1（参数或传输错误）。
+
+## 盘内天空与地表观察
+
+星系记录准备好后，`galaxy.observer.space`／`galaxy.observer.ground` 动作进入太阳位置类比的观察视角，`galaxy.observer.primary`／`secondary` 指向两中心，`galaxy.observer.exit` 或返回退出。`getGalaxyObserver` 返回固定示踪点身份、位置、帧时间与角度；`getState` 同时返回观察状态和已提交渲染的模式／时间。进入与回放不重算，载入或重建场景退出观察。
+
+`setUiValue` 字段包括 `galaxy.observer.yaw`（±100 rad）、`pitch`（±1.5 rad）、`fov`（35–120°）、`latitude`（±90°）和 `sidereal`（0–24 h）；后两项仅影响地表天空，恒星时独立于 Myr 时间轴。地表 yaw／pitch 为当地北向东的方位角／地平高度，太空为模型盘面角度。界面按钮、滑条与 CLI 共用处理；新模式禁用外部镜头／着色／背景动作，退出恢复。详情和科学边界见 [盘内天空指南](reference/GALAXY-OBSERVER.md)。
+
+可运行 [盘内天空批处理示例](../examples/galaxy-observer-batch.json)：`node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --batch examples/galaxy-observer-batch.json`。它会替换当前实验，计算后定位 240 Myr 并进入地表视角。
 
 ## 星系潮汐
 
