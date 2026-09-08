@@ -1,8 +1,14 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.52.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.53.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
+
+## 撞击初值
+
+查询 `getImpactPlan`，读取所选帧最近一次接触的反弹前向量、真实质量／半径、质心系速度与动能；位置 m、速度 m/s、质量 kg。`withinCurrentBounds` 仅核对现有局部岩体范围，不表示 SPH 已启动。无记录或旧回放为 unavailable。
+
+`uiAction` 的 `orbit.impact.demo` 加载 100 km／60 km 小岩体实验，`impact.inspect` 打开观察面板；二者与页面按钮共用实现。先查询 `listCommands`、`getUiState`；准备后用 `simulation.toggle` 启动，接触后自动暂停。档位仍为 0.01、0.1、1、10、100 天／秒。含入射状态的轨道回放为 v16，无入射状态继续 v14。详见 [初值定义和剩余工作](reference/IMPACT-INITIAL-CONDITIONS.md)。
 
 ## 选中天体后操作
 

@@ -112,7 +112,10 @@ export const AU_KM:number = 149597870.7;
 export const EARTH_MASS_SOLAR: number = 398600.435507e9/1.32712440041279419e20;
 export function finiteOrbitBodies(bodies:OrbitBodyConfig[]):boolean {return bodies.length>0&&bodies[0].radiusKm!==undefined;}
 export function estimatedOrbitRadius(massSolar:number,star:boolean):number {return star?695700*Math.cbrt(massSolar):Math.max(1,6371*Math.cbrt(massSolar/EARTH_MASS_SOLAR));}
-export function contactDemoBodies():OrbitBodyConfig[] {
+export function contactDemoBodies(small:boolean=false):OrbitBodyConfig[] {
+  if(small)return [{name:'恒星',massSolar:1,xAU:0,yAU:0,zAU:0,vxKmS:0,vyKmS:0,vzKmS:0,surface:0,radiusKm:695700},
+    {name:'100 km 岩体',massSolar:sphereMass(100,2700)/SOLAR_MASS_KG,xAU:1,yAU:-200/AU_KM,zAU:0,vxKmS:0,vyKmS:34,vzKmS:0,surface:3,radiusKm:100},
+    {name:'60 km 岩体',massSolar:sphereMass(60,2700)/SOLAR_MASS_KG,xAU:1,yAU:200/AU_KM,zAU:0,vxKmS:0,vyKmS:26,vzKmS:0,surface:5,radiusKm:60}];
   return [{name:'恒星',massSolar:1,xAU:0,yAU:0,zAU:0,vxKmS:0,vyKmS:0,vzKmS:0,surface:0,radiusKm:695700},
     {name:'接触球 A',massSolar:EARTH_MASS_SOLAR,xAU:1,yAU:-.00012,zAU:0,vxKmS:0,vyKmS:35,vzKmS:0,surface:1,radiusKm:6371},
     {name:'接触球 B',massSolar:EARTH_MASS_SOLAR*.4,xAU:1,yAU:.00012,zAU:0,vxKmS:0,vyKmS:25,vzKmS:0,surface:3,radiusKm:6371*Math.cbrt(.4)}];

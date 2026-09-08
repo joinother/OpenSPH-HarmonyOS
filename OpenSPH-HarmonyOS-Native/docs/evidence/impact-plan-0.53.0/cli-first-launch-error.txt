@@ -1,0 +1,30 @@
+{"ok":false,"error":"Ability launch failed: error: failed to start ability.\nError Code:10106105  Error Message:The target application is under control.\nError cause: The application is suspected of malicious behavior and is restricted from launching by the appStore\n  Try the following:\n  > It is recommended to uninstall the application"}
+node:internal/errors:999
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /opt/homebrew/Cellar/node/26.7.0/bin/node /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/opensph-cli.mjs --device 127.0.0.1:5555 --timeout 60000 --command getState --payload-json {}
+{"ok":false,"error":"Ability launch failed: error: failed to start ability.\nError Code:10106105  Error Message:The target application is under control.\nError cause: The application is suspected of malicious behavior and is restricted from launching by the appStore\n  Try the following:\n  > It is recommended to uninstall the application"}
+
+    at genericNodeError (node:internal/errors:999:15)
+    at wrappedFn (node:internal/errors:544:14)
+    at checkExecSyncError (node:child_process:942:11)
+    at execFileSync (node:child_process:978:15)
+    at call (file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-ui-cli-emulator.mjs:12:213)
+    at file:///Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/scripts/test-ui-cli-emulator.mjs:25:44
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    '',
+    '{"ok":false,"error":"Ability launch failed: error: failed to start ability.\\nError Code:10106105  Error Message:The target application is under control.\\nError cause: The application is suspected of malicious behavior and is restricted from launching by the appStore\\n  Try the following:\\n  > It is recommended to uninstall the application"}\n'
+  ],
+  pid: 63618,
+  stdout: '',
+  stderr: '{"ok":false,"error":"Ability launch failed: error: failed to start ability.\\nError Code:10106105  Error Message:The target application is under control.\\nError cause: The application is suspected of malicious behavior and is restricted from launching by the appStore\\n  Try the following:\\n  > It is recommended to uninstall the application"}\n'
+}
+
+Node.js v26.7.0

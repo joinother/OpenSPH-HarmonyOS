@@ -1,12 +1,12 @@
 # OpenSPH-HarmonyOS
 
-本分支保存星体实验室 0.52.0 的 ArkTS/ArkUI 原生检查点，继续开发请进入 [OpenSPH-HarmonyOS-Native](OpenSPH-HarmonyOS-Native)，恢复步骤和本轮验证见 [检查点说明](CHECKPOINT.md)。以下正文保留旧 wxWidgets 桌面移植路线；两个工程分别维护。
+本分支保存星体实验室 0.53.0 的 ArkTS/ArkUI 原生检查点，继续开发请进入 [OpenSPH-HarmonyOS-Native](OpenSPH-HarmonyOS-Native)，恢复步骤和本轮验证见 [检查点说明](CHECKPOINT.md)。以下正文保留旧 wxWidgets 桌面移植路线；两个工程分别维护。
 
 把开源 [OpenSPH](https://github.com/pavelsevecek/OpenSPH)（光滑粒子流体动力学 / SPH 物理仿真软件）以**保留原生 wxWidgets UI** 的方式移植到鸿蒙 PC（HarmonyOS NEXT）的完整工程。
 
 本项目是**适配层 + 壳工程 + 汉化**，不 fork 上游源码。OpenSPH 与 wxWidgets 的改动以 patch 形式提供，可精确复现。
 
-当前新增 SPH 材料初态、破坏与热软化对照、剩余强度和 v15 回放，见 [本轮检查点](CHECKPOINT.md)。视频实际录制与导出仍待真机验收。
+当前新增轨道入射状态、局部质心初值核对、小岩体用例和 v16 回放，见 [本轮检查点](CHECKPOINT.md)。视频实际录制与导出仍待真机验收。
 
 ## 特性
 

@@ -11,7 +11,9 @@ export const startScene: (config: SimulationConfig, initiallyPaused?: boolean) =
 export interface OrbitBodyStatus { radiusKm?:number; id:number; name:string; surface?:number; xAU:number; yAU:number; zAU:number; speedKmS:number; massSolar:number; }
 export interface SphMaterialResponse {model:string;meltEnergyMJkg:number;intactYieldGPa:number;softeningMean:number;zeroShearMassFraction:number;damagedMassFraction:number;strengthMean:number;}
 export interface SphDiagnostics {response?:SphMaterialResponse;structure?:number[];available:boolean;pressureMinGPa?:number;pressureMaxGPa?:number;pressureMeanGPa?:number;internalMinMJkg?:number;internalMaxMJkg?:number;internalMeanMJkg?:number;damageMean?:number;damageMax?:number;kineticJ?:number;internalJ?:number;}
-export interface OrbitContactStatus {count:number;a:number;b:number;timeSeconds:number;normalSpeedKmS:number;restitution:number;}
+export interface LocalImpactBody {id:number;massKg:number;radiusKm:number;densityKgM3:number;positionM:number[];velocityMS:number[];}
+export interface ImpactPlan {available:boolean;withinCurrentBounds:boolean;reason:string;model:string;velocityConvention:string;timeSeconds?:number;relativeSpeedKmS?:number;contactAngleDegrees?:number;kineticEnergyJ?:number;originAU?:number[];velocityKmS?:number[];angularMomentumKgM2S?:number[];bodies?:LocalImpactBody[];}
+export interface OrbitContactStatus {incoming?:ImpactPlan;count:number;a:number;b:number;timeSeconds:number;normalSpeedKmS:number;restitution:number;}
 export interface GalaxyParameters {count:number;seed:number;speed:number;inclination:number;duration:number;massRatio:number;offset:number;retrograde:boolean;responsive?:boolean;}
 export interface GalaxySample {frame:number;time:number;values:number[];energyError:number;angularError:number;}
 export interface GalaxyObservation {available:boolean;sceneRevision:number;selected:number;parameters?:GalaxyParameters;samples:GalaxySample[];}

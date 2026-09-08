@@ -8,7 +8,7 @@ import { ObservationReference, ReferenceSummary, ComparisonPlot, comparisonPlot,
 import { ObservationStore } from '../common/ObservationStore';
 import { observationPlot, ObservationPlot } from '../common/ObservationModel';
 import { GALAXY_METRICS, galaxyModel, galaxyPlot, galaxyCsv } from '../common/GalaxyObservationModel';
-import simulation, { GalaxyObserverStatus, GalaxyObservation, SphFragmentSnapshot, SphMaterialGroup, SphObservationSample, SphObservation, OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
+import simulation, { LocalImpactBody, GalaxyObserverStatus, GalaxyObservation, SphFragmentSnapshot, SphMaterialGroup, SphObservationSample, SphObservation, OrbitObservation, SimulationStatus, SimulationConfig, OrbitBodyConfig, OrbitBodyStatus, RenderStatus, RingTraceStatus, CameraMotionStatus } from 'libsimulation.so';
 import { CliBridge, CommandPayload } from '../common/CliBridge';
 import { PlacementUnits, defaultPlacementUnits, physicalPlacementUnits, placementCanonicalFields, placementFieldsInUnits, placementUnitLabels, MIN_ORBIT_MASS_SOLAR, SOLAR_MASS_KG, AU_KM, finiteOrbitBodies, estimatedOrbitRadius, contactDemoBodies, SurfaceRecipe, legacySurfaces, copySurfaces, validateSurfaces, copiedPlanetDraft, PlacementPreview, planPlanet, placementPoint, OrbitPreview, previewOrbit, SceneDefinition, BodyDefinition, SavedProject, ExperimentRecipe, RecipeMaterial, defaultMaterial, validateMaterial, defaultRecipe, validateRecipe, validateConfig, validateScene, validName, sphereMass, validateOrbitBodies, defaultOrbitBodies, circularBody, copyOrbitBodies, EARTH_MASS_SOLAR } from '../common/SceneModel';
 import { themeExperiments, themeConfigMatches, ThemeExperiment } from '../common/ExperimentCatalog';
@@ -748,9 +748,9 @@ struct Index {
     }catch(e){this.notice=String(e);if(strict)throw new Error(String(e));}
   }
   private contactMode():boolean {return this.preset===5&&finiteOrbitBodies(this.orbitBodies);}
-  private contactDemo():void {
-    const c=this.config();c.preset=5;c.speed=1;c.duration=1;c.orbitBodies=contactDemoBodies();c.initialEnergyMJkg=undefined;c.initialDamage=undefined;c.selfGravity=false;c.relaxationSeconds=0;
-    validateConfig(c);this.applyConfig(c);this.title='球体接触 · 理想弹性';if(!this.prepare(false))throw new Error(this.notice);
+  private contactDemo(small:boolean=false):void {
+    const c=this.config();c.preset=5;c.speed=1;c.duration=1;c.orbitBodies=contactDemoBodies(small);c.initialEnergyMJkg=undefined;c.initialDamage=undefined;c.selfGravity=false;c.relaxationSeconds=0;
+    validateConfig(c);this.applyConfig(c);this.title=small?'小岩体 · 撞击初值':'球体接触 · 理想弹性';if(!this.prepare(false))throw new Error(this.notice);
     this.focus=1;this.yaw=0;this.pitch=0;this.zoom=4.2;this.closeup=true;this.autoSpin=false;this.camera(0,true,true);this.setPanel(-1);this.notice='启动后在接触响应处暂停 · 球体保持完整，不模拟行星破裂';
   }
   private updateGalaxyObserver():void {
@@ -1160,7 +1160,7 @@ struct Index {
     add('placement.rock','15 km 岩质小行星',this.placing&&finiteOrbitBodies(this.placementBodies));
     for(let i=0;i<=5;i++)add('placement.surface.'+i,['恒星','海洋','厚云','荒漠','带环','月面'][i],this.placing,this.placementSurface===i);
     for(const mode of ['satellite','launch','drop'])add('selection.'+mode,mode==='satellite'?'添加卫星':mode==='launch'?'向它发射':'附近投放',this.isOrbit()&&this.focus>=0&&this.focus<(this.info.orbitState??[]).length&&(this.info.orbitState??[]).length<8);
-    add('orbit.contact','启用球体接触',this.preset===5&&!this.contactMode());add('orbit.contact.demo','球体接触实验',this.preset===5);
+    add('orbit.contact','启用球体接触',this.preset===5&&!this.contactMode());add('orbit.contact.demo','球体接触实验',this.preset===5);add('orbit.impact.demo','小岩体撞击初值',this.preset===5);add('impact.inspect','查看撞击初值',this.contactMode());
     add('orbit.copy','复制并放置',this.preset===5&&this.orbitEdit>0&&this.orbitBodies.length<8);
     add('orbit.add','加入天体',this.isOrbit()&&(this.info.orbitState??[]).length>=2&&(this.info.orbitState??[]).length<8);add('orbit.remove','删除天体',this.preset===5&&this.orbitEdit>0&&this.orbitBodies.length>2);
     add('orbit.undo','撤销天体编辑',this.preset===5&&this.orbitUndo.length>0);add('orbit.redo','重做天体编辑',this.preset===5&&this.orbitRedo.length>0);
@@ -1360,6 +1360,8 @@ struct Index {
     else if(action==='observation.minimum'||action==='observation.maximum')this.seekObservationExtreme(action==='observation.maximum');
     else if(action==='orbit.contact'){const bodies=copyOrbitBodies(this.orbitBodies);for(let i=0;i<bodies.length;i++)bodies[i].radiusKm=estimatedOrbitRadius(bodies[i].massSolar,i===0);this.replaceOrbits(bodies,this.orbitEdit,'启用理想弹性接触');}
     else if(action==='orbit.contact.demo')this.contactDemo();
+    else if(action==='orbit.impact.demo')this.contactDemo(true);
+    else if(action==='impact.inspect'){this.setPanel(1);this.scroller.scrollEdge(Edge.Top);}
     else if(action==='selection.satellite'||action==='selection.launch'||action==='selection.drop')this.beginLocalPlacement(action.slice(10));
     else if(action==='orbit.add')this.beginPlacement();
     else if(action==='orbit.copy')this.beginPlacement(this.orbitEdit);
@@ -1425,6 +1427,7 @@ struct Index {
     if(command==='listCommands') {
       const catalog: CommandCatalog = {ok:true,commands:[
       {name:'getState',payload:'{}'},
+      {name:'getImpactPlan',payload:'{} - latest incoming orbital contact in the selected frame; local COM metres, m/s and kg; bounds check only, no SPH handoff'},
       {name:'getCameraMotion',payload:'{requestId?:number}; 0/current by default, last 32 terminal requests retained'},
       {name:'cancelCameraMotion',payload:'{requestId?:number}; stops only that request; stale cancellation cannot stop a newer flight'},
       {name:'navigateCamera',payload:'{focus:number,closeup?:boolean,yaw?:number,pitch?:number,zoom?:number,durationMs?:0..3000}; explicit continuous flight, request ID in cameraMotion'},
@@ -1485,6 +1488,7 @@ struct Index {
     if(command==='getRingTrace'){if(p.particles!==undefined&&typeof p.particles!=='boolean')throw new Error('particles must be boolean');return JSON.stringify({ok:true,ringTrace:simulation.ringTraceStatus(p.particles??true)});}
     if(command==='listExperiments')return JSON.stringify({ok:true,catalogVersion:1,experiments:themeExperiments(),active:this.themeState()});
     if(command==='getState') return this.snapshot();
+    if(command==='getImpactPlan'){const state:SimulationStatus=simulation.status();return JSON.stringify({ok:true,sceneRevision:state.orbitRevision,selected:state.selected,contact:state.contact});}
     if(command==='getCameraMotion'||command==='cancelCameraMotion'){
       const id:number=p.requestId===undefined?0:this.checked(p.requestId,0,1.e9,true);
       const m:CameraMotionStatus=command==='getCameraMotion'?simulation.getCameraMotion(id):simulation.cancelCameraMotion(id);
@@ -1805,6 +1809,24 @@ struct Index {
     }.width('100%')
   }
   @Builder
+  impactControls() {
+    if(this.contactMode()) {
+      Column({space:6}) {
+        Text('撞击初值 · 反弹前').fontSize(15).fontColor('#EBC08B').width('100%')
+        if(this.info.contact?.incoming?.available) {
+          Text('相对速度 '+this.info.contact!.incoming!.relativeSpeedKmS!.toFixed(3)+' km/s · 入射角 '+this.info.contact!.incoming!.contactAngleDegrees!.toFixed(1)+'°').fontSize(12).fontColor('#E2EEF5').width('100%')
+          Text('质心系动能 '+this.info.contact!.incoming!.kineticEnergyJ!.toExponential(3)+' J').fontSize(11).fontColor('#B7C5D5').width('100%')
+          ForEach(this.info.contact!.incoming!.bodies!, (body:LocalImpactBody)=>{
+            Text('天体 '+body.id+' · 半径 '+body.radiusKm.toFixed(1)+' km · 密度 '+body.densityKgM3.toFixed(0)+' kg/m³').fontSize(11).fontColor('#B7C5D5').width('100%')
+          })
+        }
+        Text(this.info.contact?.incoming?.reason??'等待接触事件').fontSize(11).fontColor('#D1BB9A').lineHeight(18).width('100%')
+        Text('撞速取积分的入射半步。当前仍按弹性球体响应，尚未自动转入 SPH 破碎。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+        Divider().color('#33B4A7D6')
+      }.id('impact-plan').width('100%')
+    }
+  }
+  @Builder
   observationControls() {
     Column({space:8}) {
       Text('轨道观察 · '+(this.observed.name||'等待初始帧')).fontSize(15).fontColor('#E2EEF5').width('100%')
@@ -2051,9 +2073,10 @@ struct Index {
       }.width('100%')
       Row({space:6}) {
         ChoiceChip({label:'球体接触实验',onPress:()=>{this.press('orbit.contact.demo');}})
+        ChoiceChip({label:'小岩体撞击初值',onPress:()=>{this.press('orbit.impact.demo');}})
         if(!this.contactMode()){ChoiceChip({label:'启用接触',onPress:()=>{this.press('orbit.contact');}})}
       }
-      if(this.contactMode()){Text('理想弹性球体 · 半径参与接触，质量与半径独立设置 · 接触后自动暂停，不含破裂或合并').fontSize(11).fontColor('#D1BB9A')}
+      if(this.contactMode()){ChoiceChip({label:'查看撞击初值',onPress:()=>{this.press('impact.inspect');}});Text('理想弹性球体 · 半径参与接触，质量与半径独立设置 · 接触后自动暂停，不含破裂或合并').fontSize(11).fontColor('#D1BB9A')}
       Text(this.orbitUndo.length?'可撤销：'+this.editHistory().undoLabel:'天体编辑可撤销 · 本次会话保留 20 步').fontSize(10).fontColor('#ACA5C0').maxLines(2)
       Flex({wrap:FlexWrap.Wrap}) {
         ForEach(this.orbitBodies,(b:OrbitBodyConfig,i:number)=>{
@@ -2589,6 +2612,7 @@ struct Index {
           ChoiceChip({label:'打开实验库',active:false,onPress:() => {this.press('project.open');}})
         }.width('100%')
       } else if(this.tab===1) {
+        this.impactControls()
           if(this.trace.enabled){this.traceControls()}
           if(this.preset===5) {
             Text(this.canGenerateSurface()?'独立外观 · '+this.orbitBodies[this.surfaceTarget()].name:'选择一颗行星可生成新外观').fontSize(12).fontColor('#D9CCF5')

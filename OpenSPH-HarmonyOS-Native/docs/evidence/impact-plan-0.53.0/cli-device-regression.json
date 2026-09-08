@@ -1,0 +1,2344 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "catalog",
+    "draft read/write without simulation mutation",
+    "shared add/apply/remove guards",
+    "surface/next/previous",
+    "focus/panels/back",
+    "appearance toggle",
+    "playback toggle",
+    "batch fail-fast",
+    "payload file",
+    "wait for solver state"
+  ],
+  "catalog": {
+    "ok": true,
+    "actions": [
+      {
+        "id": "panel.parameters",
+        "label": "参数",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "panel.observe",
+        "label": "观察",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "panel.library",
+        "label": "实验库",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "panel.close",
+        "label": "收起",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "ui.focus",
+        "label": "专注",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "ui.restore",
+        "label": "显示工具",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "ui.back",
+        "label": "返回",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.rock-slow",
+        "label": "碎岩风暴 · 慢撞",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.rock-fast",
+        "label": "碎岩风暴 · 快撞",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.rock-oblique",
+        "label": "错位相撞",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.rock-spin",
+        "label": "旋转的岩石",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.ocean-world",
+        "label": "蔚蓝世界",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.three-worlds",
+        "label": "三种世界，同一片星空",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.ring-world",
+        "label": "环影之间",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.kepler-ring",
+        "label": "环为什么会错位",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.eccentric-ring",
+        "label": "给环一点额外速度",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.moon-atlas",
+        "label": "月海与高地",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.resolution-coarse",
+        "label": "碰撞放大镜 · 速览",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.resolution-fine",
+        "label": "碰撞放大镜 · 细看",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.direct-impact",
+        "label": "直接生成，相同撞击",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.prepared-impact",
+        "label": "先准备，再相撞",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.sphere-unprepared",
+        "label": "静止岩球，会一直静止吗？",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.sphere-release",
+        "label": "撤去阻尼之后",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.galaxy-tails",
+        "label": "两条潮汐尾",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.galaxy-retrograde",
+        "label": "反转一片星系",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.galaxy-responsive",
+        "label": "恒星也能拉动星系",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.galaxy-response-control",
+        "label": "无质量恒星 · 对照",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.material-cold",
+        "label": "完整冷岩，相撞之后",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.material-hot",
+        "label": "预热岩体，同样一撞",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.material-fractured",
+        "label": "已有裂隙，还能撑住吗",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "theme.restore",
+        "label": "恢复主题初始条件",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "theme.compare",
+        "label": "切换对照实验",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "theme.observe",
+        "label": "查看碰撞曲线",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "library.collision",
+        "label": "碰撞",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "library.explore",
+        "label": "探索",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "library.saved",
+        "label": "我的实验",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "presets.show",
+        "label": "切换实验",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "preset.0",
+        "label": "正面碰撞",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "preset.1",
+        "label": "掠过与碰撞",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "preset.2",
+        "label": "单体岩球",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "preset.3",
+        "label": "双体轨道",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "preset.4",
+        "label": "行星系统",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "preset.5",
+        "label": "自定义系统",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "preset.6",
+        "label": "星系潮汐",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "time.rate.0.01",
+        "label": "0.01 天/秒",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "time.rate.0.1",
+        "label": "0.1 天/秒",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "time.rate.1",
+        "label": "1 天/秒",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "time.rate.10",
+        "label": "10 天/秒",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "time.rate.100",
+        "label": "100 天/秒",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "simulation.toggle",
+        "label": "时间继续",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "simulation.apply",
+        "label": "应用参数 · 重新生成",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "simulation.cancel",
+        "label": "停止实验",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "replay.toggle",
+        "label": "播放回放",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "replay.latest",
+        "label": "最新",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "replay.save",
+        "label": "保存回放",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "replay.load",
+        "label": "载入回放",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "video.open",
+        "label": "视频",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "video.close",
+        "label": "返回星图",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "video.reload",
+        "label": "刷新视频",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "video.start",
+        "label": "开始录制",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "video.stop",
+        "label": "停止录制",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "video.preview",
+        "label": "预览视频",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "video.preview.close",
+        "label": "关闭预览",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "video.export",
+        "label": "导出 MP4",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "video.quality.1280",
+        "label": "标准 · 长边 1280",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "video.quality.1920",
+        "label": "高清 · 长边 1920",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "video.select.scene-1788847279549-688987.mp4",
+        "label": "选择视频 · scene-1788847279549-688987.mp4",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "project.save",
+        "label": "另存实验",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "project.open",
+        "label": "打开实验库",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "project.load.project-1788858686614-906622",
+        "label": "载入实验 · 自定义系统",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "project.load.project-1788692071258-723474",
+        "label": "载入实验 · 验收前保留的六天体实验",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "project.load.project-1788682400072-26417",
+        "label": "载入实验 · 我的第一片星系",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "project.load.project-1788680900474-965469",
+        "label": "载入实验 · 自定义八天体 · 验证",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "project.load.project-1788677229124-399024",
+        "label": "载入实验 · 行星轨道 · 0.6 验证",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "project.load.project-1788673767529-797644",
+        "label": "载入实验 · 撞击比较 B · 120 km",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "project.load.project-1788673766893-868624",
+        "label": "载入实验 · 撞击比较 A · 80 km",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "project.load.project-1788673676356-61850",
+        "label": "载入实验 · 撞击比较 B · 120 km",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "project.load.project-1788673675894-677536",
+        "label": "载入实验 · 撞击比较 A · 80 km",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "project.load.project-1788673596061-508483",
+        "label": "载入实验 · 撞击比较 B · 120 km",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "project.load.project-1788673595595-114695",
+        "label": "载入实验 · 撞击比较 A · 80 km",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "surface.toggle",
+        "label": "近看行星",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "selection.edit",
+        "label": "编辑这颗天体",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "surface.previous",
+        "label": "上一颗",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "surface.next",
+        "label": "下一颗",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "focus.0",
+        "label": "跟踪天体 0",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "surface.0",
+        "label": "近看天体 0",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "focus.1",
+        "label": "跟踪天体 1",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "surface.1",
+        "label": "近看天体 1",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "focus.2",
+        "label": "跟踪天体 2",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "surface.2",
+        "label": "近看天体 2",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "focus.3",
+        "label": "跟踪天体 3",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "surface.3",
+        "label": "近看天体 3",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.plane.xy",
+        "label": "XY 平面",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "orbit.plane.xz",
+        "label": "XZ 平面",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "sky.mode.0",
+        "label": "纯净",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "sky.mode.1",
+        "label": "星空",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "sky.mode.2",
+        "label": "银河",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "camera.cancel",
+        "label": "停在这里",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "focus.all",
+        "label": "全景",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "camera.out",
+        "label": "拉远",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "camera.in",
+        "label": "拉近",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "camera.reset",
+        "label": "复位视角",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "color.0",
+        "label": "原色",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "color.1",
+        "label": "速度",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "color.2",
+        "label": "密度",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "trace.disturb",
+        "label": "局部扰动",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "trace.clear",
+        "label": "清除扰动",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "trace.points",
+        "label": "显示环颗粒",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "trace.controls",
+        "label": "调整局部轨道",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "trace.circular",
+        "label": "圆轨道对照",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "trace.ellipse",
+        "label": "拉长轨道",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "trace.apoapsis",
+        "label": "跳到内圈远点",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "trace.toggle",
+        "label": "启用动态环带",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "trace.play",
+        "label": "运行环时钟",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "trace.reset",
+        "label": "环时钟归零",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.metric.pressure",
+        "label": "峰值压力",
+        "enabled": false,
+        "selected": true
+      },
+      {
+        "id": "sph.metric.internal",
+        "label": "平均比内能",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.metric.damage",
+        "label": "平均材料损伤",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.metric.kinetic",
+        "label": "总动能",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.metric.energy",
+        "label": "总内能",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.metric.gravity",
+        "label": "引力势能",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.metric.relativeKinetic",
+        "label": "相对动能",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.metric.radius",
+        "label": "分布尺度",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.metric.radial",
+        "label": "径向速度",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.minimum",
+        "label": "SPH 记录最小",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.maximum",
+        "label": "SPH 记录最大",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "fragments.largest",
+        "label": "跟随最大团块",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "fragments.stop",
+        "label": "停止团块跟随",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "color.7",
+        "label": "热软化外观",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "color.8",
+        "label": "剩余强度",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "color.6",
+        "label": "材料团块",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "fragments.previous",
+        "label": "上一组团块",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "fragments.next",
+        "label": "下一组团块",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "color.3",
+        "label": "压力",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "color.4",
+        "label": "比内能",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "color.5",
+        "label": "材料损伤",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.reference.capture",
+        "label": "保存 SPH 参照",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.reference.toggle",
+        "label": "隐藏 SPH 参照",
+        "enabled": false,
+        "selected": true
+      },
+      {
+        "id": "sph.reference.clear",
+        "label": "移除 SPH 参照",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "sph.reference.reload",
+        "label": "重读 SPH 参照",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "comparison.capture",
+        "label": "保存作参照",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "comparison.toggle",
+        "label": "隐藏参照",
+        "enabled": false,
+        "selected": true
+      },
+      {
+        "id": "comparison.clear",
+        "label": "移除参照",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "comparison.reload",
+        "label": "重试读取",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "observation.distance",
+        "label": "距恒星",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "observation.speed",
+        "label": "速度",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "observation.minimum",
+        "label": "记录最小",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "observation.maximum",
+        "label": "记录最大",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "moon.retry",
+        "label": "重试月面贴图",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "material.ocean",
+        "label": "海洋反光",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "material.cloudShadows",
+        "label": "云影",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "material.reset",
+        "label": "还原光照",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "terrain.new",
+        "label": "新地貌",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "terrain.clouds",
+        "label": "换云层",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "terrain.undo",
+        "label": "撤销外观",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "terrain.redo",
+        "label": "重做外观",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "appearance.rings",
+        "label": "环带",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "appearance.clouds",
+        "label": "云层",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "appearance.atmosphere",
+        "label": "大气",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "appearance.trails",
+        "label": "轨迹",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "appearance.spin",
+        "label": "外观自转",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "scene.relax.0",
+        "label": "直接生成",
+        "enabled": false,
+        "selected": true
+      },
+      {
+        "id": "scene.relax.16",
+        "label": "预松弛 16 秒",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "scene.relax.64",
+        "label": "预松弛 64 秒",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.place",
+        "label": "在星图调整相遇",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.place.cancel",
+        "label": "取消相遇调整",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.place.confirm",
+        "label": "确认相遇初态",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.observer.space",
+        "label": "太阳位置观测",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.observer.ground",
+        "label": "地表天空示意",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.observer.exit",
+        "label": "回到外部",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.observer.primary",
+        "label": "看主星系中心",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.observer.secondary",
+        "label": "看来访星系",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.reference.capture",
+        "label": "保存星系参照",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.reference.toggle",
+        "label": "隐藏星系参照",
+        "enabled": false,
+        "selected": true
+      },
+      {
+        "id": "galaxy.reference.clear",
+        "label": "移除星系参照",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.reference.reload",
+        "label": "重读星系参照",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "galaxy.metric.0",
+        "label": "间距",
+        "enabled": false,
+        "selected": true
+      },
+      {
+        "id": "galaxy.metric.1",
+        "label": "主盘尺度",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.metric.2",
+        "label": "次盘尺度",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.metric.3",
+        "label": "主盘外延",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.metric.4",
+        "label": "次盘外延",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.minimum",
+        "label": "记录最小",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.maximum",
+        "label": "记录最大",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.responsive",
+        "label": "恒星参与引力",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "galaxy.retrograde",
+        "label": "反转次星系旋转",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "scene.stationary",
+        "label": "设为静止初态",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "scene.gravity",
+        "label": "材料自引力",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "body.primary",
+        "label": "主天体",
+        "enabled": false,
+        "selected": true
+      },
+      {
+        "id": "body.impactor",
+        "label": "撞击体",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.options",
+        "label": "放置参数",
+        "enabled": false,
+        "selected": true
+      },
+      {
+        "id": "placement.align",
+        "label": "正对轨道面",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.cancel",
+        "label": "取消放置",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.confirm",
+        "label": "在当前时刻加入",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.circular",
+        "label": "圆轨道",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.still",
+        "label": "相对静止",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.escape",
+        "label": "掠过",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.reverse",
+        "label": "反向",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.units.physical",
+        "label": "公斤 / 公里 / 秒",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.units.astro",
+        "label": "天文单位",
+        "enabled": false,
+        "selected": true
+      },
+      {
+        "id": "placement.units.center",
+        "label": "距母体中心",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.units.altitude",
+        "label": "距母体表面",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.units.radius",
+        "label": "半径",
+        "enabled": false,
+        "selected": true
+      },
+      {
+        "id": "placement.units.diameter",
+        "label": "直径",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.rock",
+        "label": "15 km 岩质小行星",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.surface.0",
+        "label": "恒星",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.surface.1",
+        "label": "海洋",
+        "enabled": false,
+        "selected": true
+      },
+      {
+        "id": "placement.surface.2",
+        "label": "厚云",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.surface.3",
+        "label": "荒漠",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.surface.4",
+        "label": "带环",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "placement.surface.5",
+        "label": "月面",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "selection.satellite",
+        "label": "添加卫星",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "selection.launch",
+        "label": "向它发射",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "selection.drop",
+        "label": "附近投放",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "orbit.contact",
+        "label": "启用球体接触",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.contact.demo",
+        "label": "球体接触实验",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.impact.demo",
+        "label": "小岩体撞击初值",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "impact.inspect",
+        "label": "查看撞击初值",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "orbit.copy",
+        "label": "复制并放置",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.add",
+        "label": "加入天体",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.remove",
+        "label": "删除天体",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.undo",
+        "label": "撤销天体编辑",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "orbit.redo",
+        "label": "重做天体编辑",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "orbit.discard",
+        "label": "还原当前输入",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "orbit.apply",
+        "label": "应用天体 · 重新生成",
+        "enabled": false,
+        "selected": false
+      },
+      {
+        "id": "orbit.near",
+        "label": "近看这颗天体",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.select.0",
+        "label": "恒星",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.select.1",
+        "label": "蔚蓝",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "orbit.select.2",
+        "label": "暮云",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.select.3",
+        "label": "赤砂",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.surface.1",
+        "label": "海洋",
+        "enabled": true,
+        "selected": true
+      },
+      {
+        "id": "orbit.surface.2",
+        "label": "厚云",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.surface.3",
+        "label": "荒漠",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.surface.4",
+        "label": "带环",
+        "enabled": true,
+        "selected": false
+      },
+      {
+        "id": "orbit.surface.5",
+        "label": "月面",
+        "enabled": true,
+        "selected": false
+      }
+    ],
+    "fields": [
+      {
+        "field": "scene.energy",
+        "value": 0,
+        "enabled": false
+      },
+      {
+        "field": "scene.damage",
+        "value": 0,
+        "enabled": false
+      },
+      {
+        "field": "galaxy.ratio",
+        "value": 0.6,
+        "enabled": false
+      },
+      {
+        "field": "galaxy.offset",
+        "value": 12,
+        "enabled": false
+      },
+      {
+        "field": "trace.impulse",
+        "value": 0,
+        "enabled": false
+      },
+      {
+        "field": "material.exposure",
+        "value": 0,
+        "enabled": true
+      },
+      {
+        "field": "trace.speed",
+        "value": 1,
+        "enabled": false
+      },
+      {
+        "field": "trace.rate",
+        "value": 1,
+        "enabled": false
+      },
+      {
+        "field": "trace.hours",
+        "value": 0,
+        "enabled": false
+      },
+      {
+        "field": "sky.brightness",
+        "value": 65,
+        "enabled": true
+      },
+      {
+        "field": "scene.title",
+        "value": "自定义系统",
+        "enabled": true
+      },
+      {
+        "field": "scene.count",
+        "value": 600,
+        "enabled": false
+      },
+      {
+        "field": "scene.speed",
+        "value": 1,
+        "enabled": false
+      },
+      {
+        "field": "scene.angle",
+        "value": 0,
+        "enabled": false
+      },
+      {
+        "field": "scene.duration",
+        "value": 3,
+        "enabled": true
+      },
+      {
+        "field": "body.name",
+        "value": "主天体",
+        "enabled": false
+      },
+      {
+        "field": "body.radius",
+        "value": 100,
+        "enabled": false
+      },
+      {
+        "field": "body.density",
+        "value": 2700,
+        "enabled": false
+      },
+      {
+        "field": "body.spin",
+        "value": 0,
+        "enabled": false
+      },
+      {
+        "field": "orbit.name",
+        "value": "蔚蓝",
+        "enabled": true
+      },
+      {
+        "field": "time.frame",
+        "value": -1,
+        "enabled": false
+      },
+      {
+        "field": "orbit.value.0",
+        "value": "1",
+        "enabled": true
+      },
+      {
+        "field": "orbit.value.1",
+        "value": "1",
+        "enabled": true
+      },
+      {
+        "field": "orbit.value.2",
+        "value": "0",
+        "enabled": true
+      },
+      {
+        "field": "orbit.value.3",
+        "value": "0",
+        "enabled": true
+      },
+      {
+        "field": "orbit.value.4",
+        "value": "0",
+        "enabled": true
+      },
+      {
+        "field": "orbit.value.5",
+        "value": "29.784736563281832",
+        "enabled": true
+      },
+      {
+        "field": "orbit.value.6",
+        "value": "0",
+        "enabled": true
+      },
+      {
+        "field": "galaxy.placement.offset",
+        "value": 12,
+        "enabled": false
+      },
+      {
+        "field": "placement.name",
+        "value": "新行星",
+        "enabled": false
+      },
+      {
+        "field": "placement.value.0",
+        "value": "1",
+        "enabled": false
+      },
+      {
+        "field": "placement.value.1",
+        "value": "2.5",
+        "enabled": false
+      },
+      {
+        "field": "placement.value.2",
+        "value": "45",
+        "enabled": false
+      },
+      {
+        "field": "placement.value.3",
+        "value": "0",
+        "enabled": false
+      },
+      {
+        "field": "placement.value.4",
+        "value": "1",
+        "enabled": false
+      },
+      {
+        "field": "galaxy.observer.yaw",
+        "value": 3.141592653589793,
+        "enabled": false
+      },
+      {
+        "field": "galaxy.observer.pitch",
+        "value": 0.12,
+        "enabled": false
+      },
+      {
+        "field": "galaxy.observer.fov",
+        "value": 90,
+        "enabled": false
+      },
+      {
+        "field": "galaxy.observer.latitude",
+        "value": 35,
+        "enabled": false
+      },
+      {
+        "field": "galaxy.observer.sidereal",
+        "value": 12,
+        "enabled": false
+      }
+    ],
+    "editor": {
+      "drafts": [],
+      "history": {
+        "undoCount": 0,
+        "redoCount": 0,
+        "undoLabel": "",
+        "redoLabel": "",
+        "limit": 20,
+        "scope": "custom-body-initial-conditions"
+      },
+      "vectorPlane": "XY",
+      "orbitIndex": 1,
+      "orbitName": "蔚蓝",
+      "orbitFields": [
+        "1",
+        "1",
+        "0",
+        "0",
+        "0",
+        "29.784736563281832",
+        "0"
+      ],
+      "orbitSurface": 1,
+      "orbitDraft": false,
+      "editedBody": 0,
+      "targetName": "主天体",
+      "impactorName": "撞击体",
+      "title": "自定义系统",
+      "selectingPreset": false
+    },
+    "theme": {
+      "id": "",
+      "title": "",
+      "goal": "",
+      "limit": "",
+      "modified": false,
+      "compareId": ""
+    },
+    "librarySection": "collision"
+  },
+  "state": {
+    "video": {
+      "state": "idle",
+      "elapsedSeconds": 0,
+      "width": 0,
+      "height": 0,
+      "frames": 0,
+      "error": "",
+      "message": "",
+      "selectedId": "scene-1788847279549-688987.mp4",
+      "clips": [
+        {
+          "id": "scene-1788847279549-688987.mp4",
+          "name": "scene-1788847279549-688987.mp4",
+          "path": "/data/storage/el2/base/haps/entry/files/videos/scene-1788847279549-688987.mp4",
+          "bytes": 5069605,
+          "createdAt": 1788847279549
+        }
+      ]
+    },
+    "galaxyObserver": {
+      "available": false,
+      "mode": 0,
+      "sceneRevision": 9,
+      "selected": -1,
+      "time": 0,
+      "anchor": -1,
+      "initialRadiusKpc": 0,
+      "yaw": 3.141592653589793,
+      "pitch": 0.12,
+      "fov": 90,
+      "primaryYaw": 0,
+      "primaryPitch": 0,
+      "secondaryYaw": 0,
+      "secondaryPitch": 0,
+      "latitude": 35,
+      "siderealHours": 12,
+      "positionKpc": [
+        0,
+        0,
+        0
+      ],
+      "primaryDirection": [
+        0,
+        0,
+        0
+      ],
+      "secondaryDirection": [
+        0,
+        0,
+        0
+      ],
+      "scope": "solar-radius tracer analogue; equal-weight illustrative sky; frozen J2000 analogue horizon with independent local sidereal time, not future Earth astrometry or calibrated Milky Way/Andromeda forecast"
+    },
+    "galaxyPlacement": {
+      "active": false,
+      "offsetKpc": 12,
+      "sourceTime": 0,
+      "constraint": "initial X separation fixed at 60 kpc; transverse offset 0..30 kpc; confirmation regenerates initial conditions"
+    },
+    "surfaces": [
+      {
+        "version": 1,
+        "seed": 0,
+        "cloudSeed": 0
+      },
+      {
+        "version": 1,
+        "seed": 105964,
+        "cloudSeed": 195174
+      },
+      {
+        "version": 1,
+        "seed": 210693,
+        "cloudSeed": 389113
+      },
+      {
+        "version": 1,
+        "seed": 315422,
+        "cloudSeed": 583052
+      },
+      {
+        "version": 1,
+        "seed": 420151,
+        "cloudSeed": 776991
+      }
+    ],
+    "surfaceUndoCount": 0,
+    "surfaceRedoCount": 0,
+    "ringTrace": {
+      "enabled": false,
+      "running": false,
+      "target": -1,
+      "timeHours": 0,
+      "massSolar": 0.0002857,
+      "radiusKm": 60000,
+      "count": 8192,
+      "impulse": 0,
+      "points": false,
+      "returnedCount": 0,
+      "sampling": "first-192-of-8192; coordinates used by density map",
+      "speedScale": 1,
+      "rateHours": 1,
+      "eccentricity": 0,
+      "innerApoapsisKm": 76800,
+      "outerApoapsisKm": 133200,
+      "referenceXKm": 76800,
+      "referenceYKm": 0,
+      "referenceRadiusKm": 76800,
+      "referenceSpeedKmS": 22.219297672514575,
+      "innerPeriodHours": 6.032651820447706,
+      "outerPeriodHours": 13.779160777118495,
+      "model": "restricted-impulse-ring-v3"
+    },
+    "theme": {
+      "id": "",
+      "title": "",
+      "goal": "",
+      "limit": "",
+      "modified": false,
+      "compareId": ""
+    },
+    "placement": {
+      "units": {
+        "mass": "astronomical",
+        "distance": "au",
+        "speed": "circular",
+        "size": "radius"
+      },
+      "labels": [
+        "质量 · 地球质量",
+        "中心距 · AU",
+        "方位 · °",
+        "倾角 · °",
+        "速度 · 圆轨道倍数"
+      ],
+      "parent": 0,
+      "promotesContact": false,
+      "target": -1,
+      "sourceIndex": -1,
+      "sourceName": "",
+      "active": false,
+      "name": "新行星 4",
+      "fields": [
+        "1",
+        "3.4",
+        "45",
+        "0",
+        "1"
+      ],
+      "surface": 1,
+      "direction": 1,
+      "preview": {
+        "valid": true,
+        "error": "",
+        "body": {
+          "name": "新行星 4",
+          "massSolar": 0.0000030034896154649684,
+          "surface": 1,
+          "xAU": 2.4041633824675226,
+          "yAU": 2.404165168322711,
+          "zAU": 0,
+          "vxKmS": -11.421897308997387,
+          "vyKmS": 11.421924412922834,
+          "vzKmS": 0
+        },
+        "speedKmS": 16.15304134670199,
+        "circularKmS": 16.15304134670199,
+        "escapeKmS": 22.84385014607932,
+        "nearestAU": 2.784182804330828,
+        "bound": true,
+        "plotScale": 4.42,
+        "orbitPath": " M65.6071706779579 174.39282932204213 L67.53858768750013 176.25797704762851 L69.53392084688406 178.0545830940594 L71.59073915001252 179.78045857361315 L73.70653668061169 181.43350077286868 L75.87873566530413 183.01169571453784 L78.10468961422868 184.51312061118648 L80.38168654538043 185.93594620785478 L82.70695228874331 187.27843901072276 L85.07765386618871 188.53896339910523 L87.49090294302312 189.71598361820384 L89.94375934697895 190.80806565018773 L92.43323465036153 191.8138789613232 L94.95629581098797 192.73219812302438 L97.50986886748179 193.5619043048489 L100.09084268442147 194.30198663762064 L102.69607274277962 194.9515434450181 L105.322384971035 195.509783342128 L107.96657961228993 195.976026199626 L110.62543512268097 196.34970397240937 L113.295712096334 196.63036139167275 L115.97415721208127 196.8176565195826 L118.65750719713206 196.91136116587626 L121.34249280286795 196.91136116587626 L124.02584278791875 196.8176565195826 L126.70428790366601 196.63036139167275 L129.37456487731905 196.34970397240937 L132.03342038771007 195.976026199626 L134.677615028965 195.509783342128 L137.30392725722038 194.9515434450181 L139.9091573155785 194.30198663762064 L142.49013113251823 193.5619043048489 L145.04370418901203 192.73219812302438 L147.5667653496385 191.8138789613232 L150.05624065302106 190.8080656501877 L152.50909705697688 189.71598361820384 L154.9223461338113 188.53896339910523 L157.2930477112567 187.27843901072276 L159.61831345461957 185.93594620785478 L161.89531038577132 184.51312061118648 L164.12126433469587 183.01169571453784 L166.2934633193883 181.43350077286868 L168.4092608499875 179.78045857361315 L170.46607915311594 178.05458309405938 L172.46141231249987 176.25797704762851 L174.39282932204213 174.3928293220421 L176.25797704762851 172.46141231249987 L178.05458309405938 170.46607915311594 L179.78045857361315 168.4092608499875 L181.43350077286868 166.29346331938834 L183.01169571453784 164.12126433469587 L184.51312061118648 161.89531038577132 L185.93594620785478 159.61831345461954 L187.27843901072276 157.2930477112567 L188.53896339910523 154.9223461338113 L189.71598361820384 152.50909705697688 L190.80806565018773 150.05624065302106 L191.8138789613232 147.5667653496385 L192.73219812302438 145.04370418901203 L193.5619043048489 142.49013113251823 L194.30198663762064 139.90915731557854 L194.9515434450181 137.30392725722038 L195.509783342128 134.677615028965 L195.976026199626 132.03342038771007 L196.34970397240937 129.37456487731905 L196.63036139167275 126.704287903666 L196.8176565195826 124.02584278791875 L196.91136116587626 121.34249280286798 L196.91136116587626 118.65750719713202 L196.8176565195826 115.97415721208125 L196.63036139167275 113.295712096334 L196.34970397240937 110.62543512268097 L195.976026199626 107.96657961228993 L195.509783342128 105.322384971035 L194.9515434450181 102.6960727427796 L194.30198663762064 100.09084268442146 L193.5619043048489 97.50986886748181 L192.73219812302438 94.95629581098794 L191.8138789613232 92.43323465036153 L190.80806565018773 89.94375934697895 L189.71598361820384 87.49090294302312 L188.53896339910523 85.07765386618871 L187.27843901072276 82.70695228874334 L185.93594620785478 80.38168654538043 L184.51312061118648 78.10468961422868 L183.01169571453784 75.87873566530413 L181.43350077286868 73.70653668061169 L179.78045857361315 71.59073915001252 L178.05458309405938 69.53392084688406 L176.2579770476285 67.5385876875001 L174.39282932204213 65.6071706779579 L172.46141231249987 63.7420229523715 L170.46607915311597 61.94541690594063 L168.40926084998753 60.21954142638687 L166.2934633193883 58.56649922713132 L164.12126433469584 56.988304285462156 L161.89531038577132 55.486879388813534 L159.61831345461957 54.064053792145216 L157.2930477112567 52.72156098927725 L154.92234613381126 51.46103660089477 L152.50909705697688 50.284016381796164 L150.05624065302106 49.19193434981227 L147.5667653496385 48.1861210386768 L145.04370418901206 47.26780187697564 L142.4901311325182 46.438095695151105 L139.9091573155785 45.698013362379356 L137.30392725722038 45.04845655498191 L134.677615028965 44.490216657872 L132.03342038771007 44.02397380037401 L129.37456487731907 43.65029602759061 L126.70428790366601 43.369638608327264 L124.02584278791875 43.18234348041739 L121.34249280286795 43.08863883412374 L118.65750719713206 43.08863883412374 L115.97415721208127 43.18234348041739 L113.295712096334 43.369638608327264 L110.62543512268094 43.65029602759061 L107.96657961228993 44.02397380037401 L105.32238497103505 44.490216657872 L102.69607274277962 45.04845655498191 L100.0908426844215 45.69801336237934 L97.50986886748179 46.43809569515112 L94.95629581098797 47.267801876975625 L92.4332346503615 48.1861210386768 L89.94375934697895 49.19193434981227 L87.49090294302316 50.284016381796135 L85.07765386618871 51.461036600894786 L82.70695228874328 52.721560989277265 L80.38168654538043 54.0640537921452 L78.1046896142287 55.48687938881352 L75.87873566530413 56.98830428546218 L73.70653668061163 58.566499227131345 L71.5907391500125 60.21954142638686 L69.53392084688406 61.945416905940604 L67.53858768750015 63.742022952371464 L65.6071706779579 65.60717067795787 L63.74202295237147 67.53858768750014 L61.94541690594061 69.53392084688406 L60.21954142638687 71.59073915001247 L58.56649922713132 73.70653668061168 L56.988304285462185 75.87873566530412 L55.48687938881356 78.10468961422865 L54.064053792145216 80.38168654538043 L52.721560989277236 82.70695228874332 L51.461036600894786 85.0776538661887 L50.28401638179618 87.49090294302309 L49.19193434981227 89.94375934697894 L48.18612103867676 92.43323465036156 L47.267801876975625 94.95629581098795 L46.43809569515112 97.50986886748177 L45.698013362379356 100.09084268442149 L45.04845655498191 102.69607274277959 L44.49021665787201 105.32238497103496 L44.02397380037402 107.96657961228992 L43.65029602759061 110.62543512268098 L43.369638608327264 113.29571209633399 L43.18234348041739 115.97415721208121 L43.08863883412374 118.65750719713198 L43.08863883412374 121.34249280286794 L43.18234348041739 124.02584278791878 L43.369638608327264 126.704287903666 L43.65029602759061 129.374564877319 L44.02397380037401 132.03342038771007 L44.490216657872 134.67761502896494 L45.04845655498188 137.30392725722032 L45.69801336237934 139.90915731557848 L46.43809569515112 142.49013113251823 L47.26780187697565 145.0437041890121 L48.18612103867679 147.5667653496385 L49.19193434981227 150.05624065302104 L50.284016381796164 152.50909705697688 L51.461036600894786 154.9223461338113 L52.72156098927722 157.29304771125666 L54.0640537921452 159.61831345461957 L55.48687938881352 161.8953103857713 L56.988304285462135 164.1212643346958 L58.5664992271313 166.2934633193883 L60.21954142638686 168.4092608499875 L61.94541690594064 170.46607915311597 L63.742022952371514 172.4614123124999 L65.60717067795787 174.3928293220421",
+        "candidateX": 174.39282932204213,
+        "candidateY": 65.6071706779579,
+        "markerPath": "M118 120 L122 120 M120 118 L120 122 M140.62443438914028 120 L144.62443438914028 120 M142.62443438914028 118 L142.62443438914028 122 M109.77626254950458 105.93867095051608 L113.77626254950458 105.93867095051608 M111.77626254950458 103.93867095051608 L111.77626254950458 107.93867095051608 M101.14035184529722 149.97274149476593 L105.14035184529722 149.97274149476593 M103.14035184529722 147.97274149476593 L103.14035184529722 151.97274149476593 ",
+        "velocityPath": "M174.39282932204213 65.6071706779579 L157.422266573565 48.63660792948075 M163.78622760424392 50.75792827304039 L157.422266573565 48.63660792948075 L159.54358691712466 55.00056896015968"
+      }
+    },
+    "sky": {
+      "mode": 2,
+      "brightness": 0.65,
+      "reference": "photographic-panorama"
+    },
+    "ok": true,
+    "protocol": 1,
+    "definition": {
+      "schemaVersion": 1,
+      "model": "nbody-custom-v1",
+      "title": "自定义系统",
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "蔚蓝",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 29.784736563281832,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "暮云",
+            "massSolar": 0.000002447838287796944,
+            "xAU": -0.36348919531189744,
+            "yAU": 0.6215107439871891,
+            "zAU": 0,
+            "vxKmS": -30.300063495413614,
+            "vyKmS": -17.72092567087515,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "赤砂",
+            "massSolar": 3.2271560829322774e-7,
+            "xAU": -0.7451964484378631,
+            "yAU": -1.324795174068654,
+            "zAU": 0,
+            "vxKmS": 21.056032226154784,
+            "vyKmS": -11.844004824485117,
+            "vzKmS": 0,
+            "surface": 3
+          },
+          {
+            "name": "远洋",
+            "massSolar": 0.000006006979230929937,
+            "xAU": 1.1339903035639434,
+            "yAU": 2.1995605524945376,
+            "zAU": 0.3549638958160112,
+            "vxKmS": -16.788162936966238,
+            "vyKmS": 8.435501221730886,
+            "vzKmS": 1.3613166381941437,
+            "surface": 1
+          }
+        ]
+      },
+      "bodies": []
+    },
+    "editor": {
+      "drafts": [],
+      "history": {
+        "undoCount": 0,
+        "redoCount": 0,
+        "undoLabel": "",
+        "redoLabel": "",
+        "limit": 20,
+        "scope": "custom-body-initial-conditions"
+      },
+      "vectorPlane": "XY",
+      "orbitIndex": 1,
+      "orbitName": "蔚蓝",
+      "orbitFields": [
+        "1",
+        "1",
+        "0",
+        "0",
+        "0",
+        "29.784736563281832",
+        "0"
+      ],
+      "orbitSurface": 1,
+      "orbitDraft": false,
+      "editedBody": 0,
+      "targetName": "主天体",
+      "impactorName": "撞击体",
+      "title": "自定义系统",
+      "selectingPreset": false
+    },
+    "material": {
+      "exposure": 0,
+      "ocean": true,
+      "cloudShadows": true
+    },
+    "appearance": {
+      "clouds": true,
+      "atmosphere": true,
+      "trails": true,
+      "closeup": false,
+      "autoSpin": false,
+      "rings": true
+    },
+    "rendering": {
+      "galaxyObserverMode": 0,
+      "galaxyObserverTime": 0,
+      "fragmentFollow": {
+        "active": false,
+        "moving": false,
+        "seed": -1,
+        "anchor": -1,
+        "rank": 0,
+        "count": 0,
+        "sceneRevision": 9,
+        "time": 0,
+        "centerKm": [
+          0,
+          0,
+          0
+        ]
+      },
+      "surfacePending": 0,
+      "surfaceGenerated": 4,
+      "surfaceError": "",
+      "moonReady": false,
+      "moonUploads": 0,
+      "moonBlend": 0,
+      "moonError": "",
+      "materialExposure": 0,
+      "materialOcean": true,
+      "materialCloudShadows": true,
+      "compositionX": 0.5,
+      "compositionY": 0.5,
+      "compositionScale": 1,
+      "sceneRevision": 9,
+      "surfaceStarts": 1,
+      "cameraMoving": false,
+      "centerX": 0,
+      "centerY": 0,
+      "centerZ": 0,
+      "panoramaReady": true,
+      "panoramaBlend": 1,
+      "skyReady": true,
+      "skyStars": 0.6499999761581421,
+      "skyGalaxy": 0.6499999761581421,
+      "ready": true,
+      "texturesReady": true,
+      "active": true,
+      "frames": 2897,
+      "submitMs": 1.356917,
+      "previewSeconds": 38.404407227999975,
+      "error": ""
+    },
+    "simulation": {
+      "state": "paused",
+      "error": "",
+      "preparation": {
+        "requestId": 9,
+        "stage": "ready",
+        "elapsedMs": 0.793165996670723,
+        "stageMs": 0,
+        "previousRequestId": 0,
+        "previousStage": "",
+        "slow": false,
+        "events": [
+          {
+            "stage": "queued",
+            "elapsedMs": 0
+          },
+          {
+            "stage": "starting",
+            "elapsedMs": 0.48362500220537186
+          },
+          {
+            "stage": "orbits",
+            "elapsedMs": 0.4907910004258156
+          },
+          {
+            "stage": "snapshot",
+            "elapsedMs": 0.7488749995827675
+          },
+          {
+            "stage": "ready",
+            "elapsedMs": 0.793165996670723
+          }
+        ]
+      },
+      "count": 5,
+      "frames": 1,
+      "selected": -1,
+      "time": 0,
+      "duration": 3,
+      "continuous": false,
+      "daysPerSecond": 1,
+      "actualDaysPerSecond": 0,
+      "orbitRevision": 9,
+      "orbitState": [
+        {
+          "name": "恒星",
+          "massSolar": 1,
+          "xAU": -0.00000868499420429473,
+          "yAU": -0.000014306371727262292,
+          "zAU": -0.0000021322356299803077,
+          "vxKmS": 0.00016821870959802705,
+          "vyKmS": -0.00009292872723921567,
+          "vzKmS": -0.00000817730443534206,
+          "surface": 0
+        },
+        {
+          "name": "蔚蓝",
+          "massSolar": 0.0000030034896154649684,
+          "xAU": 0.9999913150057957,
+          "yAU": -0.000014306371727262292,
+          "zAU": -0.0000021322356299803077,
+          "vxKmS": 0.00016821870959802705,
+          "vyKmS": 29.78464363455459,
+          "vzKmS": -0.00000817730443534206,
+          "surface": 1
+        },
+        {
+          "name": "暮云",
+          "massSolar": 0.000002447838287796944,
+          "xAU": -0.36349788030610175,
+          "yAU": 0.6214964376154618,
+          "zAU": -0.0000021322356299803077,
+          "vxKmS": -30.29989527670402,
+          "vyKmS": -17.721018599602388,
+          "vzKmS": -0.00000817730443534206,
+          "surface": 2
+        },
+        {
+          "name": "赤砂",
+          "massSolar": 3.2271560829322774e-7,
+          "xAU": -0.7452051334320674,
+          "yAU": -1.3248094804403814,
+          "zAU": -0.0000021322356299803077,
+          "vxKmS": 21.05620044486438,
+          "vyKmS": -11.844097753212356,
+          "vzKmS": -0.00000817730443534206,
+          "surface": 3
+        },
+        {
+          "name": "远洋",
+          "massSolar": 0.000006006979230929937,
+          "xAU": 1.1339816185697391,
+          "yAU": 2.1995462461228104,
+          "zAU": 0.3549617635803812,
+          "vxKmS": -16.787994718256638,
+          "vyKmS": 8.435408293003647,
+          "vzKmS": 1.3613084608897081,
+          "surface": 1
+        }
+      ],
+      "stepMs": 0,
+      "steps": 1,
+      "maxSpeed": 35.101539611816406,
+      "meanDensity": 0,
+      "totalMass": 1.9884332968184492e+30,
+      "sph": {
+        "available": false
+      },
+      "energyError": 0,
+      "angularError": 0,
+      "model": "nbody-custom-v1",
+      "timeUnit": "year",
+      "bodies": [
+        {
+          "name": "恒星",
+          "surface": 0,
+          "id": 0,
+          "xAU": -0.000008684994099894539,
+          "yAU": -0.0000143063716677716,
+          "zAU": -0.0000021322355223674094,
+          "speedKmS": 0.00019235422951169312,
+          "massSolar": 1
+        },
+        {
+          "name": "蔚蓝",
+          "surface": 1,
+          "id": 1,
+          "xAU": 0.9999912977218628,
+          "yAU": -0.0000143063716677716,
+          "zAU": -0.0000021322355223674094,
+          "speedKmS": 29.784643173217773,
+          "massSolar": 0.000003003489609909593
+        },
+        {
+          "name": "暮云",
+          "surface": 2,
+          "id": 2,
+          "xAU": -0.36349788308143616,
+          "yAU": 0.6214964389801025,
+          "zAU": -0.0000021322355223674094,
+          "speedKmS": 35.101539611816406,
+          "massSolar": 0.0000024478383693349315
+        },
+        {
+          "name": "赤砂",
+          "surface": 3,
+          "id": 3,
+          "xAU": -0.7452051043510437,
+          "yAU": -1.3248094320297241,
+          "zAU": -0.0000021322355223674094,
+          "speedKmS": 24.158771514892578,
+          "massSolar": 3.227156071261561e-7
+        },
+        {
+          "name": "远洋",
+          "surface": 1,
+          "id": 4,
+          "xAU": 1.1339815855026245,
+          "yAU": 2.1995463371276855,
+          "zAU": 0.3549617528915405,
+          "speedKmS": 18.837358474731445,
+          "massSolar": 0.000006006979219819186
+        }
+      ],
+      "config": {
+        "preset": 5,
+        "count": 600,
+        "speed": 1,
+        "angle": 0,
+        "duration": 3,
+        "targetRadiusKm": 100,
+        "impactorRadiusKm": 60,
+        "targetDensity": 2700,
+        "impactorDensity": 2700,
+        "targetSpin": 0,
+        "seed": 1234,
+        "orbitBodies": [
+          {
+            "name": "恒星",
+            "massSolar": 1,
+            "xAU": 0,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 0,
+            "vzKmS": 0,
+            "surface": 0
+          },
+          {
+            "name": "蔚蓝",
+            "massSolar": 0.0000030034896154649684,
+            "xAU": 1,
+            "yAU": 0,
+            "zAU": 0,
+            "vxKmS": 0,
+            "vyKmS": 29.784736563281832,
+            "vzKmS": 0,
+            "surface": 1
+          },
+          {
+            "name": "暮云",
+            "massSolar": 0.000002447838287796944,
+            "xAU": -0.36348919531189744,
+            "yAU": 0.6215107439871891,
+            "zAU": 0,
+            "vxKmS": -30.300063495413614,
+            "vyKmS": -17.72092567087515,
+            "vzKmS": 0,
+            "surface": 2
+          },
+          {
+            "name": "赤砂",
+            "massSolar": 3.2271560829322774e-7,
+            "xAU": -0.7451964484378631,
+            "yAU": -1.324795174068654,
+            "zAU": 0,
+            "vxKmS": 21.056032226154784,
+            "vyKmS": -11.844004824485117,
+            "vzKmS": 0,
+            "surface": 3
+          },
+          {
+            "name": "远洋",
+            "massSolar": 0.000006006979230929937,
+            "xAU": 1.1339903035639434,
+            "yAU": 2.1995605524945376,
+            "zAU": 0.3549638958160112,
+            "vxKmS": -16.788162936966238,
+            "vyKmS": 8.435501221730886,
+            "vzKmS": 1.3613166381941437,
+            "surface": 1
+          }
+        ]
+      }
+    },
+    "scene": {
+      "preset": 5,
+      "count": 600,
+      "speed": 1,
+      "angle": 0,
+      "duration": 3,
+      "dirty": false
+    },
+    "camera": {
+      "yaw": 0,
+      "pitch": 0,
+      "zoom": 4.011977935184552,
+      "focus": -1,
+      "color": 0
+    },
+    "cameraMotion": {
+      "requestId": 10,
+      "sceneRevision": 8,
+      "targetFocus": 1,
+      "progress": 1,
+      "state": "completed",
+      "reason": "",
+      "targetCloseup": false,
+      "yaw": 0,
+      "pitch": 0,
+      "zoom": 4.0119781494140625
+    },
+    "ui": {
+      "panelOpen": false,
+      "toolsVisible": true,
+      "panel": 0,
+      "playing": false,
+      "ioBusy": false,
+      "foreground": true,
+      "notice": "场景就绪后，点击开始实验"
+    },
+    "window": {
+      "layout": {
+        "safe": {
+          "x": 22.4,
+          "y": 0,
+          "width": 750.72,
+          "height": 707.2
+        },
+        "compact": false,
+        "sidePanel": true,
+        "headerHeight": 66,
+        "drawer": {
+          "x": 449.12,
+          "y": 76,
+          "width": 308,
+          "height": 473.20000000000005
+        },
+        "dock": {
+          "x": 187.76000000000002,
+          "y": 569.2,
+          "width": 420,
+          "height": 130
+        },
+        "scene": {
+          "x": 34.4,
+          "y": 76,
+          "width": 726.72,
+          "height": 481.20000000000005
+        }
+      },
+      "geometry": {
+        "widthPx": 2416,
+        "heightPx": 2210,
+        "topPx": 0,
+        "bottomPx": 0,
+        "leftPx": 70,
+        "rightPx": 0,
+        "revision": 7
+      },
+      "viewportWidthVp": 773.12,
+      "viewportHeightVp": 707.2,
+      "widthVp": 773.12,
+      "heightVp": 707.2,
+      "immersive": true,
+      "safePx": {
+        "top": 0,
+        "bottom": 0,
+        "left": 70,
+        "right": 0
+      }
+    }
+  }
+}

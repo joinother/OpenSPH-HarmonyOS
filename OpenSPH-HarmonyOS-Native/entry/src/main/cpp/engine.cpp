@@ -2,6 +2,7 @@
 #include "sph_gravity.h"
 #include "sph_relaxation.h"
 #include "orbit.h"
+#include "impact_plan.h"
 #include "Sph.h"
 #include "gravity/IGravity.h"
 #include "system/Factory.h"
@@ -642,7 +643,7 @@ bool Engine::loadReplay(const std::string &dir) {
     double duration = 0;
     in.read(reinterpret_cast<char *>(&magic), 4);
     in.read(reinterpret_cast<char *>(&version), 4);
-    if(version==14){OrbitSession session;if(!readOrbitSession(in,session))return false;
+    if(version==14||version==16){OrbitSession session;if(!readOrbitSession(in,session))return false;
         std::lock_guard<std::mutex> lock(mutex);++generation;pending=false;resumeOrbit.reset();paused=true;history=std::move(session.frames);config=session.config;continuous=session.continuous;daysPerSecond=session.rate;
         current=Status{};current.state="replay";current.duration=config.duration;current.selected=int(history.size())-1;preparation=PreparationTracker{};cv.notify_all();return true;}
     in.read(reinterpret_cast<char *>(&n), 4);

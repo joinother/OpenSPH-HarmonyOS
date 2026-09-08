@@ -69,9 +69,11 @@ double OrbitSystem::step(double dt) {
                 if(++events>64||contact.count>=1000000)throw std::runtime_error("同时接触过密，已停止");
                 auto& x=bodies[hitA];auto& y=bodies[hitB];Vec3 n,v;for(int k=0;k<3;k++){n[k]=y.position[k]-x.position[k];v[k]=y.velocity[k]-x.velocity[k];}
                 double d=norm(n),vn=0;for(int k=0;k<3;k++){n[k]/=d;vn+=v[k]*n[k];}
+                OrbitContact event{contact.count+1,hitA,hitB,elapsed+drifted,-vn};
+                event.hasIncoming=true;event.incoming={x,y};
                 double impulse=-2*vn/(1/x.mass+1/y.mass);
                 for(int k=0;k<3;k++){x.velocity[k]-=impulse*n[k]/x.mass;y.velocity[k]+=impulse*n[k]/y.mass;}
-                contact={contact.count+1,hitA,hitB,elapsed+drifted,-vn};
+                contact=event;
             }
             a=accelerations();for(size_t i=0;i<bodies.size();i++)for(int k=0;k<3;k++)bodies[i].velocity[k]+=a[i][k]*h*.5;
             done+=h;elapsed+=h;

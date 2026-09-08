@@ -2,6 +2,7 @@
 #include "renderer.h"
 #include "video_output.h"
 #include "dense_ring.h"
+#include "impact_plan.h"
 #include <cmath>
 #include <napi/native_api.h>
 #include <stdexcept>
@@ -373,7 +374,19 @@ napi_value status(napi_env e, napi_callback_info) {
     num(e,o,"energyError",s.energyError);num(e,o,"angularError",s.angularError);
     str(e,o,"model",s.config.preset==6?(s.config.galaxyResponsive?"galaxy-responsive-v1":"galaxy-tidal-restricted-v1"):s.config.preset==5?(!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0?"nbody-hard-sphere-v1":"nbody-custom-v1"):(s.config.preset>=3?"nbody-v1":(s.config.relaxationSeconds>0?"sph-rock-prepared-v1":(s.config.selfGravity?"sph-rock-gravity-v1":"sph-rock-v1"))));
     if(s.config.preset==5&&!s.config.orbitBodies.empty()&&s.config.orbitBodies[0].radiusKm>0){
-        napi_value contact;napi_create_object(e,&contact);num(e,contact,"count",s.contact.count);num(e,contact,"a",s.contact.a);num(e,contact,"b",s.contact.b);num(e,contact,"timeSeconds",s.contact.time*lab::YEAR);num(e,contact,"normalSpeedKmS",s.contact.speed*lab::AU/lab::YEAR/1000);num(e,contact,"restitution",1);napi_set_named_property(e,o,"contact",contact);
+        napi_value contact;napi_create_object(e,&contact);num(e,contact,"count",s.contact.count);num(e,contact,"a",s.contact.a);num(e,contact,"b",s.contact.b);num(e,contact,"timeSeconds",s.contact.time*lab::YEAR);num(e,contact,"normalSpeedKmS",s.contact.speed*lab::AU/lab::YEAR/1000);num(e,contact,"restitution",1);
+        const auto plan=lab::makeImpactPlan(s.contact);napi_value incoming,flag;napi_create_object(e,&incoming);
+        napi_get_boolean(e,plan.available,&flag);napi_set_named_property(e,incoming,"available",flag);
+        napi_get_boolean(e,plan.supported,&flag);napi_set_named_property(e,incoming,"withinCurrentBounds",flag);
+        str(e,incoming,"reason",plan.reason);str(e,incoming,"model","orbital-incoming-com-v1");
+        str(e,incoming,"velocityConvention","kick-drift-kick incoming half-step");
+        if(plan.available){
+            num(e,incoming,"timeSeconds",plan.timeSeconds);num(e,incoming,"relativeSpeedKmS",plan.relativeSpeedKmS);num(e,incoming,"contactAngleDegrees",plan.contactAngleDegrees);num(e,incoming,"kineticEnergyJ",plan.kineticEnergyJ);
+            auto vec=[&](napi_value object,const char* key,const lab::Vec3& values){napi_value array;napi_create_array_with_length(e,3,&array);for(int k=0;k<3;k++){napi_value number;napi_create_double(e,values[k],&number);napi_set_element(e,array,k,number);}napi_set_named_property(e,object,key,array);};
+            vec(incoming,"originAU",plan.originAU);vec(incoming,"velocityKmS",plan.velocityKmS);vec(incoming,"angularMomentumKgM2S",plan.angularMomentum);
+            napi_value bodies;napi_create_array_with_length(e,2,&bodies);for(int i=0;i<2;i++){const auto& body=plan.bodies[i];napi_value item;napi_create_object(e,&item);num(e,item,"id",i==0?s.contact.a:s.contact.b);num(e,item,"massKg",body.massKg);num(e,item,"radiusKm",body.radiusKm);num(e,item,"densityKgM3",body.densityKgM3);vec(item,"positionM",body.positionM);vec(item,"velocityMS",body.velocityMS);napi_set_element(e,bodies,i,item);}napi_set_named_property(e,incoming,"bodies",bodies);
+        }
+        napi_set_named_property(e,contact,"incoming",incoming);napi_set_named_property(e,o,"contact",contact);
     }
     str(e,o,"timeUnit",s.config.preset==6?"Myr":s.config.preset>=3?"year":"s");
     if(s.galaxy.available){napi_value g;napi_create_object(e,&g);const char* keys[]={"separationKpc","primaryRmsKpc","secondaryRmsKpc","primaryOuterFraction","secondaryOuterFraction"};

@@ -1,0 +1,6 @@
+{
+  "date": "2026-09-08",
+  "timezone": "Asia/Shanghai",
+  "testScriptCorrection": "The first UI batch requested time.rate.0.001, which is not an exposed UI action. It was rejected before start; corrected to the existing time.rate.0.01 action and rerun.",
+  "firstRegressionInterrupted": "The first generic CLI regression encountered ability launch error 10106105. Its run also overlapped the final layout build/install; its root cause is not established. The normal development replacement subsequently reported install and launch success. The final regression is run sequentially after installation. No emulator protection settings were changed."
+}

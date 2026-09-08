@@ -1164,3 +1164,16 @@ test('thermal views retain physics and camera, gate historical data, and preserv
  const saved=JSON.parse(await app.execute('saveProject',{title:'材料实验'}));await app.execute('uiAction',{action:'theme.material-cold'});await app.execute('loadProject',{id:saved.id});assert.equal(app.initialDamage,.9);assert.equal(app.colorMode,8);
  state.sph={available:true};await assert.rejects(app.execute('uiAction',{action:'color.7'}));assert.match(app.sphLegend(),/旧记录/);
 });
+
+test('incoming collision plan shares the observation action, preserves state and small-body dimensions',async()=>{
+ const {page:app,state,calls}=page();app.choose(5);
+ await app.execute('uiAction',{action:'orbit.impact.demo'});
+ const bodies=app.orbitBodies;assert.equal(bodies.length,3);assert.equal(bodies[1].radiusKm,100);assert.equal(bodies[2].radiusKm,60);
+ assert.ok(Math.abs(bodies[2].massSolar/bodies[1].massSolar-.216)<1e-14);
+ state.contact={count:1,a:1,b:2,incoming:{available:true,withinCurrentBounds:true,reason:'fixture',bodies:[]}};
+ const before=JSON.stringify(state),starts=calls.length;
+ const plan=JSON.parse(await app.execute('getImpactPlan',{}));assert.deepEqual(plan.contact,state.contact);
+ await app.execute('uiAction',{action:'impact.inspect'});assert.equal(app.tab,1);assert.equal(app.panelOpen,true);
+ assert.equal(JSON.stringify(state),before);assert.equal(calls.length,starts);
+ const catalog=JSON.parse(await app.execute('listCommands',{}));assert.ok(catalog.commands.some(c=>c.name==='getImpactPlan'));
+});

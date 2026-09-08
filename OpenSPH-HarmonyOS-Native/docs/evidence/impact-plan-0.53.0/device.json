@@ -1,0 +1,160 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "semantic shared actions",
+    "real pre-response vectors",
+    "SI conversion and COM",
+    "read-only observation",
+    "exact v16 save/load",
+    "seek before/after contact",
+    "large planets retain unsupported true dimensions",
+    "native render status"
+  ],
+  "small": {
+    "ok": true,
+    "sceneRevision": 11,
+    "selected": -1,
+    "contact": {
+      "count": 1,
+      "a": 1,
+      "b": 2,
+      "timeSeconds": 29.999433008110714,
+      "normalSpeedKmS": 8.00042764898094,
+      "restitution": 1,
+      "incoming": {
+        "available": true,
+        "withinCurrentBounds": true,
+        "reason": "尺寸、密度与撞速可用于局部岩体初值；粒子化与外部引力耦合尚待接通",
+        "model": "orbital-incoming-com-v1",
+        "velocityConvention": "kick-drift-kick incoming half-step",
+        "timeSeconds": 29.999433008110714,
+        "relativeSpeedKmS": 8.00042764898094,
+        "contactAngleDegrees": 0,
+        "kineticEnergyJ": 6.429377975257107e+25,
+        "originAU": [
+          0.999999999975246,
+          0.000005671220964933703,
+          0
+        ],
+        "velocityKmS": [
+          -0.00017746668139695452,
+          32.5789473677704,
+          0
+        ],
+        "angularMomentumKgM2S": [
+          0,
+          0,
+          -825118392419.1656
+        ],
+        "bodies": [
+          {
+            "id": 1,
+            "massKg": 11309733552923255000,
+            "radiusKm": 100,
+            "densityKgM3": 2700,
+            "positionM": [
+              0,
+              -28421.052631578958,
+              0
+            ],
+            "velocityMS": [
+              -4.559780235748209e-13,
+              1421.128595542667,
+              0
+            ]
+          },
+          {
+            "id": 2,
+            "massKg": 2442902447431423000,
+            "radiusKm": 60,
+            "densityKgM3": 2700,
+            "positionM": [
+              0,
+              131578.9473684211,
+              0
+            ],
+            "velocityMS": [
+              2.111009368401949e-12,
+              -6579.2990534382725,
+              0
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "large": {
+    "ok": true,
+    "sceneRevision": 13,
+    "selected": -1,
+    "contact": {
+      "count": 1,
+      "a": 1,
+      "b": 2,
+      "timeSeconds": 2268.476533394943,
+      "normalSpeedKmS": 13.027904957188701,
+      "restitution": 1,
+      "incoming": {
+        "available": true,
+        "withinCurrentBounds": false,
+        "reason": "半径超出现有局部岩体范围；保留原尺寸，不缩小行星",
+        "model": "orbital-incoming-com-v1",
+        "velocityConvention": "kick-drift-kick incoming half-step",
+        "timeSeconds": 2268.476533394943,
+        "relativeSpeedKmS": 13.027904957188701,
+        "contactAngleDegrees": 0,
+        "kineticEnergyJ": 1.4480487010046825e+32,
+        "originAU": [
+          0.9999956931383633,
+          0.00043597837400934536,
+          0
+        ],
+        "velocityKmS": [
+          -0.013449638682959526,
+          32.14271940099021,
+          0
+        ],
+        "angularMomentumKgM2S": [
+          0,
+          0,
+          -4.357819495589643e+25
+        ],
+        "bodies": [
+          {
+            "id": 1,
+            "massKg": 5.972168399787243e+24,
+            "radiusKm": 6371,
+            "densityKgM3": 5513.414202687987,
+            "positionM": [
+              -0.00029421125800383716,
+              -3161483.6958764493,
+              0
+            ],
+            "velocityMS": [
+              -3.1304682287130243e-7,
+              3722.2585591967722,
+              0
+            ]
+          },
+          {
+            "id": 2,
+            "massKg": 2.3888673599148977e+24,
+            "radiusKm": 4694.19293556758,
+            "densityKgM3": 5513.41420268799,
+            "positionM": [
+              0.0007355281450095928,
+              7903709.239691122,
+              0
+            ],
+            "velocityMS": [
+              7.82617057178256e-7,
+              -9305.64639799193,
+              0
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
