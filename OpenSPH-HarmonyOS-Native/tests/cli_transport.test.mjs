@@ -1193,3 +1193,21 @@ test('local impact shares native transition, locks lossy edits and restores pres
  assert.equal(returned,1);assert.equal(app.title,originalTitle);assert.equal(app.preset,5);assert.deepEqual(structuredClone(app.captureRecipe()),originalRecipe);
  state.impact={local:true,canReturn:false,preparing:false};state.config={...state.config,preset:0};assert.equal(app.localImpactActionAllowed('preset.4'),true);assert.equal(app.localImpactActionAllowed('simulation.apply'),false);
 });
+
+test('external tide action requires an eligible event and shares the near-star preset and native option',async()=>{
+ const {page:app,state,simulation}=page();app.choose(5);
+ await app.execute('uiAction',{action:'orbit.impact.tidesDemo'});
+ assert.equal(app.orbitBodies[1].xAU,.02);assert.equal(app.orbitBodies[2].xAU,.02);
+ assert.equal(app.orbitBodies[1].radiusKm,100);assert.equal(app.orbitBodies[2].radiusKm,60);
+ state.state='paused';state.selected=-1;state.frames=2;state.orbitRevision=25;
+ state.contact={count:1,incoming:{available:true,withinCurrentBounds:true},tides:{available:false}};
+ await assert.rejects(app.execute('uiAction',{action:'impact.simulateTides'}));
+ state.contact.tides.available=true;let called=0;
+ simulation.startImpact=(revision,event,tides)=>{assert.deepEqual([revision,event,tides],[25,1,true]);called++;state.impact={local:false,canReturn:true,preparing:true};state.state="preparing";};
+ await app.execute('uiAction',{action:'impact.simulateTides'});assert.equal(called,1);
+ state.impact={local:true,canReturn:true,preparing:false,tides:true};
+ state.config={preset:0,count:600,speed:8,angle:0,duration:60,targetRadiusKm:100,impactorRadiusKm:60,targetDensity:2700,impactorDensity:2700,targetSpin:0,seed:1234,selfGravity:true,impactLocal:true,impactTides:true};
+ await app.execute('getState',{});assert.equal(app.definition().model,'sph-orbit-impact-tides-v1');
+ assert.equal(app.definition().config.impactTides,true);
+ await assert.rejects(app.execute('uiAction',{action:'orbit.impact.tidesDemo'}));
+});

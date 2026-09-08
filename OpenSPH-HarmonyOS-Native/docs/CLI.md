@@ -1,18 +1,18 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.54.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.55.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
 
-## 撞击初值
+## 撞击初值与外部潮汐
 
-查询 `getImpactPlan`，读取所选帧最近一次接触的反弹前向量、真实质量／半径、质心系速度与动能；位置 m、速度 m/s、质量 kg。`withinCurrentBounds` 仅核对现有局部岩体范围，不表示 SPH 已启动。无记录或旧回放为 unavailable。局部实验中的结果仍指来源接触。
+查询 `getImpactPlan` 读取所选帧最近接触的反弹前三维向量、质量／半径及质心系动能；`withinCurrentBounds` 表示局部岩体尺寸、密度和撞速检查，`contact.tides` 另给冻结潮汐的可用性、原因、来源数量、空间范围与张量。
 
-`uiAction impact.simulate` 从最新暂停接触帧生成局部 SPH 初态（600 预算、60 秒、冷态无自转岩质、自引力），通过 `simulation.toggle` 开始。`impact.return` 返回进入前保留的轨道。`getState.simulation.impact` 表示局部阶段、是否可返回、源事件时刻与身份；`getImpactPlan` 仍可读取源入射向量。
+`orbit.impact.demo` 创建 1 AU 小岩体初态；`orbit.impact.tidesDemo` 创建 0.02 AU 近恒星对照初态。启动后接触处自动暂停，在最新帧选择 `impact.simulate`（隔离）或 `impact.simulateTides`（含外部潮汐）。只有无编辑／撤销历史、无独立环且来源合格时开放。两者均生成真实 SPH 粒子、局部初态暂停在 0 秒，再通过 `simulation.toggle` 运行约 60 秒。
 
-局部分支期间可观察、暂停、回放、调整镜头和保存 v17；修改初值、加载其他实验和普通配方保存会拒绝。需要先返回轨道。加载 v17 后没有内存父世界，不能继续 SPH 求解，但可播放记录或切换其他实验。详见 [局部撞击的范围和事务](reference/LOCAL-IMPACT-SPH.md)。
+`impact.return` 恢复进入前的原轨道、时间、历史和外观。期间可观察、保存回放，不能修改初值或保存会丢失来源的普通配方。潮汐状态模型为 `sph-orbit-impact-tides-v1`；`simulation.impact` 提供 `tides`、`tidalPotentialJ`、`trackedEnergyJ`、`energyScope`、`sourceTimeSeconds`、`elapsedSeconds` 与 `eventEpochPlusElapsedSeconds`。记录能量不含弹性应变能；时间相加不是父世界推进。
 
-`uiAction` 的 `orbit.impact.demo` 加载 100 km／60 km 小岩体实验，`impact.inspect` 打开观察面板；二者与页面按钮共用实现。先查询 `listCommands`、`getUiState`；准备后用 `simulation.toggle` 启动，接触后自动暂停。档位仍为 0.01、0.1、1、10、100 天／秒。含入射状态的轨道回放为 v16，无入射状态继续 v14。详见 [初值定义和剩余工作](reference/IMPACT-INITIAL-CONDITIONS.md)。
+v18 保存轨道事件的同时刻全体来源，v19 保存含潮汐的局部 SPH。隔离 SPH 仍写 v17，仅含双方来源，加载后没有外部快照。旧 v14／v16／v17 可读；SPH 回放仅供观察，不是求解器续算或父会话存档。模型筛选与布局见 [外部潮汐](reference/IMPACT-TIDES.md)，分支行为见 [局部撞击](reference/LOCAL-IMPACT-SPH.md)。
 
 ## 选中天体后操作
 

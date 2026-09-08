@@ -31,7 +31,7 @@ struct Config {
     bool selfGravity = false;
     double relaxationSeconds = 0;
     double initialEnergyMJkg=0, initialDamage=0;
-    OrbitContact impactContact;
+    OrbitContact impactContact;bool impactTides=false;
     double galaxyMassRatio=.6,galaxyOffsetKpc=12;bool galaxyRetrograde=false;bool galaxyResponsive=false;
 };
 bool validConfig(const Config &c);
@@ -44,7 +44,7 @@ struct Frame {
     GalaxyDiagnostics galaxy;
     OrbitContact contact;std::vector<double> radiiAU;
     SphFragments fragments;
-    SphDiagnostics sph;
+    SphDiagnostics sph;double tidalPotentialJ=0;
     std::vector<SphScalar> scalars;
     std::vector<Particle> particles;
     bool orbital = false;
@@ -59,7 +59,7 @@ struct Status {
     OrbitContact contact;
     PreparationStatus preparation;
     bool impactReturnAvailable=false,impactPreparing=false;
-    SphDiagnostics sph;
+    SphDiagnostics sph;double tidalPotentialJ=0;
     std::string state = "empty", error;
     int count = 0, frames = 0, selected = -1;
     double time = 0, duration = 60, stepMs = 0, maxSpeed = 0, meanDensity = 0;
@@ -90,7 +90,7 @@ class Engine {
     ~Engine();
     void start(Config config, bool initiallyPaused = false);
     void pause(bool paused);
-    void startImpact(uint64_t revision,uint32_t event,int count=600,double duration=60);
+    void startImpact(uint64_t revision,uint32_t event,int count=600,double duration=60,bool tides=false);
     void returnFromImpact();
     void orbitClock(double daysPerSecond);
     void freezeOrbit();

@@ -1,0 +1,525 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "checks": [
+    "real incoming state to SPH particles",
+    "initial mass and kinetic budget",
+    "60-second material evolution",
+    "lossy and duplicate actions rejected",
+    "v17 source and diagnostics",
+    "exact parent state/history/camera/surfaces restored",
+    "loaded replay can exit to new experiment"
+  ],
+  "source": {
+    "count": 1,
+    "a": 1,
+    "b": 2,
+    "timeSeconds": 29.999433008110714,
+    "normalSpeedKmS": 8.00042764898094,
+    "restitution": 1,
+    "tides": {
+      "available": true,
+      "reason": "可加入同一事件快照的冻结线性潮汐；外部天体不响应",
+      "sourceCount": 1,
+      "radiusLimitKm": 1495978.706997373,
+      "motionRatio": 0.000013066608722206752,
+      "tensorS2": [
+        7.928031986009371e-14,
+        6.744243181733603e-19,
+        0,
+        6.744243181733603e-19,
+        -3.964015992813445e-14,
+        0,
+        0,
+        0,
+        -3.9640159931959256e-14
+      ]
+    },
+    "incoming": {
+      "available": true,
+      "withinCurrentBounds": true,
+      "reason": "可用真实入射状态运行局部岩体 SPH；外部潮汐需另行检查",
+      "model": "orbital-incoming-com-v1",
+      "velocityConvention": "kick-drift-kick incoming half-step",
+      "timeSeconds": 29.999433008110714,
+      "relativeSpeedKmS": 8.00042764898094,
+      "contactAngleDegrees": 0,
+      "kineticEnergyJ": 6.429377975257107e+25,
+      "originAU": [
+        0.999999999975246,
+        0.000005671220964933703,
+        0
+      ],
+      "velocityKmS": [
+        -0.00017746668139695452,
+        32.5789473677704,
+        0
+      ],
+      "angularMomentumKgM2S": [
+        0,
+        0,
+        -825118392419.1656
+      ],
+      "bodies": [
+        {
+          "id": 1,
+          "massKg": 11309733552923255000,
+          "radiusKm": 100,
+          "densityKgM3": 2700,
+          "positionM": [
+            0,
+            -28421.052631578958,
+            0
+          ],
+          "velocityMS": [
+            -4.559780235748209e-13,
+            1421.128595542667,
+            0
+          ]
+        },
+        {
+          "id": 2,
+          "massKg": 2442902447431423000,
+          "radiusKm": 60,
+          "densityKgM3": 2700,
+          "positionM": [
+            0,
+            131578.9473684211,
+            0
+          ],
+          "velocityMS": [
+            2.111009368401949e-12,
+            -6579.2990534382725,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "initial": {
+    "state": "paused",
+    "error": "",
+    "preparation": {
+      "requestId": 14,
+      "stage": "ready",
+      "elapsedMs": 31.50729199498892,
+      "stageMs": 0,
+      "previousRequestId": 0,
+      "previousStage": "",
+      "slow": false,
+      "events": [
+        {
+          "stage": "queued",
+          "elapsedMs": 0
+        },
+        {
+          "stage": "starting",
+          "elapsedMs": 0.7094999998807907
+        },
+        {
+          "stage": "target",
+          "elapsedMs": 8.883874997496605
+        },
+        {
+          "stage": "impactor",
+          "elapsedMs": 10.034708000719547
+        },
+        {
+          "stage": "solver",
+          "elapsedMs": 10.47291699796915
+        },
+        {
+          "stage": "snapshot",
+          "elapsedMs": 31.502916999161243
+        },
+        {
+          "stage": "ready",
+          "elapsedMs": 31.50729199498892
+        }
+      ]
+    },
+    "count": 641,
+    "frames": 1,
+    "selected": -1,
+    "time": 0,
+    "duration": 60,
+    "continuous": false,
+    "daysPerSecond": 0.01,
+    "actualDaysPerSecond": 0,
+    "orbitRevision": 14,
+    "orbitState": [],
+    "stepMs": 65.070416,
+    "steps": 1,
+    "maxSpeed": 6.579299053438272,
+    "meanDensity": 2700,
+    "totalMass": 13752636000354623000,
+    "sph": {
+      "available": true,
+      "pressureMinGPa": 0,
+      "pressureMaxGPa": 0,
+      "pressureMeanGPa": 0,
+      "internalMinMJkg": 0,
+      "internalMaxMJkg": 0,
+      "internalMeanMJkg": 0,
+      "damageMean": 0,
+      "damageMax": 0,
+      "kineticJ": 6.429377975257086e+25,
+      "internalJ": 0,
+      "structure": [
+        -6.4668174730872465e+22,
+        6.42937797525708e+25,
+        95.26930343817317,
+        -1445.7081912673273
+      ],
+      "response": {
+        "softeningMean": 0,
+        "zeroShearMassFraction": 0,
+        "damagedMassFraction": 0,
+        "strengthMean": 1,
+        "model": "basalt-von-mises-response-v1",
+        "meltEnergyMJkg": 3.4,
+        "intactYieldGPa": 3.5
+      }
+    },
+    "energyError": 0,
+    "angularError": 0,
+    "model": "sph-orbit-impact-v1",
+    "contact": {
+      "count": 1,
+      "a": 1,
+      "b": 2,
+      "timeSeconds": 29.999433008110714,
+      "normalSpeedKmS": 8.00042764898094,
+      "restitution": 1,
+      "tides": {
+        "available": true,
+        "reason": "可加入同一事件快照的冻结线性潮汐；外部天体不响应",
+        "sourceCount": 1,
+        "radiusLimitKm": 1495978.706997373,
+        "motionRatio": 0.000013066608722206752,
+        "tensorS2": [
+          7.928031986009371e-14,
+          6.744243181733603e-19,
+          0,
+          6.744243181733603e-19,
+          -3.964015992813445e-14,
+          0,
+          0,
+          0,
+          -3.9640159931959256e-14
+        ]
+      },
+      "incoming": {
+        "available": true,
+        "withinCurrentBounds": true,
+        "reason": "可用真实入射状态运行局部岩体 SPH；外部潮汐需另行检查",
+        "model": "orbital-incoming-com-v1",
+        "velocityConvention": "kick-drift-kick incoming half-step",
+        "timeSeconds": 29.999433008110714,
+        "relativeSpeedKmS": 8.00042764898094,
+        "contactAngleDegrees": 0,
+        "kineticEnergyJ": 6.429377975257107e+25,
+        "originAU": [
+          0.999999999975246,
+          0.000005671220964933703,
+          0
+        ],
+        "velocityKmS": [
+          -0.00017746668139695452,
+          32.5789473677704,
+          0
+        ],
+        "angularMomentumKgM2S": [
+          0,
+          0,
+          -825118392419.1656
+        ],
+        "bodies": [
+          {
+            "id": 1,
+            "massKg": 11309733552923255000,
+            "radiusKm": 100,
+            "densityKgM3": 2700,
+            "positionM": [
+              0,
+              -28421.052631578958,
+              0
+            ],
+            "velocityMS": [
+              -4.559780235748209e-13,
+              1421.128595542667,
+              0
+            ]
+          },
+          {
+            "id": 2,
+            "massKg": 2442902447431423000,
+            "radiusKm": 60,
+            "densityKgM3": 2700,
+            "positionM": [
+              0,
+              131578.9473684211,
+              0
+            ],
+            "velocityMS": [
+              2.111009368401949e-12,
+              -6579.2990534382725,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    "impact": {
+      "local": true,
+      "canReturn": true,
+      "preparing": false,
+      "sourceTimeSeconds": 29.999433008110714,
+      "eventCount": 1,
+      "a": 1,
+      "b": 2,
+      "tides": false,
+      "elapsedSeconds": 0,
+      "eventEpochPlusElapsedSeconds": 29.999433008110714,
+      "tidalPotentialJ": 0,
+      "trackedEnergyJ": 6.422911157783999e+25,
+      "energyScope": "kinetic + internal + softened self gravity + frozen tide; excludes elastic strain energy and parent world",
+      "assumptions": "isolated cold basalt, zero spin, self gravity; world paused; no remnant reinsertion"
+    },
+    "timeUnit": "s",
+    "bodies": [],
+    "config": {
+      "preset": 0,
+      "count": 600,
+      "speed": 8.00042764898094,
+      "angle": 0,
+      "duration": 60,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "selfGravity": true,
+      "impactLocal": true,
+      "impactTides": false,
+      "targetSpin": 0,
+      "seed": 1234
+    }
+  },
+  "final": {
+    "state": "completed",
+    "error": "",
+    "preparation": {
+      "requestId": 14,
+      "stage": "ready",
+      "elapsedMs": 31.50729199498892,
+      "stageMs": 0,
+      "previousRequestId": 0,
+      "previousStage": "",
+      "slow": false,
+      "events": [
+        {
+          "stage": "queued",
+          "elapsedMs": 0
+        },
+        {
+          "stage": "starting",
+          "elapsedMs": 0.7094999998807907
+        },
+        {
+          "stage": "target",
+          "elapsedMs": 8.883874997496605
+        },
+        {
+          "stage": "impactor",
+          "elapsedMs": 10.034708000719547
+        },
+        {
+          "stage": "solver",
+          "elapsedMs": 10.47291699796915
+        },
+        {
+          "stage": "snapshot",
+          "elapsedMs": 31.502916999161243
+        },
+        {
+          "stage": "ready",
+          "elapsedMs": 31.50729199498892
+        }
+      ]
+    },
+    "count": 641,
+    "frames": 240,
+    "selected": -1,
+    "time": 60.01999999999961,
+    "duration": 60,
+    "continuous": false,
+    "daysPerSecond": 0.01,
+    "actualDaysPerSecond": 0,
+    "orbitRevision": 14,
+    "orbitState": [],
+    "stepMs": 106.670125,
+    "steps": 402,
+    "maxSpeed": 10.85071602966146,
+    "meanDensity": 1377.8904974718985,
+    "totalMass": 13752636000354623000,
+    "sph": {
+      "available": true,
+      "pressureMinGPa": -1.1715397627107667,
+      "pressureMaxGPa": 14.33829336018957,
+      "pressureMeanGPa": 0.16266794237868493,
+      "internalMinMJkg": 0.1903698684954544,
+      "internalMaxMJkg": 6.475386055598637,
+      "internalMeanMJkg": 1.4042723558389174,
+      "damageMean": 0.9273542330963855,
+      "damageMax": 1,
+      "kineticJ": 4.495431174181155e+25,
+      "internalJ": 1.9312446555213066e+25,
+      "structure": [
+        -4.018399805307791e+22,
+        4.495431174181155e+25,
+        179.5146547887181,
+        1919.8930440693202
+      ],
+      "response": {
+        "softeningMean": 0.40397234347409594,
+        "zeroShearMassFraction": 0.03870149565050891,
+        "damagedMassFraction": 0.9140484804136115,
+        "strengthMean": 0.0076923568458501694,
+        "model": "basalt-von-mises-response-v1",
+        "meltEnergyMJkg": 3.4,
+        "intactYieldGPa": 3.5
+      }
+    },
+    "energyError": 0,
+    "angularError": 0,
+    "model": "sph-orbit-impact-v1",
+    "contact": {
+      "count": 1,
+      "a": 1,
+      "b": 2,
+      "timeSeconds": 29.999433008110714,
+      "normalSpeedKmS": 8.00042764898094,
+      "restitution": 1,
+      "tides": {
+        "available": true,
+        "reason": "可加入同一事件快照的冻结线性潮汐；外部天体不响应",
+        "sourceCount": 1,
+        "radiusLimitKm": 1495978.706997373,
+        "motionRatio": 0.000013066608722206752,
+        "tensorS2": [
+          7.928031986009371e-14,
+          6.744243181733603e-19,
+          0,
+          6.744243181733603e-19,
+          -3.964015992813445e-14,
+          0,
+          0,
+          0,
+          -3.9640159931959256e-14
+        ]
+      },
+      "incoming": {
+        "available": true,
+        "withinCurrentBounds": true,
+        "reason": "可用真实入射状态运行局部岩体 SPH；外部潮汐需另行检查",
+        "model": "orbital-incoming-com-v1",
+        "velocityConvention": "kick-drift-kick incoming half-step",
+        "timeSeconds": 29.999433008110714,
+        "relativeSpeedKmS": 8.00042764898094,
+        "contactAngleDegrees": 0,
+        "kineticEnergyJ": 6.429377975257107e+25,
+        "originAU": [
+          0.999999999975246,
+          0.000005671220964933703,
+          0
+        ],
+        "velocityKmS": [
+          -0.00017746668139695452,
+          32.5789473677704,
+          0
+        ],
+        "angularMomentumKgM2S": [
+          0,
+          0,
+          -825118392419.1656
+        ],
+        "bodies": [
+          {
+            "id": 1,
+            "massKg": 11309733552923255000,
+            "radiusKm": 100,
+            "densityKgM3": 2700,
+            "positionM": [
+              0,
+              -28421.052631578958,
+              0
+            ],
+            "velocityMS": [
+              -4.559780235748209e-13,
+              1421.128595542667,
+              0
+            ]
+          },
+          {
+            "id": 2,
+            "massKg": 2442902447431423000,
+            "radiusKm": 60,
+            "densityKgM3": 2700,
+            "positionM": [
+              0,
+              131578.9473684211,
+              0
+            ],
+            "velocityMS": [
+              2.111009368401949e-12,
+              -6579.2990534382725,
+              0
+            ]
+          }
+        ]
+      }
+    },
+    "impact": {
+      "local": true,
+      "canReturn": true,
+      "preparing": false,
+      "sourceTimeSeconds": 29.999433008110714,
+      "eventCount": 1,
+      "a": 1,
+      "b": 2,
+      "tides": false,
+      "elapsedSeconds": 60.01999999999961,
+      "eventEpochPlusElapsedSeconds": 90.01943300811033,
+      "tidalPotentialJ": 0,
+      "trackedEnergyJ": 6.422657429897154e+25,
+      "energyScope": "kinetic + internal + softened self gravity + frozen tide; excludes elastic strain energy and parent world",
+      "assumptions": "isolated cold basalt, zero spin, self gravity; world paused; no remnant reinsertion"
+    },
+    "timeUnit": "s",
+    "bodies": [],
+    "config": {
+      "preset": 0,
+      "count": 600,
+      "speed": 8.00042764898094,
+      "angle": 0,
+      "duration": 60,
+      "targetRadiusKm": 100,
+      "impactorRadiusKm": 60,
+      "targetDensity": 2700,
+      "impactorDensity": 2700,
+      "selfGravity": true,
+      "impactLocal": true,
+      "impactTides": false,
+      "targetSpin": 0,
+      "seed": 1234
+    }
+  },
+  "returnChecks": {
+    "time": true,
+    "frames": true,
+    "vectors": true,
+    "camera": true,
+    "appearance": true,
+    "surfaces": true
+  }
+}

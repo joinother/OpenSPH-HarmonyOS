@@ -70,7 +70,7 @@ double OrbitSystem::step(double dt) {
                 auto& x=bodies[hitA];auto& y=bodies[hitB];Vec3 n,v;for(int k=0;k<3;k++){n[k]=y.position[k]-x.position[k];v[k]=y.velocity[k]-x.velocity[k];}
                 double d=norm(n),vn=0;for(int k=0;k<3;k++){n[k]/=d;vn+=v[k]*n[k];}
                 OrbitContact event{contact.count+1,hitA,hitB,elapsed+drifted,-vn};
-                event.hasIncoming=true;event.incoming={x,y};
+                event.hasIncoming=true;event.incoming={x,y};event.world=bodies;
                 double impulse=-2*vn/(1/x.mass+1/y.mass);
                 for(int k=0;k<3;k++){x.velocity[k]-=impulse*n[k]/x.mass;y.velocity[k]+=impulse*n[k]/y.mass;}
                 contact=event;

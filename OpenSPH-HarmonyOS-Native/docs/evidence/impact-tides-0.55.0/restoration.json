@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "restoredTime": 28.583309297356237,
+  "frames": 240,
+  "bodyCount": 6,
+  "pausedSessionReady": true,
+  "exactBodies": true,
+  "camera": true,
+  "appearance": true,
+  "surfaceSeeds": true,
+  "originalReplayRestored": true,
+  "resumed": false
+}

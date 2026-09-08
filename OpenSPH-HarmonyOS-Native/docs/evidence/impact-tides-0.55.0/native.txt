@@ -1,0 +1,4 @@
+ninja: no work to do.
+FileTransfer finish, Size:8741272, File count = 1, time:121ms rate:72241.92kB/s
+PASS analytic radial/transverse tide, zero origin force, potential gradient, exact point-source comparison, bounds and independent 60-second energy budget
+PASS tides engine: 641 particles, 8.12 s, kinetic relative difference 1.67286e-06, local energy drift 2.18949e-06, v19 budgets/world context, four transactional corruption rejections and parent return

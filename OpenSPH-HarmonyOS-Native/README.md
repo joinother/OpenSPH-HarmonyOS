@@ -1,8 +1,8 @@
 # 星体实验室 · OpenSPH HarmonyOS Native
 
-> 类型：当前项目概览；源码版本：0.54.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前项目概览；源码版本：0.55.0；更新日期：2026-09-08（Asia/Shanghai）。
 
-轨道接触后可选择“模拟这次撞击”，用真实入射向量生成并运行局部岩质 SPH，观察破坏与热软化，保存 v17 回放，再返回保留的原轨道。当前外部世界暂停、碎片尚不回注，见 [局部撞击](docs/reference/LOCAL-IMPACT-SPH.md)。
+轨道接触后可选择隔离撞击或“含外部潮汐”，用真实入射向量运行岩质 SPH；新增近恒星对照初态，v18 轨道保存同一事件的全部天体，v19 保存潮汐局部回放。外部场目前是冻结线性近似，父世界暂停、碎片尚不回注，见 [外部潮汐](docs/reference/IMPACT-TIDES.md)和[局部撞击](docs/reference/LOCAL-IMPACT-SPH.md)。
 
 SPH 新增初始比内能、初始损伤、热软化外观与剩余强度；冷岩、预热岩体和裂隙岩体可作对照，材料参数参与求解并随 v15 回放保存。尚非液态熔融或冷却模型。见 [破坏与热软化](docs/reference/SPH-MATERIAL-RESPONSE.md)。
 

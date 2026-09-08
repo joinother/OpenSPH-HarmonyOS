@@ -1,0 +1,5 @@
+ninja: no work to do.
+FileTransfer finish, Size:8758224, File count = 1, time:66ms rate:132700.36kB/s
+PASS local insertion: point-to-sphere atomic promotion, existing vectors/time retained, v14 continuation
+PASS small bodies: 15 km insertion, invalid-mass atomic rejection, exact mass/radius v14 roundtrip, continuation and minimum budget
+PASS orbit sandbox: beyond duration, pause, exact insertion, stellar mass, stale revision, rolling history, v14 roundtrip, cancel, resume, branch, atomic corrupt rejection

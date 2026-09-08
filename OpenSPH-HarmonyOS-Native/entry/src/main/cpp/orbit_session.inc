@@ -1,15 +1,28 @@
-// Included inside namespace lab. v16 adds optional incoming contact snapshots to exact v14 orbital states.
+// Whole-world contact extension: bounded, explicit scalar layout, no struct padding.
+static void writeContactWorld(std::ostream& out,const OrbitContact& c){
+    auto put=[&](const auto& v){out.write(reinterpret_cast<const char*>(&v),sizeof(v));};
+    uint32_t count=c.world.size();put(count);
+    for(const auto& b:c.world){put(b.mass);put(b.radius);for(double v:b.position)put(v);for(double v:b.velocity)put(v);}
+}
+static bool readContactWorld(std::istream& in,OrbitContact& c){
+    auto get=[&](auto& v){in.read(reinterpret_cast<char*>(&v),sizeof(v));};
+    uint32_t count=9;get(count);if(!in||count>8||(count>0&&count<2))return false;
+    c.world.resize(count);for(auto& b:c.world){get(b.mass);get(b.radius);for(double& v:b.position)get(v);for(double& v:b.velocity)get(v);}
+    return bool(in)&&validIncomingContact(c);
+}
+// Included inside namespace lab. v18 adds the whole contact world to v16 incoming pairs and exact v14 orbital states.
 struct OrbitSession {Config config;std::deque<std::shared_ptr<Frame>> frames;bool continuous=false;double rate=1;};
 static bool writeOrbitSession(const std::string& dir,const OrbitSession& s) {
     const std::string path=dir+"/last-replay.osphr",temp=path+".tmp";std::ofstream out(temp,std::ios::binary);
     auto write=[&](const auto& x){out.write(reinterpret_cast<const char*>(&x),sizeof(x));};
-    uint32_t magic=0x4c485053,version=std::any_of(s.frames.begin(),s.frames.end(),[](const auto& f){return f->contact.hasIncoming;})?16:14,n=s.frames.size(),mode=s.continuous?1:0;write(magic);write(version);write(n);write(mode);write(s.rate);
+    uint32_t magic=0x4c485053,version=std::any_of(s.frames.begin(),s.frames.end(),[](const auto& f){return !f->contact.world.empty();})?18:std::any_of(s.frames.begin(),s.frames.end(),[](const auto& f){return f->contact.hasIncoming;})?16:14,n=s.frames.size(),mode=s.continuous?1:0;write(magic);write(version);write(n);write(mode);write(s.rate);
     const auto& c=s.config;double values[]={double(c.count),c.duration,c.targetRadiusKm,c.impactorRadiusKm,c.targetDensity,c.impactorDensity,c.targetSpin,double(c.seed)};
     for(double x:values)write(x);
     for(const auto& f:s.frames){
         write(f->time);write(f->orbitEnergy);write(f->orbitAngular);write(f->orbitEnergyScale);write(f->orbitAngularScale);write(f->energyError);write(f->angularError);
         write(f->contact.count);int32_t a=f->contact.a,b=f->contact.b;write(a);write(b);write(f->contact.time);write(f->contact.speed);
-        if(version==16){uint32_t incoming=f->contact.hasIncoming?1:0;write(incoming);if(incoming)for(const auto& b:f->contact.incoming){write(b.mass);write(b.radius);for(double x:b.position)write(x);for(double x:b.velocity)write(x);}}
+        if(version==16||version==18){uint32_t incoming=f->contact.hasIncoming?1:0;write(incoming);if(incoming)for(const auto& b:f->contact.incoming){write(b.mass);write(b.radius);for(double x:b.position)write(x);for(double x:b.velocity)write(x);}}
+        if(version==18)writeContactWorld(out,f->contact);
         uint32_t count=f->orbitState.size();write(count);
         for(const auto& b:f->orbitState){uint32_t length=b.name.size();write(length);out.write(b.name.data(),length);double v[]={b.massSolar,b.xAU,b.yAU,b.zAU,b.vxKmS,b.vyKmS,b.vzKmS,double(b.surface),b.radiusKm};for(double x:v)write(x);}
         uint32_t trails=f->trails.size();write(trails);out.write(reinterpret_cast<const char*>(f->trails.data()),trails*sizeof(Particle));
@@ -19,7 +32,7 @@ static bool writeOrbitSession(const std::string& dir,const OrbitSession& s) {
 static bool readOrbitSession(std::ifstream& in,OrbitSession& s) {
     in.clear();in.seekg(0);auto read=[&](auto& x){in.read(reinterpret_cast<char*>(&x),sizeof(x));};
     uint32_t magic=0,version=0,n=0,mode=2;read(magic);read(version);read(n);read(mode);read(s.rate);
-    if(!in||magic!=0x4c485053||(version!=14&&version!=16)||n<1||n>240||mode>1||!std::isfinite(s.rate)||s.rate<.001||s.rate>100)return false;
+    if(!in||magic!=0x4c485053||(version!=14&&version!=16&&version!=18)||n<1||n>240||mode>1||!std::isfinite(s.rate)||s.rate<.001||s.rate>100)return false;
     s.continuous=mode==1;double v[8];for(double& x:v){read(x);if(!in||!std::isfinite(x))return false;}
     if(v[0]<200||v[0]>2400||v[7]<1||v[7]>1000000||v[0]!=std::trunc(v[0])||v[7]!=std::trunc(v[7]))return false;
     Config base;base.preset=3;base.speed=1;base.count=v[0];base.duration=v[1];base.targetRadiusKm=v[2];base.impactorRadiusKm=v[3];base.targetDensity=v[4];base.impactorDensity=v[5];base.targetSpin=v[6];base.seed=v[7];if(!validConfig(base))return false;
@@ -29,7 +42,8 @@ static bool readOrbitSession(std::ifstream& in,OrbitSession& s) {
         for(double x:{f->time,f->orbitEnergy,f->orbitAngular,f->orbitEnergyScale,f->orbitAngularScale,f->energyError,f->angularError})if(!std::isfinite(x))return false;
         if(f->time<0||f->time>1.e9||f->orbitEnergyScale<=0||f->orbitAngularScale<=0||f->orbitAngular<0||(!s.frames.empty()&&f->time<s.frames.back()->time))return false;
         int32_t a=-1,b=-1;read(f->contact.count);read(a);read(b);f->contact.a=a;f->contact.b=b;read(f->contact.time);read(f->contact.speed);
-        if(version==16){uint32_t incoming=2;read(incoming);if(!in||incoming>1)return false;f->contact.hasIncoming=incoming==1;if(incoming)for(auto& b:f->contact.incoming){read(b.mass);read(b.radius);for(double& x:b.position)read(x);for(double& x:b.velocity)read(x);}}
+        if(version==16||version==18){uint32_t incoming=2;read(incoming);if(!in||incoming>1)return false;f->contact.hasIncoming=incoming==1;if(incoming)for(auto& b:f->contact.incoming){read(b.mass);read(b.radius);for(double& x:b.position)read(x);for(double& x:b.velocity)read(x);}}
+        if(version==18&&!readContactWorld(in,f->contact))return false;
         if(!in||!validIncomingContact(f->contact))return false;
         uint32_t count=0;read(count);if(!in||count<2||count>8)return false;
         if(f->contact.count>1000000||!std::isfinite(f->contact.time)||!std::isfinite(f->contact.speed)||f->contact.time<0||f->contact.time>f->time+1.e-12||f->contact.speed<0)return false;
@@ -45,6 +59,10 @@ static bool readOrbitSession(std::ifstream& in,OrbitSession& s) {
             f->maxSpeed=std::max(f->maxSpeed,speed);f->totalMass+=d[0]*SOLAR_MASS;if(i<2)for(int j=0;j<3;j++)f->centers[3*i+j]=d[1+j];
         }
         if(f->contact.hasIncoming){for(int i=0;i<2;i++){const auto& event=f->contact.incoming[i];const auto& body=bodies[i==0?a:b];if(event.mass!=body.mass||std::abs(event.radius-body.radius)>1e-12*body.radius)return false;}}
+        if(!f->contact.world.empty()){
+            if(f->contact.world.size()>bodies.size())return false;
+            for(size_t i=0;i<f->contact.world.size();i++){const auto& w=f->contact.world[i];if(w.mass!=bodies[i].mass||std::abs(w.radius-bodies[i].radius)>1e-12*w.radius)return false;}
+        }
         try{OrbitSystem system(bodies,false);}catch(...){return false;}
         uint32_t trails=0;read(trails);if(!in||trails>count*512)return false;f->trails.resize(trails);in.read(reinterpret_cast<char*>(f->trails.data()),trails*sizeof(Particle));
         for(const auto& p:f->trails)if(!std::isfinite(p.x)||!std::isfinite(p.y)||!std::isfinite(p.z)||!std::isfinite(p.speed)||!std::isfinite(p.density)||!std::isfinite(p.body)||p.body<0||p.body>=count||std::trunc(p.body)!=p.body)return false;

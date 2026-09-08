@@ -1,6 +1,6 @@
 export interface OrbitBodyConfig { radiusKm?:number; name:string; massSolar:number; xAU:number; yAU:number; zAU:number; vxKmS:number; vyKmS:number; vzKmS:number; surface:number; }
 export interface SimulationConfig {
-  impactLocal?:boolean;
+  impactLocal?:boolean;impactTides?:boolean;
   galaxyMassRatio?:number;galaxyOffsetKpc?:number;galaxyRetrograde?:boolean;galaxyResponsive?:boolean;
   orbitBodies?: OrbitBodyConfig[];
   preset: number; count: number; speed: number; angle: number; duration: number;
@@ -14,7 +14,8 @@ export interface SphMaterialResponse {model:string;meltEnergyMJkg:number;intactY
 export interface SphDiagnostics {response?:SphMaterialResponse;structure?:number[];available:boolean;pressureMinGPa?:number;pressureMaxGPa?:number;pressureMeanGPa?:number;internalMinMJkg?:number;internalMaxMJkg?:number;internalMeanMJkg?:number;damageMean?:number;damageMax?:number;kineticJ?:number;internalJ?:number;}
 export interface LocalImpactBody {id:number;massKg:number;radiusKm:number;densityKgM3:number;positionM:number[];velocityMS:number[];}
 export interface ImpactPlan {available:boolean;withinCurrentBounds:boolean;reason:string;model:string;velocityConvention:string;timeSeconds?:number;relativeSpeedKmS?:number;contactAngleDegrees?:number;kineticEnergyJ?:number;originAU?:number[];velocityKmS?:number[];angularMomentumKgM2S?:number[];bodies?:LocalImpactBody[];}
-export interface OrbitContactStatus {incoming?:ImpactPlan;count:number;a:number;b:number;timeSeconds:number;normalSpeedKmS:number;restitution:number;}
+export interface ImpactTideStatus {available:boolean;reason:string;sourceCount:number;radiusLimitKm:number;motionRatio:number;tensorS2:number[];}
+export interface OrbitContactStatus {tides?:ImpactTideStatus;incoming?:ImpactPlan;count:number;a:number;b:number;timeSeconds:number;normalSpeedKmS:number;restitution:number;}
 export interface GalaxyParameters {count:number;seed:number;speed:number;inclination:number;duration:number;massRatio:number;offset:number;retrograde:boolean;responsive?:boolean;}
 export interface GalaxySample {frame:number;time:number;values:number[];energyError:number;angularError:number;}
 export interface GalaxyObservation {available:boolean;sceneRevision:number;selected:number;parameters?:GalaxyParameters;samples:GalaxySample[];}
@@ -24,7 +25,7 @@ export const setGalaxyPlacement:(enabled:boolean,count:number,seed:number,speed:
 export const placeGalaxyAt:(x:number,y:number)=>number;
 export interface GalaxyDiagnostics {separationKpc:number;primaryRmsKpc:number;secondaryRmsKpc:number;primaryOuterFraction:number;secondaryOuterFraction:number;energyScope:string;outerScope:string;}
 export interface SimulationStatus {
-  impact?:{local:boolean;canReturn:boolean;preparing:boolean;sourceTimeSeconds:number;eventCount:number;a:number;b:number;assumptions:string;};
+  impact?:{local:boolean;canReturn:boolean;preparing:boolean;sourceTimeSeconds:number;eventCount:number;a:number;b:number;assumptions:string;tides?:boolean;elapsedSeconds?:number;eventEpochPlusElapsedSeconds?:number;tidalPotentialJ?:number;trackedEnergyJ?:number;energyScope?:string;};
   orbitState?:OrbitBodyConfig[];orbitRevision?:number;continuous?:boolean;daysPerSecond?:number;actualDaysPerSecond?:number;
   galaxy?:GalaxyDiagnostics;
   contact?:OrbitContactStatus;
@@ -110,5 +111,5 @@ export const orbitClock:(daysPerSecond:number)=>void;
 export const freezeOrbit:()=>void;
 export const insertOrbit:(body:OrbitBodyConfig,revision:number,resume:boolean,physicalRadii?:boolean)=>void;
 
-export const startImpact:(revision:number,eventCount:number)=>void;
+export const startImpact:(revision:number,eventCount:number,tides?:boolean)=>void;
 export const returnImpact:()=>void;

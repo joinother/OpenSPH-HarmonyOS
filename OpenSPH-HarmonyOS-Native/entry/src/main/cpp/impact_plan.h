@@ -13,8 +13,16 @@ struct ImpactPlan {
     double timeSeconds=0,relativeSpeedKmS=0,kineticEnergyJ=0,contactAngleDegrees=0;
 };
 inline bool validIncomingContact(const OrbitContact& c){
-    if(!c.hasIncoming)return true;
+    if(!c.hasIncoming)return c.world.empty();
     if(c.count==0||c.a<0||c.b<=c.a||!std::isfinite(c.time)||c.time<0||!std::isfinite(c.speed)||c.speed<=0)return false;
+    if(!c.world.empty()){
+        if(c.world.size()<2||c.world.size()>8||c.b>=int(c.world.size()))return false;
+        for(const auto& b:c.world){
+            if(!std::isfinite(b.mass)||b.mass<=0||b.mass>2||!std::isfinite(b.radius)||b.radius<=0||b.radius>1)return false;
+            for(int k=0;k<3;k++)if(!std::isfinite(b.position[k])||std::abs(b.position[k])>1e7||!std::isfinite(b.velocity[k])||std::abs(b.velocity[k])>1e10)return false;
+        }
+        for(int i=0;i<2;i++){const auto& w=c.world[i==0?c.a:c.b];const auto& b=c.incoming[i];if(w.mass!=b.mass||w.radius!=b.radius||w.position!=b.position||w.velocity!=b.velocity)return false;}
+    }
     Vec3 r{},v{};double scale=1;
     for(const auto& b:c.incoming){
         if(!std::isfinite(b.mass)||b.mass<=0||b.mass>2||!std::isfinite(b.radius)||b.radius<=0||b.radius>1)return false;
@@ -49,7 +57,7 @@ inline ImpactPlan makeImpactPlan(const OrbitContact& contact){
     if(x.radiusKm<40-1e-8||x.radiusKm>200+1e-8||y.radiusKm<20-1e-8||y.radiusKm>120+1e-8)p.reason="半径超出现有局部岩体范围；保留原尺寸，不缩小行星";
     else if(x.densityKgM3<2400-1e-7||x.densityKgM3>3000+1e-7||y.densityKgM3<2400-1e-7||y.densityKgM3>3000+1e-7)p.reason="质量与半径推得的密度超出现有岩质材料范围";
     else if(p.relativeSpeedKmS<.5||p.relativeSpeedKmS>10)p.reason="相对撞速超出现有 0.5–10 km/s 岩体范围";
-    else {p.supported=true;p.reason="尺寸、密度与撞速可用于局部岩体初值；粒子化与外部引力耦合尚待接通";}
+    else {p.supported=true;p.reason="可用真实入射状态运行局部岩体 SPH；外部潮汐需另行检查";}
     return p;
 }
 }

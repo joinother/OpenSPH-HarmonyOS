@@ -701,7 +701,7 @@ struct Index {
     if(this.isOrbit()){const scene:SceneDefinition={schemaVersion:1,model:this.preset===5?(this.contactMode()?'nbody-hard-sphere-v1':'nbody-custom-v1'):'nbody-v1',title:this.title,config:this.config(),bodies:[]};return scene;}
     const bodies: BodyDefinition[]=[{id:'primary',name:this.targetName,kind:'rock',radiusKm:this.targetRadiusKm,density:this.targetDensity}];
     if(this.preset!==2) bodies.push({id:'impactor',name:this.impactorName,kind:'rock',radiusKm:this.impactorRadiusKm,density:this.impactorDensity});
-    const scene: SceneDefinition={schemaVersion:1,model:this.info.impact?.local?'sph-orbit-impact-v1':this.relaxationSeconds>0?'sph-rock-prepared-v1':(this.selfGravity?'sph-rock-gravity-v1':'sph-rock-v1'),title:this.title,config:this.info.impact?.local?this.info.config!:this.config(),bodies:bodies};
+    const scene: SceneDefinition={schemaVersion:1,model:this.info.impact?.local?(this.info.impact?.tides?'sph-orbit-impact-tides-v1':'sph-orbit-impact-v1'):this.relaxationSeconds>0?'sph-rock-prepared-v1':(this.selfGravity?'sph-rock-gravity-v1':'sph-rock-v1'),title:this.title,config:this.info.impact?.local?this.info.config!:this.config(),bodies:bodies};
     return scene;
   }
   private maxFocus():number {return this.preset===5?this.orbitBodies.length-1:(this.preset===4?3:1);}
@@ -762,15 +762,15 @@ struct Index {
   private syncImpactView():void {
     if(!this.info.impact)this.impactEntered=false;
     if(this.info.impact?.local&&!this.impactEntered){
-      this.applyConfig(this.info.config!);this.impactEntered=true;this.title='局部撞击 · 岩质 SPH';this.closeup=false;this.autoSpin=false;this.focus=-1;this.yaw=0;this.pitch=.25;this.zoom=3;this.colorMode=7;this.dirty=false;this.camera(0,true,true);this.setPanel(-1);
+      this.applyConfig(this.info.config!);this.impactEntered=true;this.title=this.info.impact?.tides?'局部撞击 · 外部潮汐':'局部撞击 · 岩质 SPH';this.closeup=false;this.autoSpin=false;this.focus=-1;this.yaw=0;this.pitch=.25;this.zoom=3;this.colorMode=7;this.dirty=false;this.camera(0,true,true);this.setPanel(-1);
       this.notice='已按真实入射状态生成粒子 · 开始后计算破坏与热软化 · 原轨道暂停保留';
     } else if(!this.info.impact&&this.impactRecipe){
       const recipe=this.impactRecipe;this.applyConfig(this.info.config!,true);this.title=this.impactTitle;this.restoreRecipe(recipe);this.impactRecipe=undefined;this.impactEntered=false;this.dirty=false;this.notice=this.info.error||'已返回原轨道 · 保留原来的时刻与历史，局部碎片尚不回注';
     }
   }
-  private beginImpact():void {
+  private beginImpact(tides:boolean=false):void {
     const source:SimulationStatus=simulation.status();
-    const recipe=this.captureRecipe();simulation.startImpact(source.orbitRevision!,source.contact!.count);
+    const recipe=this.captureRecipe();simulation.startImpact(source.orbitRevision!,source.contact!.count,tides);
     this.impactRecipe=recipe;this.impactTitle=this.title;this.impactEntered=false;this.playing=false;this.info=simulation.status();this.notice='正在生成真实入射状态的岩体粒子 · 原轨道已保留';
   }
   private localImpactActionAllowed(action:string):boolean {
@@ -778,9 +778,9 @@ struct Index {
     return ['impact.return','simulation.cancel'].includes(action)||((action==='simulation.toggle')&&['paused','running'].includes(this.info.state))||['panel.','ui.','camera.','color.','focus.','replay.','video.','sky.','sph.metric.','fragments.'].some((prefix:string):boolean=>action.startsWith(prefix));
   }
   private contactMode():boolean {return this.preset===5&&finiteOrbitBodies(this.orbitBodies);}
-  private contactDemo(small:boolean=false):void {
-    const c=this.config();c.preset=5;c.speed=1;c.duration=1;c.orbitBodies=contactDemoBodies(small);c.initialEnergyMJkg=undefined;c.initialDamage=undefined;c.selfGravity=false;c.relaxationSeconds=0;
-    validateConfig(c);this.applyConfig(c);this.title=small?'小岩体 · 撞击初值':'球体接触 · 理想弹性';if(!this.prepare(false))throw new Error(this.notice);
+  private contactDemo(small:boolean=false,nearStar:boolean=false):void {
+    const c=this.config();c.preset=5;c.speed=1;c.duration=1;c.orbitBodies=contactDemoBodies(small);if(nearStar)for(let i=1;i<c.orbitBodies.length;i++)c.orbitBodies[i].xAU=.02;c.initialEnergyMJkg=undefined;c.initialDamage=undefined;c.selfGravity=false;c.relaxationSeconds=0;
+    validateConfig(c);this.applyConfig(c);this.title=nearStar?'近恒星 · 岩体撞击':small?'小岩体 · 撞击初值':'球体接触 · 理想弹性';if(!this.prepare(false))throw new Error(this.notice);
     this.focus=1;this.yaw=0;this.pitch=0;this.zoom=4.2;this.closeup=true;this.autoSpin=false;this.camera(0,true,true);this.setPanel(-1);this.notice='启动后在接触响应处暂停 · 球体保持完整，不模拟行星破裂';
   }
   private updateGalaxyObserver():void {
@@ -1191,7 +1191,7 @@ struct Index {
     add('placement.rock','15 km 岩质小行星',this.placing&&finiteOrbitBodies(this.placementBodies));
     for(let i=0;i<=5;i++)add('placement.surface.'+i,['恒星','海洋','厚云','荒漠','带环','月面'][i],this.placing,this.placementSurface===i);
     for(const mode of ['satellite','launch','drop'])add('selection.'+mode,mode==='satellite'?'添加卫星':mode==='launch'?'向它发射':'附近投放',this.isOrbit()&&this.focus>=0&&this.focus<(this.info.orbitState??[]).length&&(this.info.orbitState??[]).length<8);
-    add('orbit.contact','启用球体接触',this.preset===5&&!this.contactMode());add('orbit.contact.demo','球体接触实验',this.preset===5);add('orbit.impact.demo','小岩体撞击初值',this.preset===5);add('impact.inspect','查看撞击初值',this.contactMode());add('impact.simulate','模拟这次撞击',this.contactMode()&&this.info.state==='paused'&&this.info.selected<0&&this.info.contact?.incoming?.withinCurrentBounds===true&&!this.dirty&&!this.orbitDraft&&!this.trace.enabled&&this.orbitDrafts.length===0&&this.orbitUndo.length===0&&this.orbitRedo.length===0);add('impact.return','返回轨道',this.info.impact?.canReturn===true);
+    add('orbit.contact','启用球体接触',this.preset===5&&!this.contactMode());add('orbit.contact.demo','球体接触实验',this.preset===5);add('orbit.impact.demo','小岩体撞击初值',this.preset===5);add('orbit.impact.tidesDemo','近恒星岩体撞击',this.preset===5);add('impact.inspect','查看撞击初值',this.contactMode());add('impact.simulate','模拟这次撞击',this.contactMode()&&this.info.state==='paused'&&this.info.selected<0&&this.info.contact?.incoming?.withinCurrentBounds===true&&!this.dirty&&!this.orbitDraft&&!this.trace.enabled&&this.orbitDrafts.length===0&&this.orbitUndo.length===0&&this.orbitRedo.length===0);add('impact.simulateTides','含外部潮汐',a.find((item:UiActionInfo):boolean=>item.id==='impact.simulate')?.enabled===true&&this.info.contact?.tides?.available===true);add('impact.return','返回轨道',this.info.impact?.canReturn===true);
     add('orbit.copy','复制并放置',this.preset===5&&this.orbitEdit>0&&this.orbitBodies.length<8);
     add('orbit.add','加入天体',this.isOrbit()&&(this.info.orbitState??[]).length>=2&&(this.info.orbitState??[]).length<8);add('orbit.remove','删除天体',this.preset===5&&this.orbitEdit>0&&this.orbitBodies.length>2);
     add('orbit.undo','撤销天体编辑',this.preset===5&&this.orbitUndo.length>0);add('orbit.redo','重做天体编辑',this.preset===5&&this.orbitRedo.length>0);
@@ -1394,7 +1394,9 @@ struct Index {
     else if(action==='orbit.contact'){const bodies=copyOrbitBodies(this.orbitBodies);for(let i=0;i<bodies.length;i++)bodies[i].radiusKm=estimatedOrbitRadius(bodies[i].massSolar,i===0);this.replaceOrbits(bodies,this.orbitEdit,'启用理想弹性接触');}
     else if(action==='orbit.contact.demo')this.contactDemo();
     else if(action==='orbit.impact.demo')this.contactDemo(true);
+    else if(action==='orbit.impact.tidesDemo')this.contactDemo(true,true);
     else if(action==='impact.simulate')this.beginImpact();
+    else if(action==='impact.simulateTides')this.beginImpact(true);
     else if(action==='impact.return'){simulation.returnImpact();this.info=simulation.status();this.syncImpactView();}
     else if(action==='impact.inspect'){this.setPanel(1);this.scroller.scrollEdge(Edge.Top);}
     else if(action==='selection.satellite'||action==='selection.launch'||action==='selection.drop')this.beginLocalPlacement(action.slice(10));
@@ -1840,6 +1842,7 @@ struct Index {
         }
         Text('相对动能扣除整体平移；分布尺度为全部材料距质心的质量加权均方根距离，并非天体表面半径。径向速度为负表示平均向内运动，不代表碎片已经聚合。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
         Text('压力保留正负号；比内能不是温度。损伤是材料模型中 0–1 的强度退化量，不等于碎片数量。均值按粒子质量加权，随时间轴回看。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+        if(this.info.impact?.tides){MetricRow({label:'外部潮汐势能',value:this.sphNumber(this.info.impact?.tidalPotentialJ,'J')})}
         Text('引力势能来自同一软化引力模型；关闭自引力时为零。尚未计入弹性应变能，不能当作完整守恒预算。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
       } else {Text(this.info.state==='replay'?'旧回放没有压力、内能或损伤记录；重新运行实验后可查看。':'等待 SPH 初始帧').fontSize(12).fontColor('#B7C5D5').width('100%')}
       Divider().color('#33B4A7D6')
@@ -1849,7 +1852,8 @@ struct Index {
   impactControls() {
     if(this.contactMode()) {
       Column({space:6}) {
-        ChoiceChip({label:'模拟这次撞击',enabledAction:this.info.state==='paused'&&this.info.selected<0&&this.info.contact?.incoming?.withinCurrentBounds===true&&!this.dirty&&!this.orbitDraft&&!this.trace.enabled&&this.orbitDrafts.length===0&&this.orbitUndo.length===0&&this.orbitRedo.length===0,onPress:()=>{this.press('impact.simulate');}})
+        ChoiceChip({label:'隔离撞击',enabledAction:this.info.state==='paused'&&this.info.selected<0&&this.info.contact?.incoming?.withinCurrentBounds===true&&!this.dirty&&!this.orbitDraft&&!this.trace.enabled&&this.orbitDrafts.length===0&&this.orbitUndo.length===0&&this.orbitRedo.length===0,onPress:()=>{this.press('impact.simulate');}})
+        ChoiceChip({label:'含外部潮汐',enabledAction:this.uiActions().find((item:UiActionInfo):boolean=>item.id==='impact.simulateTides')?.enabled===true,onPress:()=>{this.press('impact.simulateTides');}})
         Text('撞击初值 · 反弹前').fontSize(15).fontColor('#EBC08B').width('100%')
         if(this.info.contact?.incoming?.available) {
           Text('相对速度 '+this.info.contact!.incoming!.relativeSpeedKmS!.toFixed(3)+' km/s · 入射角 '+this.info.contact!.incoming!.contactAngleDegrees!.toFixed(1)+'°').fontSize(12).fontColor('#E2EEF5').width('100%')
@@ -1859,7 +1863,8 @@ struct Index {
           })
         }
         Text(this.info.contact?.incoming?.reason??'等待接触事件').fontSize(11).fontColor('#D1BB9A').lineHeight(18).width('100%')
-        Text('撞速取积分的入射半步。可用冷态、无自转的岩质模型进行局部 SPH 实验；外部引力暂不耦合。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+        Text(this.info.contact?.tides?.reason??'尚无外部快照').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+        Text('撞速取积分的入射半步。隔离撞击只含材料自引力；含外部潮汐使用同一事件快照，限短时、远场近似。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
         Divider().color('#33B4A7D6')
       }.id('impact-plan').width('100%')
     }
@@ -2118,9 +2123,10 @@ struct Index {
         Button('重做',{type:ButtonType.Normal}).id('orbit-redo').layoutWeight(1).height(34).borderRadius(17).fontSize(12).backgroundColor('#554F416E').fontColor('#D9CCF5')
           .enabled(this.orbitRedo.length>0&&!this.ioBusy).onClick(()=>{this.press('orbit.redo');})
       }.width('100%')
-      Row({space:6}) {
+      Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(8)}}) {
         ChoiceChip({label:'球体接触实验',onPress:()=>{this.press('orbit.contact.demo');}})
         ChoiceChip({label:'小岩体撞击初值',onPress:()=>{this.press('orbit.impact.demo');}})
+        ChoiceChip({label:'近恒星岩体撞击',onPress:()=>{this.press('orbit.impact.tidesDemo');}})
         if(!this.contactMode()){ChoiceChip({label:'启用接触',onPress:()=>{this.press('orbit.contact');}})}
       }
       if(this.contactMode()){ChoiceChip({label:'查看撞击初值',onPress:()=>{this.press('impact.inspect');}});Text('理想弹性球体 · 半径参与接触，质量与半径独立设置 · 接触后自动暂停，不含破裂或合并').fontSize(11).fontColor('#D1BB9A')}
@@ -2661,6 +2667,7 @@ struct Index {
       } else if(this.tab===1) {
         this.impactControls()
         if(this.info.impact?.local){Text('局部撞击 · 源事件 '+this.info.impact!.sourceTimeSeconds.toFixed(3)+' 秒 · 冷态岩质、无自转、自引力 · 外部世界暂停，碎片尚不回注').fontSize(11).fontColor('#D1BB9A').lineHeight(18)}
+        if(this.info.impact?.local&&this.info.impact?.tides){Text('冻结线性潮汐 · '+(this.info.contact?.tides?.sourceCount??0)+' 个外部引力源 · 潮汐势能 '+(this.info.impact?.tidalPotentialJ??0).toExponential(3)+' J').fontSize(11).fontColor('#D1BB9A').lineHeight(18)}
           if(this.trace.enabled){this.traceControls()}
           if(this.preset===5) {
             Text(this.canGenerateSurface()?'独立外观 · '+this.orbitBodies[this.surfaceTarget()].name:'选择一颗行星可生成新外观').fontSize(12).fontColor('#D9CCF5')

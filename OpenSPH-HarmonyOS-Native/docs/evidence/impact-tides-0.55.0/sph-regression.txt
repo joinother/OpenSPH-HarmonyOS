@@ -1,0 +1,24 @@
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/build/native-test
+ninja: no work to do.
+FileTransfer finish, Size:8771256, File count = 1, time:77ms rate:113912.42kB/s
+initial fragment mode=0 groups=1 largest_count=212
+initial fragment mode=1 groups=1 largest_count=212
+initial fragment mode=2 groups=1 largest_count=212
+PASS fragments: initial geometry, v15 three model identities and exact labels/mass, malformed data rejection, legacy absence
+PASS stationary sphere: no initial spin, undamped release response, zero-speed prepared replay, impact speed validation
+PASS preparation: isolated body stages, collision velocities and clock, continuation, v9 exact replay, invalid inputs and cooperative cancellation
+PASS structure: analytic collision COM energy, signed potential/radial, v8 roundtrip, corrupted payload rejection, legacy v6 absence
+PASS preparation stages, cancellation, stale isolation and frozen timing
+PASS resolution transitions and latest-request replacement
+SPH_DIAGNOSTICS preset=0 pressureMaxGPa=77.0499 internalMeanMJkg=0.427384 damageMax=0.011714
+PASS preset=0 particles=212 time=10.07 mass=1.37526e+19
+SPH_DIAGNOSTICS preset=1 pressureMaxGPa=62.1255 internalMeanMJkg=0.258184 damageMax=0.0267207
+PASS preset=1 particles=212 time=10.07 mass=1.37526e+19
+SPH_DIAGNOSTICS preset=2 pressureMaxGPa=-0.0270634 internalMeanMJkg=0.000210408 damageMax=0.234128
+PASS preset=2 particles=210 time=10.07 mass=1.13097e+19
+PASS edited bodies mass, v2 config restoration, v1 compatibility, invalid radius atomicity
+PASS SPH curves: double statistics, read-only snapshots, guarded seek, v5 roundtrip, missing legacy, bounded history
+PASS 60 s collision, 600-particle budget, bounded 240-frame history
+PASS pause/resume, seek, replay round-trip, deterministic runs, invalid input, corrupt file, cancel/restart

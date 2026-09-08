@@ -1,14 +1,14 @@
 # 文档目录
 
-> 类型：当前文档索引；源码版本：0.54.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前文档索引；源码版本：0.55.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 先阅读 [项目概览](../README.md)，操作应用使用 [CLI 指南](CLI.md)，维护资料遵循 [文档流程](WORKFLOW.md) 和 [开发约定](../AGENTS.md)。本目录区分当前说明与历史记录；归档内容不覆盖当前规则。
 
-最新开发断点：[0.54.0 真实入射到局部 SPH](releases/RELEASE-0.54.0.md)。执行顺序与验收门槛见 [产品实施路线](reference/PRODUCT-ROADMAP.md)。视频的实际录制与导出仍待真机验收。
+最新开发断点：[0.55.0 局部撞击外部潮汐](releases/RELEASE-0.55.0.md)。执行顺序与验收门槛见 [产品实施路线](reference/PRODUCT-ROADMAP.md)。视频的实际录制与导出仍待真机验收。
 
 ## 当前参考
 
-本批新增：[局部 SPH 撞击](reference/LOCAL-IMPACT-SPH.md)；初值定义见 [轨道撞击初值](reference/IMPACT-INITIAL-CONDITIONS.md)；前批材料实现见 [SPH 破坏与热软化](reference/SPH-MATERIAL-RESPONSE.md)，包含真实材料输入、上游强度模型、显示语义和 v15 格式。
+本批新增：[局部外部潮汐](reference/IMPACT-TIDES.md)；前批：[局部 SPH 撞击](reference/LOCAL-IMPACT-SPH.md)；初值定义见 [轨道撞击初值](reference/IMPACT-INITIAL-CONDITIONS.md)；前批材料实现见 [SPH 破坏与热软化](reference/SPH-MATERIAL-RESPONSE.md)，包含真实材料输入、上游强度模型、显示语义和 v15 格式。
 
 | 文档 | 用途 |
 | --- | --- |
