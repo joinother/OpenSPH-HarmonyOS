@@ -1,8 +1,12 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.47.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.48.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
+
+## 星图视频
+
+`getVideoCapabilities` 查询系统编码能力；`getVideoState` 返回录制状态、本机视频与预览状态。通过 `uiAction` 的 `video.open`、`video.quality.1280`／`video.quality.1920`、`video.start`、`video.stop`、`video.reload`、`video.select.<id>`、`video.preview`、`video.preview.close`、`video.export` 和 `video.close` 共用界面动作。导出会打开系统位置选择器，需用户选择后完成；CLI 可使用 `--timeout 120000`，超时不会取消系统窗口。见 [完整行为与真机验收](reference/VIDEO.md)。不支持 H.264 的设备不启用软件编码。
 
 ## 开始使用
 

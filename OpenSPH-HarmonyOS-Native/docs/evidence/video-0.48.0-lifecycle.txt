@@ -1,0 +1,17 @@
+✔ recording dimensions preserve even aspect within two quality budgets and reject unavailable windows (191.804834ms)
+✔ start-stop publishes only finalized MP4, releases fd and reopens durable local clips (55.34125ms)
+✔ failed prepare closes descriptors without deleting previous clips; incomplete and short recordings are not published (51.708667ms)
+✔ background cancels in-flight preparation and closes active recordings (51.167042ms)
+✔ duration cap stops recording; unavailable renderer rejects before opening a file (51.746041ms)
+✔ export cancellation and failed copy preserve source; success copies exact bytes and closes destination (43.48725ms)
+✔ release failure closes file and cannot publish a supposedly complete recording (51.9465ms)
+✔ missing system video encoder is an explicit failure and never substitutes software encoding (40.918333ms)
+✔ hardware profile respects advertised encoder bounds without stretching requested aspect (38.6815ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 901.972041

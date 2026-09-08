@@ -1,3 +1,4 @@
+import { SceneVideo } from '../common/SceneVideo';
 import { UIAbility, Want } from '@kit.AbilityKit';
 import { window } from '@kit.ArkUI';
 import { hilog } from '@kit.PerformanceAnalysisKit';
@@ -61,7 +62,7 @@ export default class EntryAbility extends UIAbility {
       this.mainWindow = undefined;
     }
   }
-  onBackground(): void { simulation.setRenderActive(false);simulation.pause(true); AppStorage.setOrCreate('appForeground',false); }
+  onBackground(): void { SceneVideo.background(); simulation.setRenderActive(false);simulation.pause(true); AppStorage.setOrCreate('appForeground',false); }
   onForeground(): void { simulation.setRenderActive(true);AppStorage.setOrCreate('appForeground',true); this.applyImmersive(); }
   onDestroy(): void { CliBridge.unbind(); simulation.cancel(); }
 }

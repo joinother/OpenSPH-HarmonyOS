@@ -1,0 +1,71 @@
+{
+  "ok": true,
+  "device": "127.0.0.1:5555",
+  "capabilities": {
+    "ok": true,
+    "encoders": [
+      {
+        "mimeType": "audio/mp4a-latm",
+        "type": "audio",
+        "bitRate": {
+          "min": 1,
+          "max": 500000
+        },
+        "channels": {
+          "min": 1,
+          "max": 8
+        },
+        "sampleRate": [
+          7350,
+          8000,
+          11025,
+          12000,
+          16000,
+          22050,
+          24000,
+          32000,
+          44100,
+          48000,
+          64000,
+          88200,
+          96000
+        ]
+      }
+    ]
+  },
+  "failed": {
+    "ok": true,
+    "video": {
+      "state": "error",
+      "elapsedSeconds": 0,
+      "width": 1918,
+      "height": 1756,
+      "frames": 0,
+      "error": "Error: 当前设备不支持所需的 H.264 视频编码，请在支持录制的真机上使用",
+      "message": "正在准备视频",
+      "selectedId": "scene-1788847279549-688987.mp4",
+      "clips": [
+        {
+          "id": "scene-1788847279549-688987.mp4",
+          "name": "scene-1788847279549-688987.mp4",
+          "path": "/data/storage/el2/base/haps/entry/files/videos/scene-1788847279549-688987.mp4",
+          "bytes": 5069605,
+          "createdAt": 1788847279549
+        }
+      ]
+    },
+    "quality": 1920,
+    "dialogOpen": true,
+    "previewOpen": false,
+    "previewReady": false,
+    "previewError": ""
+  },
+  "checks": [
+    "Shared video actions and quality choices",
+    "Explicit unsupported H.264 result without software substitution",
+    "No invalid clip published; native output detached and simulation unchanged"
+  ],
+  "notVerified": [
+    "Real-device recording, encoded picture/color/timing, lifecycle finalization, export picker and playback"
+  ]
+}

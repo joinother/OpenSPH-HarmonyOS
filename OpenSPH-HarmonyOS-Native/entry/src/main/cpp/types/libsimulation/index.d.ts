@@ -94,3 +94,7 @@ export interface GalaxyObserverStatus {
 }
 export const setGalaxyObserver:(mode:number,yaw:number,pitch:number,fov:number,latitude:number,siderealHours:number)=>void;
 export const galaxyObserverStatus:()=>GalaxyObserverStatus;
+
+export interface VideoOutputStatus {attached:boolean;pending:boolean;frames:number;width:number;height:number;error:string;}
+export const setVideoOutput:(id:string,width:number,height:number)=>void;
+export const videoOutputStatus:()=>VideoOutputStatus;

@@ -1,5 +1,6 @@
 #include "engine.h"
 #include "renderer.h"
+#include "video_output.h"
 #include "dense_ring.h"
 #include <cmath>
 #include <napi/native_api.h>
@@ -47,6 +48,20 @@ void num(napi_env e, napi_value o, const char *key, double d) {
 napi_value fail(napi_env e, const std::exception &ex) {
     napi_throw_error(e, nullptr, ex.what());
     return undef(e);
+}
+napi_value videoOutput(napi_env e,napi_callback_info i) {
+    try {auto a=args(e,i,3);size_t len=0;
+        if(napi_get_value_string_utf8(e,a[0],nullptr,0,&len)!=napi_ok||len<1||len>20)throw std::invalid_argument("Invalid surface ID");
+        std::string id(len+1,'\0');napi_get_value_string_utf8(e,a[0],&id[0],len+1,&len);id.resize(len);
+        if(id.find_first_not_of("0123456789")!=std::string::npos)throw std::invalid_argument("Invalid surface ID");
+        lab::requestVideoOutput(std::stoull(id),integer(e,a[1]),integer(e,a[2]));return undef(e);
+    }catch(const std::exception& ex){return fail(e,ex);}
+}
+napi_value videoStatus(napi_env e,napi_callback_info) {
+    auto s=lab::videoOutputStatus();napi_value o,v;napi_create_object(e,&o);
+    napi_get_boolean(e,s.attached,&v);napi_set_named_property(e,o,"attached",v);
+    napi_get_boolean(e,s.pending,&v);napi_set_named_property(e,o,"pending",v);
+    num(e,o,"frames",s.frames);num(e,o,"width",s.width);num(e,o,"height",s.height);str(e,o,"error",s.error);return o;
 }
 napi_value start(napi_env e, napi_callback_info i) {
     try {
@@ -428,6 +443,8 @@ napi_value Init(napi_env e, napi_value exports) {
         {"pickBody",nullptr,pick,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setComposition",nullptr,composition,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setMoonTexture",nullptr,moonTexture,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"setVideoOutput",nullptr,videoOutput,nullptr,nullptr,nullptr,napi_default,nullptr},
+        {"videoOutputStatus",nullptr,videoStatus,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setMaterial",nullptr,material,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setSurfaceSeeds",nullptr,surfaceSeeds,nullptr,nullptr,nullptr,napi_default,nullptr},
         {"setAppearance",nullptr,appearance,nullptr,nullptr,nullptr,napi_default,nullptr},

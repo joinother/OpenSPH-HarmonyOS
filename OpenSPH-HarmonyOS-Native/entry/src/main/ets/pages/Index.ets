@@ -1,3 +1,4 @@
+import { SceneVideo, VideoState, VideoClip } from '../common/SceneVideo';
 import { GalaxyReference, GalaxyComparisonPlot, galaxyComparisonPlot, galaxyParameterDifferences, galaxyComparisonCsv } from '../common/GalaxyComparison';
 import { GalaxyComparisonStore } from '../common/GalaxyComparisonStore';
 import { SphReference, SphReferenceSummary, SphComparisonPlot, sphComparisonPlot, sphReferenceSummary, sphParameterDifferences, sphComparisonCsv } from '../common/SphComparison';
@@ -48,7 +49,7 @@ interface ThemeState { id:string; title:string; goal:string; limit:string; modif
 interface MoonAssetInfo {source:string;asset:string;credit:string;width:number;height:number;requested:boolean;ready:boolean;uploads:number;blend:number;error:string;decodedBudgetBytes:number;gpuBudgetBytes:number;}
 interface MoonAssetReply {ok:boolean;moon:MoonAssetInfo;}
 interface GalaxyPlacementState {active:boolean;offsetKpc:number;sourceTime:number;constraint:string;}
-interface AppSnapshot {galaxyObserver:GalaxyObserverStatus;galaxyPlacement:GalaxyPlacementState; surfaces:SurfaceRecipe[];surfaceUndoCount:number;surfaceRedoCount:number; material:RecipeMaterial; cameraMotion:CameraMotionStatus; ringTrace:RingTraceStatus; theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
+interface AppSnapshot {video:VideoState;galaxyObserver:GalaxyObserverStatus;galaxyPlacement:GalaxyPlacementState; surfaces:SurfaceRecipe[];surfaceUndoCount:number;surfaceRedoCount:number; material:RecipeMaterial; cameraMotion:CameraMotionStatus; ringTrace:RingTraceStatus; theme:ThemeState; placement:PlacementState; sky:SkyState; editor:EditorState; appearance:AppearanceState; rendering:RenderStatus; definition: SceneDefinition; ok: boolean; protocol: number; simulation: SimulationStatus; scene: SceneState; camera: CameraState; ui: UiState; window: WindowState; }
 interface CommandDescription { name: string; payload: string; }
 interface CommandCatalog { ok: boolean; commands: CommandDescription[]; }
 interface ExperimentInfo { title: string; caption: string; symbol: string; }
@@ -115,6 +116,19 @@ struct MetricRow {
 @Entry
 @Component
 struct Index {
+  @State videoState:VideoState={state:'idle',elapsedSeconds:0,width:0,height:0,frames:0,error:'',message:'',selectedId:'',clips:[]};
+  @State videoOpen:boolean=false;
+  @State videoPreview:boolean=false;
+  @State videoPreviewReady:boolean=false;
+  @State videoPreviewError:string='';
+  @State videoQuality:number=1280;
+  @State videoUri:string='';
+  private video:SceneVideo|undefined=undefined;
+  private videos():SceneVideo {if(!this.video)this.video=new SceneVideo(this.getUIContext().getHostContext() as common.UIAbilityContext);return this.video;}
+  private videoBusy():boolean {return ['starting','recording','stopping','exporting'].includes(this.videoState.state);}
+  private syncVideo():void {if(this.video)this.videoState=this.video.snapshot();}
+  private videoTime():string {const seconds:number=Math.floor(this.videoState.elapsedSeconds);return Math.floor(seconds/60).toString().padStart(2,'0')+':'+(seconds%60).toString().padStart(2,'0');}
+
   @StorageLink('windowGeometry') @Watch('geometryChanged') windowGeometry:WindowGeometry={widthPx:0,heightPx:0,topPx:0,bottomPx:0,leftPx:0,rightPx:0,revision:0};
   @StorageLink('immersive') immersive: boolean = false;
   @StorageLink('appForeground') appForeground: boolean = true;
@@ -373,11 +387,13 @@ struct Index {
   }
   private directory(): string { return (this.getUIContext().getHostContext() as common.UIAbilityContext).filesDir; }
   aboutToAppear(): void {
+    this.videos();this.syncVideo();
     this.refreshProjects();this.reloadReference();this.reloadSphReference();this.reloadGalaxyReference();
     loadSkyPanorama(this.getUIContext().getHostContext() as common.UIAbilityContext).catch((error:Error) => {this.skyLoadError=error.message;});
     this.prepare(false);
     CliBridge.bind((command: string, payload: CommandPayload) => this.execute(command,payload));
     this.poll = setInterval(() => {
+      this.syncVideo();
       const previousState: string = this.info.state;
       this.info = simulation.status();this.cameraFlight=simulation.getCameraMotion(0).state;this.rendering=simulation.renderStatus();this.observerMode=simulation.galaxyObserverStatus().mode;this.trace=simulation.ringTraceStatus(false);
       if(this.contactMode()&&this.info.state==='paused'&&this.info.selected<0&&(this.info.contact?.count??0)>0){
@@ -394,7 +410,7 @@ struct Index {
       }
     }, 200);
   }
-  aboutToDisappear(): void { this.stopCameraMotion();CliBridge.unbind(); this.panelEpoch++; clearInterval(this.poll); simulation.pause(true); }
+  aboutToDisappear(): void { SceneVideo.background(); this.stopCameraMotion();CliBridge.unbind(); this.panelEpoch++; clearInterval(this.poll); simulation.pause(true); }
   @State private orbitDrafts:OrbitDraftState[]=[];
   @State private orbitUndo:OrbitHistoryEntry[]=[];
   @State private orbitRedo:OrbitHistoryEntry[]=[];
@@ -930,6 +946,8 @@ struct Index {
     finally { this.ioBusy = false; }
   }
   onBackPress(): boolean {
+    if(this.videoPreview){this.videoPreview=false;return true;}
+    if(this.videoOpen){this.videoOpen=false;return true;}
     if(this.observerMode>0){this.changeGalaxyObserver(0);return true;}
     if(this.galaxyPlacing){this.cancelGalaxyPlacement();return true;}
     if(this.placing){this.cancelPlacement();return true;}
@@ -967,7 +985,7 @@ struct Index {
   }
   private snapshot(): string {
     this.info=simulation.status();
-    const snapshot: AppSnapshot = {galaxyObserver:simulation.galaxyObserverStatus(),galaxyPlacement:this.galaxyPlacementState(),surfaces:copySurfaces(this.surfaces),surfaceUndoCount:this.surfaceUndo.length,surfaceRedoCount:this.surfaceRedo.length,ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{target:this.placementTarget,sourceIndex:this.placing?this.placementSource:-1,sourceName:this.placing&&this.placementSource>0?this.orbitBodies[this.placementSource].name:'',active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.observerMode>0?'galaxy-tracer-observer':this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
+    const snapshot: AppSnapshot = {video:this.videoState,galaxyObserver:simulation.galaxyObserverStatus(),galaxyPlacement:this.galaxyPlacementState(),surfaces:copySurfaces(this.surfaces),surfaceUndoCount:this.surfaceUndo.length,surfaceRedoCount:this.surfaceRedo.length,ringTrace:simulation.ringTraceStatus(false),theme:this.themeState(),placement:{target:this.placementTarget,sourceIndex:this.placing?this.placementSource:-1,sourceName:this.placing&&this.placementSource>0?this.orbitBodies[this.placementSource].name:'',active:this.placing,name:this.placementName,fields:this.placementFields.slice(),surface:this.placementSurface,direction:this.placementDirection,preview:this.placementPreview()},sky:{mode:this.skyMode,brightness:this.skyBrightness,reference:this.observerMode>0?'galaxy-tracer-observer':this.rendering.panoramaReady?'photographic-panorama':'procedural-fallback'},ok:true,protocol:1,definition:this.definition(),editor:this.editorState(),
       material:this.materialState(),appearance:{clouds:this.clouds,atmosphere:this.atmosphere,trails:this.trails,closeup:this.closeup,autoSpin:this.autoSpin,rings:this.rings},rendering:simulation.renderStatus(),
       simulation:this.info,
       scene:{preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,dirty:this.dirty},
@@ -983,11 +1001,11 @@ struct Index {
       editedBody:this.editedBody,targetName:this.targetName,impactorName:this.impactorName,title:this.title,selectingPreset:this.selectingPreset};
   }
   private uiActions():UiActionInfo[] {
-    this.refreshObservation();this.rendering=simulation.renderStatus();
+    this.syncVideo();this.refreshObservation();this.rendering=simulation.renderStatus();
     const a:UiActionInfo[]=[];
     const add=(id:string,label:string,enabled:boolean=true,selected:boolean=false):void=>{a.push({id:id,label:label,enabled:enabled&&!this.ioBusy,selected:selected});};
     add('panel.parameters','参数',true,this.panelOpen&&this.tab===0);add('panel.observe','观察',true,this.panelOpen&&this.tab===1);add('panel.library','实验库',true,this.panelOpen&&this.tab===2);
-    add('panel.close','收起');add('ui.focus','专注');add('ui.restore','显示工具');add('ui.back','返回',this.observerMode>0||this.galaxyPlacing||this.panelOpen||this.closeup||this.focus>=0||!this.toolsVisible||this.rendering.fragmentFollow.active);
+    add('panel.close','收起');add('ui.focus','专注');add('ui.restore','显示工具');add('ui.back','返回',this.videoOpen||this.videoPreview||this.observerMode>0||this.galaxyPlacing||this.panelOpen||this.closeup||this.focus>=0||!this.toolsVisible||this.rendering.fragmentFollow.active);
     for(const t of this.themes)add('theme.'+t.id,t.title,true,this.activeThemeId===t.id);
     add('theme.restore','恢复主题初始条件',this.activeThemeId!=='');
     add('theme.compare','切换对照实验',this.themeState().compareId!=='');
@@ -999,6 +1017,16 @@ struct Index {
     add('simulation.cancel','停止实验',['preparing','running','paused'].includes(this.info.state));
     add('replay.toggle',this.playing?'暂停回放':'播放回放',this.info.frames>1,this.playing);add('replay.latest','最新',this.info.frames>0);
     add('replay.save','保存回放',this.info.frames>0);add('replay.load','载入回放');
+    add('video.open','视频',!this.placing&&!this.galaxyPlacing);
+    add('video.close','返回星图',true);add('video.reload','刷新视频',!this.videoBusy());
+    add('video.start','开始录制',!this.videoBusy()&&this.appForeground&&this.rendering.ready);
+    add('video.stop','停止录制',this.videoState.state==='recording');
+    add('video.preview','预览视频',!this.videoBusy()&&this.videoState.selectedId!=='');
+    add('video.preview.close','关闭预览',this.videoPreview);
+    add('video.export','导出 MP4',!this.videoBusy()&&this.videoState.selectedId!=='');
+    add('video.quality.1280','标准 · 长边 1280',!this.videoBusy(),this.videoQuality===1280);
+    add('video.quality.1920','高清 · 长边 1920',!this.videoBusy(),this.videoQuality===1920);
+    for(const clip of this.videoState.clips)add('video.select.'+clip.id,'选择视频 · '+clip.name,!this.videoBusy(),this.videoState.selectedId===clip.id);
     add('project.save','另存实验');add('project.open','打开实验库');
     for(const project of this.projects)add('project.load.'+project.id,'载入实验 · '+project.scene.title);
     add('surface.toggle',this.closeup?'返回轨道':'近看行星',this.isOrbit(),this.closeup);
@@ -1140,7 +1168,20 @@ struct Index {
   private async performUiAction(action:string):Promise<void> {
     this.info=simulation.status();const descriptor=this.uiActions().find((a:UiActionInfo):boolean=>a.id===action);
     if(!descriptor||!descriptor.enabled)throw new Error('Action unavailable: '+action);
-    if(action==='panel.parameters')this.togglePanel(0);
+    if(action==='video.open'){this.videos();this.syncVideo();this.videoOpen=true;}
+    else if(action==='video.reload'){this.videos().reload();this.syncVideo();}
+    else if(action==='video.close'){this.videoOpen=false;this.videoPreview=false;}
+    else if(action==='video.preview.close')this.videoPreview=false;
+    else if(action==='video.start'){
+      this.videoPreview=false;this.setPanel(-1);
+      try{await this.videos().start(this.windowGeometry.widthPx,this.windowGeometry.heightPx,this.videoQuality);this.videoOpen=false;}finally{this.syncVideo();}
+    }
+    else if(action==='video.stop'){try{await this.videos().stop();this.videoOpen=true;}finally{this.syncVideo();}}
+    else if(action==='video.preview'){this.videoUri=this.videos().previewUri();this.videoPreviewReady=false;this.videoPreviewError='';this.videoPreview=true;}
+    else if(action==='video.export'){try{await this.videos().exportSelected();}finally{this.syncVideo();}}
+    else if(action.startsWith('video.select.')){this.videos().select(action.slice(13));this.videoPreview=false;this.syncVideo();}
+    else if(action.startsWith('video.quality.'))this.videoQuality=Number(action.slice(14));
+    else if(action==='panel.parameters')this.togglePanel(0);
     else if(action==='panel.observe')this.togglePanel(1);
     else if(action==='panel.library'){this.refreshProjects();this.togglePanel(2);}
     else if(action==='panel.close'){if(this.placing)this.cancelPlacement();else this.setPanel(-1);}
@@ -1334,6 +1375,8 @@ struct Index {
       {name:'setPlacementPoint',payload:'{x:0..1,y:0..1} in the placement plot; same handler as tap/drag'},
       {name:'getOrbitPreview',payload:'{} - initial editor vector drafts, input coordinates, XY/XZ; does not change physics'},
       {name:'listExperiments',payload:'{} - built-in theme initial conditions, observation goals and default cameras'},
+      {name:'getVideoCapabilities',payload:'{} - device encoder capabilities; unavailable during video operations'},
+      {name:'getVideoState',payload:'{} - recording status, elapsed wall seconds, submitted frames and local MP4 clips; uiAction video.* controls'},
       {name:'getUiState',payload:'{} - editor drafts, body edit undo/redo history, action IDs/enabled/selected, input fields'},
       {name:'listUiActions',payload:'{} - same semantic control catalog'},
       {name:'uiAction',payload:'{action:string} - invoke a catalog action through the same ArkUI handler'},
@@ -1398,6 +1441,8 @@ struct Index {
     if(command==='setViewportPlacementPoint'){this.moveViewportPlacement(this.checked(p.x,0,1),this.checked(p.y,0,1));return JSON.stringify({ok:true,active:this.placing,preview:this.placementPreview()});}
     if(command==='setPlacementPoint'){this.movePlacement(this.checked(p.x,0,1),this.checked(p.y,0,1));return this.snapshot();}
     if(command==='getOrbitPreview'){if(this.preset!==5)throw new Error('需要自定义系统');return JSON.stringify({ok:true,body:this.orbitEdit,draft:this.orbitDraft,reference:'initial-input',preview:this.orbitPreview()});}
+    if(command==='getVideoCapabilities')return JSON.stringify({ok:true,encoders:await this.videos().capabilities()});
+    if(command==='getVideoState'){this.videos();this.syncVideo();return JSON.stringify({ok:true,video:this.videoState,quality:this.videoQuality,dialogOpen:this.videoOpen,previewOpen:this.videoPreview,previewReady:this.videoPreviewReady,previewError:this.videoPreviewError});}
     if(command==='getUiState'||command==='listUiActions'){this.info=simulation.status();return JSON.stringify({ok:true,actions:this.uiActions(),fields:this.uiFields(),editor:this.editorState(),theme:this.themeState(),librarySection:this.librarySection});}
     if(command==='uiAction'){if(typeof p.action!=='string')throw new Error('missing action');await this.performUiAction(p.action);return this.snapshot();}
     if(command==='setUiValue'){if(typeof p.field!=='string'||p.value===undefined)throw new Error('missing field/value');this.setUiValue(p.field,p.value);return this.snapshot();}
@@ -1719,10 +1764,11 @@ struct Index {
     Row({space:6}) {
       Image($r('app.media.ic_orbit')).width(28).height(28).margin({right:2})
       if(this.viewportWidth>=600&&!this.layout().compact) {Text('星体实验室').fontSize(15).fontColor('#EFEDFA').fontWeight(FontWeight.Medium)}
+      ChoiceChip({label:'视频',active:this.videoOpen,onPress:() => {this.press('video.open');}})
       Blank()
-      FloatingButton({label:'参数',icon:$r('app.media.ic_sliders'),active:this.panelOpen&&this.tab===0,onPress:() => {this.press('panel.parameters');}})
-      FloatingButton({label:'观察',icon:$r('app.media.ic_observe'),active:this.panelOpen&&this.tab===1,onPress:() => {this.press('panel.observe');}})
-      FloatingButton({label:'实验库',icon:$r('app.media.ic_library'),active:this.panelOpen&&this.tab===2,onPress:() => {this.press('panel.library');}})
+      FloatingButton({label:'参数',compact:this.layout().safe.width<480,icon:$r('app.media.ic_sliders'),active:this.panelOpen&&this.tab===0,onPress:() => {this.press('panel.parameters');}})
+      FloatingButton({label:'观察',compact:this.layout().safe.width<480,icon:$r('app.media.ic_observe'),active:this.panelOpen&&this.tab===1,onPress:() => {this.press('panel.observe');}})
+      FloatingButton({label:'实验库',compact:this.layout().safe.width<480,icon:$r('app.media.ic_library'),active:this.panelOpen&&this.tab===2,onPress:() => {this.press('panel.library');}})
       FloatingButton({label:'专注',compact:true,onPress:() => {this.press('ui.focus');}})
     }.id('workspace-header').enabled(!this.placing).width(this.layout().safe.width).position({x:this.layout().safe.x,y:this.layout().safe.y}).height(this.layout().headerHeight).padding({left:14,right:14})
       .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({y:-12})).animation({duration:200,curve:Curve.EaseOut}))
@@ -2481,6 +2527,46 @@ struct Index {
       } else { this.library() }
     }.padding(16).width('100%')
   }
+  @Builder
+  videoDialog() {
+    Column({space:12}) {
+      Row() {
+        Text('记录这片宇宙').fontSize(21).fontColor('#F3EEFF').layoutWeight(1)
+        ChoiceChip({label:'返回星图',onPress:() => {this.press('video.close');}})
+      }.width('100%')
+      Scroll() {
+        Column({space:12}) {
+          Text('只录星图，不含菜单 · 无声 MP4\n可录制实时演化、回放和镜头移动。每段最多 3 分钟；切到后台自动结束。').fontSize(12).lineHeight(19).fontColor('#BDB6CE').width('100%')
+          Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(8)}}) {
+            ChoiceChip({label:'标准 · 长边 1280',active:this.videoQuality===1280,enabledAction:!this.videoBusy(),onPress:() => {this.press('video.quality.1280');}})
+            ChoiceChip({label:'高清 · 长边 1920',active:this.videoQuality===1920,enabledAction:!this.videoBusy(),onPress:() => {this.press('video.quality.1920');}})
+          }.width('100%')
+          Text(this.videoState.state==='recording'?'● '+this.videoTime()+' · '+this.videoState.message:this.videoState.state==='starting'?'正在准备编码器…':this.videoState.state==='stopping'?'正在完成视频…':this.videoState.message||'调整好视角，开始记录').fontSize(13).fontColor('#DEC9FF').width('100%')
+          if(this.videoState.error!==''){Text(this.videoState.error).fontSize(12).fontColor('#FFB9C5').width('100%')}
+          if(this.videoState.state==='recording') {
+            FloatingButton({label:'停止录制',primary:true,onPress:() => {this.press('video.stop');}})
+          } else {
+            FloatingButton({label:'开始录制',primary:true,enabledAction:!this.videoBusy(),onPress:() => {this.press('video.start');}})
+          }
+          ChoiceChip({label:'刷新视频',enabledAction:!this.videoBusy(),onPress:() => {this.press('video.reload');}})
+          if(this.videoState.clips.length>0){
+            Divider().color('#33B4A7D6')
+            Text('本机视频 · '+this.videoState.clips.length+' 段').fontSize(14).fontColor('#F3EEFF').width('100%')
+            ForEach(this.videoState.clips,(clip:VideoClip) => {
+              ChoiceChip({label:new Date(clip.createdAt).toLocaleString()+' · '+(clip.bytes/1048576).toFixed(1)+' MB',active:clip.id===this.videoState.selectedId,enabledAction:!this.videoBusy(),onPress:() => {this.press('video.select.'+clip.id);}})
+            },(clip:VideoClip) => clip.id)
+            Row({space:8}) {
+              ChoiceChip({label:'预览视频',enabledAction:!this.videoBusy(),onPress:() => {this.press('video.preview');}})
+              ChoiceChip({label:this.videoState.state==='exporting'?'正在导出…':'导出 MP4',enabledAction:!this.videoBusy(),onPress:() => {this.press('video.export');}})
+            }.width('100%')
+          }
+        }.width('100%')
+      }.layoutWeight(1).scrollBar(BarState.Auto).width('100%')
+    }.padding(20).width(Math.min(460,this.layout().safe.width-24)).height(Math.min(550,this.layout().safe.height-24))
+      .backgroundColor('#F0212235').backgroundBlurStyle(BlurStyle.COMPONENT_THICK,{colorMode:ThemeColorMode.DARK}).borderRadius(28)
+      .position({x:this.layout().safe.x+(this.layout().safe.width-Math.min(460,this.layout().safe.width-24))/2,y:this.layout().safe.y+12})
+      .id('video-dialog').transition(TransitionEffect.OPACITY.animation({duration:180}))
+  }
   build() {
     Stack({alignContent:Alignment.TopStart}) {
       this.viewport()
@@ -2498,6 +2584,21 @@ struct Index {
       if(this.observerMode===0&&this.rendering.panoramaReady&&this.rendering.skyGalaxy>0.001) {
         Text('ESO/S. Brunier · CC BY 4.0').id('sky-photo-credit').fontSize(10).fontColor('#C1BDCA')
           .position({x:this.layout().safe.x+16,y:this.placing?this.layout().safe.y+this.layout().safe.height-24:this.layout().safe.y+(this.toolsVisible?this.layout().headerHeight+2:20)}).hitTestBehavior(HitTestMode.None)
+      }
+      if(this.videoState.state==='recording'&&!this.videoOpen&&!this.videoPreview){
+        Button('● '+this.videoTime()+'  停止录制',{type:ButtonType.Normal}).id('video-stop').fontSize(12).fontColor('#FFE1E8')
+          .backgroundColor('#CC532D45').height(40).borderRadius(22).padding({left:14,right:14})
+          .position({x:this.layout().safe.x+12,y:this.layout().safe.y+this.layout().headerHeight+28}).onClick(() => {this.press('video.stop');})
+      }
+      if(this.videoOpen){this.videoDialog()}
+      if(this.videoPreview){
+        Column({space:12}) {
+          Video({src:this.videoUri}).autoPlay(true).controls(true).objectFit(ImageFit.Contain).width('100%').layoutWeight(1)
+            .onPrepared(() => {this.videoPreviewReady=true;}).onError(() => {this.videoPreviewError='当前设备无法播放此视频，可导出后在其他设备查看';})
+          if(this.videoPreviewError!==''){Text(this.videoPreviewError).fontSize(13).fontColor('#FFB9C5')}
+          ChoiceChip({label:'关闭预览',onPress:() => {this.press('video.preview.close');}})
+        }.padding(16).backgroundColor('#FA080B15').width(this.layout().safe.width).height(this.layout().safe.height)
+          .position({x:this.layout().safe.x,y:this.layout().safe.y}).id('video-preview')
       }
     }.width('100%').height('100%').backgroundColor('#080B15')
       .onAreaChange((_:Area,area:Area) => {this.windowWidth=Number(area.width);this.windowHeight=Number(area.height);})

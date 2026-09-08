@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include "video_output.h"
 #include "camera_journey.h"
 #include "engine.h"
 #include "planet_material.h"
@@ -186,6 +187,7 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
         while (running && linked) {
             auto begin = std::chrono::steady_clock::now();
             double dt=std::min(.1,std::chrono::duration<double>(begin-lastClock).count());lastClock=begin;
+            updateVideoOutput(display,config);
             if(!active){std::this_thread::sleep_for(std::chrono::milliseconds(100));continue;}
             std::shared_ptr<const SkyPanorama> panorama;std::shared_ptr<const MoonMap> moon;
             std::array<SurfaceKey,8> seeds;
@@ -353,10 +355,12 @@ void main(){if(trail==1){color=vec4(tint,trailOpacity);return;}vec2 p=gl_PointCo
             }
             GLenum glError=glGetError();if(glError!=GL_NO_ERROR)error("OpenGL draw error "+std::to_string(glError));
             {std::lock_guard<std::mutex> lock(mutex);stats.galaxyObserverMode=observing?observerView.mode:0;stats.galaxyObserverTime=observing?observerView.time:0;stats.sceneRevision=revision;stats.fragmentFollow=followed;stats.cameraMoving=navigation.moving()||framing.moving()||followed.moving;stats.compositionX=compositionNow[0];stats.compositionY=compositionNow[1];stats.compositionScale=compositionNow[2];stats.centerX=cx;stats.centerY=cy;stats.centerZ=cz;stats.frames++;stats.skyStars=skyStars;stats.skyGalaxy=skyGalaxy;stats.previewSeconds=previewTime;stats.submitMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count();}
+            if(!submitVideoOutput(display,context,surface,w,h,!observing&&skyConfig.mode==2&&photoReady&&photoMix>0)){error("Unable to restore scene after video frame");break;}
             if (!eglSwapBuffers(display, surface)){error("EGL swap failed");break;}
             {std::lock_guard<std::mutex> lock(mutex);stats.materialExposure=m.exposure;stats.materialOcean=m.ocean;stats.materialCloudShadows=m.cloudShadows;navigation.presented(cameraRequest);projected=std::move(shown);projectedRevision=revision;}
             std::this_thread::sleep_until(begin + std::chrono::milliseconds(33));
         }
+        releaseVideoOutput(display);
         galaxySky.release();
         sky.release();
         material.release();

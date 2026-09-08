@@ -1,12 +1,14 @@
 # 星体实验室 · OpenSPH HarmonyOS Native
 
-> 类型：当前项目概览；源码版本：0.47.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前项目概览；源码版本：0.48.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 鸿蒙原生科学探索应用，使用 ArkTS/ArkUI 构建交互界面，以 OpenSPH C++ 计算岩质碰撞，以独立的 C++ 多体引力模型计算行星轨道，通过 XComponent/OpenGL ES 显示。包名为 `com.opensph.lab`。
 
 从 [文档目录](docs/README.md) 查找指南和记录；操作应用见 [CLI 指南](docs/CLI.md)，继续开发前阅读 [开发约定](AGENTS.md) 和 [文档流程](docs/WORKFLOW.md)。
 
 ## 当前能力
+
+- 新增星图视频录制、预览与 MP4 导出，采用鸿蒙系统编码；不支持视频编码的模拟器明确提示，实际录制与导出待真机验收。见 [视频说明](docs/reference/VIDEO.md)。
 
 - 星系新增“恒星也能拉动星系”：600 个带质量恒星群相互吸引，并反作用于两个扩展中心。可切换无质量对照、保存跨模型曲线、从盘内观察同一历史；新模型用 v13 回放保留身份。参见 [双向引力](docs/reference/GALAXY-RESPONSE.md)。尚无可变形暗晕，冷盘初态未达平衡，不能据此认定真实星系合并。
 

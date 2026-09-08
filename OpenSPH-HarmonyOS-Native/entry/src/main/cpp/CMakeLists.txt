@@ -4,8 +4,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 get_filename_component(PROJECT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../.." ABSOLUTE)
 add_subdirectory(${PROJECT_ROOT}/third_party/opensph ${CMAKE_CURRENT_BINARY_DIR}/opensph)
-add_library(simulation SHARED engine.cpp galaxy_simulation.cpp orbit.cpp planet_texture.cpp surface_generator.cpp planet_material.cpp sky_data.cpp sky_renderer.cpp galaxy_sky_renderer.cpp renderer.cpp napi_init.cpp)
-target_link_libraries(simulation PRIVATE core ace_napi.z ace_ndk.z EGL GLESv3 hilog_ndk.z)
+add_library(simulation SHARED engine.cpp galaxy_simulation.cpp orbit.cpp planet_texture.cpp surface_generator.cpp planet_material.cpp sky_data.cpp sky_renderer.cpp galaxy_sky_renderer.cpp renderer.cpp video_output.cpp napi_init.cpp)
+target_link_libraries(simulation PRIVATE core ace_napi.z ace_ndk.z EGL GLESv3 hilog_ndk.z native_window)
 
 # Keep the O(N^2) galaxy loop optimized in emulator debug builds, without fast-math.
 set_source_files_properties(galaxy_simulation.cpp PROPERTIES COMPILE_OPTIONS "-O2")
