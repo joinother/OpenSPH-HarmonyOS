@@ -1,0 +1,4 @@
+ninja: no work to do.
+FileTransfer finish, Size:8740808, File count = 1, time:139ms rate:62883.51kB/s
+PASS actual sampled particle mass, 3D COM, momentum, kinetic and angular budgets
+PASS staged cancellation, stale/invalid/duplicate rejection, actual 641 particle SPH at 8.12 s, thermal growth 1.97434e+25 J, exact parent restoration, v17 provenance/diagnostics and invalid replay rejection

@@ -1,0 +1,6 @@
+ninja: no work to do.
+FileTransfer finish, Size:8734952, File count = 1, time:109ms rate:80137.17kB/s
+PASS provenance mode=0 particles=212 frames=16: constant source mass, v20 exact replay, source IDs, seven transactional corrupt rejections, legacy unknown preserved
+PASS provenance mode=1 particles=212 frames=16: constant source mass, v20 exact replay, source IDs, seven transactional corrupt rejections, legacy unknown preserved
+PASS provenance mode=2 particles=212 frames=16: constant source mass, v20 exact replay, source IDs, seven transactional corrupt rejections, legacy unknown preserved
+PASS provenance mode=3 particles=210 frames=16: constant source mass, v20 exact replay, source IDs, seven transactional corrupt rejections, legacy unknown preserved

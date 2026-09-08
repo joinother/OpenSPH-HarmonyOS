@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
         {
             for(int mode=0;mode<3;mode++){Config c{0,200,5,0,1};c.selfGravity=mode>0;c.relaxationSeconds=mode==2?16:0;e.start(c,true);awaitState(e,"paused");auto original=e.frame();
                 require(validSphFragments(original->fragments,original->particles.size(),original->totalMass),"initial fragment summary invalid");std::cout<<"initial fragment mode="<<mode<<" groups="<<original->fragments.groups.size()<<" largest_count="<<original->fragments.groups[0].count<<std::endl;
-                require(e.saveReplay(dir),"v15 save failed");const std::string path=dir+"/last-replay.osphr";std::ifstream in(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(in)),{});in.close();require(bytes[4]==15,"missing v15 fragments");
+                require(e.saveReplay(dir,true,false),"v15 save failed");const std::string path=dir+"/last-replay.osphr";std::ifstream in(path,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(in)),{});in.close();require(bytes[4]==15,"missing v15 fragments");
                 require(e.loadReplay(dir)&&e.status().config.selfGravity==c.selfGravity&&e.status().config.relaxationSeconds==c.relaxationSeconds,"v15 model identity changed");require(e.frame()->fragments.labels==original->fragments.labels,"v15 labels changed");require(e.frame()->fragments.groups[0].mass==original->fragments.groups[0].mass,"v15 mass changed");
                 uint32_t count=0;std::memcpy(&count,bytes.data()+136,4);const size_t groupsAt=136+84+size_t(count)*sizeof(Particle)+80+size_t(count)*sizeof(SphScalar)+32;
                 for(int badCase=0;badCase<5;badCase++){auto bad=bytes;uint32_t value=badCase==0?0:count+1;double nan=std::numeric_limits<double>::quiet_NaN();

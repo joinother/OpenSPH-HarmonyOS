@@ -319,13 +319,24 @@ napi_value sphObservation(napi_env e,napi_callback_info) {
 napi_value sphFragments(napi_env e,napi_callback_info i){
     try{auto args2=args(e,i,2);int offset=integer(e,args2[0]),limit=integer(e,args2[1]);if(offset<0||offset>10000||limit<1||limit>32)throw std::invalid_argument("Invalid fragment page");
         const auto snapshot=lab::Engine::instance().fragmentFrame();const auto frame=snapshot.frame;napi_value o,list,available;napi_create_object(e,&o);
-        num(e,o,"sceneRevision",snapshot.sceneRevision);num(e,o,"selected",snapshot.selected);num(e,o,"time",frame?frame->time:0);num(e,o,"linkScale",lab::fragmentLinkScale);num(e,o,"offset",offset);str(e,o,"method","symmetric-smoothing-connectivity-v1");
+        num(e,o,"sceneRevision",snapshot.sceneRevision);num(e,o,"selected",snapshot.selected);num(e,o,"time",frame?frame->time:0);num(e,o,"frameIndex",snapshot.frameIndex);num(e,o,"linkScale",lab::fragmentLinkScale);num(e,o,"offset",offset);str(e,o,"method","symmetric-smoothing-connectivity-v1");
         bool valid=frame&&frame->fragments.available;napi_get_boolean(e,valid,&available);napi_set_named_property(e,o,"available",available);
         if(!valid){napi_create_array(e,&list);napi_set_named_property(e,o,"groups",list);str(e,o,"reason","此记录没有材料团块数据，重新计算后可查看");return o;}
+        const bool hasOrigins=!frame->origins.empty();napi_value flag;napi_get_boolean(e,hasOrigins,&flag);napi_set_named_property(e,o,"originAvailable",flag);
+        str(e,o,"originReason",hasOrigins?"按本帧真实粒子质量汇总初始天体来源；单一玄武岩，非分层成分或束缚判定":"旧回放没有逐粒子质量，不推算来源比例");
+        lab::FragmentOrigins origins;
+        auto pair=[&](napi_value object,const char* key,const std::array<double,2>& values){napi_value a;napi_create_array_with_length(e,2,&a);for(int k=0;k<2;k++){napi_value n;napi_create_double(e,values[k],&n);napi_set_element(e,a,k,n);}napi_set_named_property(e,object,key,a);};
+        if(hasOrigins){
+            if(snapshot.orbitalSources){num(e,o,"originEventCount",snapshot.originEventCount);num(e,o,"originEventTimeSeconds",snapshot.originEventTimeSeconds);}
+            origins=lab::measureFragmentOrigins(frame->fragments,frame->origins,frame->totalMass);pair(o,"originTotalsKg",origins.totals);pair(o,"originIds",{double(snapshot.sourceBodyIds[0]),double(snapshot.sourceBodyIds[1])});
+            str(e,o,"originNamespace",snapshot.orbitalSources?"orbit-contact-body-index":"initial-sph-body-index");str(e,o,"originModel","initial-rock-body-mass-v1");str(e,o,"originMaterial","basalt-single-material-v1");
+            napi_value labels;napi_create_array_with_length(e,2,&labels);for(int k=0;k<2;k++){const std::string label=snapshot.sourceBodyIds[k]<0?"无第二岩体":snapshot.orbitalSources?"轨道天体 "+std::to_string(snapshot.sourceBodyIds[k]):k==0?"初始岩体 A":"初始岩体 B";napi_value text;napi_create_string_utf8(e,label.c_str(),label.size(),&text);napi_set_element(e,labels,k,text);}napi_set_named_property(e,o,"originLabels",labels);
+        }
         const auto& data=frame->fragments;const size_t end=std::min(data.groups.size(),size_t(offset+limit)),begin=std::min(data.groups.size(),size_t(offset));napi_create_array_with_length(e,end-begin,&list);
         size_t singletons=0;double singletonMass=0;for(const auto&g:data.groups)if(g.count==1){singletons++;singletonMass+=g.mass;}
         num(e,o,"groupCount",data.groups.size());num(e,o,"particleCount",data.labels.size());num(e,o,"totalMassKg",frame->totalMass);num(e,o,"singletonCount",singletons);num(e,o,"singletonMassKg",singletonMass);num(e,o,"largestMassFraction",data.groups[0].mass/frame->totalMass);num(e,o,"nextOffset",end<data.groups.size()?int(end):-1);str(e,o,"reason","");
         for(size_t k=begin;k<end;k++){const auto&g=data.groups[k];napi_value item,center,velocity;napi_create_object(e,&item);napi_create_array_with_length(e,3,&center);napi_create_array_with_length(e,3,&velocity);
+            if(hasOrigins){pair(item,"originMassKg",origins.groups[k]);pair(item,"originFractions",{origins.groups[k][0]/g.mass,origins.groups[k][1]/g.mass});}
             num(e,item,"rank",k+1);num(e,item,"anchor",g.anchor);num(e,item,"count",g.count);num(e,item,"massKg",g.mass);num(e,item,"massFraction",g.mass/frame->totalMass);num(e,item,"rmsRadiusKm",g.rmsRadius/1000);
             for(int q=0;q<3;q++){napi_value p,v;napi_create_double(e,g.center[q]/1000,&p);napi_create_double(e,g.velocity[q]/1000,&v);napi_set_element(e,center,q,p);napi_set_element(e,velocity,q,v);}napi_set_named_property(e,item,"centerKm",center);napi_set_named_property(e,item,"velocityKmS",velocity);napi_set_element(e,list,k-begin,item);}
         napi_set_named_property(e,o,"groups",list);return o;

@@ -32,7 +32,6 @@ class Experiment : public IRun, public IRunCallbacks {
     Engine &engine;
     Config cfg;
     uint64_t generation;
-    Size split = 0;
     Clock::time_point last = Clock::now();
     double elapsed = 0, usedDt = 0;
 
@@ -65,7 +64,7 @@ class Experiment : public IRun, public IRunCallbacks {
                 body.set(BodySettingsId::PARTICLE_COUNT,i==0?cfg.count*3/4:cfg.count/4);
                 body.set(BodySettingsId::DENSITY,Float(plan.bodies[i].densityKgM3));
                 ic.addMonolithicBody(material,SphericalDomain(Vector(0._f),Float(plan.bodies[i].radiusKm*1000)),body);
-                placeImpactBody(material,plan.bodies[i]);if(i==0)split=material.getParticleCnt();storage->merge(std::move(material));
+                placeImpactBody(material,plan.bodies[i]);storage->merge(std::move(material));
             }
             preparationPoint(engine,generation,"solver");
             if(cfg.impactTides){
@@ -88,7 +87,7 @@ class Experiment : public IRun, public IRunCallbacks {
             prepareStationaryBody(primary,settings,cfg.relaxationSeconds,stop);
             target.addRotation(Vector(0._f,0._f,Float(cfg.targetSpin)),Vector(0._f));
             if(cfg.preset==2)target.addRotation(Vector(0._f,0._f,Float(cfg.speed*.003)),Vector(0._f));
-            split=primary.getParticleCnt();storage->merge(std::move(primary));
+            storage->merge(std::move(primary));
             if(cfg.preset!=2){
                 preparationPoint(engine,generation,"impactor");Storage secondary;
                 body.set(BodySettingsId::PARTICLE_COUNT,cfg.count/4);body.set(BodySettingsId::DENSITY,Float(cfg.impactorDensity));
@@ -109,7 +108,6 @@ class Experiment : public IRun, public IRunCallbacks {
         body.set(BodySettingsId::DENSITY, Float(cfg.targetDensity));
         auto target = ic.addMonolithicBody(*storage, SphericalDomain(Vector(0._f), Float(cfg.targetRadiusKm * 1000)), body);
         target.addRotation(Vector(0._f, 0._f, Float(cfg.targetSpin)), Vector(0._f));
-        split = storage->getParticleCnt();
         preparationPoint(engine,generation,cfg.preset==2?"solver":"impactor");
         if (cfg.preset == 2) {
             target.addRotation(Vector(0._f, 0._f, Float(cfg.speed * 0.003)), Vector(0._f));
@@ -135,6 +133,7 @@ class Experiment : public IRun, public IRunCallbacks {
         const auto &v = storage.getDt<Vector>(QuantityId::POSITION);
         const auto &rho = storage.getValue<Float>(QuantityId::DENSITY);
         const auto &mass = storage.getValue<Float>(QuantityId::MASS);
+        const auto &origins = storage.getValue<Size>(QuantityId::FLAG);
         const auto &pressure=storage.getValue<Float>(QuantityId::PRESSURE);
         const auto &internal=storage.getValue<Float>(QuantityId::ENERGY);
         const auto &damage=storage.getValue<Float>(QuantityId::DAMAGE);
@@ -153,7 +152,9 @@ class Experiment : public IRun, public IRunCallbacks {
             structure.push_back({double(mass[i]),{double(r[i][X]),double(r[i][Y]),double(r[i][Z])},{double(v[i][X]),double(v[i][Y]),double(v[i][Z])}});
             f->scalars.push_back(diagnostics.add(pressure[i],internal[i],damage[i],mass[i],speed));
             response.add(internal[i],std::pow(std::clamp(double(damage[i]),0.,1.),3),mass[i]);
-            int body = i < split ? 0 : 1;
+            if(origins[i]>1)throw std::runtime_error("Unknown initial rock source");
+            int body = int(origins[i]);
+            f->origins.push_back({double(mass[i]),uint32_t(body)});
             f->particles.push_back({float(r[i][X] / 1.e5), float(r[i][Y] / 1.e5), float(r[i][Z] / 1.e5),
                                     float(speed / 1000), float(rho[i]), float(body)});
             f->maxSpeed = std::max(f->maxSpeed, speed / 1000);
@@ -172,6 +173,7 @@ class Experiment : public IRun, public IRunCallbacks {
         if(energyGravity){Statistics stats;energyGravity->build(*scheduler,storage);potential=energyGravity->evalEnergy(*scheduler,stats);}
         f->sph.structure=measureSphStructure(structure,potential);
         f->fragments=measureSphFragments(structure,smoothing);
+        measureFragmentOrigins(f->fragments,f->origins,f->totalMass);
         auto now = Clock::now();
         engine.publish(f, generation, std::chrono::duration<double, std::milli>(now - last).count());
         last = now;
@@ -558,7 +560,7 @@ void Engine::seekGalaxyObservation(int index,uint64_t revision,double time){
     paused=true;if(current.state=="running")current.state="paused";current.selected=index;
 }
 FragmentFrame Engine::fragmentFrame(){
-    std::lock_guard<std::mutex> lock(mutex);FragmentFrame result;result.sceneRevision=generation.load();result.selected=current.selected;
+    std::lock_guard<std::mutex> lock(mutex);FragmentFrame result;if(config.preset==2)result.sourceBodyIds={0,-1};if(config.impactContact.hasIncoming){result.orbitalSources=true;result.originEventCount=config.impactContact.count;result.originEventTimeSeconds=config.impactContact.time*YEAR;result.sourceBodyIds={config.impactContact.a,config.impactContact.b};}result.sceneRevision=generation.load();result.selected=current.selected;result.frameIndex=current.selected<0?int(history.size())-1:current.selected;
     if(!history.empty()){result.frame=current.selected<0?history.back():history[std::min(size_t(current.selected),history.size()-1)];if(result.frame->galaxy.available)result.initial=history.front();}return result;
 }
 void Engine::seekSphObservation(int index,uint64_t revision,double time) {
@@ -628,7 +630,7 @@ void Engine::loop() {
 #include "orbit_session.inc"
 // Versioned, bounded playback format. This is visualization history, not a solver checkpoint.
 // Fixed-width little-endian ARM64/desktop fields; reject other formats/version.
-bool Engine::saveReplay(const std::string &dir,bool includeFragments) {
+bool Engine::saveReplay(const std::string &dir,bool includeFragments,bool includeOrigins) {
     std::deque<std::shared_ptr<Frame>> frames;
     double duration;
     Config saved;
@@ -648,13 +650,16 @@ bool Engine::saveReplay(const std::string &dir,bool includeFragments) {
     const bool structure=diagnostics&&std::all_of(frames.begin(),frames.end(),[](const auto& f){return validSphStructure(f->sph.structure);});
     const bool fragments=includeFragments&&structure&&std::all_of(frames.begin(),frames.end(),[](const auto&f){return validSphFragments(f->fragments,f->particles.size(),f->totalMass);});
     const bool response=fragments&&std::all_of(frames.begin(),frames.end(),[](const auto& f){return validSphResponse(f->sph.response);});
+    const bool origins=includeOrigins&&response&&std::all_of(frames.begin(),frames.end(),[](const auto& f){return !f->origins.empty();});
+    if(origins)for(const auto& f:frames){try{measureFragmentOrigins(f->fragments,f->origins,f->totalMass);}catch(...){return false;}}
     if(saved.impactContact.hasIncoming&&!response)return false;
     if((saved.initialEnergyMJkg>0||saved.initialDamage>0)&&!response)return false;
     if ((saved.selfGravity && !diagnostics)||(saved.relaxationSeconds>0&&!structure)) return false;
     std::ofstream out(temp, std::ios::binary);
     uint32_t magic = 0x4c485053, version = response?(saved.impactContact.hasIncoming?(saved.impactTides?19:17):15):known&&saved.preset==6?(saved.galaxyResponsive?13:12):known&&saved.preset==5&&!saved.orbitBodies.empty()&&saved.orbitBodies[0].radiusKm>0?11:fragments?10:saved.relaxationSeconds>0?9:diagnostics?(structure?(saved.selfGravity?8:7):(saved.selfGravity?6:5)):(known ? (saved.preset==5?4:(saved.preset>=3?3:2)) : 1), n = frames.size();
     out.write(reinterpret_cast<char *>(&magic), 4);
-    out.write(reinterpret_cast<char *>(&version), 4);
+    uint32_t wireVersion=origins?20:version;out.write(reinterpret_cast<char *>(&wireVersion), 4);
+    if(origins)out.write(reinterpret_cast<char*>(&version),4);
     out.write(reinterpret_cast<char *>(&n), 4);
     out.write(reinterpret_cast<char *>(&duration), 8);
     if (version >= 2) {
@@ -689,6 +694,7 @@ bool Engine::saveReplay(const std::string &dir,bool includeFragments) {
         if(version==3||version==4||version==11){uint32_t ntrail=f->trails.size();double d[]={f->energyError,f->angularError};
             out.write(reinterpret_cast<char *>(d),sizeof(d));out.write(reinterpret_cast<char *>(&ntrail),4);
             out.write(reinterpret_cast<char *>(f->trails.data()),ntrail*sizeof(Particle));}
+        if(origins)for(const auto& p:f->origins){out.write(reinterpret_cast<const char*>(&p.massKg),8);out.write(reinterpret_cast<const char*>(&p.source),4);}
     }
     out.flush();
     bool ok = bool(out);
@@ -706,6 +712,8 @@ bool Engine::loadReplay(const std::string &dir) {
     double duration = 0;
     in.read(reinterpret_cast<char *>(&magic), 4);
     in.read(reinterpret_cast<char *>(&version), 4);
+    const bool origins=version==20;
+    if(origins){in.read(reinterpret_cast<char*>(&version),4);if(!in||(version!=15&&version!=17&&version!=19))return false;}
     if(version==14||version==16||version==18){OrbitSession session;if(!readOrbitSession(in,session))return false;
         std::lock_guard<std::mutex> lock(mutex);if(impactReturn)return false;impactPreparing=false;++generation;pending=false;resumeOrbit.reset();paused=true;history=std::move(session.frames);config=session.config;continuous=session.continuous;daysPerSecond=session.rate;
         current=Status{};current.state="replay";current.duration=config.duration;current.selected=int(history.size())-1;preparation=PreparationTracker{};cv.notify_all();return true;}
@@ -807,6 +815,22 @@ bool Engine::loadReplay(const std::string &dir) {
             in.read(reinterpret_cast<char *>(f->trails.data()),nt*sizeof(Particle));if(!in)return false;
             for(uint32_t i=0;i<nt;++i){const auto &p=f->trails[i];if(!std::isfinite(p.x)||!std::isfinite(p.y)||!std::isfinite(p.z)||!std::isfinite(p.speed)||!std::isfinite(p.density)||p.body!=float(i/(nt/count)))return false;}
             for(uint32_t i=0;i<count;++i)if(f->particles[i].body!=float(i))return false;
+        }
+        if(origins){
+            f->origins.resize(count);for(size_t i=0;i<count;i++){
+                auto& p=f->origins[i];in.read(reinterpret_cast<char*>(&p.massKg),8);in.read(reinterpret_cast<char*>(&p.source),4);
+                if(!in||p.source>1||f->particles[i].body!=float(p.source))return false;
+                if(!frames.empty()&&(frames.back()->origins.size()!=count||frames.back()->origins[i].massKg!=p.massKg||frames.back()->origins[i].source!=p.source))return false;
+            }
+            try{
+                const auto budget=measureFragmentOrigins(f->fragments,f->origins,f->totalMass);
+                for(int source=0;source<2;source++){
+                    const double radius=(source==0?saved.targetRadiusKm:saved.impactorRadiusKm)*1000;
+                    const double density=source==0?saved.targetDensity:saved.impactorDensity;
+                    const double expected=saved.preset==2&&source==1?0:4*3.141592653589793/3*radius*radius*radius*density;
+                    if(expected==0?budget.totals[source]!=0:std::abs(budget.totals[source]/expected-1)>1e-6)return false;
+                }
+            }catch(...){return false;}
         }
         if(f->time<0||f->time>duration+0.15||(!frames.empty()&&f->time<frames.back()->time))return false;
         frames.push_back(f);

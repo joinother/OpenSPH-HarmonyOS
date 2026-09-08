@@ -1,6 +1,6 @@
 # 星体实验室 GitHub 检查点
 
-> 类型：当前恢复入口；更新日期：2026-09-08（Asia/Shanghai）；源码版本：0.55.0。
+> 类型：当前恢复入口；更新日期：2026-09-08（Asia/Shanghai）；源码版本：0.56.0。
 
 本分支基于原仓库 main 的 `8b4230e607d07710064acd87fb708b566fff4d07`，保留旧 OpenSPH-DevEco、patches 和 tools；原生工程在 [OpenSPH-HarmonyOS-Native](OpenSPH-HarmonyOS-Native/README.md)。开发断点不修改 main。
 
@@ -18,9 +18,9 @@ node --test tests/cli_transport.test.mjs tests/project_recipe.test.mjs
 
 ## 当前行为与证据
 
-0.55.0 新增近恒星岩体撞击初态及“含外部潮汐”入口，真实 SPH 粒子受冻结线性潮汐作用；v18 轨道保存同一接触时刻的全部天体，v19 保存局部潮汐与逐帧势能。114 项主机检查、解析及实际 SPH 对照见 [验证与边界](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.55.0.md)。
+0.56.0 接入逐粒子真实来源与质量，团块列表显示双方比例，新增来源查看入口与分页 CSV；v20 保存逐粒子来源，兼容 v15／v17／v19。116 项主机检查、四种原生场景和实际 60 秒撞击流程见 [验证与边界](OpenSPH-HarmonyOS-Native/docs/releases/RELEASE-0.56.0.md)。
 
-当前局部模型采用冷态、无自转玄武岩，外部场是受限短时近似、没有反作用，外部轨道保持暂停；返回恢复进入前的世界，碎片尚不回注。尚无相变比例、潜热、连续液态表面和冷却。视频仍使用系统编码并等待真机验收。
+来源比例只表示双方初始岩体，均为同一种玄武岩，不是地核／地幔成分或引力束缚判定。当前局部模型采用冷态、无自转玄武岩，外部场是受限短时近似、没有反作用，外部轨道保持暂停；返回恢复进入前的世界，碎片尚不回注。尚无相变比例、潜热、连续液态表面和冷却。视频仍使用系统编码并等待真机验收。
 
 此前版本及研究按原日期保存在[文档目录](OpenSPH-HarmonyOS-Native/docs/README.md)。公开创作者的 215 个视频目录与代表内容已归纳为[目标用户样本](OpenSPH-HarmonyOS-Native/docs/research/TARGET-CREATOR-651227816-2026-09-08.md)，研究不代表功能已实现。
 

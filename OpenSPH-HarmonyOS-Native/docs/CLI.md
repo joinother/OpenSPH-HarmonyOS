@@ -1,8 +1,16 @@
 # 语义 CLI 操作指南
 
-> 类型：当前操作指南；适用版本：0.55.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前操作指南；适用版本：0.56.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 在项目根目录执行命令。CLI 通过 HDC、Want 和 HiLog 与真实应用交互，会启动或前置应用；无需 HTTP 服务。回复按 UTF-8 字节预算限速（约 24 KB/s，含行元数据预算），大响应会比轻量查询慢；超过 256 分片返回明确错误，代理对请求不会自动重试执行。UI 与 CLI 共用动作和输入处理。以运行时 `listCommands`、`getUiState` 返回的字段、单位和可用状态为准。
+
+## 碎片来源与质量表
+
+`fragments.inspect` 打开观察面板并将来源列表置顶，`fragments.material` 恢复热状态优先；两者不重算，`getState.ui.fragmentFirst` 和 `getUiState.fragmentFirst` 可查选择。“按来源看”共用 `color.0`。列表显示每团来自 A／B 的实际质量比例，双方均为玄武岩，不能解释为地核、地幔成分。
+
+`getSphFragments {offset:0,limit:32}` 在 fragments 中返回 originAvailable、originReason、originModel、originMaterial、originNamespace、originIds、originLabels、originTotalsKg、frameIndex，以及每团 originMassKg／originFractions。局部撞击另有 originEventCount 和 originEventTimeSeconds。旧回放没有逐粒子质量时 originAvailable=false。
+
+`getSphFragmentTable {offset:0,limit:32}` 返回同一帧来源元数据、rows、nextOffset 和 17 列 CSV。offset 为 0–10000，limit 为 1–32；nextOffset=-1 表示结束。多页先暂停，并核对 sceneRevision、frameIndex、time 一致；缺失来源质量时拒绝，不用粒子数估算。字段、命名空间和 v20 布局见 [来源质量](reference/FRAGMENT-PROVENANCE.md)。
 
 ## 撞击初值与外部潮汐
 
@@ -12,7 +20,7 @@
 
 `impact.return` 恢复进入前的原轨道、时间、历史和外观。期间可观察、保存回放，不能修改初值或保存会丢失来源的普通配方。潮汐状态模型为 `sph-orbit-impact-tides-v1`；`simulation.impact` 提供 `tides`、`tidalPotentialJ`、`trackedEnergyJ`、`energyScope`、`sourceTimeSeconds`、`elapsedSeconds` 与 `eventEpochPlusElapsedSeconds`。记录能量不含弹性应变能；时间相加不是父世界推进。
 
-v18 保存轨道事件的同时刻全体来源，v19 保存含潮汐的局部 SPH。隔离 SPH 仍写 v17，仅含双方来源，加载后没有外部快照。旧 v14／v16／v17 可读；SPH 回放仅供观察，不是求解器续算或父会话存档。模型筛选与布局见 [外部潮汐](reference/IMPACT-TIDES.md)，分支行为见 [局部撞击](reference/LOCAL-IMPACT-SPH.md)。
+v18 保存轨道事件的同时刻全体来源。新 SPH 写 v20，在基础 v15／v17／v19 上增加实际粒子质量及来源；隔离局部仍不含外部快照。旧 v14／v16／v17／v19 可读；SPH 回放仅供观察，不是求解器续算或父会话存档。模型筛选与布局见 [外部潮汐](reference/IMPACT-TIDES.md)，分支行为见 [局部撞击](reference/LOCAL-IMPACT-SPH.md)。
 
 ## 选中天体后操作
 
@@ -603,7 +611,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 每团返回本帧质量排名 `rank`、最小粒子序号 `anchor`、`count`、`massKg`、`massFraction`、`centerKm[3]`、`velocityKmS[3]`、`rmsRadiusKm`。翻页期间应核对场景修订、所选帧与时间，运行中不同查询可能对应不同帧。排名和 anchor 都不是永久碎片身份。
 
-新计算的材料回放为 v15，保留 v10 的分组及自引力／预松弛配置，并增加材料初态与响应。v1–v9 没有团块数据，不能仅凭绘制位置重建；再次保存仍保留旧版，不补零或捏造分组。连接规则固定为距离不超过 1.5 倍平均光滑长度，低分辨率下相邻材料可能提前连通。几何定义见 [材料团块](reference/SPH-FRAGMENTS.md)，新字段见 [材料响应](reference/SPH-MATERIAL-RESPONSE.md)。
+新计算的材料回放为 v20，保留基础 v15 的材料初态／响应及 v10 的分组、自引力／预松弛配置，并增加逐粒子来源质量。v1–v9 没有团块数据，不能仅凭绘制位置重建；再次保存仍保留旧版，不补零或捏造分组。连接规则固定为距离不超过 1.5 倍平均光滑长度，低分辨率下相邻材料可能提前连通。几何定义见 [材料团块](reference/SPH-FRAGMENTS.md)，新字段见 [材料响应](reference/SPH-MATERIAL-RESPONSE.md)。
 
 ## 连续跟随材料团块
 
@@ -621,7 +629,7 @@ node scripts/opensph-cli.mjs --device 127.0.0.1:5555 --command uiAction --payloa
 
 改变颜色、旋转、缩放、翻页、折叠与屏幕方向保留跟随。`fragments.stop` 平滑返回选择前的常规观察目标；`focus.all` 返回全景，普通天体选择／视角复位结束团块跟随。返回键先关闭面板，之后结束团块跟随，再按既有逻辑处理。显式 `setCamera`、重新加载回放或更换实验结束跟随，防止粒子序号被用于另一场景。
 
-跟随是当前观察状态，不写入实验配方或回放；跟随本身不增加回放字段；当前新 SPH 回放为 v15。分裂时跟随包含种子材料点的分支，连接时跟随合并团块；这不代表完整碎片谱系、引力束缚或再聚合。见 [定义与验证](reference/FRAGMENT-FOLLOW.md)。
+跟随是当前观察状态，不写入实验配方或回放；跟随本身不增加回放字段；当前新 SPH 回放为 v20。分裂时跟随包含种子材料点的分支，连接时跟随合并团块；这不代表完整碎片谱系、引力束缚或再聚合。见 [定义与验证](reference/FRAGMENT-FOLLOW.md)。
 
 ## 命令返回的丢段恢复
 
@@ -635,4 +643,4 @@ UI／CLI 共用 `scene.energy` 和 `scene.damage` 数值字段；编辑后 `simu
 
 观察动作 `color.7` 为热软化外观，`color.8` 为剩余屈服强度，均不重算。`getSphDiagnostics` 的 `diagnostics.response` 包含 `model`、`meltEnergyMJkg`、`intactYieldGPa`、质量加权的 `softeningMean`、`zeroShearMassFraction`、`damagedMassFraction` 和 `strengthMean`。旧回放缺少 response 时这两个动作禁用；颜色来自配方或 setCamera 时回退原色。
 
-这不是温度／液相比例，零剪切屈服也不意味着压力消失。新 SPH 回放 v15 保存材料初态与逐帧响应，仍不能恢复完整求解器。详见 [模型、单位与验证](reference/SPH-MATERIAL-RESPONSE.md)。
+这不是温度／液相比例，零剪切屈服也不意味着压力消失。新 SPH 回放 v20 保留材料初态与逐帧响应（兼容 v15），仍不能恢复完整求解器。详见 [模型、单位与验证](reference/SPH-MATERIAL-RESPONSE.md)。

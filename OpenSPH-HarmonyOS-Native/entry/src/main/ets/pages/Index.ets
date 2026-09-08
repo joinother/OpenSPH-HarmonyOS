@@ -31,7 +31,7 @@ interface EditorState { drafts:OrbitDraftState[]; history:EditHistoryState; vect
 interface SceneSettings { preset: number; count: number; speed: number; angle: number; duration: number; }
 interface SceneState extends SceneSettings { dirty: boolean; }
 interface CameraState { yaw: number; pitch: number; zoom: number; focus: number; color: number; }
-interface UiState { panelOpen: boolean; toolsVisible: boolean; panel: number; playing: boolean; ioBusy: boolean; foreground: boolean; notice: string; }
+interface UiState { fragmentFirst: boolean; panelOpen: boolean; toolsVisible: boolean; panel: number; playing: boolean; ioBusy: boolean; foreground: boolean; notice: string; }
 interface SafeAreaState { top: number; bottom: number; left: number; right: number; }
 interface WindowState { layout:WorkspaceLayout; geometry:WindowGeometry; viewportWidthVp: number; viewportHeightVp: number; widthVp: number; heightVp: number; immersive: boolean; safePx: SafeAreaState; }
 interface ProjectSummary { id: string; title: string; savedAt: number; hasRecipe:boolean; themeId:string; }
@@ -244,6 +244,7 @@ struct Index {
   @State sphReferenceError:string='';
   @State fragments:SphFragmentSnapshot={available:false,reason:'等待材料团块',sceneRevision:0,selected:-1,time:0,linkScale:1.5,offset:0,method:'symmetric-smoothing-connectivity-v1',groups:[]};
   @State fragmentOffset:number=0;
+  @State fragmentFirst:boolean=false;
   @State sphObserved:SphObservation={sceneRevision:0,selected:-1,samples:[]};
   @State observationMetric:string='distance';
   @State observed:OrbitObservation={sceneRevision:0,body:1,name:'',selected:-1,samples:[]};
@@ -1087,7 +1088,7 @@ struct Index {
       scene:{preset:this.preset,count:this.count,speed:this.speed,angle:this.angle,duration:this.duration,dirty:this.dirty},
       camera:{yaw:this.yaw,pitch:this.pitch,zoom:this.zoom,focus:this.focus,color:this.colorMode},
       cameraMotion:simulation.getCameraMotion(0),
-      ui:{panelOpen:this.panelOpen,toolsVisible:this.toolsVisible,panel:this.tab,playing:this.playing,ioBusy:this.ioBusy,foreground:this.appForeground,notice:this.notice},
+      ui:{fragmentFirst:this.fragmentFirst,panelOpen:this.panelOpen,toolsVisible:this.toolsVisible,panel:this.tab,playing:this.playing,ioBusy:this.ioBusy,foreground:this.appForeground,notice:this.notice},
       window:{layout:this.layout(),geometry:this.windowGeometry,viewportWidthVp:this.viewportWidth,viewportHeightVp:this.viewportHeight,widthVp:this.windowWidth,heightVp:this.windowHeight,immersive:this.immersive,
         safePx:{top:this.windowGeometry.topPx,bottom:this.windowGeometry.bottomPx,left:this.windowGeometry.leftPx,right:this.windowGeometry.rightPx}}};
     return JSON.stringify(snapshot);
@@ -1140,6 +1141,8 @@ struct Index {
     add('trace.toggle','启用动态环带',this.canTrace()||this.trace.enabled,this.trace.enabled);add('trace.play',this.trace.running?'暂停环时钟':'运行环时钟',this.trace.enabled,this.trace.running);add('trace.reset','环时钟归零',this.trace.enabled);
     for(const metric of ['pressure','internal','damage','kinetic','energy','gravity','relativeKinetic','radius','radial'])add('sph.metric.'+metric,sphMetricLabel(metric),this.preset<3&&(sphMetricIndex(metric)<10||this.info.sph?.structure!==undefined),this.sphMetric===metric);
     add('sph.minimum','SPH 记录最小',this.preset<3&&this.sphView().available);add('sph.maximum','SPH 记录最大',this.preset<3&&this.sphView().available);
+    add('fragments.inspect','碎片来源',this.preset<3,this.fragmentFirst);
+    add('fragments.material','热状态',this.preset<3,!this.fragmentFirst);
     add('fragments.largest','跟随最大团块',this.fragments.available);
     add('fragments.stop','停止团块跟随',this.rendering.fragmentFollow.active);
     for(const g of this.fragments.groups)add('fragments.follow.'+g.anchor,'跟随第 '+g.rank+' 团',this.fragments.available,this.rendering.fragmentFollow.active&&this.rendering.fragmentFollow.anchor===g.anchor);
@@ -1345,6 +1348,7 @@ struct Index {
     else if(action==='camera.out')this.easeCamera(this.yaw,this.pitch,Math.min(15,this.zoom*1.2));
     else if(action==='camera.in')this.easeCamera(this.yaw,this.pitch,Math.max(.5,this.zoom/1.2));
     else if(action==='camera.reset'){simulation.clearSphFragmentFollow();this.closeSurface();this.easeCamera(.15,.25,this.preset===6?5.2:2.7);}
+    else if(action==='fragments.inspect'||action==='fragments.material'){this.fragmentFirst=action==='fragments.inspect';this.setPanel(1);this.scroller.scrollEdge(Edge.Top);}
     else if(action==='fragments.largest'){const first=simulation.sphFragments(0,1);if(!first.available||!first.groups.length)throw new Error('材料团块暂不可用');this.beginFragmentFollow(first.groups[0].anchor,first.sceneRevision);}
     else if(action==='fragments.stop'){simulation.clearSphFragmentFollow();this.notice='已停止团块跟随 · 返回原观察中心';}
     else if(action.startsWith('fragments.follow.'))this.beginFragmentFollow(Number(action.slice(17)),this.fragments.sceneRevision);
@@ -1487,6 +1491,7 @@ struct Index {
       {name:'followSphFragment',payload:'{particle:0..9999,sceneRevision:number} - follow the current component containing a selected material particle; no reload'},
       {name:'getSphFragmentFollow',payload:'{} - last rendered follow state, current group identity and target center in km'},
       {name:'getSphFragments',payload:'{offset?:0..10000,limit?:1..32} - selected-frame geometric material groups, SI-derived units and frame identity; not binding/reaggregation'},
+      {name:'getSphFragmentTable',payload:'{offset?:0..10000,limit?:1..32} - paged CSV of real particle source mass per geometric group; pause and check sceneRevision/frameIndex/time between pages'},
       {name:'getSphComparison',payload:'{} - shared axes, parameter differences, saved SPH provenance and interpolated cursor delta'},
       {name:'getSphReference',payload:'{} - full saved SPH reference or null; independent from orbital reference'},
       {name:'getSphComparisonTable',payload:'{} - selected metric raw current/reference CSV, seconds, no interpolated rows'},
@@ -1545,6 +1550,7 @@ struct Index {
     if(command==='getSphFragmentFollow')return JSON.stringify({ok:true,follow:simulation.renderStatus().fragmentFollow});
     if(command==='followSphFragment'){this.beginFragmentFollow(this.checked(p.particle,0,9999,true),this.checked(p.sceneRevision,0,2147483647,true));return JSON.stringify({ok:true,particle:p.particle,sceneRevision:p.sceneRevision});}
     if(command==='getSphFragments')return JSON.stringify({ok:true,fragments:simulation.sphFragments(this.checked(p.offset??0,0,10000,true),this.checked(p.limit??8,1,32,true))});
+    if(command==='getSphFragmentTable'){const data=simulation.sphFragments(this.checked(p.offset??0,0,10000,true),this.checked(p.limit??32,1,32,true));if(!data.originAvailable)throw new Error(data.originReason??'当前记录没有可导出的来源质量');return JSON.stringify({ok:true,sceneRevision:data.sceneRevision,frameIndex:data.frameIndex,selected:data.selected,time:data.time,timeUnit:'s',offset:data.offset,nextOffset:data.nextOffset,rows:data.groups.length,originModel:data.originModel,originMaterial:data.originMaterial,originNamespace:data.originNamespace,originEventCount:data.originEventCount,originEventTimeSeconds:data.originEventTimeSeconds,originIds:data.originIds,originLabels:data.originLabels,originTotalsKg:data.originTotalsKg,csv:this.fragmentCsv(data)});}
     if(command==='getSphReference')return JSON.stringify({ok:true,reference:this.sphReference??null,error:this.sphReferenceError});
     if(command==='getSphComparison'){this.refreshObservation();const source=simulation.status();return JSON.stringify({ok:true,metric:this.sphMetric,visible:this.sphReferenceShown,reference:this.sphReference?sphReferenceSummary(this.sphReference):undefined,currentConfig:source.config,currentModel:source.model,currentSceneRevision:this.sphObserved.sceneRevision,differences:this.sphReference?sphParameterDifferences(source.config,this.sphReference.config):[],chart:this.sphComparisonView(),error:this.sphReferenceError});}
     if(command==='getSphComparisonTable'){this.refreshObservation();const source=simulation.status(),csv=sphComparisonCsv(this.sphObserved,this.sphMetric,this.sphReference?.data);return JSON.stringify({ok:true,metric:this.sphMetric,unit:this.sphView().unit,timeAlignment:'simulation-start',timeUnit:'s',csv,rows:csv.trim().split('\n').length-1,currentConfig:source.config,currentModel:source.model,currentSceneRevision:this.sphObserved.sceneRevision,currentAvailable:this.sphView().available,referenceAvailable:this.sphReference!==undefined&&sphPlot(this.sphReference.data,this.sphMetric).available,reference:this.sphReference?sphReferenceSummary(this.sphReference):undefined});}
@@ -1572,7 +1578,7 @@ struct Index {
     if(command==='getOrbitPreview'){if(this.preset!==5)throw new Error('需要自定义系统');return JSON.stringify({ok:true,body:this.orbitEdit,draft:this.orbitDraft,reference:'initial-input',preview:this.orbitPreview()});}
     if(command==='getVideoCapabilities')return JSON.stringify({ok:true,encoders:await this.videos().capabilities()});
     if(command==='getVideoState'){this.videos();this.syncVideo();return JSON.stringify({ok:true,video:this.videoState,quality:this.videoQuality,dialogOpen:this.videoOpen,previewOpen:this.videoPreview,previewReady:this.videoPreviewReady,previewError:this.videoPreviewError});}
-    if(command==='getUiState'||command==='listUiActions'){this.info=simulation.status();return JSON.stringify({ok:true,actions:this.uiActions(),fields:this.uiFields(),editor:this.editorState(),theme:this.themeState(),librarySection:this.librarySection});}
+    if(command==='getUiState'||command==='listUiActions'){this.info=simulation.status();return JSON.stringify({ok:true,actions:this.uiActions(),fields:this.uiFields(),editor:this.editorState(),theme:this.themeState(),librarySection:this.librarySection,fragmentFirst:this.fragmentFirst});}
     if(command==='uiAction'){if(typeof p.action!=='string')throw new Error('missing action');await this.performUiAction(p.action);return this.snapshot();}
     if(command==='setUiValue'){if(typeof p.field!=='string'||p.value===undefined)throw new Error('missing field/value');this.setUiValue(p.field,p.value);return this.snapshot();}
     if(command==='listProjects') {
@@ -1672,6 +1678,14 @@ struct Index {
     if(this.colorMode===5)return '材料损伤：青色 0 → 红色 1';
     return this.colorMode===0?'灰岩 · 主天体 / 赭岩 · 撞击体；颜色不代表温度':(this.colorMode===1?'速度 0 → 10 km/s':'密度 0 → 5000 kg/m³');
   }
+  private fragmentCsv(data:SphFragmentSnapshot):string {
+    const rows:string[]=['origin_namespace,origin_event_count,origin_event_epoch_s,material_model,scene_revision,frame_index,time_s,rank,anchor,particle_count,mass_kg,source_a_id,source_a_mass_kg,source_a_fraction,source_b_id,source_b_mass_kg,source_b_fraction'];
+    for(const g of data.groups){
+      if(!g.originMassKg||!g.originFractions||!data.originIds)throw new Error('缺少完整来源质量');
+      rows.push(data.originNamespace+','+(data.originEventCount??'')+','+(data.originEventTimeSeconds??'')+','+data.originMaterial+','+[data.sceneRevision,data.frameIndex!,data.time,g.rank,g.anchor,g.count,g.massKg,data.originIds[0],g.originMassKg[0],g.originFractions[0],data.originIds[1],g.originMassKg[1],g.originFractions[1]].join(','));
+    }
+    return rows.join('\n')+'\n';
+  }
   @Builder
   materialControls() {
     if(this.selectedMoon()){Text(this.moonLoadError||this.rendering.moonError?'月面贴图暂不可用 · 显示灰色球体':(this.rendering.moonReady?"月面底图 · NASA’s Scientific Visualization Studio":'正在载入月面底图…')).fontSize(11).fontColor('#C9BEDF').width('100%')}
@@ -1764,13 +1778,18 @@ struct Index {
     Column({space:6}) {
       Text('材料分成了几团').id('sph-fragments-heading').fontSize(13).fontColor('#D9CCF5').width('100%')
       if(this.fragments.available){
-        Row({space:6}){
+        Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(6)}}){
+          ChoiceChip({label:'按来源看',active:this.colorMode===0,onPress:()=>{this.press('color.0');}})
           ChoiceChip({label:'跟随最大团块',onPress:()=>{this.press('fragments.largest');}}).id('sph-fragments-largest')
           if(this.rendering.fragmentFollow.active){ChoiceChip({label:'停止跟随',onPress:()=>{this.press('fragments.stop');}}).id('sph-fragments-stop')}
         }.width('100%')
         if(this.rendering.fragmentFollow.active){Text('正在跟随第 '+this.rendering.fragmentFollow.rank+' 团 · '+this.rendering.fragmentFollow.count+' 粒子').id('sph-follow-status').fontSize(11).fontColor(this.fragmentColor(this.rendering.fragmentFollow.anchor)).width('100%')}
         Text(this.fragments.groupCount+' 个几何团块 · '+this.fragments.time.toFixed(2)+' s').fontSize(12).fontColor('#E2EEF5').width('100%')
         MetricRow({label:'最大团块质量占比',value:(this.fragments.largestMassFraction!*100).toFixed(2)+' %'})
+        if(this.fragments.originAvailable){
+          Text('灰岩 · '+this.fragments.originLabels![0]+' / 赭岩 · '+this.fragments.originLabels![1]).fontSize(11).fontColor('#D1BB9A').width('100%')
+          Text('按实际质量区分初始天体；均为同一种玄武岩，不是地核／地幔成分。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
+        }else{Text(this.fragments.originReason??'等待来源质量记录').fontSize(10).fontColor('#ABA6C0').width('100%')}
         Text('单粒子团块 '+this.fragments.singletonCount+' 个 · '+(this.fragments.singletonMassKg!/this.fragments.totalMassKg!*100).toFixed(2)+' % 质量').fontSize(10).fontColor('#ABA6C0').width('100%')
         ForEach(this.fragments.groups,(g:SphMaterialGroup)=>{
           Column({space:3}){
@@ -1778,6 +1797,7 @@ struct Index {
               Text('#'+g.rank+' · '+g.count+' 粒子 · '+(g.massFraction*100).toFixed(2)+' %').fontSize(11).fontColor(this.fragmentColor(g.anchor)).layoutWeight(1).maxLines(2)
               ChoiceChip({label:this.rendering.fragmentFollow.active&&this.rendering.fragmentFollow.anchor===g.anchor?'跟随中':'跟随',active:this.rendering.fragmentFollow.active&&this.rendering.fragmentFollow.anchor===g.anchor,onPress:()=>{this.press('fragments.follow.'+g.anchor);}}).id('sph-follow-'+g.anchor)
             }.width('100%')
+            if(g.originFractions){Text(this.fragments.originLabels![0]+' '+(g.originFractions[0]*100).toFixed(2)+' % · '+this.fragments.originLabels![1]+' '+(g.originFractions[1]*100).toFixed(2)+' %').fontSize(11).fontColor('#D1BB9A').lineHeight(17).width('100%')}
             Text(g.massKg.toPrecision(4)+' kg · 质心速度 '+Math.hypot(g.velocityKmS[0],g.velocityKmS[1],g.velocityKmS[2]).toPrecision(3)+' km/s').fontSize(10).fontColor('#B7C5D5').width('100%')
             Text('质心 km ['+g.centerKm.map((v:number):string=>v.toFixed(1)).join(', ')+'] · 尺度 '+g.rmsRadiusKm.toPrecision(3)+' km').fontSize(10).fontColor('#ABA6C0').lineHeight(15).width('100%')
           }.width('100%')
@@ -1793,8 +1813,16 @@ struct Index {
   @Builder
   sphControls() {
     Column({space:8}) {
-      Text(this.info.config?.preset===2?'岩球内部发生了什么':'碰撞内部发生了什么').fontSize(15).fontColor('#E2EEF5').width('100%')
+      Text(this.fragmentFirst?'碎片来自哪里':this.info.config?.preset===2?'岩球内部发生了什么':'碰撞内部发生了什么').fontSize(15).fontColor('#E2EEF5').width('100%')
       Text('SPH 诊断 · '+this.info.time.toFixed(2)+' s').fontSize(11).fontColor('#B7C5D5').width('100%')
+      Row({space:6}){
+        ChoiceChip({label:'碎片来源',active:this.fragmentFirst,onPress:()=>{this.press('fragments.inspect');}}).id('sph-source-section')
+        ChoiceChip({label:'热状态',active:!this.fragmentFirst,onPress:()=>{this.press('fragments.material');}}).id('sph-material-section')
+      }.width('100%')
+      if(this.fragmentFirst){
+        if(this.info.impact?.local){Text('源事件 '+this.info.impact!.sourceTimeSeconds.toFixed(3)+' s · 父世界暂停，碎片尚不回注').fontSize(10).fontColor('#D1BB9A').width('100%')}
+        this.fragmentControls()
+      }
       if(this.info.sph?.available) {
         Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(6),cross:LengthMetrics.vp(6)}}) {
           if(this.info.sph?.response){
@@ -1815,7 +1843,7 @@ struct Index {
           MetricRow({label:'平均剩余屈服强度',value:((this.info.sph?.response?.strengthMean??0)*100).toFixed(2)+' %'})
           Text('内能达到 3.4 MJ/kg 后，本材料模型不再承受剪切屈服应力。压缩压力与引力仍可作用；未计算液相比例、潜热或冷却结壳。').fontSize(10).fontColor('#ABA6C0').lineHeight(16).width('100%')
         }
-        this.fragmentControls()
+        if(!this.fragmentFirst){this.fragmentControls()}
         this.sphCurveControls()
         if(this.sphSummary().available){
           Column({space:6}){
@@ -2666,8 +2694,8 @@ struct Index {
         }.width('100%')
       } else if(this.tab===1) {
         this.impactControls()
-        if(this.info.impact?.local){Text('局部撞击 · 源事件 '+this.info.impact!.sourceTimeSeconds.toFixed(3)+' 秒 · 冷态岩质、无自转、自引力 · 外部世界暂停，碎片尚不回注').fontSize(11).fontColor('#D1BB9A').lineHeight(18)}
-        if(this.info.impact?.local&&this.info.impact?.tides){Text('冻结线性潮汐 · '+(this.info.contact?.tides?.sourceCount??0)+' 个外部引力源 · 潮汐势能 '+(this.info.impact?.tidalPotentialJ??0).toExponential(3)+' J').fontSize(11).fontColor('#D1BB9A').lineHeight(18)}
+        if(this.info.impact?.local&&!this.fragmentFirst){Text('局部撞击 · 源事件 '+this.info.impact!.sourceTimeSeconds.toFixed(3)+' 秒 · 冷态岩质、无自转、自引力 · 外部世界暂停，碎片尚不回注').fontSize(11).fontColor('#D1BB9A').lineHeight(18)}
+        if(this.info.impact?.local&&this.info.impact?.tides&&!this.fragmentFirst){Text('冻结线性潮汐 · '+(this.info.contact?.tides?.sourceCount??0)+' 个外部引力源 · 潮汐势能 '+(this.info.impact?.tidalPotentialJ??0).toExponential(3)+' J').fontSize(11).fontColor('#D1BB9A').lineHeight(18)}
           if(this.trace.enabled){this.traceControls()}
           if(this.preset===5) {
             Text(this.canGenerateSurface()?'独立外观 · '+this.orbitBodies[this.surfaceTarget()].name:'选择一颗行星可生成新外观').fontSize(12).fontColor('#D9CCF5')

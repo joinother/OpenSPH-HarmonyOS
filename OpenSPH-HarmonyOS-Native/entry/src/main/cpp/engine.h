@@ -1,5 +1,6 @@
 #pragma once
 #include "sph_fragments.h"
+#include "sph_provenance.h"
 #include "orbit.h"
 #include "galaxy.h"
 #include "sph_diagnostics.h"
@@ -43,7 +44,7 @@ struct Frame {
     double orbitEnergy=0,orbitAngular=0,orbitEnergyScale=1,orbitAngularScale=1;
     GalaxyDiagnostics galaxy;
     OrbitContact contact;std::vector<double> radiiAU;
-    SphFragments fragments;
+    SphFragments fragments;std::vector<ParticleOrigin> origins;
     SphDiagnostics sph;double tidalPotentialJ=0;
     std::vector<SphScalar> scalars;
     std::vector<Particle> particles;
@@ -83,7 +84,7 @@ struct SphObservationSample {int frame;double time;std::array<double,10> values;
 struct SphObservation {uint64_t sceneRevision=0;int selected=-1;std::vector<SphObservationSample> samples;};
 struct GalaxySample {int frame;double time;std::array<double,5> values;double energyError,angularError;};
 struct GalaxyObservation {bool available=false;uint64_t sceneRevision=0;int selected=-1;Config config;std::vector<GalaxySample> samples;};
-struct FragmentFrame {uint64_t sceneRevision=0;int selected=-1;std::shared_ptr<const Frame> frame; std::shared_ptr<const Frame> initial;};
+struct FragmentFrame {std::array<int,2> sourceBodyIds{0,1};bool orbitalSources=false;uint32_t originEventCount=0;double originEventTimeSeconds=0;int frameIndex=-1;uint64_t sceneRevision=0;int selected=-1;std::shared_ptr<const Frame> frame; std::shared_ptr<const Frame> initial;};
 class Engine {
   public:
     Engine();
@@ -109,7 +110,7 @@ class Engine {
     void seekObservation(int index, uint64_t revision, double time);
     std::shared_ptr<const Frame> frame();
     uint64_t sceneRevision() const { return generation.load(); }
-    bool saveReplay(const std::string &directory,bool includeFragments=true);
+    bool saveReplay(const std::string &directory,bool includeFragments=true,bool includeOrigins=true);
     bool loadReplay(const std::string &directory);
     static Engine &instance();
     // Solver-thread only callbacks. No ArkTS objects cross this boundary.

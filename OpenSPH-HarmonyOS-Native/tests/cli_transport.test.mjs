@@ -1211,3 +1211,31 @@ test('external tide action requires an eligible event and shares the near-star p
  assert.equal(app.definition().config.impactTides,true);
  await assert.rejects(app.execute('uiAction',{action:'orbit.impact.tidesDemo'}));
 });
+
+test('fragment source CSV preserves per-group mass, identity and pagination without mutating the scene',async()=>{
+ const {page:app,state,simulation,calls}=page();
+ const groups=[{rank:1,anchor:0,count:2,massKg:10,originMassKg:[2,8],originFractions:[.2,.8]},{rank:2,anchor:2,count:2,massKg:10,originMassKg:[3,7],originFractions:[.3,.7]}];
+ const data={available:true,originAvailable:true,originModel:'initial-rock-body-mass-v1',originMaterial:'basalt-single-material-v1',originNamespace:'orbit-contact-body-index',originEventCount:3,originEventTimeSeconds:30,originLabels:['轨道天体 4','轨道天体 7'],originIds:[4,7],originTotalsKg:[5,15],sceneRevision:42,frameIndex:3,selected:-1,time:2,groups};
+ simulation.sphFragments=(offset,limit)=>({...data,offset,groups:groups.slice(offset,offset+limit),nextOffset:offset+limit<groups.length?offset+limit:-1});
+ const before=JSON.stringify(state),count=calls.length;
+ const table=JSON.parse(await app.execute('getSphFragmentTable',{offset:1,limit:1}));
+ assert.equal(table.rows,1);assert.equal(table.nextOffset,-1);assert.equal(table.frameIndex,3);assert.equal(table.originNamespace,'orbit-contact-body-index');
+ assert.equal(table.csv.split('\n')[1],'orbit-contact-body-index,3,30,basalt-single-material-v1,42,3,2,2,2,2,10,4,3,0.3,7,7,0.7');assert.deepEqual(table.originTotalsKg,[5,15]);
+ assert.equal(JSON.stringify(state),before);assert.equal(calls.length,count);
+ await assert.rejects(app.execute('getSphFragmentTable',{limit:33}));await assert.rejects(app.execute('getSphFragmentTable',{offset:-1}));
+ simulation.sphFragments=()=>({available:true,originAvailable:false,originReason:'old replay has no masses',groups:[]});
+ await assert.rejects(app.execute('getSphFragmentTable',{}),/old replay has no masses/);
+ const catalog=JSON.parse(await app.execute('listCommands',{}));assert.ok(catalog.commands.some(c=>c.name==='getSphFragmentTable'));
+});
+
+
+test('source observation section shares UI actions and leaves physics untouched',async()=>{
+ const {page:app,state,calls}=page();app.choose(0);
+ const before=JSON.stringify(state),count=calls.length;
+ await app.execute('uiAction',{action:'fragments.inspect'});
+ assert.equal(app.fragmentFirst,true);assert.equal(app.tab,1);assert.equal(app.panelOpen,true);
+ assert.equal(JSON.parse(await app.execute('getUiState',{})).fragmentFirst,true);
+ await app.execute('uiAction',{action:'fragments.material'});assert.equal(app.fragmentFirst,false);
+ assert.equal(JSON.stringify(state),before);assert.equal(calls.length,count);
+ assert.equal(app.localImpactActionAllowed('fragments.inspect'),true);
+});

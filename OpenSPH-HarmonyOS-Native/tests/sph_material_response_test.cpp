@@ -57,7 +57,7 @@ int main(int argc,char** argv){try{
         require(final.sph.values[DamageMean]+1e-12>=initial.sph.values[DamageMean],"damage healed without a model");
         if(variant==0){coldEnergy=final.sph.values[InternalMean];coldDamage=final.sph.values[DamageMean];require(coldEnergy>0&&coldDamage>0,"impact did not heat or fracture rock");}
         if(variant==1)hotEnergy=final.sph.values[InternalMean];
-        require(e.saveReplay(dir),"v15 save failed");std::string original=bytes(file);uint32_t version=0;std::memcpy(&version,original.data()+4,4);require(version==15,"response missing from replay");
+        require(e.saveReplay(dir,true,false),"v15 save failed");std::string original=bytes(file);uint32_t version=0;std::memcpy(&version,original.data()+4,4);require(version==15,"response missing from replay");
         require(e.loadReplay(dir),"v15 load failed");e.seek(-1);auto loaded=e.status();require(loaded.sph.response.values==final.sph.response.values,"response replay drift");
         require(loaded.config.initialEnergyMJkg==c.initialEnergyMJkg&&loaded.config.initialDamage==c.initialDamage,"material parameters lost from replay");
         for(size_t size:{size_t(8),size_t(123),original.size()-1}){write(file,original.substr(0,size));auto revision=e.sceneRevision();require(!e.loadReplay(dir)&&e.sceneRevision()==revision,"truncated replay mutated world");}

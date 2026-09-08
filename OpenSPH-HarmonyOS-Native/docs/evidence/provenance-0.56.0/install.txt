@@ -1,0 +1,3 @@
+[Info]App install path:/Users/jiexuanyang/Documents/Codex/2026-09-06/opensph-opensph-spacesim-spacesim-mcp-arkts/outputs/OpenSPH-HarmonyOS-Native/entry/build/default/outputs/default/entry-default-unsigned.hap msg:install bundle successfully. 
+AppMod finish
+start ability successfully.

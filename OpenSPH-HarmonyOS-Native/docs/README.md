@@ -1,14 +1,14 @@
 # 文档目录
 
-> 类型：当前文档索引；源码版本：0.55.0；更新日期：2026-09-08（Asia/Shanghai）。
+> 类型：当前文档索引；源码版本：0.56.0；更新日期：2026-09-08（Asia/Shanghai）。
 
 先阅读 [项目概览](../README.md)，操作应用使用 [CLI 指南](CLI.md)，维护资料遵循 [文档流程](WORKFLOW.md) 和 [开发约定](../AGENTS.md)。本目录区分当前说明与历史记录；归档内容不覆盖当前规则。
 
-最新开发断点：[0.55.0 局部撞击外部潮汐](releases/RELEASE-0.55.0.md)。执行顺序与验收门槛见 [产品实施路线](reference/PRODUCT-ROADMAP.md)。视频的实际录制与导出仍待真机验收。
+最新开发断点：[0.56.0 碎片来源质量与导出](releases/RELEASE-0.56.0.md)。执行顺序与验收门槛见 [产品实施路线](reference/PRODUCT-ROADMAP.md)。视频的实际录制与导出仍待真机验收。
 
 ## 当前参考
 
-本批新增：[局部外部潮汐](reference/IMPACT-TIDES.md)；前批：[局部 SPH 撞击](reference/LOCAL-IMPACT-SPH.md)；初值定义见 [轨道撞击初值](reference/IMPACT-INITIAL-CONDITIONS.md)；前批材料实现见 [SPH 破坏与热软化](reference/SPH-MATERIAL-RESPONSE.md)，包含真实材料输入、上游强度模型、显示语义和 v15 格式。
+本批新增：[碎片来源质量](reference/FRAGMENT-PROVENANCE.md)；前批：[局部外部潮汐](reference/IMPACT-TIDES.md)；已有：[局部 SPH 撞击](reference/LOCAL-IMPACT-SPH.md)；初值定义见 [轨道撞击初值](reference/IMPACT-INITIAL-CONDITIONS.md)；前批材料实现见 [SPH 破坏与热软化](reference/SPH-MATERIAL-RESPONSE.md)，包含真实材料输入、上游强度模型、显示语义和 v15 基础格式。
 
 | 文档 | 用途 |
 | --- | --- |
@@ -23,6 +23,7 @@
 | [预研实施核对](reference/RESEARCH-IMPLEMENTATION.md) | 预研建议与已交付能力、部分实现和未完成主线的对应 |
 | [星系、星云与宇宙尺度](research/GALAXIES-NEBULAE-UNIVERSE-2026-09-08.md) | Celestia／SpaceEngine 与科学引擎选读；潮汐相遇、自洽引力、气体和宇宙学回放路线，6 个实验提案；调研基线 0.42.0，后续实现见当前模型参考 |
 | [材料团块跟随](reference/FRAGMENT-FOLLOW.md) | 材料点身份、实时质心镜头、切换／停止与回放连续性 |
+| [碎片来源质量](reference/FRAGMENT-PROVENANCE.md) | 真实逐粒子来源、逐团质量比例、分页 CSV 与 v20 回放 |
 | [SPH 材料团块](reference/SPH-FRAGMENTS.md) | 对称几何连接、质量与质心统计、团块着色及 v10 回放 |
 | [SPH 实验对照](reference/SPH-COMPARISON.md) | 本地参照、共用坐标、参数差异与原始数据导出 |
 | [环与完整碰撞主线](reference/RING-AND-COLLISION.md) | 同源密度环、受控扰动的边界，以及行星结构／自引力／再聚合优先级 |
