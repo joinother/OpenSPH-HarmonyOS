@@ -11,8 +11,10 @@
 | 基线版本 | **v0.4.1** |
 | 基线提交 | `7415f249663e1a1b91b7f8e8df703ca8b2cd360e` |
 | 基线日期 | 2022-11-16 |
-| 本仓库标签 | `upstream/base-v0.4.1` |
 | 判定依据 | `patches/opensph-harmonyos.patch` 里 `CMakeLists.txt` 的 blob 前缀 `e57ca46`，与上游 v0.4.0/v0.4.1 完全一致 |
+
+> 上游完整历史**未**推入本仓库：上游包含 `.github/workflows/`，推送需要 GitHub token 的 `workflow` 权限。
+> 需要对比时用下面的脚本，或在本地 `git fetch upstream --tags` 后把 v0.4.1 打成自己的标签。
 
 ## 怎么查看「移植到底改了什么」
 
