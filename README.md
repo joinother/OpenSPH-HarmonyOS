@@ -84,3 +84,12 @@ docs/
 - wxWidgets：上游采用 **wxWindows Library Licence**。
 - sse2neon.h：第三方头文件，遵循其自身许可（MIT）。
 - 本仓库的适配改动、壳工程、汉化词库与文档：MIT。
+
+## 相关项目
+
+- [**UniverseLab-HarmonyOS**](https://github.com/joinother/UniverseLab-HarmonyOS) —— 基于 OpenSPH 内核重写的 ArkUI 宇宙沙盒（SPH 碰撞 / 多体轨道 / 星系相遇）。
+  该项目 2026-09 起从本仓库独立，原有 55 个提交与完整历史已迁至其仓库。
+
+## 上游基线
+
+本仓库基于 OpenSPH **v0.4.1**（`7415f249`，2022-11-16）。锚点、补丁清单与升级流程见 [UPSTREAM.md](UPSTREAM.md)。
