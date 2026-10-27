@@ -55,3 +55,15 @@ tools/bootstrap-upstream.sh          # 克隆 v0.4.1、打补丁、切到可 dif
 | `patches/opensph-harmonyos.patch` | OpenSPH | 12 | +558 / −127 |
 | `patches/wxwidgets-harmonyos.patch` | wxWidgets | 8 | +472 / −8 |
 | `patches/sse2neon.h` | 编译期头文件 | 1 | 新增 |
+
+## 升级到上游 master 的可行性（2026-10-28 实测）
+
+在上游 `master`（`c2141cf5`）上干跑 `patches/opensph-harmonyos.patch`：
+
+| 结果 | 文件 |
+|---|---|
+| ✅ 干净应用 | 10 / 12 个文件 |
+| ⚠️ 需手工解冲突 | `gui/launcherGui/LauncherGui.cpp`（整文件头 hunk，209 行拒绝）、`gui/windows/MainWindow.cpp`（54 行拒绝） |
+
+所以升级不是重打全部补丁，**只需处理这 2 个文件**。建议流程：先在 `tools/bootstrap-upstream.sh` 建好的上游副本里切到 `master`，
+用 `git apply --reject` 看拒绝片段，手工合并后再跑一次构建验证。
